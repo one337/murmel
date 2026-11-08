@@ -1,0 +1,170 @@
+package bus
+
+// UI-originated tree events (T16). These are the outbound half of the
+// channel-tree contract: the tree widget renders state from the events in
+// events.go and, when the user acts, emits the events below. A controller
+// (internal/ui/channeltree/controller.go) translates the *Requested commands
+// into protocol calls; other views consume the selection events.
+//
+// Like every bus event they are value-typed snapshots; handlers run on the
+// GLib main loop in emit order.
+
+// ChannelJoinRequested is emitted when the user activates a channel row
+// (double-click or Enter in the wide tree, the Join button in the narrow
+// drill-down). A controller moves the local user into the channel.
+type ChannelJoinRequested struct {
+	// ChannelID is the ID of the channel to join.
+	ChannelID uint32
+}
+
+// ChatTargetSelected is emitted when the tree selection changes. Exactly one
+// of ChannelID / Session is non-zero: selecting a channel row targets the
+// channel, selecting a user row targets a private conversation with that
+// user. T17 binds the chat composer target to this event.
+type ChatTargetSelected struct {
+	// ChannelID is the selected channel ID (0 when a user is selected).
+	ChannelID uint32
+	// Session is the selected user's session ID (0 when a channel is
+	// selected).
+	Session uint32
+	// Name is the target's display name at selection time (may go stale).
+	Name string
+}
+
+// SelfMuteToggle is emitted when the user clicks the status-bar mute button
+// or a self-mute menu action. The controller translates it into
+// client.Self.SetSelfMuted(Muted).
+type SelfMuteToggle struct {
+	Muted bool
+}
+
+// SelfDeafenToggle is the same for the deafen button/action.
+type SelfDeafenToggle struct {
+	Deafened bool
+}
+
+// UserMoveRequested asks the controller to move Session into the local user's
+// current channel.
+type UserMoveRequested struct {
+	Session uint32
+}
+
+// UserMuteRequested asks the controller to server-mute or un-mute a user.
+type UserMuteRequested struct {
+	Session uint32
+	Muted   bool
+}
+
+// UserDeafenRequested asks the controller to server-deafen or un-deafen.
+type UserDeafenRequested struct {
+	Session  uint32
+	Deafened bool
+}
+
+// UserPriorityRequested toggles a user's priority-speaker status.
+type UserPriorityRequested struct {
+	Session  uint32
+	Priority bool
+}
+
+// UserRegisterRequested asks the controller to register an unregistered user.
+type UserRegisterRequested struct {
+	Session uint32
+}
+
+// UserStatsRequested asks the controller to fetch and display stats for a user.
+type UserStatsRequested struct {
+	Session uint32
+}
+
+// UserVolumeChanged carries a local (client-side) volume adjustment for one
+// remote user. The audio pipeline scales decoded PCM for that session.
+// Volume is in [0.0, 2.0], where 1.0 = 100%.
+type UserVolumeChanged struct {
+	Session uint32
+	Volume  float64
+}
+
+// UserKickRequested asks the controller to kick a user from the server.
+type UserKickRequested struct {
+	Session uint32
+	Reason  string
+}
+
+// UserBanRequested asks the controller to ban a user from the server.
+type UserBanRequested struct {
+	Session uint32
+	Reason  string
+}
+
+// ChannelCreateRequested asks the controller to create a sub-channel.
+type ChannelCreateRequested struct {
+	ParentID  uint32
+	Name      string
+	Temporary bool
+}
+
+// ChannelDeleteRequested asks the controller to remove a channel and its
+// sub-channels from the server tree.
+type ChannelDeleteRequested struct {
+	ChannelID uint32
+}
+
+// ChannelRenameRequested asks the controller to rename a channel.
+type ChannelRenameRequested struct {
+	ChannelID uint32
+	Name      string
+}
+
+// ACLRequested asks the controller to fetch a channel's ACL from the server.
+type ACLRequested struct {
+	ChannelID uint32
+}
+
+// ACLSaveRequested asks the controller to write a modified ACL to the server.
+type ACLSaveRequested struct {
+	ChannelID uint32
+	Inherits  bool
+	Groups    []ACLGroupInfo
+	Rules     []ACLRuleInfo
+}
+
+// BanListRequested asks the controller to request the server ban list.
+type BanListRequested struct{}
+
+// UserListRequested asks the controller to request the registered user list.
+type UserListRequested struct{}
+
+// BanListWriteRequested asks the controller to write the given entries back to
+// the server as the new ban list (replaces the full list).
+type BanListWriteRequested struct {
+	Entries []BanEntry
+}
+
+// UserUnregisterRequested asks the controller to deregister a registered user.
+type UserUnregisterRequested struct {
+	UserID uint32
+}
+
+func (ChannelJoinRequested) isBusEvent()  {}
+func (ChatTargetSelected) isBusEvent()    {}
+func (SelfMuteToggle) isBusEvent()        {}
+func (SelfDeafenToggle) isBusEvent()      {}
+func (UserMoveRequested) isBusEvent()     {}
+func (UserMuteRequested) isBusEvent()     {}
+func (UserDeafenRequested) isBusEvent()   {}
+func (UserPriorityRequested) isBusEvent() {}
+func (UserRegisterRequested) isBusEvent() {}
+func (UserStatsRequested) isBusEvent()    {}
+func (UserVolumeChanged) isBusEvent()     {}
+func (UserKickRequested) isBusEvent()     {}
+func (UserBanRequested) isBusEvent()      {}
+func (ChannelCreateRequested) isBusEvent() {}
+func (ChannelDeleteRequested) isBusEvent() {}
+func (ChannelRenameRequested) isBusEvent() {}
+func (ACLRequested) isBusEvent()          {}
+func (ACLSaveRequested) isBusEvent()      {}
+func (BanListRequested) isBusEvent()      {}
+func (UserListRequested) isBusEvent()     {}
+func (BanListWriteRequested) isBusEvent() {}
+func (UserUnregisterRequested) isBusEvent() {}

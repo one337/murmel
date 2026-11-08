@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.murmel.Murmel</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>Murmel</name>
+  <summary>Voice chat on Mumble servers</summary>
+
+  <description>
+    <p>
+      Murmel is a GTK4/Libadwaita Mumble client for GNOME. It lets you join
+      Mumble servers, chat with text messages, and talk with voice — with
+      low-latency Opus audio, per-user volume, and automatic reconnection.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Native GTK4 / Libadwaita design following the GNOME HIG</li>
+      <li>Responsive layout: works on mobile and desktop</li>
+      <li>Opus voice codec with jitter buffer</li>
+      <li>Client certificate identity management (TOFU)</li>
+      <li>Persistent GSettings-backed preferences</li>
+      <li>Desktop notifications for private messages</li>
+      <li>mumble:// URL handler</li>
+    </ul>
+  </description>
+
+  <developer id="io.github.murmel">
+    <name>Murmel Contributors</name>
+  </developer>
+
+  <url type="homepage">https://github.com/murmel/murmel</url>
+  <url type="bugtracker">https://github.com/murmel/murmel/issues</url>
+
+  <launchable type="desktop-id">io.github.murmel.Murmel.desktop</launchable>
+
+  <provides>
+    <mediatype>x-scheme-handler/mumble</mediatype>
+  </provides>
+
+  <categories>
+    <category>Network</category>
+    <category>InstantMessaging</category>
+  </categories>
+
+  <keywords>
+    <keyword>mumble</keyword>
+    <keyword>voice</keyword>
+    <keyword>voip</keyword>
+    <keyword>chat</keyword>
+  </keywords>
+
+  <content_rating type="oars-1.1">
+    <content_attribute id="social-chat">moderate</content_attribute>
+    <content_attribute id="social-audio">moderate</content_attribute>
+  </content_rating>
+
+  <releases>
+    <release version="0.2.0" date="2026-11-08">
+      <description>
+        <ul>
+          <li>Event sounds with per-event choice in Preferences</li>
+          <li>Sort POT inputs so the check is deterministic</li>
+          <li>Even status bar spacing in the window corner</li>
+          <li>User join/leave notifications; pad the app icon</li>
+          <li>Waveform opens the activation threshold popover</li>
+          <li>Configurable jitter buffer and audio per packet</li>
+          <li>Status dot with connection details tooltip</li>
+          <li>Save connections; pick saved servers in the dialog</li>
+          <li>Play incoming packets larger than 10 ms; log received voice</li>
+          <li>Raise the playback buffer when the output device stalls</li>
+          <li>Log server version, bandwidth and voice delivery stats</li>
+          <li>Mix incoming voice, copy outgoing frames, speaking indicators</li>
+          <li>Crisp voice meter rendering</li>
+          <li>Join channels on double-click; restyle voice meter</li>
+          <li>Capture and play through separate streams</li>
+          <li>Device pickers, threshold popover and voice meter</li>
+          <li>Show all channels, highlight current channel, usable composer</li>
+          <li>Announce client version 1.4.0 (P11)</li>
+          <li>Show successful connections in the UI</li>
+          <li>Build Flatpak on GNOME 51 with D-Bus service file</li>
+          <li>Rename to Murmel, NavigationSplitView shell, richer connect dialog</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.1.0" date="2026-11-06">
+      <description>
+        <p>Initial release.</p>
+      </description>
+    </release>
+  </releases>
+
+</component>

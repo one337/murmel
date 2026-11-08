@@ -1,0 +1,52 @@
+# github.com/diamondburned/gotk4-adwaita/pkg v0.0.0-20261031204147-41c057c79b39
+## explicit; go 1.24.0
+github.com/diamondburned/gotk4-adwaita/pkg/adw
+# github.com/diamondburned/gotk4/pkg v0.4.2-0.20261031093702-169e0f82bca8
+## explicit; go 1.24.0
+github.com/diamondburned/gotk4/pkg/cairo
+github.com/diamondburned/gotk4/pkg/cairo/swizzle
+github.com/diamondburned/gotk4/pkg/core/closure
+github.com/diamondburned/gotk4/pkg/core/gbox
+github.com/diamondburned/gotk4/pkg/core/gcancel
+github.com/diamondburned/gotk4/pkg/core/gdebug
+github.com/diamondburned/gotk4/pkg/core/gerror
+github.com/diamondburned/gotk4/pkg/core/gextras
+github.com/diamondburned/gotk4/pkg/core/glib
+github.com/diamondburned/gotk4/pkg/core/intern
+github.com/diamondburned/gotk4/pkg/core/slab
+github.com/diamondburned/gotk4/pkg/gdk/v4
+github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2
+github.com/diamondburned/gotk4/pkg/gio/v2
+github.com/diamondburned/gotk4/pkg/glib/v2
+github.com/diamondburned/gotk4/pkg/graphene
+github.com/diamondburned/gotk4/pkg/gsk/v4
+github.com/diamondburned/gotk4/pkg/gtk/v4
+github.com/diamondburned/gotk4/pkg/pango
+# github.com/gen2brain/malgo v0.11.27
+## explicit; go 1.21
+github.com/gen2brain/malgo
+# github.com/golang/protobuf v1.3.1
+## explicit
+github.com/golang/protobuf/proto
+# github.com/jfreymuth/oggvorbis v1.0.5
+## explicit; go 1.15
+github.com/jfreymuth/oggvorbis
+# github.com/jfreymuth/vorbis v1.0.2
+## explicit; go 1.15
+github.com/jfreymuth/vorbis
+# github.com/leonelquinteros/gotext v1.8.0
+## explicit; go 1.27
+github.com/leonelquinteros/gotext
+github.com/leonelquinteros/gotext/plurals
+# golang.org/x/sync v0.22.0
+## explicit; go 1.25.0
+golang.org/x/sync/singleflight
+# gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302 => ./third_party/hraban-opus
+## explicit; go 1.17
+gopkg.in/hraban/opus.v2
+# layeh.com/gumble v0.0.0-20221205141517-d1df60a3cc14
+## explicit; go 1.12
+layeh.com/gumble/gumble
+layeh.com/gumble/gumble/MumbleProto
+layeh.com/gumble/gumble/varint
+# gopkg.in/hraban/opus.v2 => ./third_party/hraban-opus

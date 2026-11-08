@@ -1,0 +1,104 @@
+/* Murmel application stylesheet — loaded automatically by AdwApplication
+ * from the GResource base path (/io/github/murmel/Murmel/style.css). */
+
+/* Channel the local user is currently in. */
+row.current-channel {
+  background-color: alpha(@accent_bg_color, 0.16);
+}
+row.current-channel:selected {
+  background-color: alpha(@accent_bg_color, 0.28);
+}
+row.current-channel label {
+  font-weight: bold;
+  color: @accent_color;
+}
+row.current-channel image {
+  color: @accent_color;
+}
+
+/* The local user's own row. */
+row.self-user label {
+  font-weight: bold;
+}
+
+/* Voice level meter in the status bar: a pill as tall as the buttons. */
+.voice-meter {
+  padding: 4px 10px;
+  border-radius: 9px;
+  background-color: alpha(currentColor, 0.07);
+  box-shadow: inset 0 0 0 1px alpha(currentColor, 0.06);
+  transition: box-shadow 150ms ease-out, background-color 150ms ease-out;
+}
+/* The meter is the face of a menu button: drop the button's own chrome so
+   the pill is the button, and brighten the pill on hover/open. */
+menubutton.voice-meter-button > button {
+  padding: 0;
+  min-height: 0;
+  background: none;
+  box-shadow: none;
+  border-radius: 9px;
+}
+menubutton.voice-meter-button > button:hover .voice-meter:not(.transmitting):not(.clipping),
+menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):not(.clipping) {
+  background-color: alpha(currentColor, 0.13);
+}
+.voice-meter.transmitting {
+  background-color: alpha(#2ec27e, 0.12);
+  box-shadow: inset 0 0 0 1px alpha(#2ec27e, 0.55);
+}
+.voice-meter.clipping {
+  background-color: alpha(#e01b24, 0.12);
+  box-shadow: inset 0 0 0 1px alpha(#e01b24, 0.65);
+}
+
+/* Chat composer: rounded field around the text view. */
+scrolledwindow.composer {
+  border-radius: 12px;
+  background-color: @view_bg_color;
+  box-shadow: inset 0 0 0 1px alpha(currentColor, 0.15);
+}
+scrolledwindow.composer:focus-within {
+  box-shadow: inset 0 0 0 2px alpha(@accent_color, 0.6);
+}
+textview.composer-view,
+textview.composer-view > text {
+  background: transparent;
+}
+
+/* Messages sent by the server (welcome text, server notices). */
+.server-message {
+  margin: 4px 6px;
+  border-radius: 8px;
+  background-color: alpha(@accent_bg_color, 0.08);
+}
+
+/* Narrow dropdown arrow of the mic/headphone split buttons. */
+menubutton.dropdown-arrow > button {
+  padding-left: 2px;
+  padding-right: 2px;
+  min-width: 16px;
+}
+
+/* Connection status dot (bottom right). */
+.status-dot-holder {
+  padding: 8px;
+}
+.status-dot {
+  min-width: 10px;
+  min-height: 10px;
+  border-radius: 9999px;
+}
+.status-dot.connected {
+  background-color: #2ec27e;
+  box-shadow: 0 0 0 3px alpha(#2ec27e, 0.2);
+}
+.status-dot.disconnected {
+  background-color: #e01b24;
+  box-shadow: 0 0 0 3px alpha(#e01b24, 0.2);
+}
+
+/* Saved connections list in the connect dialog: keep the rounded card
+ * corners when the list scrolls. */
+scrolledwindow.saved-connections {
+  border-radius: 12px;
+}

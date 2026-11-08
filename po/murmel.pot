@@ -1,0 +1,1000 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Murmel Contributors
+# This file is distributed under the same license as the Murmel package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Murmel 0.1\n"
+"Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
+"POT-Creation-Date: 2026-11-07 22:23+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: internal/ui/admin/acl.go:54
+msgid "Inherit parent ACLs"
+msgstr ""
+
+#: internal/ui/admin/acl.go:95 internal/ui/admin/banlist.go:41
+msgid "Save"
+msgstr ""
+
+#: internal/ui/admin/acl.go:98 internal/ui/admin/ban.go:28
+#: internal/ui/admin/channel.go:30 internal/ui/admin/channel.go:66
+#: internal/ui/admin/channel.go:91 internal/ui/admin/kick.go:28
+#: internal/ui/connection/controller.go:270
+#: internal/ui/connection/controller.go:1055
+msgid "Cancel"
+msgstr ""
+
+#: internal/ui/admin/acl.go:105 internal/ui/admin/acl.go:112
+msgid "Channel ACL"
+msgstr ""
+
+#: internal/ui/admin/acl.go:143
+msgid "No rules"
+msgstr ""
+
+#: internal/ui/admin/acl.go:210
+msgid "Inherited"
+msgstr ""
+
+#: internal/ui/admin/acl.go:215
+msgid "Apply to this channel"
+msgstr ""
+
+#: internal/ui/admin/acl.go:220
+msgid "Apply to sub-channels"
+msgstr ""
+
+#: internal/ui/admin/acl.go:232 internal/ui/admin/acl.go:253
+msgid "Allow"
+msgstr ""
+
+#: internal/ui/admin/acl.go:236 internal/ui/admin/acl.go:255
+msgid "Deny"
+msgstr ""
+
+#: internal/ui/admin/acl.go:277
+msgid "Remove rule"
+msgstr ""
+
+#: internal/ui/admin/acl.go:291
+#, go-format
+msgid "Group: %s"
+msgstr ""
+
+#: internal/ui/admin/acl.go:294 internal/ui/statusbar.go:301
+#, go-format
+msgid "User: %s"
+msgstr ""
+
+#: internal/ui/admin/acl.go:297
+#, go-format
+msgid "User #%d"
+msgstr ""
+
+#: internal/ui/admin/acl.go:299
+msgid "(unknown)"
+msgstr ""
+
+#: internal/ui/admin/ban.go:16 internal/ui/admin/kick.go:16
+msgid "Reason (optional)"
+msgstr ""
+
+#: internal/ui/admin/ban.go:24
+#, go-format
+msgid "Ban %s?"
+msgstr ""
+
+#: internal/ui/admin/ban.go:25
+msgid "The user will be permanently banned from the server."
+msgstr ""
+
+#: internal/ui/admin/ban.go:29
+msgid "Ban"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:44 internal/ui/admin/userlist.go:39
+msgid "Close"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:51 internal/ui/admin/banlist.go:66
+#: internal/ui/window.go:168
+msgid "Ban List"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:93
+msgid "No bans"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:109
+msgid "Remove ban"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:160
+msgid "No reason given"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:179
+msgid "Permanent"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:181
+#, go-format
+msgid "%d min"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:183
+#, go-format
+msgid "%d h"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:185
+#, go-format
+msgid "%d days"
+msgstr ""
+
+#: internal/ui/admin/channel.go:16
+msgid "Channel name"
+msgstr ""
+
+#: internal/ui/admin/channel.go:19
+msgid "Temporary"
+msgstr ""
+
+#: internal/ui/admin/channel.go:20
+msgid "Removed automatically when the last user leaves"
+msgstr ""
+
+#: internal/ui/admin/channel.go:28
+msgid "Create Sub-channel"
+msgstr ""
+
+#: internal/ui/admin/channel.go:31
+msgid "Create"
+msgstr ""
+
+#: internal/ui/admin/channel.go:56
+msgid "New name"
+msgstr ""
+
+#: internal/ui/admin/channel.go:64
+msgid "Rename Channel"
+msgstr ""
+
+#: internal/ui/admin/channel.go:67
+msgid "Rename"
+msgstr ""
+
+#: internal/ui/admin/channel.go:88
+#, go-format
+msgid "Remove %s?"
+msgstr ""
+
+#: internal/ui/admin/channel.go:89
+msgid "This channel and all its sub-channels will be permanently removed."
+msgstr ""
+
+#: internal/ui/admin/channel.go:92
+msgid "Remove"
+msgstr ""
+
+#: internal/ui/admin/kick.go:24
+#, go-format
+msgid "Kick %s?"
+msgstr ""
+
+#: internal/ui/admin/kick.go:25
+msgid "The user will be disconnected and may reconnect immediately."
+msgstr ""
+
+#: internal/ui/admin/kick.go:29
+msgid "Kick"
+msgstr ""
+
+#: internal/ui/admin/userlist.go:45 internal/ui/admin/userlist.go:60
+#: internal/ui/window.go:169
+msgid "Registered Users"
+msgstr ""
+
+#: internal/ui/admin/userlist.go:80
+msgid "No registered users"
+msgstr ""
+
+#: internal/ui/admin/userlist.go:93
+#, go-format
+msgid "ID: %d"
+msgstr ""
+
+#: internal/ui/admin/userlist.go:97
+msgid "Deregister user"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:53
+msgid "Expand or collapse"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:66 internal/ui/channeltree/rows.go:84
+msgid "You are in this channel"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:79
+msgid "Double-click to join"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:249
+msgid "Join"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:250
+msgid "Create sub-channel…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:251
+msgid "Edit…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:252
+msgid "Remove…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:253
+msgid "Edit ACL…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:254
+msgid "Link…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:329
+msgid "Mute on server"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:331
+msgid "Unmute on server"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:333
+msgid "Deafen on server"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:335
+msgid "Undeafen on server"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:339
+msgid "Send message…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:340
+msgid "Move to my channel"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:341
+msgid "Local volume…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:344
+msgid "Priority speaker"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:345
+msgid "Kick…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:346
+msgid "Ban…"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:347
+msgid "Register"
+msgstr ""
+
+#: internal/ui/channeltree/rows.go:348
+msgid "View stats"
+msgstr ""
+
+#: internal/ui/channeltree/tree.go:48 internal/ui/statusbar.go:324
+#: internal/ui/window.go:225
+msgid "Not connected"
+msgstr ""
+
+#: internal/ui/chat/composer.go:53
+msgid "Message — Enter sends, Shift+Enter adds a line"
+msgstr ""
+
+#: internal/ui/chat/composer.go:85
+msgid "Send message"
+msgstr ""
+
+#: internal/ui/chat/row.go:55
+msgid "private"
+msgstr ""
+
+#: internal/ui/chat/row.go:114
+msgid "Message not delivered."
+msgstr ""
+
+#: internal/ui/chat/row.go:116
+#, go-format
+msgid "Message not delivered: %s"
+msgstr ""
+
+#: internal/ui/chat/target.go:57 internal/ui/chat/view.go:257
+msgid "Unknown user"
+msgstr ""
+
+#: internal/ui/chat/target.go:59
+#, go-format
+msgid "Private message to @%s"
+msgstr ""
+
+#: internal/ui/chat/target.go:62
+msgid "channel"
+msgstr ""
+
+#: internal/ui/chat/target.go:67
+msgid "Current channel"
+msgstr ""
+
+#: internal/ui/chat/view.go:59
+msgid "No messages yet"
+msgstr ""
+
+#: internal/ui/chat/view.go:81
+msgid "Jump to latest"
+msgstr ""
+
+#: internal/ui/chat/view.go:84
+msgid "Scroll to the newest message"
+msgstr ""
+
+#: internal/ui/chat/view.go:149
+msgid "Welcome message"
+msgstr ""
+
+#: internal/ui/chat/view.go:186
+msgid "Not connected."
+msgstr ""
+
+#: internal/ui/chat/view.go:252 internal/ui/connection/controller.go:147
+msgid "Server"
+msgstr ""
+
+#: internal/ui/chat/view.go:270
+msgid "You"
+msgstr ""
+
+#: internal/ui/chat/view.go:279
+msgid "message too long"
+msgstr ""
+
+#: internal/ui/connection/controller.go:129
+msgid "Connect to Server"
+msgstr ""
+
+#: internal/ui/connection/controller.go:134
+msgid "Address"
+msgstr ""
+
+#: internal/ui/connection/controller.go:138
+msgid "Port"
+msgstr ""
+
+#: internal/ui/connection/controller.go:143
+msgid "Server Password"
+msgstr ""
+
+#: internal/ui/connection/controller.go:154
+msgid "Username"
+msgstr ""
+
+#: internal/ui/connection/controller.go:160
+msgid "None (anonymous)"
+msgstr ""
+
+#: internal/ui/connection/controller.go:165
+msgid "User Certificate"
+msgstr ""
+
+#: internal/ui/connection/controller.go:182
+msgid "Import certificate (PEM file with certificate and private key)"
+msgstr ""
+
+#: internal/ui/connection/controller.go:194
+msgid "Save Connection"
+msgstr ""
+
+#: internal/ui/connection/controller.go:205
+msgid "Saved as username@address"
+msgstr ""
+
+#: internal/ui/connection/controller.go:208
+#, go-format
+msgid "Saved as %s"
+msgstr ""
+
+#: internal/ui/connection/controller.go:217
+msgid "Account"
+msgstr ""
+
+#: internal/ui/connection/controller.go:268
+msgid "Connect"
+msgstr ""
+
+#: internal/ui/connection/controller.go:343
+msgid "Saved Connections"
+msgstr ""
+
+#: internal/ui/connection/controller.go:368
+msgid "Forget connection"
+msgstr ""
+
+#: internal/ui/connection/controller.go:412
+msgid "PEM Certificates"
+msgstr ""
+
+#: internal/ui/connection/controller.go:418
+msgid "All Files"
+msgstr ""
+
+#: internal/ui/connection/controller.go:426
+msgid "Select User Certificate"
+msgstr ""
+
+#: internal/ui/connection/controller.go:446
+msgid "Certificate Import Failed"
+msgstr ""
+
+#: internal/ui/connection/controller.go:447
+#, go-format
+msgid "The file could not be imported: %v"
+msgstr ""
+
+#: internal/ui/connection/controller.go:448
+#: internal/ui/connection/controller.go:1103
+msgid "OK"
+msgstr ""
+
+#: internal/ui/connection/controller.go:667
+msgid "Reconnecting…"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1043
+msgid "Server Certificate Changed"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1045
+#, go-format
+msgid ""
+"The server's certificate has changed.\n"
+"\n"
+"New fingerprint:\n"
+"%s\n"
+"\n"
+"Only continue if you trust this certificate."
+msgstr ""
+
+#: internal/ui/connection/controller.go:1048
+msgid "New Server Certificate"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1050
+#, go-format
+msgid ""
+"This server's certificate has not been seen before.\n"
+"\n"
+"Fingerprint:\n"
+"%s\n"
+"\n"
+"Trust and connect?"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1056
+msgid "Trust and Connect"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1083
+msgid "Authentication Failed"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1084
+msgid "The server rejected the password or credentials."
+msgstr ""
+
+#: internal/ui/connection/controller.go:1086
+msgid "Banned"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1087
+msgid "You are banned from this server."
+msgstr ""
+
+#: internal/ui/connection/controller.go:1089
+msgid "Server Full"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1090
+msgid "The server has reached its maximum number of users."
+msgstr ""
+
+#: internal/ui/connection/controller.go:1092
+msgid "TLS Handshake Failed"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1093
+#, go-format
+msgid ""
+"Could not establish a secure connection:\n"
+"%s"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1095
+msgid "Server Unreachable"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1096
+#, go-format
+msgid ""
+"The server could not be reached:\n"
+"%s"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1098
+msgid "Connection Failed"
+msgstr ""
+
+#: internal/ui/notifications.go:109
+#, go-format
+msgid "Private message from %s"
+msgstr ""
+
+#: internal/ui/notifications.go:125
+msgid "Reconnected"
+msgstr ""
+
+#: internal/ui/notifications.go:126
+msgid "The connection to the server was restored."
+msgstr ""
+
+#: internal/ui/notifications.go:149
+#, go-format
+msgid "%s connected"
+msgstr ""
+
+#: internal/ui/notifications.go:149 internal/ui/notifications.go:151
+#, go-format
+msgid "In %s"
+msgstr ""
+
+#: internal/ui/notifications.go:151 internal/ui/notifications.go:162
+#, go-format
+msgid "%s joined your channel"
+msgstr ""
+
+#: internal/ui/notifications.go:156
+#, go-format
+msgid "%s disconnected"
+msgstr ""
+
+#: internal/ui/notifications.go:158 internal/ui/notifications.go:166
+#, go-format
+msgid "%s left your channel"
+msgstr ""
+
+#: internal/ui/notifications.go:162
+#, go-format
+msgid "From %s"
+msgstr ""
+
+#: internal/ui/notifications.go:166
+#, go-format
+msgid "Moved to %s"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:20
+msgid "Connected to a server"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:22
+msgid "Disconnected"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:24
+msgid "You switched channels"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:26
+msgid "User joined your channel"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:28
+msgid "User left your channel"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:30
+msgid "User connected to the server"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:32
+msgid "User disconnected from the server"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:34
+msgid "Private message"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:36
+msgid "Channel message"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:45
+msgid "Rising chime"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:47
+msgid "Falling chime"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:49
+msgid "Rising triad"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:51
+msgid "Falling triad"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:53
+msgid "Pop"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:55
+msgid "Blip up"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:57
+msgid "Blip down"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:59
+msgid "Bell"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:61
+msgid "Tick"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:74
+msgid "Sounds"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:75
+msgid "Play a sound for connection, channel and message events"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:97
+msgid "Play"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:125
+msgid "Off"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:135
+msgid "Choose File…"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:174
+msgid "Sounds (WAV, Ogg Vorbis)"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go:185
+msgid "Choose Sound"
+msgstr ""
+
+#: internal/ui/prefs/window.go:31 internal/ui/window.go:172
+msgid "Preferences"
+msgstr ""
+
+#: internal/ui/prefs/window.go:46
+msgid "Identity"
+msgstr ""
+
+#: internal/ui/prefs/window.go:52
+msgid "Anonymous"
+msgstr ""
+
+#: internal/ui/prefs/window.go:59
+msgid "Default identity"
+msgstr ""
+
+#: internal/ui/prefs/window.go:81
+msgid "Client Certificate"
+msgstr ""
+
+#: internal/ui/prefs/window.go:86
+msgid "Import identity…"
+msgstr ""
+
+#: internal/ui/prefs/window.go:87
+msgid "Load a PEM certificate + key pair"
+msgstr ""
+
+#: internal/ui/prefs/window.go:96
+msgid "Export identity…"
+msgstr ""
+
+#: internal/ui/prefs/window.go:97
+msgid "Save the selected identity as PEM"
+msgstr ""
+
+#: internal/ui/prefs/window.go:115
+msgid "Audio Input"
+msgstr ""
+
+#: internal/ui/prefs/window.go:120
+msgid "Capture Device"
+msgstr ""
+
+#: internal/ui/prefs/window.go:121 internal/ui/prefs/window.go:176
+msgid "Device"
+msgstr ""
+
+#: internal/ui/prefs/window.go:125
+msgid "Voice Detection"
+msgstr ""
+
+#: internal/ui/prefs/window.go:129
+msgid "Sensitivity"
+msgstr ""
+
+#: internal/ui/prefs/window.go:130
+msgid "Higher = less sensitive (0–100)"
+msgstr ""
+
+#: internal/ui/prefs/window.go:139
+msgid "Audio per packet"
+msgstr ""
+
+#: internal/ui/prefs/window.go:140
+msgid "Longer packets need less bandwidth but add delay. Default: 20 ms"
+msgstr ""
+
+#: internal/ui/prefs/window.go:143
+#, go-format
+msgid "%d ms"
+msgstr ""
+
+#: internal/ui/prefs/window.go:157
+msgid "Transmission"
+msgstr ""
+
+#: internal/ui/prefs/window.go:170
+msgid "Audio Output"
+msgstr ""
+
+#: internal/ui/prefs/window.go:175
+msgid "Playback Device"
+msgstr ""
+
+#: internal/ui/prefs/window.go:180
+msgid "Jitter Buffer"
+msgstr ""
+
+#: internal/ui/prefs/window.go:186
+msgid "Buffer (ms)"
+msgstr ""
+
+#: internal/ui/prefs/window.go:187
+msgid ""
+"Raise it if voices stutter on unstable connections; lower values reduce "
+"delay. Default: 30 ms"
+msgstr ""
+
+#: internal/ui/prefs/window.go:203
+msgid "Behavior"
+msgstr ""
+
+#: internal/ui/prefs/window.go:208
+msgid "Connection"
+msgstr ""
+
+#: internal/ui/prefs/window.go:211
+msgid "Auto-reconnect"
+msgstr ""
+
+#: internal/ui/prefs/window.go:212
+msgid "Reconnect automatically after a connection drop"
+msgstr ""
+
+#: internal/ui/prefs/window.go:220
+msgid "Notifications"
+msgstr ""
+
+#: internal/ui/prefs/window.go:223
+msgid "Desktop notifications"
+msgstr ""
+
+#: internal/ui/prefs/window.go:224
+msgid "Private messages and reconnects while Murmel is in the background"
+msgstr ""
+
+#: internal/ui/prefs/window.go:241
+msgid "Users in my channel"
+msgstr ""
+
+#: internal/ui/prefs/window.go:242
+msgid "When someone joins or leaves your channel"
+msgstr ""
+
+#: internal/ui/prefs/window.go:244
+msgid "Users on the server"
+msgstr ""
+
+#: internal/ui/prefs/window.go:245
+msgid "When someone connects to or disconnects from the server"
+msgstr ""
+
+#: internal/ui/prefs/window.go:269 internal/ui/statusbar.go:235
+msgid "System default"
+msgstr ""
+
+#: internal/ui/presence.go:113
+msgid "Banned from the server"
+msgstr ""
+
+#: internal/ui/presence.go:115
+msgid "Kicked from the server"
+msgstr ""
+
+#: internal/ui/statusbar.go:51
+msgid "Mute microphone"
+msgstr ""
+
+#: internal/ui/statusbar.go:58
+msgid "Deafen"
+msgstr ""
+
+#: internal/ui/statusbar.go:63
+msgid "Input device"
+msgstr ""
+
+#: internal/ui/statusbar.go:64
+msgid "Output device"
+msgstr ""
+
+#: internal/ui/statusbar.go:73
+msgid ""
+"Voice input: grey = below threshold, green = transmitting, red = too loud. "
+"Click to set the activation threshold."
+msgstr ""
+
+#: internal/ui/statusbar.go:160
+msgid "Input Device"
+msgstr ""
+
+#: internal/ui/statusbar.go:165
+msgid "Activation Threshold"
+msgstr ""
+
+#: internal/ui/statusbar.go:169
+msgid "Sensitive"
+msgstr ""
+
+#: internal/ui/statusbar.go:171
+msgid "Strict"
+msgstr ""
+
+#: internal/ui/statusbar.go:177
+msgid ""
+"Speech rising above the shaded band in the meter is transmitted (green). Red "
+"means the input is too loud."
+msgstr ""
+
+#: internal/ui/statusbar.go:193
+msgid "Output Device"
+msgstr ""
+
+#: internal/ui/statusbar.go:242
+#, go-format
+msgid "%s (not available)"
+msgstr ""
+
+#: internal/ui/statusbar.go:294
+msgid "Connected"
+msgstr ""
+
+#: internal/ui/statusbar.go:299
+#, go-format
+msgid "Connected to %s"
+msgstr ""
+
+#: internal/ui/statusbar.go:304
+#, go-format
+msgid "Channel: %s"
+msgstr ""
+
+#: internal/ui/statusbar.go:307
+#, go-format
+msgid "Server: Mumble %s"
+msgstr ""
+
+#: internal/ui/statusbar.go:309
+msgid "UDP"
+msgstr ""
+
+#: internal/ui/statusbar.go:311
+msgid "TCP (UDP unavailable)"
+msgstr ""
+
+#: internal/ui/statusbar.go:313
+#, go-format
+msgid "Voice: %s"
+msgstr ""
+
+#: internal/ui/statusbar.go:315
+#, go-format
+msgid "Ping: %d ms"
+msgstr ""
+
+#: internal/ui/statusbar.go:318
+#, go-format
+msgid "Bandwidth limit: %d kbit/s"
+msgstr ""
+
+#: internal/ui/statusbar.go:331
+msgid "Connection failed"
+msgstr ""
+
+#: internal/ui/statusbar.go:334
+#, go-format
+msgid "Connection failed: %s"
+msgstr ""
+
+#: internal/ui/window.go:95 internal/ui/window.go:128 internal/ui/window.go:135
+msgid "Murmel"
+msgstr ""
+
+#: internal/ui/window.go:105
+msgid "Show chat"
+msgstr ""
+
+#: internal/ui/window.go:110 internal/ui/window.go:118
+#: internal/ui/window.go:233
+msgid "Channels"
+msgstr ""
+
+#: internal/ui/window.go:173
+msgid "Quit"
+msgstr ""
+
+#: internal/ui/window.go:181
+msgid "Main Menu"
+msgstr ""
+
+#: internal/ui/window.go:218
+msgid "Connect…"
+msgstr ""
+
+#: internal/ui/window.go:226
+msgid "Join a Mumble server to start talking."
+msgstr ""
+
+#: internal/ui/window.go:234
+msgid "Connect to a server to browse its channels."
+msgstr ""
+
+#: internal/ui/window.go:269
+msgid "The microphone stopped delivering audio. Choose another input device."
+msgstr ""
+
+#: internal/ui/window.go:271
+msgid "The output device is not playing audio. Choose another output device."
+msgstr ""

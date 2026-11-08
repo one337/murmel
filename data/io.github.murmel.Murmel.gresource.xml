@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/murmel/Murmel/icons/256x256/apps">
+    <file alias="io.github.murmel.Murmel.png">icons/hicolor/256x256/apps/io.github.murmel.Murmel.png</file>
+  </gresource>
+  <gresource prefix="/io/github/murmel/Murmel">
+    <file>style.css</file>
+  </gresource>
+</gresources>

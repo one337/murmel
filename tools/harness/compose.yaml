@@ -1,0 +1,45 @@
+# Murmel QA harness — pinned Murmur 1.5 server
+#
+# Run order (see README.md):
+#   docker compose -f tools/harness/compose.yaml up -d
+#   sleep 3                                  # let murmur generate its cert
+#   go run ./setupbot                       # creates Lobby + TestChan (idempotent)
+#   go run ./pingbot ... / go run ./peerbot ...
+#
+# Image pin (resolved 2026-11-04, see README.md section "Image pin"):
+#   ghcr.io/mumble-voip/mumble-server:v1.5.939
+#   digest: sha256:2373aaf071dfcea95b0d45bc2ddf6c10318674a313a7e4816e826e9ba4bca942
+#
+# SuperUser password: murmelqa (fixed QA value, set via MUMBLE_SUPERUSER_PASSWORD;
+# the image entrypoint passes it to `mumble-server -supw` on every container start —
+# murmur.ini has no superuser_password key).
+
+services:
+  murmur:
+    # digest: sha256:2373aaf071dfcea95b0d45bc2ddf6c10318674a313a7e4816e826e9ba4bca942
+    image: ghcr.io/mumble-voip/mumble-server:v1.5.939
+    container_name: murmel-murmur
+    restart: unless-stopped
+    ports:
+      - "64738:64738/tcp"
+      - "64738:64738/udp"
+    environment:
+      # Hand-written ini mounted below; while set, all MUMBLE_CONFIG_* vars are ignored.
+      MUMBLE_CUSTOM_CONFIG_FILE: /etc/mumble/murmel.ini
+      # Not an ini key — the entrypoint runs `mumble-server -supw <value>` before starting.
+      MUMBLE_SUPERUSER_PASSWORD: murmelqa
+    volumes:
+      # ",z" relabels the host file for container access — REQUIRED on
+      # SELinux-enforcing hosts (Fedora), otherwise the mount gets EACCES.
+      - ./murmur.ini:/etc/mumble/murmel.ini:ro,z
+      - murmur-data:/data
+    healthcheck:
+      # Plain TCP connect to the murmur control port (bash /dev/tcp; no client tools in image).
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/64738"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  murmur-data:

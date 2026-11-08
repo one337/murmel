@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="io.github.murmel.Murmel" path="/io/github/murmel/">
+    <key name="first-run" type="b">
+      <default>true</default>
+      <summary>First run</summary>
+      <description>Whether the application has not yet completed its first run (used to show a welcome/greeting flow).</description>
+    </key>
+    <key name="last-identity" type="s">
+      <default>''</default>
+      <summary>Last used certificate identity</summary>
+      <description>Identifier of the certificate identity that was used for the most recent connection attempt. Empty means no identity has been used yet.</description>
+    </key>
+    <key name="server-list" type="as">
+      <default>[]</default>
+      <summary>Favorite servers</summary>
+      <description>Favorite Mumble servers. Each array element is one favorite serialized as a compact JSON object string with the fields "name", "host", "port", "username" and "identity-id"; e.g. {"name":"Community","host":"mumble.example.org","port":64738,"username":"alice","identity-id":"sha256:..."}. Entries that fail to parse are skipped on load.</description>
+    </key>
+    <key name="audio-input-device" type="s">
+      <default>''</default>
+      <summary>Audio input device</summary>
+      <description>Identifier of the capture (microphone) device to use. Empty means the system default device.</description>
+    </key>
+    <key name="audio-output-device" type="s">
+      <default>''</default>
+      <summary>Audio output device</summary>
+      <description>Identifier of the playback device to use. Empty means the system default device.</description>
+    </key>
+    <key name="vad-threshold" type="d">
+      <range min="0.0" max="1.0"/>
+      <default>0.5</default>
+      <summary>Voice activity detection threshold</summary>
+      <description>RMS energy threshold (0.0–1.0, normalized) above which the voice activity detector considers the microphone active. Lower values are more sensitive.</description>
+    </key>
+    <key name="jitter-target-frames" type="i">
+      <range min="2" max="8"/>
+      <default>3</default>
+      <summary>Jitter buffer target size</summary>
+      <description>Audio buffered per incoming speaker before playback starts, in 10 ms frames (2–8, i.e. 20–80 ms). Larger values tolerate more network jitter at the cost of latency.</description>
+    </key>
+    <key name="audio-packet-frames" type="i">
+      <range min="1" max="6"/>
+      <default>2</default>
+      <summary>Audio per packet</summary>
+      <description>Outgoing audio per voice packet in 10 ms frames: 1, 2, 4 or 6 (10, 20, 40 or 60 ms). Larger packets need less bandwidth but add latency. The official Mumble client defaults to 20 ms.</description>
+    </key>
+    <key name="notification-enabled" type="b">
+      <default>true</default>
+      <summary>Show notifications</summary>
+      <description>Whether to show desktop notifications for events such as incoming private messages or user joins while the window is unfocused.</description>
+    </key>
+    <key name="notify-channel-presence" type="b">
+      <default>false</default>
+      <summary>Notify when users enter or leave my channel</summary>
+      <description>Show a desktop notification when another user joins or leaves the channel you are in. Requires notification-enabled.</description>
+    </key>
+    <key name="notify-server-presence" type="b">
+      <default>false</default>
+      <summary>Notify when users connect to or disconnect from the server</summary>
+      <description>Show a desktop notification when another user connects to or disconnects from the server. Requires notification-enabled.</description>
+    </key>
+    <key name="sounds-enabled" type="b">
+      <default>true</default>
+      <summary>Play event sounds</summary>
+      <description>Whether to play sounds for connection, channel and message events.</description>
+    </key>
+    <key name="sound-events" type="a{ss}">
+      <default>{}</default>
+      <summary>Sound per event</summary>
+      <description>Overrides of the sound played per event (e.g. "user-joined-channel"). Values: "off", "builtin:&lt;id&gt;" or "file:&lt;path&gt;" (WAV or Ogg Vorbis). Events without an entry use their built-in default.</description>
+    </key>
+    <key name="auto-reconnect" type="b">
+      <default>true</default>
+      <summary>Reconnect automatically</summary>
+      <description>Whether to automatically attempt to reconnect to the server after an unexpected disconnection.</description>
+    </key>
+    <key name="window-width" type="i">
+      <default>900</default>
+      <summary>Window width</summary>
+      <description>Width of the main window in pixels, saved on close and restored on startup.</description>
+    </key>
+    <key name="window-height" type="i">
+      <default>700</default>
+      <summary>Window height</summary>
+      <description>Height of the main window in pixels, saved on close and restored on startup.</description>
+    </key>
+    <key name="window-maximized" type="b">
+      <default>false</default>
+      <summary>Window maximized</summary>
+      <description>Whether the main window was maximized when it was last closed.</description>
+    </key>
+  </schema>
+</schemalist>

@@ -1,0 +1,33 @@
+# Go binaries / build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/murmel
+/murmel-*
+
+# Build directories
+.flatpak-build/
+.flatpak-builder/
+build-flatpak/
+repo/
+build/
+dist/
+.toolchain-cache/
+
+# Compiled GSettings schema
+data/gschemas.compiled
+
+# Go workspace files
+go.work
+go.work.sum
+
+# build artifacts (T15 QA binary location)
+/target/
+
+# Release output (upload web/ to the server)
+web/
+build-release/

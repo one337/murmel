@@ -1,0 +1,6 @@
+file,start_ms,end_ms
+speech_normal.wav,800,2700
+speech_normal.wav,3400,5220
+speech_normal.wav,5920,7900
+speech_soft.wav,800,2630
+speech_soft.wav,3330,5160

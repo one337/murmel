@@ -1,0 +1,264 @@
+package channeltree
+
+import (
+	"context"
+
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+
+	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/admin"
+)
+
+// Tree is the sidebar channel/user hierarchy widget. It subscribes to bus
+// events, maintains an incremental treeModel, and displays the hierarchy in a
+// gtk.ListBox (one row per visible entry in depth-first order).
+//
+// When the user activates a channel row (double-click or Enter) it emits
+// bus.ChannelJoinRequested. Row selection emits bus.ChatTargetChanged.
+// Construct on the main loop; ctx tears the subscriptions down.
+type Tree struct {
+	root *gtk.ScrolledWindow
+	list *gtk.ListBox
+
+	model       *treeModel
+	channelRows map[uint32]*channelRowWidgets
+	userRows    map[uint32]*userRowWidgets
+
+	b      *bus.Bus
+	parent gtk.Widgetter // dialog parent for admin actions
+}
+
+// NewTree builds the tree widget and subscribes to the bus. parent is the
+// application window used as the transient parent for admin dialogs.
+func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
+	t := &Tree{
+		model:       newTreeModel(),
+		channelRows: map[uint32]*channelRowWidgets{},
+		userRows:    map[uint32]*userRowWidgets{},
+		b:           b,
+		parent:      parent,
+	}
+
+	t.list = gtk.NewListBox()
+	t.list.SetSelectionMode(gtk.SelectionSingle)
+	t.list.AddCSSClass("navigation-sidebar")
+	// Single click selects the chat target; double-click (or Enter) joins.
+	t.list.SetActivateOnSingleClick(false)
+	placeholder := gtk.NewLabel(tr("Not connected"))
+	placeholder.AddCSSClass("dim-label")
+	t.list.SetPlaceholder(placeholder)
+	t.list.ConnectRowActivated(func(row *gtk.ListBoxRow) { t.onActivate(row) })
+	t.list.ConnectRowSelected(func(row *gtk.ListBoxRow) {
+		if row != nil {
+			t.onSelect(row)
+		}
+	})
+
+	t.root = gtk.NewScrolledWindow()
+	t.root.SetChild(t.list)
+	t.root.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
+	t.root.SetVExpand(true)
+
+	t.subscribe(ctx)
+	return t
+}
+
+// Root returns the top-level widget for the window's sidebar slot.
+func (t *Tree) Root() gtk.Widgetter { return t.root }
+
+func (t *Tree) subscribe(ctx context.Context) {
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.Connected) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.Disconnected) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.ChannelAdded) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.ChannelRemoved) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.ChannelUpdated) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserAdded) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserRemoved) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserUpdated) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.VoiceActivity) { t.handle(ev) })
+}
+
+// handle folds one event into the model: if the model signals a structural
+// change (insert/remove/move) the entire list is rebuilt; otherwise only the
+// directly affected row widget is refreshed.
+func (t *Tree) handle(ev bus.Event) {
+	if t.model.apply(ev) {
+		t.rebuild()
+	} else {
+		t.updateInPlace(ev)
+	}
+}
+
+// rebuild clears the list and reconstructs it from the model walk order.
+func (t *Tree) rebuild() {
+	for _, r := range t.channelRows {
+		t.list.Remove(r.root)
+	}
+	for _, r := range t.userRows {
+		t.list.Remove(r.root)
+	}
+	t.channelRows = map[uint32]*channelRowWidgets{}
+	t.userRows = map[uint32]*userRowWidgets{}
+
+	for _, e := range t.model.walk() {
+		switch e.kind {
+		case entryChannel:
+			id := e.id
+			r := newChannelRow(t.model, id,
+				func() { t.toggleExpand(id) },
+				func(x, y float64) { t.showChannelMenu(id, x, y) })
+			t.channelRows[id] = r
+			t.list.Append(r.root)
+		case entryUser:
+			session := e.id
+			r := newUserRow(t.model, session,
+				func(x, y float64) { t.showUserMenu(session, x, y) })
+			t.userRows[session] = r
+			t.list.Append(r.root)
+		}
+	}
+}
+
+// updateInPlace refreshes a single row without changing list structure.
+func (t *Tree) updateInPlace(ev bus.Event) {
+	switch e := ev.(type) {
+	case bus.VoiceActivity:
+		if r, ok := t.userRows[e.Session]; ok {
+			if u, ok2 := t.model.users[e.Session]; ok2 {
+				r.update(u, e.Active)
+			}
+		}
+	case bus.UserUpdated:
+		if r, ok := t.userRows[e.User.Session]; ok {
+			r.update(e.User, t.model.speaking[e.User.Session])
+		}
+	case bus.ChannelUpdated:
+		if r, ok := t.channelRows[e.Channel.ID]; ok {
+			if n, ok2 := t.model.channels[e.Channel.ID]; ok2 {
+				r.update(n)
+			}
+		}
+	}
+}
+
+func (t *Tree) toggleExpand(id uint32) {
+	n, ok := t.model.channels[id]
+	if !ok {
+		return
+	}
+	n.expanded = !n.expanded
+	t.rebuild()
+}
+
+func (t *Tree) showChannelMenu(id uint32, x, y float64) {
+	r, ok := t.channelRows[id]
+	if !ok {
+		return
+	}
+	name := ""
+	if n, ok2 := t.model.channels[id]; ok2 {
+		name = n.info.Name
+	}
+	a := ChannelMenuActions{
+		Join: func(chID uint32) {
+			t.b.Emit(bus.ChannelJoinRequested{ChannelID: chID})
+		},
+		CreateSub: func(chID uint32) {
+			admin.ShowCreateSub(t.parent, t.b, chID)
+		},
+		Edit: func(chID uint32) {
+			admin.ShowRename(t.parent, t.b, chID, name)
+		},
+		Delete: func(chID uint32) {
+			admin.ShowDelete(t.parent, t.b, chID, name)
+		},
+		EditACL: func(chID uint32) {
+			admin.ShowACLEditor(t.parent, t.b, chID, name)
+		},
+	}
+	menu := buildChannelMenu(t.model, id, a)
+	popupAt(r.root, menu, x, y)
+}
+
+func (t *Tree) showUserMenu(session uint32, x, y float64) {
+	r, ok := t.userRows[session]
+	if !ok {
+		return
+	}
+	u, hasUser := t.model.users[session]
+
+	var isMuted, isDeafened bool
+	if hasUser {
+		isMuted = u.Muted
+		isDeafened = u.Deafened
+	}
+
+	userName := ""
+	if hasUser {
+		userName = u.Name
+	}
+
+	a := UserMenuActions{
+		IsSelf:     session == t.model.self,
+		IsMuted:    isMuted,
+		IsDeafened: isDeafened,
+
+		Message: func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) },
+		Move:    func() { t.b.Emit(bus.UserMoveRequested{Session: session}) },
+		Mute:    func() { t.b.Emit(bus.UserMuteRequested{Session: session, Muted: !isMuted}) },
+		Deafen:  func() { t.b.Emit(bus.UserDeafenRequested{Session: session, Deafened: !isDeafened}) },
+		Priority: func() {
+			priority := true
+			if hasUser {
+				priority = !u.PrioritySpeaker
+			}
+			t.b.Emit(bus.UserPriorityRequested{Session: session, Priority: priority})
+		},
+		Kick:     func() { admin.ShowKick(t.parent, t.b, session, userName) },
+		Ban:      func() { admin.ShowBan(t.parent, t.b, session, userName) },
+		Register: func() { t.b.Emit(bus.UserRegisterRequested{Session: session}) },
+		Stats:    func() { t.b.Emit(bus.UserStatsRequested{Session: session}) },
+		// Volume: T20 audio pipeline seam — wired in T20 via per-user gain.
+	}
+	menu := buildUserMenu(a)
+	popupAt(r.root, menu, x, y)
+}
+
+// sameRow reports whether a and b wrap the same GtkListBoxRow. Signal
+// callbacks hand over a fresh Go wrapper for the row, so comparing the Go
+// pointers never matches; the underlying GObject pointer does.
+func sameRow(a, b *gtk.ListBoxRow) bool {
+	if a == nil || b == nil {
+		return false
+	}
+	return coreglib.InternObject(a).Native() == coreglib.InternObject(b).Native()
+}
+
+// onActivate fires when the user double-clicks or presses Enter on a row.
+// Channel rows request a join; user rows do nothing (T18 adds actions).
+func (t *Tree) onActivate(row *gtk.ListBoxRow) {
+	for id, r := range t.channelRows {
+		if sameRow(r.root, row) {
+			t.b.Emit(bus.ChannelJoinRequested{ChannelID: id})
+			return
+		}
+	}
+}
+
+// onSelect fires on a row selection change and emits ChatTargetChanged so
+// the chat view follows the sidebar selection.
+func (t *Tree) onSelect(row *gtk.ListBoxRow) {
+	for id, r := range t.channelRows {
+		if sameRow(r.root, row) {
+			t.b.Emit(bus.ChatTargetChanged{ChannelID: id})
+			return
+		}
+	}
+	for session, r := range t.userRows {
+		if sameRow(r.root, row) {
+			t.b.Emit(bus.ChatTargetChanged{Session: session})
+			return
+		}
+	}
+}
