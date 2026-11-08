@@ -16,6 +16,8 @@ type conversation struct {
 	list     *gtk.ListBox
 	jump     *gtk.Revealer
 	composer *composer
+	// info is the channel description (channel chat only; nil otherwise).
+	info *channelInfo
 
 	hist *history[*gtk.ListBoxRow]
 	// pin keeps the view scrolled to the bottom across allocation-driven
@@ -70,6 +72,13 @@ func newConversation(tag, title, emptyText string) *conversation {
 	overlay := gtk.NewOverlay()
 	overlay.SetChild(c.scroll)
 	overlay.AddOverlay(c.jump)
+	content := gtk.NewBox(gtk.OrientationVertical, 0)
+	if tag == channelTag {
+		c.info = newChannelInfo()
+		content.Append(c.info.root)
+	}
+	overlay.SetVExpand(true)
+	content.Append(overlay)
 
 	c.composer = newComposer()
 
@@ -79,7 +88,7 @@ func newConversation(tag, title, emptyText string) *conversation {
 
 	toolbar := adw.NewToolbarView()
 	toolbar.AddTopBar(c.header)
-	toolbar.SetContent(overlay)
+	toolbar.SetContent(content)
 	toolbar.AddBottomBar(c.composer.root)
 	// No raised bar behind the composer: the field itself is the frame.
 	toolbar.SetBottomBarStyle(adw.ToolbarFlat)

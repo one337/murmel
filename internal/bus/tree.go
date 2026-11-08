@@ -138,6 +138,12 @@ type ChannelPermissionRequested struct {
 	ChannelID uint32
 }
 
+// ChannelDescriptionRequested asks the controller to fetch a channel's
+// long description (the server sent only its hash).
+type ChannelDescriptionRequested struct {
+	ChannelID uint32
+}
+
 // BanListRequested asks the controller to request the server ban list.
 type BanListRequested struct{}
 
@@ -155,27 +161,28 @@ type UserUnregisterRequested struct {
 	UserID uint32
 }
 
-func (ChannelJoinRequested) isBusEvent()       {}
-func (ChatTargetSelected) isBusEvent()         {}
-func (SelfMuteToggle) isBusEvent()             {}
-func (SelfDeafenToggle) isBusEvent()           {}
-func (UserMoveRequested) isBusEvent()          {}
-func (UserMuteRequested) isBusEvent()          {}
-func (UserDeafenRequested) isBusEvent()        {}
-func (UserPriorityRequested) isBusEvent()      {}
-func (UserRegisterRequested) isBusEvent()      {}
-func (UserStatsRequested) isBusEvent()         {}
-func (UserVolumeChanged) isBusEvent()          {}
-func (UserKickRequested) isBusEvent()          {}
-func (UserBanRequested) isBusEvent()           {}
-func (ChannelCreateRequested) isBusEvent()     {}
-func (ChannelDeleteRequested) isBusEvent()     {}
-func (ChannelRenameRequested) isBusEvent()     {}
-func (ACLRequested) isBusEvent()               {}
-func (ACLSaveRequested) isBusEvent()           {}
-func (BanListRequested) isBusEvent()           {}
-func (DisconnectRequested) isBusEvent()        {}
-func (ChannelPermissionRequested) isBusEvent() {}
-func (UserListRequested) isBusEvent()          {}
-func (BanListWriteRequested) isBusEvent()      {}
-func (UserUnregisterRequested) isBusEvent()    {}
+func (ChannelJoinRequested) isBusEvent()        {}
+func (ChatTargetSelected) isBusEvent()          {}
+func (SelfMuteToggle) isBusEvent()              {}
+func (SelfDeafenToggle) isBusEvent()            {}
+func (UserMoveRequested) isBusEvent()           {}
+func (UserMuteRequested) isBusEvent()           {}
+func (UserDeafenRequested) isBusEvent()         {}
+func (UserPriorityRequested) isBusEvent()       {}
+func (UserRegisterRequested) isBusEvent()       {}
+func (UserStatsRequested) isBusEvent()          {}
+func (UserVolumeChanged) isBusEvent()           {}
+func (UserKickRequested) isBusEvent()           {}
+func (UserBanRequested) isBusEvent()            {}
+func (ChannelCreateRequested) isBusEvent()      {}
+func (ChannelDeleteRequested) isBusEvent()      {}
+func (ChannelRenameRequested) isBusEvent()      {}
+func (ACLRequested) isBusEvent()                {}
+func (ACLSaveRequested) isBusEvent()            {}
+func (BanListRequested) isBusEvent()            {}
+func (DisconnectRequested) isBusEvent()         {}
+func (ChannelDescriptionRequested) isBusEvent() {}
+func (ChannelPermissionRequested) isBusEvent()  {}
+func (UserListRequested) isBusEvent()           {}
+func (BanListWriteRequested) isBusEvent()       {}
+func (UserUnregisterRequested) isBusEvent()     {}

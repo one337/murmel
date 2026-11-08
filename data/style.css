@@ -137,3 +137,31 @@ scrolledwindow.saved-connections {
   font-size: 0.8em;
   font-weight: bold;
 }
+
+/* Images in messages and the composer's attachment preview. */
+picture.rich-image {
+  border-radius: 8px;
+}
+.composer-attachment {
+  padding: 8px 8px 0 8px;
+}
+picture.composer-thumb {
+  border-radius: 6px;
+}
+
+/* Channel description above the channel chat: two lines, the rest fades
+   out until expanded. */
+.channel-info {
+  padding: 8px 12px 0 12px;
+  border-bottom: 1px solid alpha(currentColor, 0.1);
+  background-color: @view_bg_color;
+}
+.channel-info-fade {
+  min-height: 22px;
+  background-image: linear-gradient(to bottom, alpha(@view_bg_color, 0), @view_bg_color);
+}
+button.channel-info-toggle {
+  min-height: 0;
+  padding: 2px 10px;
+  margin: 0 0 4px 0;
+}

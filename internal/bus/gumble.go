@@ -418,12 +418,13 @@ func copyChannel(c *gumble.Channel) ChannelInfo {
 		return ChannelInfo{}
 	}
 	info := ChannelInfo{
-		ID:          c.ID,
-		Name:        c.Name,
-		Description: c.Description,
-		Position:    c.Position,
-		MaxUsers:    c.MaxUsers,
-		Temporary:   c.Temporary,
+		ID:                 c.ID,
+		Name:               c.Name,
+		Description:        c.Description,
+		DescriptionPending: c.Description == "" && len(c.DescriptionHash) > 0,
+		Position:           c.Position,
+		MaxUsers:           c.MaxUsers,
+		Temporary:          c.Temporary,
 	}
 	if c.Parent != nil {
 		info.ParentID = c.Parent.ID

@@ -6,6 +6,8 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
+
+	"io.github/murmel/internal/ui/richtext"
 )
 
 // rowKind distinguishes message rows from system rows (errors, notices).
@@ -30,7 +32,16 @@ type rowStyle struct {
 	sender  string
 	at      time.Time
 	content string
+	// html, when set, is the message as Mumble HTML: rendered with
+	// formatting and embedded images instead of content.
+	html string
 }
+
+// Displayed image bounds inside chat rows.
+const (
+	chatImageMaxWidth  = 360
+	chatImageMaxHeight = 280
+)
 
 // newRow builds one ListBoxRow. The sender label gets the theme's accent
 // color via a Pango foreground attribute (never markup) so a name like
@@ -70,15 +81,19 @@ func newRow(st rowStyle) *gtk.ListBoxRow {
 		header.Append(spacer)
 	}
 
-	content := gtk.NewLabel(st.content)
-	content.SetWrap(true)
-	content.SetWrapMode(pango.WrapWordChar)
-	content.SetXAlign(0.0)
-	content.SetSelectable(true)
-
 	body := gtk.NewBox(gtk.OrientationVertical, 2)
 	body.Append(header)
-	body.Append(content)
+	if st.html != "" {
+		body.Append(richtext.Build(richtext.Parse(st.html), richtext.Options{
+			MaxImageWidth: chatImageMaxWidth, MaxImageHeight: chatImageMaxHeight, Selectable: true}))
+	} else {
+		content := gtk.NewLabel(st.content)
+		content.SetWrap(true)
+		content.SetWrapMode(pango.WrapWordChar)
+		content.SetXAlign(0.0)
+		content.SetSelectable(true)
+		body.Append(content)
+	}
 
 	box := gtk.NewBox(gtk.OrientationVertical, 0)
 	if class := rowCSSClass(st.kind); class != "" {

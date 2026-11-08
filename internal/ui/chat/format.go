@@ -12,8 +12,10 @@ type span struct {
 }
 
 // spansToHTML serializes composer spans into the HTML subset Mumble
-// clients render: escaped text, <b>/<i> for formatting, <br> for line
-// breaks. Adjacent spans with the same formatting merge.
+// clients render: escaped text, <b>/<i> for formatting, <br/> for line
+// breaks. Adjacent spans with the same formatting merge. The output is
+// well-formed XML: servers parse long messages (images) as XML and drop
+// them when that fails.
 func spansToHTML(spans []span) string {
 	var b strings.Builder
 	open := span{}
@@ -43,7 +45,7 @@ func spansToHTML(spans []span) string {
 		lines := strings.Split(s.text, "\n")
 		for i, line := range lines {
 			if i > 0 {
-				b.WriteString("<br>")
+				b.WriteString("<br/>")
 			}
 			b.WriteString(html.EscapeString(line))
 		}

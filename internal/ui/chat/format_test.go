@@ -1,6 +1,10 @@
 package chat
 
 import (
+	"encoding/base64"
+	"encoding/xml"
+	"io"
+	"strings"
 	"testing"
 
 	"io.github/murmel/internal/bus"
@@ -13,7 +17,7 @@ func TestSpansToHTML(t *testing.T) {
 		want  string
 	}{
 		{"plain escaped", []span{{text: "a < b & c"}}, "a &lt; b &amp; c"},
-		{"newline", []span{{text: "one\ntwo"}}, "one<br>two"},
+		{"newline", []span{{text: "one\ntwo"}}, "one<br/>two"},
 		{"bold run", []span{{text: "hi "}, {text: "there", bold: true}, {text: "!"}}, "hi <b>there</b>!"},
 		{"merge", []span{{text: "a", bold: true}, {text: "b", bold: true}}, "<b>ab</b>"},
 		{"nested", []span{{text: "x", bold: true, italic: true}, {text: "y", italic: true}}, "<b><i>x</i></b><i>y</i>"},
@@ -50,5 +54,53 @@ func TestConversationKeys(t *testing.T) {
 	}
 	if _, ok := sessionFor(st, "n:bob"); ok {
 		t.Fatal("offline user must not resolve")
+	}
+}
+
+func TestScaleTo(t *testing.T) {
+	for _, tt := range []struct{ w, h, side, ww, wh int }{
+		{1600, 1200, 800, 800, 600},
+		{1200, 1600, 800, 600, 800},
+		{300, 200, 800, 300, 200},
+	} {
+		if w, h := scaleTo(tt.w, tt.h, tt.side); w != tt.ww || h != tt.wh {
+			t.Errorf("scaleTo(%d,%d,%d) = %d,%d", tt.w, tt.h, tt.side, w, h)
+		}
+	}
+}
+
+func TestEncodeImageFitsLimit(t *testing.T) {
+	const path = "../../../assets/screenshots/0.3.2/server-connected.png"
+	for _, limit := range []int{defaultImageMessageLength, 40000} {
+		uri, err := encodeImage(path, limit)
+		if err != nil {
+			t.Fatalf("limit %d: %v", limit, err)
+		}
+		if len(uri)+imageMarkupOverhead > limit || !strings.HasPrefix(uri, "data:image/jpeg;base64,") {
+			t.Fatalf("limit %d: %d bytes", limit, len(uri))
+		}
+		data, _ := base64.StdEncoding.DecodeString(strings.TrimPrefix(uri, "data:image/jpeg;base64,"))
+		if len(data) < 3 || data[0] != 0xFF || data[1] != 0xD8 {
+			t.Fatalf("limit %d: not a JPEG", limit)
+		}
+		t.Logf("limit %d → %d bytes", limit, len(uri))
+	}
+	if _, err := encodeImage(path, 2000); err == nil {
+		t.Fatal("an impossible limit must fail")
+	}
+}
+
+// TestSpansToHTMLIsXML: servers parse long (image) messages as XML.
+func TestSpansToHTMLIsXML(t *testing.T) {
+	out := spansToHTML([]span{{text: "a & b\n<c> 'd' \"e\"", bold: true}, {text: "\nf", italic: true}})
+	d := xml.NewDecoder(strings.NewReader("<document>" + out + "</document>"))
+	for {
+		_, err := d.Token()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			t.Fatalf("not well-formed XML: %v (%s)", err, out)
+		}
 	}
 }

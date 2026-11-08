@@ -97,6 +97,7 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 	bus.SubscribeCtx(ctx, appBus, c.onChannelRenameRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onDisconnectRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelPermissionRequested)
+	bus.SubscribeCtx(ctx, appBus, c.onChannelDescriptionRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onBanListRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onUserListRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onBanListWriteRequested)
@@ -1028,6 +1029,18 @@ func (c *Controller) onChannelPermissionRequested(ev bus.ChannelPermissionReques
 	}
 	if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Permission() == nil {
 		ch.RequestPermission()
+	}
+}
+
+func (c *Controller) onChannelDescriptionRequested(ev bus.ChannelDescriptionRequested) {
+	c.mu.Lock()
+	client := c.client
+	c.mu.Unlock()
+	if client == nil {
+		return
+	}
+	if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Description == "" && len(ch.DescriptionHash) > 0 {
+		ch.RequestDescription()
 	}
 }
 

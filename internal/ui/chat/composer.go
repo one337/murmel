@@ -1,12 +1,19 @@
 package chat
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 
+	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
+	"github.com/diamondburned/gotk4/pkg/gio/v2"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
+
+	"io.github/murmel/internal/ui/richtext"
 )
 
 // Sender is the outgoing-chat seam. T19 implements it over the live gumble
@@ -53,12 +60,20 @@ type composer struct {
 	}
 	syncing bool
 
-	maxLen int
-	send   func(htmlText, plain string)
+	maxLen     int
+	imageLimit int
+	send       func(htmlText, plain string)
+
+	// Attached image (data: URI) and its preview strip.
+	image      string
+	attachment *gtk.Box
+	thumb      *gtk.Picture
+	imageBtn   *gtk.Button
+	formatBtn  *gtk.MenuButton
 }
 
 func newComposer() *composer {
-	c := &composer{maxLen: defaultMaxMessageLength}
+	c := &composer{maxLen: defaultMaxMessageLength, imageLimit: defaultImageMessageLength}
 
 	c.buffer = gtk.NewTextBuffer(nil)
 	c.boldTag = gtk.NewTextTag("bold")
@@ -130,6 +145,32 @@ func newComposer() *composer {
 	formatBtn.SetDirection(gtk.ArrowUp)
 	formatBtn.AddCSSClass("flat")
 	formatBtn.SetTooltipText(tr("Formatting"))
+	c.formatBtn = formatBtn
+
+	c.imageBtn = gtk.NewButtonFromIconName("insert-image-symbolic")
+	c.imageBtn.AddCSSClass("flat")
+	c.imageBtn.SetTooltipText(tr("Attach an image"))
+	c.imageBtn.ConnectClicked(c.pickImage)
+
+	// Attachment preview: thumbnail and a remove button above the text.
+	c.thumb = gtk.NewPicture()
+	c.thumb.SetContentFit(gtk.ContentFitCover)
+	c.thumb.SetSizeRequest(64, 64)
+	c.thumb.AddCSSClass("composer-thumb")
+	removeBtn := gtk.NewButtonFromIconName("window-close-symbolic")
+	removeBtn.AddCSSClass("circular")
+	removeBtn.AddCSSClass("osd")
+	removeBtn.SetTooltipText(tr("Remove image"))
+	removeBtn.SetHAlign(gtk.AlignEnd)
+	removeBtn.SetVAlign(gtk.AlignStart)
+	removeBtn.ConnectClicked(func() { c.setImage("") })
+	thumbOverlay := gtk.NewOverlay()
+	thumbOverlay.SetChild(c.thumb)
+	thumbOverlay.AddOverlay(removeBtn)
+	c.attachment = gtk.NewBox(gtk.OrientationHorizontal, 6)
+	c.attachment.AddCSSClass("composer-attachment")
+	c.attachment.Append(thumbOverlay)
+	c.attachment.SetVisible(false)
 
 	c.counter = gtk.NewLabel("")
 	c.counter.AddCSSClass("caption")
@@ -149,12 +190,14 @@ func newComposer() *composer {
 	c.toolbar = gtk.NewBox(gtk.OrientationHorizontal, 6)
 	c.toolbar.AddCSSClass("composer-toolbar")
 	c.toolbar.Append(formatBtn)
+	c.toolbar.Append(c.imageBtn)
 	c.toolbar.Append(spacer)
 	c.toolbar.Append(c.counter)
 	c.toolbar.Append(c.sendBtn)
 
 	c.root = gtk.NewBox(gtk.OrientationVertical, 0)
 	c.root.AddCSSClass("composer-frame")
+	c.root.Append(c.attachment)
 	c.root.Append(scroll)
 	c.root.Append(c.toolbar)
 
@@ -205,6 +248,78 @@ func (c *composer) applyTyping(from, to int) {
 	}
 }
 
+// pickImage lets the user choose an image file and attaches it, scaled
+// and compressed to fit the server's image limit.
+func (c *composer) pickImage() {
+	filter := gtk.NewFileFilter()
+	filter.SetName(tr("Images"))
+	filter.AddPixbufFormats()
+	filters := gio.NewListStore(gtk.GTypeFileFilter)
+	filters.Append(filter.Object)
+	fd := gtk.NewFileDialog()
+	fd.SetTitle(tr("Attach Image"))
+	fd.SetModal(true)
+	fd.SetFilters(filters)
+	fd.SetDefaultFilter(filter)
+	parent := windowOf(c.root)
+	fd.Open(context.Background(), parent, func(res gio.AsyncResulter) {
+		file, err := fd.OpenFinish(res)
+		if err != nil || file == nil {
+			return
+		}
+		path, limit := file.Path(), c.imageLimit
+		c.imageBtn.SetSensitive(false)
+		go func() {
+			uri, err := encodeImage(path, limit)
+			glib.IdleAdd(func() {
+				c.imageBtn.SetSensitive(true)
+				if err != nil {
+					slog.Info("chat: image not attached", "file", path, "err", err)
+					c.showError(err.Error())
+					return
+				}
+				c.setImage(uri)
+			})
+		}()
+	})
+}
+
+// setImage attaches an image data: URI ("" removes it).
+func (c *composer) setImage(uri string) {
+	c.image = uri
+	c.attachment.SetVisible(uri != "")
+	if uri != "" {
+		if blocks := richtext.Parse(`<img src="` + uri + `">`); len(blocks) == 1 && blocks[0].Image != nil {
+			if tex, err := gdk.NewTextureFromBytes(glib.NewBytes(blocks[0].Image)); err == nil {
+				c.thumb.SetPaintable(tex)
+			}
+		}
+	}
+	c.update()
+	c.view.GrabFocus()
+}
+
+// showError briefly shows a problem in the counter slot.
+func (c *composer) showError(text string) {
+	c.counter.SetText(text)
+	c.counter.AddCSSClass("error")
+	c.counter.SetVisible(true)
+	glib.TimeoutSecondsAdd(5, func() bool { c.update(); return false })
+}
+
+// SetImageLimit applies the server's limit for messages with images
+// (0 disables attaching images).
+func (c *composer) SetImageLimit(n int) {
+	c.imageLimit = n
+	c.imageBtn.SetVisible(n > 0)
+}
+
+// SetHTMLAllowed hides formatting and images on servers without HTML.
+func (c *composer) SetHTMLAllowed(on bool) {
+	c.formatBtn.SetVisible(on)
+	c.imageBtn.SetVisible(on && c.imageLimit > 0)
+}
+
 // SetSend installs the submit handler: html is the message to send, plain
 // its text for local display.
 func (c *composer) SetSend(f func(html, plain string)) { c.send = f }
@@ -238,11 +353,24 @@ func (c *composer) MaxMessageLength() int { return c.maxLen }
 // within the server's limit.
 func (c *composer) Submit() {
 	html, plain := c.message()
-	if plain == "" || c.send == nil || !c.view.Editable() || len([]rune(html)) > c.maxLen {
+	if !c.sendable(html, plain) || c.send == nil {
 		return
 	}
 	c.send(html, plain)
 	c.buffer.SetText("")
+	c.setImage("")
+}
+
+// sendable reports whether the message has content and fits the limit
+// that applies (the image limit when an image is attached).
+func (c *composer) sendable(html, plain string) bool {
+	if plain == "" || !c.view.Editable() {
+		return false
+	}
+	if c.image != "" {
+		return len(html) <= c.imageLimit
+	}
+	return len([]rune(html)) <= c.maxLen
 }
 
 // message returns the field as Mumble HTML and as plain text.
@@ -272,14 +400,30 @@ func (c *composer) message() (html, plain string) {
 	for _, s := range spans {
 		plain += s.text
 	}
-	return spansToHTML(spans), plain
+	html = spansToHTML(spans)
+	if c.image != "" {
+		if html != "" {
+			html += "<br/>"
+		}
+		// Self-closing: the server checks image messages as XML.
+		html += `<img src="` + c.image + `"/>`
+		if plain == "" {
+			plain = tr("[image]")
+		}
+	}
+	return html, plain
 }
 
 // update refreshes the send button and the length counter.
 func (c *composer) update() {
 	html, plain := c.message()
+	c.sendBtn.SetSensitive(c.sendable(html, plain))
+	if c.image != "" {
+		// The text counter does not apply to image messages.
+		c.counter.SetVisible(false)
+		return
+	}
 	n := len([]rune(html))
-	c.sendBtn.SetSensitive(plain != "" && n <= c.maxLen && c.view.Editable())
 	c.counter.SetVisible(float64(n) >= counterShowFraction*float64(c.maxLen))
 	c.counter.SetText(counterText(n, c.maxLen))
 	if n > c.maxLen {
@@ -291,4 +435,24 @@ func (c *composer) update() {
 
 func counterText(n, max int) string {
 	return fmt.Sprintf("%d / %d", n, max)
+}
+
+// windowOf returns the toplevel window of w (nil when not in a window),
+// for dialogs that want a parent.
+func windowOf(w gtk.Widgetter) *gtk.Window {
+	root := gtk.BaseWidget(w).Root()
+	if root == nil {
+		return nil
+	}
+	switch win := coreglib.InternObject(root).Cast().(type) {
+	case *adw.ApplicationWindow:
+		return &win.ApplicationWindow.Window
+	case *adw.Window:
+		return &win.Window
+	case *gtk.ApplicationWindow:
+		return &win.Window
+	case *gtk.Window:
+		return win
+	}
+	return nil
 }

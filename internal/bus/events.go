@@ -122,9 +122,12 @@ type ChannelInfo struct {
 	Links []uint32
 	// Description is "" while only its hash is known.
 	Description string
-	Position    int32
-	MaxUsers    uint32
-	Temporary   bool
+	// DescriptionPending: the server announced a description (by hash)
+	// that has not been fetched yet (ChannelDescriptionRequested).
+	DescriptionPending bool
+	Position           int32
+	MaxUsers           uint32
+	Temporary          bool
 	// Permissions is the local user's permission bitmask in this channel,
 	// using the fork's gumble.Permission bit values; nil while the server
 	// has not answered a permission query for the channel (unknown, not

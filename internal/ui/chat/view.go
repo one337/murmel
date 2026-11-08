@@ -12,6 +12,7 @@ import (
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/presence"
+	"io.github/murmel/internal/ui/richtext"
 )
 
 // maxRows is the scrollback cap per conversation: beyond it the oldest row
@@ -38,7 +39,13 @@ type View struct {
 	bus      *bus.Bus
 	sender   Sender
 	settings settings.Settings // nil: log defaults
-	maxLen   int
+	// requestedDescription remembers channels whose description was
+	// fetched, so a missing one is asked for once.
+	requestedDescription map[uint32]bool
+	// Server limits applied to every composer.
+	maxLen      int
+	imageLimit  int
+	htmlAllowed bool
 	// windowActive is read from the toplevel once the view is mapped.
 	windowActive func() bool
 }
@@ -52,6 +59,8 @@ func NewView(ctx context.Context, b *bus.Bus, sender Sender) *View {
 		dms:          map[convKey]*conversation{},
 		unread:       map[convKey]int{},
 		maxLen:       defaultMaxMessageLength,
+		imageLimit:   defaultImageMessageLength,
+		htmlAllowed:  true,
 		windowActive: func() bool { return true },
 	}
 	v.channel = newConversation(channelTag, tr("Channel"), tr("No messages yet"))
@@ -113,6 +122,19 @@ func (v *View) InjectCompose(text string) {
 	v.channel.composer.Submit()
 }
 
+// InjectImage attaches an image file to the channel composer and sends it
+// with text — the QA harness drives the real attach and send path.
+func (v *View) InjectImage(path, text string) error {
+	uri, err := encodeImage(path, v.channel.composer.imageLimit)
+	if err != nil {
+		return err
+	}
+	v.channel.composer.setImage(uri)
+	v.channel.composer.buffer.SetText(text)
+	v.channel.composer.Submit()
+	return nil
+}
+
 // OpenConversation shows the private conversation with session (e.g. from
 // a message notification).
 func (v *View) OpenConversation(session uint32) {
@@ -144,10 +166,15 @@ func (v *View) subscribe(ctx context.Context) {
 	bus.SubscribeCtx(ctx, v.bus, func(ev bus.ServerConfigUpdated) {
 		if ev.MaxMessageLength != nil {
 			v.maxLen = *ev.MaxMessageLength
-			v.channel.composer.SetMaxMessageLength(v.maxLen)
-			for _, c := range v.dms {
-				c.composer.SetMaxMessageLength(v.maxLen)
-			}
+		}
+		if ev.MaxImageMessageLength != nil {
+			v.imageLimit = *ev.MaxImageMessageLength
+		}
+		if ev.AllowHTML != nil {
+			v.htmlAllowed = *ev.AllowHTML
+		}
+		for _, c := range v.all() {
+			v.configure(c)
 		}
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(ev bus.ChatTargetChanged) {
@@ -168,9 +195,9 @@ func (v *View) subscribe(ctx context.Context) {
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(ev bus.Connected) {
 		v.refreshTitles()
-		if welcome := PlainText(ev.Welcome); welcome != "" {
+		if len(richtext.Parse(ev.Welcome)) > 0 {
 			v.channel.append(rowStyle{kind: rowServer, sender: tr("Welcome message"),
-				at: time.Now(), content: welcome}, true)
+				at: time.Now(), content: PlainText(ev.Welcome), html: ev.Welcome}, true)
 		}
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(bus.Disconnected) {
@@ -179,6 +206,7 @@ func (v *View) subscribe(ctx context.Context) {
 		// Sessions change with the next connection: start counting anew.
 		v.unread = map[convKey]int{}
 		v.channelUnread = 0
+		v.requestedDescription = nil
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(bus.UserAdded) { v.refreshTitles() })
 	bus.SubscribeCtx(ctx, v.bus, func(bus.UserRemoved) { v.refreshTitles() })
@@ -190,11 +218,10 @@ func (v *View) subscribe(ctx context.Context) {
 // the sender, everything else (channel and server messages) to the
 // channel chat.
 func (v *View) onTextMessage(ev bus.TextMessage) {
-	content := PlainText(ev.Message)
-	if content == "" {
-		// Fully stripped (e.g. an image-only message): nothing to render.
-		return
+	if len(richtext.Parse(ev.Message)) == 0 {
+		return // nothing visible (empty or only unsupported content)
 	}
+	content := PlainText(ev.Message)
 	st := v.bus.State()
 	if ev.Sender != 0 && isPrivate(ev, st.SelfSession) {
 		u, ok := st.Users[ev.Sender]
@@ -203,7 +230,7 @@ func (v *View) onTextMessage(ev bus.TextMessage) {
 		}
 		key := keyForUser(u)
 		c := v.dm(key, u.Name)
-		c.append(rowStyle{kind: rowMessage, sender: u.Name, at: time.Now(), content: content}, true)
+		c.append(rowStyle{kind: rowMessage, sender: u.Name, at: time.Now(), content: content, html: ev.Message}, true)
 		if !v.isRead(c) {
 			v.unread[key]++
 			v.bus.Emit(bus.UnreadChanged{Session: ev.Sender, Count: v.unread[key]})
@@ -215,7 +242,7 @@ func (v *View) onTextMessage(ev bus.TextMessage) {
 		kind = rowServer // session 0 is never a user: the server itself
 	}
 	v.channel.append(rowStyle{kind: kind, sender: v.userName(ev.Sender), at: time.Now(),
-		content: content}, true)
+		content: content, html: ev.Message}, true)
 	if !v.isRead(v.channel) {
 		v.channelUnread++
 		v.bus.Emit(bus.UnreadChanged{Session: 0, Count: v.channelUnread})
@@ -239,7 +266,7 @@ func (v *View) dm(key convKey, name string) *conversation {
 	}
 	c := newConversation("dm:"+string(key), name,
 		fmt.Sprintf(tr("Private conversation with %s"), name))
-	c.composer.SetMaxMessageLength(v.maxLen)
+	v.configure(c)
 	c.composer.SetSend(func(html, plain string) {
 		session, ok := sessionFor(v.bus.State(), key)
 		if !ok {
@@ -286,7 +313,23 @@ func (v *View) send(c *conversation, session uint32, html, plain string) {
 		return
 	}
 	c.append(rowStyle{kind: rowMessage, sender: selfName(st), at: time.Now(),
-		content: plain}, false)
+		content: plain, html: html}, false)
+}
+
+// all lists every conversation.
+func (v *View) all() []*conversation {
+	out := []*conversation{v.channel}
+	for _, c := range v.dms {
+		out = append(out, c)
+	}
+	return out
+}
+
+// configure applies the server's message limits to a conversation.
+func (v *View) configure(c *conversation) {
+	c.composer.SetMaxMessageLength(v.maxLen)
+	c.composer.SetImageLimit(v.imageLimit)
+	c.composer.SetHTMLAllowed(v.htmlAllowed)
 }
 
 // --- read state -----------------------------------------------------------
@@ -346,9 +389,33 @@ func (v *View) refreshTitles() {
 		name = "#" + ch.Name
 	}
 	v.channel.setTitle(name, "")
+	v.refreshDescription(st)
 	for key, c := range v.dms {
 		v.refreshDM(key, c)
 	}
+}
+
+// refreshDescription shows the local user's channel description above
+// the channel chat, fetching it when the server sent only its hash.
+func (v *View) refreshDescription(st bus.State) {
+	if st.SelfSession == 0 {
+		v.channel.info.set("")
+		return
+	}
+	id := st.Users[st.SelfSession].Channel
+	ch, ok := st.Channels[id]
+	if !ok {
+		v.channel.info.set("")
+		return
+	}
+	if ch.Description == "" && ch.DescriptionPending && !v.requestedDescription[id] {
+		if v.requestedDescription == nil {
+			v.requestedDescription = map[uint32]bool{}
+		}
+		v.requestedDescription[id] = true
+		v.bus.Emit(bus.ChannelDescriptionRequested{ChannelID: id})
+	}
+	v.channel.info.set(ch.Description)
 }
 
 func (v *View) refreshDM(key convKey, c *conversation) {
