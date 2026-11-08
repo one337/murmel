@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
-"POT-Creation-Date: 2026-11-08 14:20+0100\n"
+"POT-Creation-Date: 2026-11-08 15:12+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,8 +28,9 @@ msgstr ""
 #: internal/ui/admin/acl.go:98 internal/ui/admin/ban.go:28
 #: internal/ui/admin/channel.go:30 internal/ui/admin/channel.go:66
 #: internal/ui/admin/channel.go:91 internal/ui/admin/kick.go:28
-#: internal/ui/connection/controller.go:275
-#: internal/ui/connection/controller.go:1112 internal/ui/window.go:219
+#: internal/ui/connection/controller.go:278
+#: internal/ui/connection/controller.go:647
+#: internal/ui/connection/controller.go:1209 internal/ui/window.go:219
 msgid "Cancel"
 msgstr ""
 
@@ -360,7 +361,7 @@ msgstr ""
 msgid "Not connected."
 msgstr ""
 
-#: internal/ui/chat/view.go:252 internal/ui/connection/controller.go:152
+#: internal/ui/chat/view.go:252 internal/ui/connection/controller.go:155
 msgid "Server"
 msgstr ""
 
@@ -372,102 +373,136 @@ msgstr ""
 msgid "message too long"
 msgstr ""
 
-#: internal/ui/connection/controller.go:134
+#: internal/ui/connection/controller.go:137
 msgid "Connect to Server"
 msgstr ""
 
-#: internal/ui/connection/controller.go:139
+#: internal/ui/connection/controller.go:142
 msgid "Address"
 msgstr ""
 
-#: internal/ui/connection/controller.go:143
+#: internal/ui/connection/controller.go:146
 msgid "Port"
 msgstr ""
 
-#: internal/ui/connection/controller.go:148
+#: internal/ui/connection/controller.go:151
 msgid "Server Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go:159
+#: internal/ui/connection/controller.go:162
 msgid "Username"
 msgstr ""
 
-#: internal/ui/connection/controller.go:165
+#: internal/ui/connection/controller.go:168
 msgid "None (anonymous)"
 msgstr ""
 
-#: internal/ui/connection/controller.go:170
+#: internal/ui/connection/controller.go:173
 msgid "User Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go:187
+#: internal/ui/connection/controller.go:190
 msgid "Import certificate (PEM file with certificate and private key)"
 msgstr ""
 
-#: internal/ui/connection/controller.go:199
+#: internal/ui/connection/controller.go:202
 msgid "Save Connection"
 msgstr ""
 
-#: internal/ui/connection/controller.go:210
+#: internal/ui/connection/controller.go:213
 msgid "Saved as username@address"
 msgstr ""
 
-#: internal/ui/connection/controller.go:213
+#: internal/ui/connection/controller.go:216
 #, go-format
 msgid "Saved as %s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:222
+#: internal/ui/connection/controller.go:225
 msgid "Account"
 msgstr ""
 
-#: internal/ui/connection/controller.go:273
+#: internal/ui/connection/controller.go:276
+#: internal/ui/connection/controller.go:648
 msgid "Connect"
 msgstr ""
 
-#: internal/ui/connection/controller.go:353
+#: internal/ui/connection/controller.go:356
 msgid "Saved Connections"
 msgstr ""
 
-#: internal/ui/connection/controller.go:378
+#: internal/ui/connection/controller.go:381
 msgid "Forget connection"
 msgstr ""
 
-#: internal/ui/connection/controller.go:422
+#: internal/ui/connection/controller.go:425
 msgid "PEM Certificates"
 msgstr ""
 
-#: internal/ui/connection/controller.go:428
+#: internal/ui/connection/controller.go:431
 msgid "All Files"
 msgstr ""
 
-#: internal/ui/connection/controller.go:436
+#: internal/ui/connection/controller.go:439
 msgid "Select User Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go:456
+#: internal/ui/connection/controller.go:459
 msgid "Certificate Import Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:457
+#: internal/ui/connection/controller.go:460
 #, go-format
 msgid "The file could not be imported: %v"
 msgstr ""
 
-#: internal/ui/connection/controller.go:458
-#: internal/ui/connection/controller.go:1160
+#: internal/ui/connection/controller.go:461
+#: internal/ui/connection/controller.go:1257
 msgid "OK"
 msgstr ""
 
-#: internal/ui/connection/controller.go:692
+#: internal/ui/connection/controller.go:625
+msgid "Password Required"
+msgstr ""
+
+#: internal/ui/connection/controller.go:626
+msgid "This server is protected by a password."
+msgstr ""
+
+#: internal/ui/connection/controller.go:628
+#, go-format
+msgid "The server needs the password for the user %s."
+msgstr ""
+
+#: internal/ui/connection/controller.go:631
+msgid "Wrong Password"
+msgstr ""
+
+#: internal/ui/connection/controller.go:632
+msgid "The server did not accept the password. Please try again."
+msgstr ""
+
+#: internal/ui/connection/controller.go:636
+msgid "Password"
+msgstr ""
+
+#: internal/ui/connection/controller.go:638
+msgid "Remember Password"
+msgstr ""
+
+#: internal/ui/connection/controller.go:639
+msgid "Stored in your keyring"
+msgstr ""
+
+#: internal/ui/connection/controller.go:789
 msgid "Reconnecting…"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1100
+#: internal/ui/connection/controller.go:1197
 msgid "Server Certificate Changed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1102
+#: internal/ui/connection/controller.go:1199
 #, go-format
 msgid ""
 "The server's certificate has changed.\n"
@@ -478,11 +513,11 @@ msgid ""
 "Only continue if you trust this certificate."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1105
+#: internal/ui/connection/controller.go:1202
 msgid "New Server Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1107
+#: internal/ui/connection/controller.go:1204
 #, go-format
 msgid ""
 "This server's certificate has not been seen before.\n"
@@ -493,57 +528,57 @@ msgid ""
 "Trust and connect?"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1113
+#: internal/ui/connection/controller.go:1210
 msgid "Trust and Connect"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1140
+#: internal/ui/connection/controller.go:1237
 msgid "Authentication Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1141
+#: internal/ui/connection/controller.go:1238
 msgid "The server rejected the password or credentials."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1143
+#: internal/ui/connection/controller.go:1240
 msgid "Banned"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1144
+#: internal/ui/connection/controller.go:1241
 msgid "You are banned from this server."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1146
+#: internal/ui/connection/controller.go:1243
 msgid "Server Full"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1147
+#: internal/ui/connection/controller.go:1244
 msgid "The server has reached its maximum number of users."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1149
+#: internal/ui/connection/controller.go:1246
 msgid "TLS Handshake Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1150
+#: internal/ui/connection/controller.go:1247
 #, go-format
 msgid ""
 "Could not establish a secure connection:\n"
 "%s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1152
+#: internal/ui/connection/controller.go:1249
 msgid "Server Unreachable"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1153
+#: internal/ui/connection/controller.go:1250
 #, go-format
 msgid ""
 "The server could not be reached:\n"
 "%s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1155
+#: internal/ui/connection/controller.go:1252
 msgid "Connection Failed"
 msgstr ""
 

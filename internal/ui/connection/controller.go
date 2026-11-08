@@ -64,6 +64,9 @@ type dialParams struct {
 	// channelPath is the channel a mumble:// link points to (joined after
 	// connecting; nil for a plain connect).
 	channelPath []string
+	// rememberPassword saves password to the keyring (and the connection
+	// to the saved list) once the server accepted it.
+	rememberPassword bool
 }
 
 // NewController creates a Controller. win is the application window used as
@@ -516,7 +519,7 @@ func (c *Controller) dial(p *dialParams) {
 		stopFwd()
 		connBus.Close()
 		glib.IdleAdd(func() bool {
-			c.onDialError(err)
+			c.onDialError(err, p)
 			return false
 		})
 		return
@@ -544,6 +547,17 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 	c.connBus = connBus
 	c.stopFwd = stopFwd
 	c.boff.reset()
+
+	if p := c.lastDial; p != nil && p.rememberPassword {
+		p.rememberPassword = false // once; reconnects reuse the dial params
+		accepted := *p
+		// Not under c.mu: saving changes settings, and the settings change
+		// handler (onSettingChanged) takes c.mu itself.
+		glib.IdleAdd(func() bool {
+			c.rememberAccepted(&accepted)
+			return false
+		})
+	}
 
 	// Join the channel a mumble:// link pointed to.
 	if p := c.lastDial; p != nil && len(p.channelPath) > 0 && client.Self != nil {
@@ -579,20 +593,103 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 	}
 }
 
-func (c *Controller) onDialError(err error) {
+func (c *Controller) onDialError(err error, p *dialParams) {
 	class := classifyDialError(err)
 	if class == classNone {
 		return // TOFU declined — silent, the dialog explained it
 	}
 
 	// Emit a ConnectError so the status bar and window state machine update.
-	if ev, ok := bus.TranslateReject(err); ok {
+	ev, isReject := bus.TranslateReject(err)
+	if isReject {
 		c.appBus.Emit(ev)
 	} else {
 		c.appBus.Emit(bus.ConnectError{Text: err.Error()})
 	}
 
+	// A missing or wrong password is asked for instead of reported.
+	if isReject && p != nil &&
+		(ev.Reason == bus.RejectUserCredentials || ev.Reason == bus.RejectServerPassword) {
+		c.promptPassword(p, ev.Reason == bus.RejectUserCredentials)
+		return
+	}
 	c.showErrorDialog(class, err)
+}
+
+// promptPassword asks for the password the server wants — the user's
+// password (e.g. SuperUser, or an account registered with a password
+// instead of a certificate) or the server password — and retries. With
+// "Remember password" the password goes to the keyring once the server
+// accepts it.
+func (c *Controller) promptPassword(p *dialParams, userPassword bool) {
+	heading := tr("Password Required")
+	body := tr("This server is protected by a password.")
+	if userPassword {
+		body = fmt.Sprintf(tr("The server needs the password for the user %s."), p.username)
+	}
+	if p.password != "" {
+		heading = tr("Wrong Password")
+		body = tr("The server did not accept the password. Please try again.")
+	}
+
+	entry := adw.NewPasswordEntryRow()
+	entry.SetTitle(tr("Password"))
+	remember := adw.NewSwitchRow()
+	remember.SetTitle(tr("Remember Password"))
+	remember.SetSubtitle(tr("Stored in your keyring"))
+	remember.SetActive(true)
+	group := adw.NewPreferencesGroup()
+	group.Add(entry)
+	group.Add(remember)
+
+	alert := adw.NewAlertDialog(heading, body)
+	alert.SetExtraChild(group)
+	alert.AddResponse("cancel", tr("Cancel"))
+	alert.AddResponse("connect", tr("Connect"))
+	alert.SetResponseAppearance("connect", adw.ResponseSuggested)
+	alert.SetDefaultResponse("connect")
+	alert.SetCloseResponse("cancel")
+	alert.SetResponseEnabled("connect", false)
+	entry.ConnectChanged(func() { alert.SetResponseEnabled("connect", entry.Text() != "") })
+	entry.SetActivatesDefault(true) // Enter connects
+	alert.ConnectResponse(func(response string) {
+		if response != "connect" {
+			return
+		}
+		retry := *p
+		retry.password = entry.Text()
+		retry.rememberPassword = remember.Active()
+		c.startDial(&retry)
+	})
+	alert.Present(c.win)
+	entry.GrabFocus()
+}
+
+// rememberAccepted stores the password of a successful dial in the keyring
+// and the connection in the saved list (keeping an existing entry's
+// certificate choice).
+func (c *Controller) rememberAccepted(p *dialParams) {
+	host, portStr, err := net.SplitHostPort(p.addr)
+	if err != nil {
+		return
+	}
+	port, _ := strconv.Atoi(portStr)
+	entry := settings.ServerEntry{
+		Name:     savedName(p.username, host, port),
+		Host:     host,
+		Port:     port,
+		Username: p.username,
+	}
+	if p.identity != nil {
+		entry.IdentityID = p.identity.Meta.ID
+	}
+	for _, e := range c.settings.Servers() {
+		if sameAccount(e, host, port, p.username) && entry.IdentityID == "" {
+			entry.IdentityID = e.IdentityID
+		}
+	}
+	c.saveServer(entry, p.password)
+	slog.Info("password remembered", "server", entry.Name)
 }
 
 // connectionInfoInterval is how often the status indicator is refreshed.
