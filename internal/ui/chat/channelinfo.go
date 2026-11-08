@@ -61,6 +61,11 @@ type channelInfo struct {
 	heroTex    *gdk.Texture
 	heroText   *gtk.Box
 	heroToggle *gtk.Button
+	// The toggle sits on the image's faded bottom (heroOnImage), or below
+	// the text when an expanded banner has more description.
+	heroOnImage *gtk.Box
+	heroBelow   *gtk.Box
+	toggleBelow bool
 	// bottomFade continues the area's colour into the chat: an overlay at
 	// the top of the chat (the toolbar puts a gap between top bars and
 	// content, which would otherwise show as a stripe).
@@ -136,8 +141,18 @@ func newChannelInfo() *channelInfo {
 	heroImage.AddOverlay(i.heroPic)
 	heroImage.AddOverlay(scrim)
 	heroImage.SetOverflow(gtk.OverflowHidden)
+	// The image's bottom, behind the toggle, fades into the chat colour.
+	heroFade := gtk.NewBox(gtk.OrientationVertical, 0)
+	heroFade.AddCSSClass("channel-hero-fade")
+	heroFade.SetVAlign(gtk.AlignEnd)
+	heroFade.SetCanTarget(false)
+	heroImage.AddOverlay(heroFade)
+	i.heroOnImage = gtk.NewBox(gtk.OrientationVertical, 0)
+	i.heroOnImage.SetVAlign(gtk.AlignEnd)
+	i.heroOnImage.SetHAlign(gtk.AlignCenter)
+	heroImage.AddOverlay(i.heroOnImage)
 	i.heroText = gtk.NewBox(gtk.OrientationVertical, 0)
-	i.heroText.AddCSSClass("channel-info")
+	i.heroText.AddCSSClass("channel-hero-text")
 	i.heroToggle = gtk.NewButton()
 	i.heroToggle.AddCSSClass("flat")
 	i.heroToggle.AddCSSClass("channel-info-toggle")
@@ -154,14 +169,13 @@ func newChannelInfo() *channelInfo {
 		}
 	})
 	i.heroPic.AddController(heroClick)
-	toggleRow := gtk.NewBox(gtk.OrientationVertical, 0)
-	toggleRow.AddCSSClass("channel-info")
-	toggleRow.AddCSSClass("channel-hero-toggle-row")
-	toggleRow.Append(i.heroToggle)
+	i.heroBelow = gtk.NewBox(gtk.OrientationVertical, 0)
+	i.heroBelow.AddCSSClass("channel-hero-text")
+	i.heroOnImage.Append(i.heroToggle)
 	i.heroRoot = gtk.NewBox(gtk.OrientationVertical, 0)
 	i.heroRoot.Append(heroImage)
 	i.heroRoot.Append(i.heroText)
-	i.heroRoot.Append(toggleRow)
+	i.heroRoot.Append(i.heroBelow)
 	i.heroRoot.SetVisible(false)
 
 	// Re-check the overflow when the width changes (text rewraps).
@@ -213,7 +227,7 @@ func (i *channelInfo) set(html string) {
 	}
 	i.root.SetVisible(i.mode == infoNormal)
 	i.heroRoot.SetVisible(i.mode == infoHero)
-	i.bottomFade.SetVisible(i.mode != infoNone)
+	i.bottomFade.SetVisible(i.mode == infoNormal)
 	if i.onMode != nil {
 		i.onMode(i.mode)
 	}
@@ -329,13 +343,35 @@ func (i *channelInfo) layoutHero() {
 	if !overflow {
 		i.expanded = false
 	}
+	// The image continues behind the toggle and fades out there; the
+	// toggle starts where a text description's toggle starts.
+	_, toggleH, _, _ := i.heroToggle.Measure(gtk.OrientationVertical, -1)
+	below := i.expanded && hasText
+	i.placeHeroToggle(below)
+	i.heroBelow.SetVisible(below)
 	if i.expanded {
-		i.heroSizer.SetSizeRequest(-1, full)
+		i.heroSizer.SetSizeRequest(-1, full+toggleH)
 		i.heroText.SetVisible(hasText)
 		i.heroToggle.SetChild(toggleLabel(tr("Show less"), "pan-up-symbolic"))
 	} else {
-		i.heroSizer.SetSizeRequest(-1, min(collapsed, full))
+		i.heroSizer.SetSizeRequest(-1, min(collapsed, full)+toggleH)
 		i.heroText.SetVisible(false)
 		i.heroToggle.SetChild(toggleLabel(tr("Show more"), "pan-down-symbolic"))
 	}
+}
+
+// placeHeroToggle moves the banner's toggle below the text (or back
+// onto the image).
+func (i *channelInfo) placeHeroToggle(below bool) {
+	if below == i.toggleBelow {
+		return
+	}
+	if i.toggleBelow {
+		i.heroBelow.Remove(i.heroToggle)
+		i.heroOnImage.Append(i.heroToggle)
+	} else {
+		i.heroOnImage.Remove(i.heroToggle)
+		i.heroBelow.Append(i.heroToggle)
+	}
+	i.toggleBelow = below
 }

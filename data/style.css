@@ -184,8 +184,15 @@ button.channel-info-toggle {
   min-height: 96px;
   background-image: linear-gradient(to bottom, alpha(black, 0.55), alpha(black, 0));
 }
-.channel-info.channel-hero-toggle-row {
-  padding-top: 0;
+/* The banner's bottom fades into the chat behind "Show more"; text below
+   an expanded banner sits on the chat colour. */
+.channel-hero-fade {
+  min-height: 72px;
+  background-image: linear-gradient(to bottom, alpha(@view_bg_color, 0), alpha(@view_bg_color, 0.85) 60%, @view_bg_color);
+}
+.channel-hero-text {
+  padding: 0 12px;
+  background-color: @view_bg_color;
 }
 headerbar.hero-header {
   background: none;
