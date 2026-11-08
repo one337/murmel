@@ -7,6 +7,8 @@
 #                                  and the latest bundle (e.g. after changing
 #                                  WEB_URL in tools/release.conf), then upload
 #   tools/release.sh --upload      only upload web/ to the server
+#   tools/release.sh --rebuild     rebuild and publish the current, already
+#                                  tagged version (e.g. after a packaging fix)
 #
 # A release ends by uploading web/ to the server configured in
 # tools/release.conf (an SFTP location mounted via GVfs).
@@ -18,7 +20,8 @@
 #   murmel.gpg                         public signing key
 #   downloads/murmel-<version>.flatpak single-file bundles
 #   index.html                         install instructions
-#   screenshots/                       software center screenshots
+#   screenshots/                       screenshots referenced by the metainfo
+#   media/                             software center copies (thumbnails)
 #
 # Release notes default to the feat/fix commit subjects since the last
 # tag; set RELEASE_NOTES (one item per line) to write them by hand.
@@ -181,7 +184,39 @@ upload() {
 	echo "release: uploaded web/ to $WEB_URL"
 }
 
+# build_and_publish builds the current tree into the signed repository,
+# refreshes summary and deltas, writes the descriptors and uploads.
+# Screenshots are mirrored to ${WEB_URL}media/: appstream compose runs
+# without network inside flatpak-builder and would otherwise drop the
+# metainfo's remote screenshot URLs from the repository's AppStream data.
+build_and_publish() {
+	mkdir -p "$WEB"
+	flatpak-builder --force-clean --default-branch="$BRANCH" "${GPG_ARGS[@]}" \
+		--mirror-screenshots-url="${WEB_URL}media/" \
+		--repo="$REPO" build-release "$MANIFEST"
+	if [ -d build-release/screenshots ]; then
+		mkdir -p "$WEB/media"
+		cp -r build-release/screenshots/. "$WEB/media/"
+	fi
+	flatpak build-update-repo "${GPG_ARGS[@]}" --title="Murmel" \
+		--default-branch="$BRANCH" --generate-static-deltas --prune --prune-depth=5 "$REPO"
+	write_descriptors
+	upload
+}
+
 case "${1:-}" in
+--rebuild)
+	[ -z "$(git status --porcelain)" ] || die "git tree not clean; commit first"
+	version=$(latest_version)
+	git rev-parse -q --verify "refs/tags/v$version" >/dev/null || die "no tag v$version"
+	# Only tooling and docs may have changed since the release; anything
+	# that ends up in the app needs a new version.
+	git diff --quiet "v$version" HEAD -- . ':!tools' ':!README.md' ||
+		die "app files changed since v$version; release a new version instead"
+	build_and_publish
+	echo "release: v$version rebuilt and published"
+	exit 0
+	;;
 --refs-only)
 	[ -d "$REPO" ] || die "no $REPO yet; run a release first"
 	write_descriptors
@@ -208,11 +243,5 @@ git add VERSION "$METAINFO"
 git commit -q -m "chore(release): v$version"
 git tag -a "v$version" -m "Murmel $version"
 
-mkdir -p "$WEB"
-flatpak-builder --force-clean --default-branch="$BRANCH" "${GPG_ARGS[@]}" \
-	--repo="$REPO" build-release "$MANIFEST"
-flatpak build-update-repo "${GPG_ARGS[@]}" --title="Murmel" \
-	--default-branch="$BRANCH" --generate-static-deltas --prune --prune-depth=5 "$REPO"
-write_descriptors
-upload
+build_and_publish
 echo "release: v$version done"
