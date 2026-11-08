@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	meterBarPx   = 3 // bar width; whole pixels keep the edges crisp
-	meterGapPx   = 2
+	meterBarPx = 3 // bar width; whole pixels keep the edges crisp
+	meterGapPx = 2
 	// meterBars is the minimum number of bars (21 × 30 ms ≈ 0.6 s); the
 	// meter shows more history as it gets wider, up to meterMaxBars.
 	meterBars    = 21
