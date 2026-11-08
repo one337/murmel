@@ -19,6 +19,7 @@ func memoryDefaults() map[string]any {
 		"jitter-target-frames":    3,
 		"audio-packet-frames":     2,
 		"audio-quality":           40,
+		"noise-suppression":       2,
 		"notification-enabled":    true,
 		"notify-channel-presence": false,
 		"notify-server-presence":  false,
@@ -177,3 +178,6 @@ func (m *Memory) SetSoundEvents(v map[string]string) {
 
 func (m *Memory) AudioQuality() int     { return m.get("audio-quality").(int) }
 func (m *Memory) SetAudioQuality(v int) { m.set("audio-quality", v) }
+
+func (m *Memory) NoiseSuppression() int     { return m.get("noise-suppression").(int) }
+func (m *Memory) SetNoiseSuppression(v int) { m.set("noise-suppression", v) }

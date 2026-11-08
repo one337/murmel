@@ -16,6 +16,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"io.github/murmel/internal/audio/apm"
 	"io.github/murmel/internal/audio/levelmon"
 	"io.github/murmel/internal/audio/pipeline"
 	"io.github/murmel/internal/bus"
@@ -45,9 +46,8 @@ type Meter struct {
 	value *gtk.Label
 	state *gtk.Label
 
-	st      settings.Settings
-	b       *bus.Bus
-	process func() func([]int16)
+	st settings.Settings
+	b  *bus.Bus
 
 	level, peak float64 // meter fractions
 	peakAt      time.Time
@@ -63,11 +63,9 @@ type Meter struct {
 	monGen   int  // invalidates monitor starts that finish too late
 }
 
-// New builds a meter bound to the vad-threshold setting. process, when
-// non-nil, returns the input processing to apply in microphone-test mode
-// (so the test shows what voice detection would see).
-func New(st settings.Settings, b *bus.Bus, process func() func([]int16)) *Meter {
-	m := &Meter{st: st, b: b, process: process, threshold: st.VADThreshold()}
+// New builds a meter bound to the vad-threshold setting.
+func New(st settings.Settings, b *bus.Bus) *Meter {
+	m := &Meter{st: st, b: b, threshold: st.VADThreshold()}
 
 	m.area = gtk.NewDrawingArea()
 	m.area.SetContentHeight(int(areaHeight))
@@ -206,9 +204,13 @@ func (m *Meter) startMonitor() {
 	m.monGen++
 	gen := m.monGen
 	dev := m.st.AudioInputDevice()
+	// The test applies the same noise suppression as the voice engine, so
+	// it shows what voice detection would see.
 	var process func([]int16)
-	if m.process != nil {
-		process = m.process()
+	if level := m.st.NoiseSuppression(); level > 0 {
+		if proc, err := apm.New(apm.ForLevel(level)); err == nil {
+			process = func(f []int16) { _ = proc.Process(f) }
+		}
 	}
 	m.starting = true
 	go func() {

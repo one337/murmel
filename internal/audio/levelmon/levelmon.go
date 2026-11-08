@@ -72,13 +72,13 @@ func (m *Monitor) run(process func([]int16), report func(Level)) {
 			}
 			return
 		}
+		clip = clip || pipeline.Clipped(frame) // overdrive is a raw-input property
 		if process != nil {
 			process(frame)
 		}
 		if db := pipeline.LevelDB(frame); db > max {
 			max = db
 		}
-		clip = clip || pipeline.Clipped(frame)
 		if n++; n >= windowFrames {
 			report(Level{DB: max, Clipping: clip})
 			n, max, clip = 0, -120, false

@@ -19,6 +19,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"io.github/murmel/internal/audio/apm"
 	"io.github/murmel/internal/audio/device"
 	"io.github/murmel/internal/audio/opus"
 	"io.github/murmel/internal/audio/pipeline"
@@ -58,6 +59,10 @@ type Options struct {
 	// PacketFrames is the outgoing audio per packet in 10 ms frames: 1, 2,
 	// 4 or 6 (0 or another value selects 2, i.e. 20 ms).
 	PacketFrames int
+	// NoiseSuppression is the noise-suppression setting (0 off … 4 very
+	// high, see apm.ForLevel), applied to the microphone before voice
+	// detection and encoding.
+	NoiseSuppression int
 	// Bitrate is the wanted Opus bitrate in bit/s (0 = opus.BitrateDefault).
 	// The server's bandwidth limit may lower it, see EffectiveBitrate.
 	Bitrate int
@@ -107,6 +112,7 @@ type Engine struct {
 	threshold    atomic.Uint64 // math.Float64bits of the VAD calibration
 	packetFrames atomic.Int32  // outgoing 10 ms frames per packet
 	bitrate      atomic.Int64  // wanted Opus bitrate in bit/s
+	noise        atomic.Int32  // noise-suppression setting
 
 	enc *opus.Encoder
 
@@ -151,6 +157,7 @@ func New(client *gumble.Client, b *bus.Bus, self uint32, opts Options) (*Engine,
 	e.SetThreshold(opts.Threshold)
 	e.SetPacketFrames(opts.PacketFrames)
 	e.SetBitrate(opts.Bitrate)
+	e.SetNoiseSuppression(opts.NoiseSuppression)
 	if opts.JitterFrames > 0 {
 		e.SetJitterFrames(opts.JitterFrames)
 	}
@@ -266,6 +273,10 @@ func validPacketFrames(n int) int {
 	return 2
 }
 
+// SetNoiseSuppression changes the noise suppression (0 off … 4 very high)
+// from the next captured frame on. Safe from any goroutine.
+func (e *Engine) SetNoiseSuppression(level int) { e.noise.Store(int32(level)) }
+
 // SetBitrate sets the wanted Opus bitrate in bit/s (0 = default). It
 // applies from the next transmission on. Safe from any goroutine.
 func (e *Engine) SetBitrate(bitsPerSecond int) {
@@ -312,6 +323,16 @@ func (e *Engine) Stop() {
 func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 	vad := pipeline.NewVAD(pipeline.VADConfig{})
 	appliedThreshold := math.NaN()
+
+	// Input processing (noise suppression). Without the WebRTC module
+	// voice still works, just unprocessed.
+	appliedNoise := int32(-1)
+	proc, err := apm.New(apm.Config{})
+	if err != nil {
+		slog.Warn("voice: input processing unavailable", "err", err)
+	} else {
+		defer proc.Close()
+	}
 	var (
 		outCh   chan<- gumble.AudioBuffer
 		pack    packer
@@ -346,6 +367,17 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 		frame, err := dev.Read()
 		if err != nil {
 			break
+		}
+		clipped := pipeline.Clipped(frame) // raw input overdrive
+		if proc != nil {
+			if n := e.noise.Load(); n != appliedNoise {
+				proc.Configure(apm.ForLevel(int(n)))
+				appliedNoise = n
+				slog.Info("voice: noise suppression", "level", n)
+			}
+			if err := proc.Process(frame); err != nil {
+				slog.Debug("voice: input processing failed", "err", err)
+			}
 		}
 		if t := math.Float64frombits(e.threshold.Load()); t != appliedThreshold {
 			vad.SetOpenThresholdDB(pipeline.ThresholdDB(t))
@@ -384,7 +416,7 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 		if l := vad.GetLevel(); l > maxLevel {
 			maxLevel = l
 		}
-		if !clipping && pipeline.Clipped(frame) {
+		if !clipping && clipped {
 			clipping = true
 		}
 		frames++

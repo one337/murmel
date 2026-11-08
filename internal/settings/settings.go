@@ -48,6 +48,11 @@ type Settings interface {
 	AudioPacketFrames() int
 	SetAudioPacketFrames(v int)
 
+	// NoiseSuppression is the microphone noise suppression strength:
+	// 0 off, 1 low, 2 moderate, 3 high, 4 very high.
+	NoiseSuppression() int
+	SetNoiseSuppression(v int)
+
 	// AudioQuality is the outgoing Opus bitrate in kbit/s.
 	AudioQuality() int
 	SetAudioQuality(v int)

@@ -161,3 +161,6 @@ func (g *GSettings) SetSoundEvents(v map[string]string) {
 
 func (g *GSettings) AudioQuality() int     { return g.gs.Int("audio-quality") }
 func (g *GSettings) SetAudioQuality(v int) { g.gs.SetInt("audio-quality", v) }
+
+func (g *GSettings) NoiseSuppression() int     { return g.gs.Int("noise-suppression") }
+func (g *GSettings) SetNoiseSuppression(v int) { g.gs.SetInt("noise-suppression", v) }

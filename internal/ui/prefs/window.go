@@ -124,6 +124,16 @@ func audioInputPage(st settings.Settings, b *bus.Bus) *adw.PreferencesPage {
 	devGroup.Add(deviceComboRow(tr("Device"), true, st.AudioInputDevice,
 		st.SetAudioInputDevice))
 
+	noise := adw.NewComboRow()
+	noise.SetTitle(tr("Noise Suppression"))
+	noise.SetSubtitle(tr("Removes steady background noise such as fans, hum or traffic from your voice"))
+	noise.SetModel(gtk.NewStringList([]string{tr("Off"), tr("Low"), tr("Moderate"), tr("High"), tr("Very High")}))
+	noise.SetSelected(uint(min(4, max(0, st.NoiseSuppression()))))
+	coreglib.InternObject(noise).NotifyProperty("selected", func() {
+		st.SetNoiseSuppression(int(noise.Selected()))
+	})
+	devGroup.Add(noise)
+
 	vadGroup := adw.NewPreferencesGroup()
 	vadGroup.SetTitle(tr("Voice Detection"))
 
@@ -136,7 +146,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus) *adw.PreferencesPage {
 	title := gtk.NewLabel(tr("Activation Threshold"))
 	title.SetXAlign(0)
 	meterBox.Append(title)
-	meterBox.Append(levelmeter.New(st, b, nil).Root())
+	meterBox.Append(levelmeter.New(st, b).Root())
 	meterRow := gtk.NewListBoxRow()
 	meterRow.SetActivatable(false)
 	meterRow.SetChild(meterBox)

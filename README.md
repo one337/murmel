@@ -10,8 +10,10 @@ written in Go with GTK 4 and Libadwaita.
 - Adaptive GNOME interface: channel tree in a sidebar, chat in the content
   pane, works on narrow windows
 - Voice over encrypted UDP with automatic TCP fallback, Opus codec
-- Voice activity detection with an adjustable threshold and a live input
-  meter (grey below threshold, green while transmitting, red when clipping)
+- Voice activity detection with an absolute threshold set on a live level
+  meter (also as a microphone test without a connection)
+- Noise suppression (WebRTC audio processing)
+- Adjustable voice quality (32–192 kb/s), limited to the server's bandwidth
 - Input and output device selection right from the status bar
 - Adjustable jitter buffer and audio per packet (10–60 ms)
 - Saved connections; server passwords are kept in the desktop keyring
@@ -42,6 +44,9 @@ Requirements:
 - GTK 4 and Libadwaita development files (GNOME 47+ recommended)
 - libopus development files (`opus-devel` on Fedora, `libopus-dev` on
   Debian/Ubuntu)
+- WebRTC audio processing 2.x development files, for noise suppression
+  (`webrtc-audio-processing-devel` on Fedora,
+  `libwebrtc-audio-processing-dev` on Debian/Ubuntu); a C++20 compiler
 - PulseAudio or PipeWire (with `pipewire-pulse`) at runtime
 
 Dependencies are vendored, so the build works offline:

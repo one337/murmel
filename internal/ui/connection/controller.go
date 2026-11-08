@@ -543,12 +543,13 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 		selfSession = client.Self.Session
 	}
 	opts := engine.Options{
-		CaptureDevice:  c.settings.AudioInputDevice(),
-		PlaybackDevice: c.settings.AudioOutputDevice(),
-		Threshold:      c.settings.VADThreshold(),
-		JitterFrames:   c.settings.JitterTargetFrames(),
-		PacketFrames:   c.settings.AudioPacketFrames(),
-		Bitrate:        c.settings.AudioQuality() * 1000,
+		CaptureDevice:    c.settings.AudioInputDevice(),
+		PlaybackDevice:   c.settings.AudioOutputDevice(),
+		Threshold:        c.settings.VADThreshold(),
+		JitterFrames:     c.settings.JitterTargetFrames(),
+		PacketFrames:     c.settings.AudioPacketFrames(),
+		Bitrate:          c.settings.AudioQuality() * 1000,
+		NoiseSuppression: c.settings.NoiseSuppression(),
 	}
 	go c.reportConnectionInfo(voiceCtx, client, addr)
 	if eng, err := engine.New(client, c.appBus, selfSession, opts); err != nil {
@@ -620,6 +621,8 @@ func (c *Controller) onSettingChanged(key string) {
 		eng.SetJitterFrames(c.settings.JitterTargetFrames())
 	case "audio-packet-frames":
 		eng.SetPacketFrames(c.settings.AudioPacketFrames())
+	case "noise-suppression":
+		eng.SetNoiseSuppression(c.settings.NoiseSuppression())
 	case "audio-quality":
 		eng.SetBitrate(c.settings.AudioQuality() * 1000)
 	case "audio-input-device", "audio-output-device":

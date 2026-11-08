@@ -165,7 +165,7 @@ func (s *statusBar) fillInputPopover(box *gtk.Box) {
 
 func (s *statusBar) fillThresholdPopover(box *gtk.Box) {
 	box.Append(heading(tr("Activation Threshold")))
-	box.Append(levelmeter.New(s.settings, s.bus, nil).Root())
+	box.Append(levelmeter.New(s.settings, s.bus).Root())
 	hint := gtk.NewLabel(tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Red means the input is too loud."))
 	hint.SetWrap(true)
 	hint.SetMaxWidthChars(36)

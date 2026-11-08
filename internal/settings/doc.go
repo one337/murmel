@@ -50,6 +50,7 @@
 //	jitter-target-frames JitterTargetFrames / SetJitterTargetFrames jitter buffer spin (20–80 ms)
 //	audio-packet-frames  AudioPacketFrames / SetAudioPacketFrames   audio per packet combo (10–60 ms)
 //	audio-quality        AudioQuality / SetAudioQuality             quality spin (32–192 kbit/s)
+//	noise-suppression    NoiseSuppression / SetNoiseSuppression     noise suppression combo (0–4)
 //	notification-enabled NotificationsEnabled / SetNotifications   notifications switch
 //	notify-channel-presence NotifyChannelPresence / SetNotifyChannelPresence channel join/leave switch
 //	notify-server-presence  NotifyServerPresence / SetNotifyServerPresence   server join/leave switch
