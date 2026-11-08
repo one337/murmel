@@ -36,10 +36,10 @@ func main() {
 
 	app := ui.NewApp(st, b)
 
-	// Wire up subsystems once the application window exists (Activate fires).
-	app.ConnectActivate(func() {
+	// Wire up the subsystems once, when the main window is created: on a
+	// normal start (activate) as well as on a mumble:// link (open).
+	app.OnWindowCreated(func(win *ui.Window) {
 		ctx := app.Context()
-		win := app.Window()
 
 		ctrl := connection.NewController(ctx, win, b, st, certsManager)
 		app.OnConnect(ctrl.OnConnectRequest)

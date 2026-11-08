@@ -62,15 +62,7 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 	dialog.SetContentHeight(400)
 	dialog.SetChild(toolbar)
 
-	// One-shot subscription: auto-unsubscribes after first event.
-	var unsub func()
-	unsub = bus.Subscribe(b, func(ev bus.UserListFetched) {
-		if unsub != nil {
-			f := unsub
-			unsub = nil
-			f()
-		}
-
+	awaitReply(dialog, b, listbox, loadingRow, nil, func(ev bus.UserListFetched) {
 		listbox.Remove(loadingRow)
 
 		if len(ev.Users) == 0 {
@@ -104,13 +96,7 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 		}
 	})
 
-	closeBtn.ConnectClicked(func() {
-		if unsub != nil {
-			unsub()
-			unsub = nil
-		}
-		dialog.Close()
-	})
+	closeBtn.ConnectClicked(func() { dialog.Close() })
 
 	b.Emit(bus.UserListRequested{})
 	dialog.Present(parent)

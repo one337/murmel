@@ -61,6 +61,9 @@ type dialParams struct {
 	username string
 	password string
 	identity *certs.Identity
+	// channelPath is the channel a mumble:// link points to (joined after
+	// connecting; nil for a plain connect).
+	channelPath []string
 }
 
 // NewController creates a Controller. win is the application window used as
@@ -89,6 +92,8 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 	bus.SubscribeCtx(ctx, appBus, c.onChannelCreateRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelDeleteRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelRenameRequested)
+	bus.SubscribeCtx(ctx, appBus, c.onDisconnectRequested)
+	bus.SubscribeCtx(ctx, appBus, c.onChannelPermissionRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onBanListRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onUserListRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onBanListWriteRequested)
@@ -319,12 +324,17 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 		}
 
 		dialog.Close()
-		c.startDial(&dialParams{
+		params := &dialParams{
 			addr:     net.JoinHostPort(h, strconv.Itoa(p)),
 			username: user,
 			password: password,
 			identity: identity,
-		})
+		}
+		// A link's channel applies only to the server the link named.
+		if strings.EqualFold(h, req.Host) && p == port {
+			params.channelPath = req.ChannelPath
+		}
+		c.startDial(params)
 	})
 	hostEntry.ConnectChanged(func() { hostEntry.RemoveCSSClass("error") })
 
@@ -534,6 +544,15 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 	c.connBus = connBus
 	c.stopFwd = stopFwd
 	c.boff.reset()
+
+	// Join the channel a mumble:// link pointed to.
+	if p := c.lastDial; p != nil && len(p.channelPath) > 0 && client.Self != nil {
+		if ch := client.Channels.Find(p.channelPath...); ch != nil {
+			client.Self.Move(ch)
+		} else {
+			slog.Info("link channel not found", "path", strings.Join(p.channelPath, "/"))
+		}
+	}
 
 	// Start voice engine on a per-connection context.
 	var voiceCtx context.Context
@@ -877,6 +896,38 @@ func (c *Controller) onChannelRenameRequested(ev bus.ChannelRenameRequested) {
 	}
 	if ch := client.Channels[ev.ChannelID]; ch != nil {
 		ch.SetName(ev.Name)
+	}
+}
+
+// onDisconnectRequested leaves the server on the user's request: no
+// reconnect, and the UI returns to its start state via Disconnected
+// (the connection's own bus is already detached, so it is emitted here).
+func (c *Controller) onDisconnectRequested(bus.DisconnectRequested) {
+	c.mu.Lock()
+	if c.retryStop != nil {
+		c.retryStop()
+		c.retryStop = nil
+	}
+	connected := c.client != nil
+	c.disconnectLocked()
+	c.boff.reset()
+	c.lastDial = nil
+	c.mu.Unlock()
+	if connected {
+		slog.Info("disconnected by the user")
+		c.appBus.Emit(bus.Disconnected{Reason: bus.DisconnectUser})
+	}
+}
+
+func (c *Controller) onChannelPermissionRequested(ev bus.ChannelPermissionRequested) {
+	c.mu.Lock()
+	client := c.client
+	c.mu.Unlock()
+	if client == nil {
+		return
+	}
+	if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Permission() == nil {
+		ch.RequestPermission()
 	}
 }
 

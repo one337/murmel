@@ -317,3 +317,15 @@ byte budget was a fixed 40 bytes per buffer, which capped Opus at
 32 kb/s for 10 ms packets and at half that for 20 ms packets.
 
 **Upstream**: layeh/gumble `gumble/audio.go` (`dataBytes := client.Config.AudioDataBytes`).
+
+## P14 — Keep the root channel permissions from ServerSync
+
+**What**: `handleServerSync` stores `ServerSync.permissions` as the
+permissions of the root channel (ID 0), the same way a PermissionQuery
+answer is stored, so `Channel.Permission()` knows them from the start.
+
+**Why**: Kick, ban and registering users are root-channel permissions.
+Without them the UI could not tell whether to offer those actions (nor
+the ban list and registered users) until it queried the root channel.
+
+**Upstream**: layeh/gumble `gumble/handlers.go` (`handleServerSync` ignores `Permissions`).

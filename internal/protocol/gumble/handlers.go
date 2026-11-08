@@ -266,6 +266,15 @@ func (c *Client) handleServerSync(buffer []byte) error {
 		event.MaximumBitrate = &val
 		c.maxBandwidth.Store(int64(val))
 	}
+	// The server sends the root channel's permissions with the sync
+	// (kick, ban, register live there); keep them like a PermissionQuery
+	// answer (P14).
+	if packet.Permissions != nil {
+		p := Permission(*packet.Permissions)
+		c.volatile.Lock()
+		c.permissions[0] = &p
+		c.volatile.Unlock()
+	}
 	atomic.StoreUint32(&c.state, uint32(StateSynced))
 	c.Config.Listeners.onConnect(&event)
 	close(c.connect)

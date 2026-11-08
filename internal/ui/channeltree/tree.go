@@ -27,6 +27,10 @@ type Tree struct {
 
 	b      *bus.Bus
 	parent gtk.Widgetter // dialog parent for admin actions
+
+	// menuRefresh re-evaluates the open context menu's entries (nil when
+	// no menu is shown).
+	menuRefresh func()
 }
 
 // NewTree builds the tree widget and subscribes to the bus. parent is the
@@ -87,6 +91,9 @@ func (t *Tree) handle(ev bus.Event) {
 		t.rebuild()
 	} else {
 		t.updateInPlace(ev)
+	}
+	if t.menuRefresh != nil {
+		t.menuRefresh()
 	}
 }
 
@@ -177,7 +184,8 @@ func (t *Tree) showChannelMenu(id uint32, x, y float64) {
 			admin.ShowACLEditor(t.parent, t.b, chID, name)
 		},
 	}
-	menu := buildChannelMenu(t.model, id, a)
+	menu, refresh := buildChannelMenu(t.model, id, a)
+	t.openMenu(menu, refresh, permissionChannels(t.model, id, 0))
 	popupAt(r.root, menu, x, y)
 }
 
@@ -200,7 +208,6 @@ func (t *Tree) showUserMenu(session uint32, x, y float64) {
 	}
 
 	a := UserMenuActions{
-		IsSelf:     session == t.model.self,
 		IsMuted:    isMuted,
 		IsDeafened: isDeafened,
 
@@ -219,10 +226,23 @@ func (t *Tree) showUserMenu(session uint32, x, y float64) {
 		Ban:      func() { admin.ShowBan(t.parent, t.b, session, userName) },
 		Register: func() { t.b.Emit(bus.UserRegisterRequested{Session: session}) },
 		Stats:    func() { t.b.Emit(bus.UserStatsRequested{Session: session}) },
-		// Volume: T20 audio pipeline seam — wired in T20 via per-user gain.
 	}
-	menu := buildUserMenu(a)
+	menu, refresh := buildUserMenu(t.model, session, a)
+	t.openMenu(menu, refresh, permissionChannels(t.model, 0, session))
 	popupAt(r.root, menu, x, y)
+}
+
+// openMenu tracks the shown context menu so permission answers arriving
+// while it is open update its entries, and asks the server for the
+// permissions it still lacks.
+func (t *Tree) openMenu(menu *gtk.PopoverMenu, refresh func(), channels []uint32) {
+	t.menuRefresh = refresh
+	menu.ConnectClosed(func() { t.menuRefresh = nil })
+	for _, id := range channels {
+		if _, known := t.model.channelPerm(id); !known {
+			t.b.Emit(bus.ChannelPermissionRequested{ChannelID: id})
+		}
+	}
 }
 
 // sameRow reports whether a and b wrap the same GtkListBoxRow. Signal

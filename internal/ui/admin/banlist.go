@@ -72,14 +72,7 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 	var entries []bus.BanEntry
 	removed := map[int]bool{}
 
-	// One-shot subscription: auto-unsubscribes after first event.
-	var unsub func()
-	unsub = bus.Subscribe(b, func(ev bus.BanListFetched) {
-		if unsub != nil {
-			f := unsub
-			unsub = nil
-			f()
-		}
+	awaitReply(dialog, b, listbox, loadingRow, nil, func(ev bus.BanListFetched) {
 		entries = ev.Entries
 		removed = map[int]bool{}
 
@@ -120,10 +113,6 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 	})
 
 	saveBtn.ConnectClicked(func() {
-		if unsub != nil {
-			unsub()
-			unsub = nil
-		}
 		remaining := make([]bus.BanEntry, 0, len(entries))
 		for i, e := range entries {
 			if !removed[i] {
@@ -134,13 +123,7 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 		dialog.Close()
 	})
 
-	cancelBtn.ConnectClicked(func() {
-		if unsub != nil {
-			unsub()
-			unsub = nil
-		}
-		dialog.Close()
-	})
+	cancelBtn.ConnectClicked(func() { dialog.Close() })
 
 	b.Emit(bus.BanListRequested{})
 	dialog.Present(parent)

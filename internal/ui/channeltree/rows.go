@@ -11,7 +11,6 @@ import (
 	"github.com/diamondburned/gotk4/pkg/pango"
 
 	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
 )
 
 const (
@@ -202,48 +201,45 @@ func setBold(lbl *gtk.Label, bold bool) {
 }
 
 // ChannelMenuActions bundles the action callbacks used by buildChannelMenu.
-// Nil callbacks cause the corresponding menu item to remain insensitive.
 type ChannelMenuActions struct {
-	Join      func(channelID uint32)
-	CreateSub func(channelID uint32)
-	Edit      func(channelID uint32)
-	Delete    func(channelID uint32)
-	EditACL   func(channelID uint32)
+	Join      func(uint32)
+	CreateSub func(uint32)
+	Edit      func(uint32)
+	Delete    func(uint32)
+	EditACL   func(uint32)
 }
 
-// buildChannelMenu assembles the channel context menu. Nil callbacks leave
-// items insensitive; permission checks further gate admin actions.
-func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) *gtk.PopoverMenu {
-	n := m.channels[id]
+// buildChannelMenu assembles the channel context menu. Entries are enabled
+// by the local user's permissions (channelMenuPerms); the returned refresh
+// re-evaluates them, e.g. when the server answers a permission query while
+// the menu is open.
+func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) (*gtk.PopoverMenu, func()) {
 	group := gio.NewSimpleActionGroup()
-
-	addChan := func(name string, perm gumble.Permission, cb func(uint32)) {
+	acts := map[string]*gio.SimpleAction{}
+	add := func(name string, cb func(uint32)) {
 		act := gio.NewSimpleAction(name, nil)
-		if cb != nil && permAllowed(n.info, perm) {
+		if cb != nil {
 			act.ConnectActivate(func(*glib.Variant) { cb(id) })
-			act.SetEnabled(true)
-		} else {
-			act.SetEnabled(false)
 		}
+		act.SetEnabled(false)
 		group.AddAction(act)
+		acts[name] = act
 	}
+	add("join", a.Join)
+	add("create-sub", a.CreateSub)
+	add("edit", a.Edit)
+	add("remove", a.Delete)
+	add("edit-acl", a.EditACL)
 
-	joinAct := gio.NewSimpleAction("join", nil)
-	if a.Join != nil {
-		joinAct.ConnectActivate(func(*glib.Variant) { a.Join(id) })
+	refresh := func() {
+		st := channelMenuPerms(m, id)
+		acts["join"].SetEnabled(a.Join != nil && st.join)
+		acts["create-sub"].SetEnabled(a.CreateSub != nil && st.createSub)
+		acts["edit"].SetEnabled(a.Edit != nil && st.edit)
+		acts["remove"].SetEnabled(a.Delete != nil && st.remove)
+		acts["edit-acl"].SetEnabled(a.EditACL != nil && st.acl)
 	}
-	joinAct.SetEnabled(a.Join != nil && canJoin(n.info))
-	group.AddAction(joinAct)
-
-	addChan("create-sub", gumble.PermissionMakeChannel, a.CreateSub)
-	addChan("edit", gumble.PermissionWrite, a.Edit)
-	addChan("remove", gumble.PermissionWrite, a.Delete)
-	addChan("edit-acl", gumble.PermissionWrite, a.EditACL)
-
-	// Link channel is a future feature; always insensitive for now.
-	linkAct := gio.NewSimpleAction("link", nil)
-	linkAct.SetEnabled(false)
-	group.AddAction(linkAct)
+	refresh()
 
 	menu := gio.NewMenu()
 	menu.Append(tr("Join"), "ctx.join")
@@ -251,36 +247,19 @@ func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) *gtk.Popove
 	menu.Append(tr("Edit…"), "ctx.edit")
 	menu.Append(tr("Remove…"), "ctx.remove")
 	menu.Append(tr("Edit ACL…"), "ctx.edit-acl")
-	menu.Append(tr("Link…"), "ctx.link")
 
 	pm := gtk.NewPopoverMenuFromModel(menu)
 	pm.InsertActionGroup("ctx", group)
-	return pm
-}
-
-// permAllowed treats unknown permissions (nil) as allowed: unknown is not
-// insufficient.
-func permAllowed(ch bus.ChannelInfo, perm gumble.Permission) bool {
-	if ch.Permissions == nil {
-		return true
-	}
-	return gumble.Permission(*ch.Permissions).Has(perm)
-}
-
-func canJoin(ch bus.ChannelInfo) bool {
-	return permAllowed(ch, gumble.PermissionEnter)
+	return pm, refresh
 }
 
 // UserMenuActions bundles the action callbacks used by buildUserMenu.
-// Nil callbacks cause the corresponding menu item to remain insensitive.
 type UserMenuActions struct {
-	IsSelf     bool // true when session == self; suppresses server-action items
 	IsMuted    bool // current server-mute state for the toggle label
 	IsDeafened bool // current server-deafen state
 
 	Message  func()
 	Move     func()
-	Volume   func()
 	Mute     func()
 	Deafen   func()
 	Priority func()
@@ -290,41 +269,44 @@ type UserMenuActions struct {
 	Stats    func()
 }
 
-// buildUserMenu assembles the user context menu wired to the provided action
-// callbacks. Nil callbacks leave the corresponding item insensitive.
-func buildUserMenu(a UserMenuActions) *gtk.PopoverMenu {
+// buildUserMenu assembles the user context menu. Entries are enabled by
+// the local user's permissions (userMenuPerms); the returned refresh
+// re-evaluates them.
+func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.PopoverMenu, func()) {
 	group := gio.NewSimpleActionGroup()
-
+	acts := map[string]*gio.SimpleAction{}
+	cbs := map[string]func(){}
 	add := func(name string, cb func()) {
 		act := gio.NewSimpleAction(name, nil)
 		if cb != nil {
 			act.ConnectActivate(func(*glib.Variant) { cb() })
-			act.SetEnabled(true)
-		} else {
-			act.SetEnabled(false)
 		}
+		act.SetEnabled(false)
 		group.AddAction(act)
+		acts[name] = act
+		cbs[name] = cb
 	}
-
 	add("message", a.Message)
-	// Server-admin actions are only relevant for other users.
-	if a.IsSelf {
-		for _, name := range []string{"move", "mute", "deafen", "priority", "kick", "ban", "register", "stats"} {
-			act := gio.NewSimpleAction(name, nil)
-			act.SetEnabled(false)
-			group.AddAction(act)
+	add("move", a.Move)
+	add("mute", a.Mute)
+	add("deafen", a.Deafen)
+	add("priority", a.Priority)
+	add("kick", a.Kick)
+	add("ban", a.Ban)
+	add("register", a.Register)
+	add("stats", a.Stats)
+
+	refresh := func() {
+		st := userMenuPerms(m, session)
+		for name, ok := range map[string]bool{
+			"message": st.message, "move": st.move, "mute": st.mute, "deafen": st.deafen,
+			"priority": st.priority, "kick": st.kick, "ban": st.ban,
+			"register": st.register, "stats": st.stats,
+		} {
+			acts[name].SetEnabled(ok && cbs[name] != nil)
 		}
-	} else {
-		add("move", a.Move)
-		add("mute", a.Mute)
-		add("deafen", a.Deafen)
-		add("priority", a.Priority)
-		add("kick", a.Kick)
-		add("ban", a.Ban)
-		add("register", a.Register)
-		add("stats", a.Stats)
 	}
-	add("volume", a.Volume)
+	refresh()
 
 	muteLabel := tr("Mute on server")
 	if a.IsMuted {
@@ -338,7 +320,6 @@ func buildUserMenu(a UserMenuActions) *gtk.PopoverMenu {
 	menu := gio.NewMenu()
 	menu.Append(tr("Send message…"), "ctx.message")
 	menu.Append(tr("Move to my channel"), "ctx.move")
-	menu.Append(tr("Local volume…"), "ctx.volume")
 	menu.Append(muteLabel, "ctx.mute")
 	menu.Append(deafenLabel, "ctx.deafen")
 	menu.Append(tr("Priority speaker"), "ctx.priority")
@@ -348,7 +329,7 @@ func buildUserMenu(a UserMenuActions) *gtk.PopoverMenu {
 	menu.Append(tr("View stats"), "ctx.stats")
 	pm := gtk.NewPopoverMenuFromModel(menu)
 	pm.InsertActionGroup("ctx", group)
-	return pm
+	return pm, refresh
 }
 
 func popupAt(row gtk.Widgetter, menu *gtk.PopoverMenu, x, y float64) {

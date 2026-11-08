@@ -12,6 +12,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/protocol/gumble"
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/resources"
 )
@@ -52,6 +53,8 @@ type App struct {
 
 	// notifier implements the T26 desktop notifications.
 	notifier *notifier
+	// windowCreated wires the subsystems once the window exists.
+	windowCreated func(*Window)
 	// presence derives join/leave/move events for notifier and sounds.
 	presence *presenceTracker
 	// sounds plays the event sounds.
@@ -164,8 +167,18 @@ func (a *App) ensureWindow() {
 		return
 	}
 	a.window = newWindow(a)
+	if a.windowCreated != nil {
+		a.windowCreated(a.window)
+	}
 	a.window.Present()
 }
+
+// OnWindowCreated installs the handler that wires the subsystems (channel
+// tree, chat, connection controller) into the main window. It runs exactly
+// once, when the window is created — whether the app was started normally
+// (activate) or by a mumble:// link (open, where activate never fires) —
+// so repeated activations never wire anything twice.
+func (a *App) OnWindowCreated(f func(win *Window)) { a.windowCreated = f }
 
 func (a *App) registerActions() {
 	quit := gio.NewSimpleAction("quit", nil)
@@ -211,6 +224,10 @@ func (a *App) registerActions() {
 	about.ConnectActivate(func(*glib.Variant) { a.showAbout() })
 	a.AddAction(about)
 
+	disconnect := gio.NewSimpleAction("disconnect", nil)
+	disconnect.ConnectActivate(func(*glib.Variant) { a.bus.Emit(bus.DisconnectRequested{}) })
+	a.AddAction(disconnect)
+
 	userList := gio.NewSimpleAction("userlist", nil)
 	userList.ConnectActivate(func(*glib.Variant) {
 		if a.userListRequested != nil {
@@ -219,9 +236,37 @@ func (a *App) registerActions() {
 	})
 	a.AddAction(userList)
 
+	a.trackServerActions(disconnect, banList, userList)
+
 	// GNOME HIG accelerators; the win.* actions themselves live on Window.
 	a.SetAccelsForAction("app.quit", []string{"<Primary>q"})
 	a.SetAccelsForAction("app.preferences", []string{"<Primary>comma"})
 	a.SetAccelsForAction("win.fullscreen", []string{"F11"})
 	a.SetAccelsForAction("win.quick-switcher", []string{"<Primary>k"})
+}
+
+// trackServerActions enables the server actions only while connected,
+// and the admin lists only with the matching root-channel permission
+// (ban list: Ban, registered users: Register). Unknown permissions count
+// as not granted.
+func (a *App) trackServerActions(disconnect, banList, userList *gio.SimpleAction) {
+	connected := false
+	update := func() {
+		var root gumble.Permission
+		if ch, ok := a.bus.State().Channels[0]; ok && ch.Permissions != nil {
+			root = gumble.Permission(*ch.Permissions)
+		}
+		disconnect.SetEnabled(connected)
+		banList.SetEnabled(connected && root.Has(gumble.PermissionBan))
+		userList.SetEnabled(connected && root.Has(gumble.PermissionRegister))
+	}
+	update()
+	bus.SubscribeCtx(a.ctx, a.bus, func(bus.Connected) { connected = true; update() })
+	bus.SubscribeCtx(a.ctx, a.bus, func(bus.Disconnected) { connected = false; update() })
+	bus.SubscribeCtx(a.ctx, a.bus, func(bus.ConnectError) { connected = false; update() })
+	bus.SubscribeCtx(a.ctx, a.bus, func(ev bus.ChannelUpdated) {
+		if ev.Channel.ID == 0 {
+			update()
+		}
+	})
 }

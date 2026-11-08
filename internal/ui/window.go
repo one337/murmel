@@ -82,6 +82,10 @@ type Window struct {
 	status  *statusBar
 
 	connected bool
+	// adminMenu holds the server-admin entries; filled while connected.
+	adminMenu *gio.Menu
+	// quitConfirmed skips the quit confirmation once the user agreed.
+	quitConfirmed bool
 }
 
 func newWindow(app *App) *Window {
@@ -108,7 +112,9 @@ func newWindow(app *App) *Window {
 
 	sidebarHeader := adw.NewHeaderBar()
 	sidebarHeader.SetTitleWidget(adw.NewWindowTitle(tr("Channels"), ""))
-	sidebarHeader.PackEnd(newPrimaryMenuButton())
+	menuBtn, adminMenu := newPrimaryMenuButton()
+	w.adminMenu = adminMenu
+	sidebarHeader.PackEnd(menuBtn)
 	sidebarHeader.PackEnd(w.chatBtn)
 
 	sidebarToolbar := adw.NewToolbarView()
@@ -155,6 +161,10 @@ func newWindow(app *App) *Window {
 	w.subscribe()
 	w.installPlaceholders()
 	w.ConnectCloseRequest(func() bool {
+		if w.connected && !w.quitConfirmed {
+			w.confirmQuit()
+			return true // keep the window until the user decides
+		}
 		w.saveGeometry()
 		cancel()
 		return false
@@ -162,15 +172,18 @@ func newWindow(app *App) *Window {
 	return w
 }
 
-// newPrimaryMenuButton builds the GNOME primary ("hamburger") menu.
-func newPrimaryMenuButton() *gtk.MenuButton {
+// newPrimaryMenuButton builds the GNOME primary ("hamburger") menu. The
+// returned admin section starts empty: setAdminMenu fills it while
+// connected. Disconnect is hidden while there is no connection.
+func newPrimaryMenuButton() (*gtk.MenuButton, *gio.Menu) {
 	admin := gio.NewMenu()
-	admin.Append(tr("Ban List"), "app.banlist")
-	admin.Append(tr("Registered Users"), "app.userlist")
 
 	general := gio.NewMenu()
 	general.Append(tr("Preferences"), "app.preferences")
 	general.Append(tr("About Murmel"), "app.about")
+	disconnect := gio.NewMenuItem(tr("Disconnect"), "app.disconnect")
+	disconnect.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
+	general.AppendItem(disconnect)
 	general.Append(tr("Quit"), "app.quit")
 
 	menu := gio.NewMenu()
@@ -182,7 +195,41 @@ func newPrimaryMenuButton() *gtk.MenuButton {
 	btn.SetTooltipText(tr("Main Menu"))
 	btn.SetMenuModel(menu)
 	btn.SetPrimary(true)
-	return btn
+	return btn, admin
+}
+
+// setAdminMenu shows the server-admin entries only while connected; the
+// app actions grey them out when the server does not grant the rights.
+func (w *Window) setAdminMenu(connected bool) {
+	if !connected {
+		w.adminMenu.RemoveAll()
+		return
+	}
+	if w.adminMenu.NItems() == 0 {
+		w.adminMenu.Append(tr("Ban List"), "app.banlist")
+		w.adminMenu.Append(tr("Registered Users"), "app.userlist")
+	}
+}
+
+// confirmQuit asks before quitting while connected; agreeing leaves the
+// server and closes the window.
+func (w *Window) confirmQuit() {
+	alert := adw.NewAlertDialog(tr("Quit Murmel?"),
+		tr("You are still connected to a server. Quitting ends the connection."))
+	alert.AddResponse("cancel", tr("Cancel"))
+	alert.AddResponse("quit", tr("Quit"))
+	alert.SetResponseAppearance("quit", adw.ResponseDestructive)
+	alert.SetDefaultResponse("cancel")
+	alert.SetCloseResponse("cancel")
+	alert.ConnectResponse(func(response string) {
+		if response != "quit" {
+			return
+		}
+		w.quitConfirmed = true
+		w.app.bus.Emit(bus.DisconnectRequested{})
+		w.Close()
+	})
+	alert.Present(w)
 }
 
 // Sidebar returns the sidebar region slot (channel tree, T16).
@@ -243,12 +290,14 @@ func (w *Window) subscribe() {
 		w.stack.SetVisibleChildName("session")
 		w.status.setConnected()
 		w.connected = true
+		w.setAdminMenu(true)
 		w.showPrimary()
 	})
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(bus.Disconnected) {
 		w.stack.SetVisibleChildName("empty")
 		w.status.setDisconnected()
 		w.connected = false
+		w.setAdminMenu(false)
 		w.showPrimary()
 		w.status.SetSelfMuted(false)
 		w.status.SetSelfDeafened(false)
@@ -257,6 +306,7 @@ func (w *Window) subscribe() {
 		w.stack.SetVisibleChildName("empty")
 		w.status.setError(ev.Text)
 		w.connected = false
+		w.setAdminMenu(false)
 		w.showPrimary()
 	})
 	// Picking a chat target in the channel tree reveals the conversation

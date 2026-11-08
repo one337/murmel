@@ -33,6 +33,10 @@ func forwardBus(src, dst *bus.Bus, onDisconnected func()) (stop func()) {
 	sub(bus.Subscribe(src, func(ev bus.ChannelUpdated) { dst.Emit(ev) }))
 	sub(bus.Subscribe(src, func(ev bus.PermissionDenied) { dst.Emit(ev) }))
 	sub(bus.Subscribe(src, func(ev bus.ServerConfigUpdated) { dst.Emit(ev) }))
+	// Replies to admin requests (ban list, registered users, channel ACL).
+	sub(bus.Subscribe(src, func(ev bus.BanListFetched) { dst.Emit(ev) }))
+	sub(bus.Subscribe(src, func(ev bus.UserListFetched) { dst.Emit(ev) }))
+	sub(bus.Subscribe(src, func(ev bus.ACLFetched) { dst.Emit(ev) }))
 
 	return func() {
 		for _, s := range stops {

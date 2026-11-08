@@ -129,6 +129,15 @@ type ACLSaveRequested struct {
 	Rules     []ACLRuleInfo
 }
 
+// DisconnectRequested asks the controller to leave the server (user action).
+type DisconnectRequested struct{}
+
+// ChannelPermissionRequested asks the controller to query the local user's
+// permissions in a channel; the answer arrives as ChannelUpdated.
+type ChannelPermissionRequested struct {
+	ChannelID uint32
+}
+
 // BanListRequested asks the controller to request the server ban list.
 type BanListRequested struct{}
 
@@ -146,25 +155,27 @@ type UserUnregisterRequested struct {
 	UserID uint32
 }
 
-func (ChannelJoinRequested) isBusEvent()  {}
-func (ChatTargetSelected) isBusEvent()    {}
-func (SelfMuteToggle) isBusEvent()        {}
-func (SelfDeafenToggle) isBusEvent()      {}
-func (UserMoveRequested) isBusEvent()     {}
-func (UserMuteRequested) isBusEvent()     {}
-func (UserDeafenRequested) isBusEvent()   {}
-func (UserPriorityRequested) isBusEvent() {}
-func (UserRegisterRequested) isBusEvent() {}
-func (UserStatsRequested) isBusEvent()    {}
-func (UserVolumeChanged) isBusEvent()     {}
-func (UserKickRequested) isBusEvent()     {}
-func (UserBanRequested) isBusEvent()      {}
-func (ChannelCreateRequested) isBusEvent() {}
-func (ChannelDeleteRequested) isBusEvent() {}
-func (ChannelRenameRequested) isBusEvent() {}
-func (ACLRequested) isBusEvent()          {}
-func (ACLSaveRequested) isBusEvent()      {}
-func (BanListRequested) isBusEvent()      {}
-func (UserListRequested) isBusEvent()     {}
-func (BanListWriteRequested) isBusEvent() {}
-func (UserUnregisterRequested) isBusEvent() {}
+func (ChannelJoinRequested) isBusEvent()       {}
+func (ChatTargetSelected) isBusEvent()         {}
+func (SelfMuteToggle) isBusEvent()             {}
+func (SelfDeafenToggle) isBusEvent()           {}
+func (UserMoveRequested) isBusEvent()          {}
+func (UserMuteRequested) isBusEvent()          {}
+func (UserDeafenRequested) isBusEvent()        {}
+func (UserPriorityRequested) isBusEvent()      {}
+func (UserRegisterRequested) isBusEvent()      {}
+func (UserStatsRequested) isBusEvent()         {}
+func (UserVolumeChanged) isBusEvent()          {}
+func (UserKickRequested) isBusEvent()          {}
+func (UserBanRequested) isBusEvent()           {}
+func (ChannelCreateRequested) isBusEvent()     {}
+func (ChannelDeleteRequested) isBusEvent()     {}
+func (ChannelRenameRequested) isBusEvent()     {}
+func (ACLRequested) isBusEvent()               {}
+func (ACLSaveRequested) isBusEvent()           {}
+func (BanListRequested) isBusEvent()           {}
+func (DisconnectRequested) isBusEvent()        {}
+func (ChannelPermissionRequested) isBusEvent() {}
+func (UserListRequested) isBusEvent()          {}
+func (BanListWriteRequested) isBusEvent()      {}
+func (UserUnregisterRequested) isBusEvent()    {}

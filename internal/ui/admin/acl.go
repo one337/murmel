@@ -114,48 +114,35 @@ func ShowACLEditor(parent gtk.Widgetter, b *bus.Bus, channelID uint32, channelNa
 	dialog.SetContentHeight(500)
 	dialog.SetChild(toolbar)
 
-	// --- one-shot subscription ---
-	var unsub func()
-	unsub = bus.Subscribe(b, func(ev bus.ACLFetched) {
-		if ev.ChannelID != channelID {
-			return
-		}
-		if unsub != nil {
-			f := unsub
-			unsub = nil
-			f()
-		}
+	awaitReply(dialog, b, rulesList, loadingRow,
+		func(ev bus.ACLFetched) bool { return ev.ChannelID == channelID },
+		func(ev bus.ACLFetched) {
+			inheritRow.SetActive(ev.Inherits)
+			rulesList.Remove(loadingRow)
 
-		inheritRow.SetActive(ev.Inherits)
-		rulesList.Remove(loadingRow)
+			ruleWidgets = make([]*ruleWidget, 0, len(ev.Rules))
+			for _, rule := range ev.Rules {
+				rw := buildRuleWidget(rule)
+				ruleWidgets = append(ruleWidgets, rw)
+				rulesList.Append(rw.expander)
+			}
 
-		ruleWidgets = make([]*ruleWidget, 0, len(ev.Rules))
-		for _, rule := range ev.Rules {
-			rw := buildRuleWidget(rule)
-			ruleWidgets = append(ruleWidgets, rw)
-			rulesList.Append(rw.expander)
-		}
+			if len(ev.Rules) == 0 {
+				emptyRow := gtk.NewListBoxRow()
+				emptyRow.SetSelectable(false)
+				emptyRow.SetActivatable(false)
+				lbl := gtk.NewLabel(tr("No rules"))
+				lbl.AddCSSClass("dim-label")
+				lbl.SetMarginTop(16)
+				lbl.SetMarginBottom(16)
+				emptyRow.SetChild(lbl)
+				rulesList.Append(emptyRow)
+			}
 
-		if len(ev.Rules) == 0 {
-			emptyRow := gtk.NewListBoxRow()
-			emptyRow.SetSelectable(false)
-			emptyRow.SetActivatable(false)
-			lbl := gtk.NewLabel(tr("No rules"))
-			lbl.AddCSSClass("dim-label")
-			lbl.SetMarginTop(16)
-			lbl.SetMarginBottom(16)
-			emptyRow.SetChild(lbl)
-			rulesList.Append(emptyRow)
-		}
-
-		saveBtn.SetSensitive(true)
-	})
+			saveBtn.SetSensitive(true)
+		})
 
 	saveBtn.ConnectClicked(func() {
-		if unsub != nil {
-			unsub()
-			unsub = nil
-		}
 		rules := make([]bus.ACLRuleInfo, 0, len(ruleWidgets))
 		for _, rw := range ruleWidgets {
 			if rw.deleted {
@@ -184,13 +171,7 @@ func ShowACLEditor(parent gtk.Widgetter, b *bus.Bus, channelID uint32, channelNa
 		dialog.Close()
 	})
 
-	cancelBtn.ConnectClicked(func() {
-		if unsub != nil {
-			unsub()
-			unsub = nil
-		}
-		dialog.Close()
-	})
+	cancelBtn.ConnectClicked(func() { dialog.Close() })
 
 	b.Emit(bus.ACLRequested{ChannelID: channelID})
 	dialog.Present(parent)
