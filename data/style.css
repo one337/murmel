@@ -53,14 +53,23 @@ menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):n
   box-shadow: inset 0 0 0 1px alpha(#e01b24, 0.65);
 }
 
-/* Chat composer: rounded field around the text view. */
-scrolledwindow.composer {
+/* Chat composer: one rounded field across the full width — the text on
+   top, a toolbar (formatting left, send right) inside the same frame. */
+.composer-frame {
+  margin: 0 6px 6px 6px;
   border-radius: 12px;
   background-color: @view_bg_color;
   box-shadow: inset 0 0 0 1px alpha(currentColor, 0.15);
 }
-scrolledwindow.composer:focus-within {
+.composer-frame:focus-within {
   box-shadow: inset 0 0 0 2px alpha(@accent_color, 0.6);
+}
+.composer-toolbar {
+  padding: 0 6px 6px 6px;
+}
+button.composer-send {
+  min-width: 52px;
+  border-radius: 8px;
 }
 textview.composer-view,
 textview.composer-view > text {
@@ -84,6 +93,12 @@ menubutton.dropdown-arrow > button {
 /* Connection status dot (bottom right). */
 .status-dot-holder {
   padding: 8px;
+}
+/* In the sidebar header's top-left corner: the header pads its start by
+   6 px; 4 + 8 px more put the dot as far from the left edge as from the
+   top (it is centered vertically, level with the title). */
+.status-dot-corner {
+  margin-left: 4px;
 }
 .status-dot {
   min-width: 10px;

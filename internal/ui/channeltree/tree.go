@@ -120,7 +120,8 @@ func (t *Tree) rebuild() {
 		case entryUser:
 			session := e.id
 			r := newUserRow(t.model, session,
-				func(x, y float64) { t.showUserMenu(session, x, y) })
+				func(x, y float64) { t.showUserMenu(session, x, y) },
+				func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) })
 			t.userRows[session] = r
 			t.list.Append(r.root)
 		}

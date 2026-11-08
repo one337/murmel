@@ -2,6 +2,7 @@ package ui
 
 import (
 	"context"
+	"net"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -75,6 +76,11 @@ type Window struct {
 	sidebarPage *adw.NavigationPage
 	contentPage *adw.NavigationPage
 	chatBtn     *gtk.Button
+	// serverTitle shows the connected server's name in the sidebar header.
+	serverTitle *adw.WindowTitle
+	// narrowMute is a mute toggle for the chat header in the narrow
+	// layout, where the sidebar's voice controls are out of sight.
+	narrowMute *gtk.ToggleButton
 
 	sidebar *Slot
 	chat    *Slot
@@ -110,8 +116,15 @@ func newWindow(app *App) *Window {
 	w.chatBtn.SetVisible(false)
 	w.chatBtn.ConnectClicked(func() { w.split.SetShowContent(true) })
 
+	// The header shows the server name as its title and the connection
+	// dot in the top-left corner: as far from the left edge as from the
+	// top, so it lines up vertically with the title (status-dot-corner).
+	w.serverTitle = adw.NewWindowTitle(tr("Murmel"), "")
 	sidebarHeader := adw.NewHeaderBar()
-	sidebarHeader.SetTitleWidget(adw.NewWindowTitle(tr("Channels"), ""))
+	sidebarHeader.SetTitleWidget(w.serverTitle)
+	w.status.dotHolder.AddCSSClass("status-dot-corner")
+	w.status.dotHolder.SetVAlign(gtk.AlignCenter)
+	sidebarHeader.PackStart(w.status.dotHolder)
 	menuBtn, adminMenu := newPrimaryMenuButton()
 	w.adminMenu = adminMenu
 	sidebarHeader.PackEnd(menuBtn)
@@ -120,25 +133,40 @@ func newWindow(app *App) *Window {
 	sidebarToolbar := adw.NewToolbarView()
 	sidebarToolbar.AddTopBar(sidebarHeader)
 	sidebarToolbar.SetContent(w.sidebar.holder)
+	sidebarToolbar.AddBottomBar(w.status.root)
 
-	w.sidebarPage = adw.NewNavigationPage(sidebarToolbar, tr("Channels"))
+	w.sidebarPage = adw.NewNavigationPage(sidebarToolbar, tr("Murmel"))
 	w.sidebarPage.SetTag("sidebar")
 
-	// --- Content page: empty state ↔ chat, voice status bar at the bottom.
+	// --- Content page: empty state ↔ chat. The chat brings its own
+	// headers (one per conversation), the empty state gets a plain one.
+	emptyHeader := adw.NewHeaderBar()
+	emptyHeader.SetTitleWidget(adw.NewWindowTitle(tr("Murmel"), ""))
+	emptyToolbar := adw.NewToolbarView()
+	emptyToolbar.AddTopBar(emptyHeader)
+	emptyToolbar.SetContent(newEmptyState(app))
+
 	w.stack = gtk.NewStack()
 	w.stack.SetTransitionType(gtk.StackTransitionTypeCrossfade)
-	w.stack.AddNamed(newEmptyState(app), "empty")
+	w.stack.AddNamed(emptyToolbar, "empty")
 	w.stack.AddNamed(w.chat.holder, "session")
 
-	contentHeader := adw.NewHeaderBar()
-	contentHeader.SetTitleWidget(adw.NewWindowTitle(tr("Murmel"), ""))
+	// Narrow layout: a mute toggle for the chat header, mirroring the
+	// sidebar's microphone button.
+	w.narrowMute = gtk.NewToggleButton()
+	w.narrowMute.SetIconName("audio-input-microphone-symbolic")
+	w.narrowMute.SetTooltipText(tr("Mute microphone"))
+	w.narrowMute.SetVisible(false)
+	syncMute := func(from, to *gtk.ToggleButton) {
+		if to.Active() != from.Active() {
+			to.SetActive(from.Active())
+		}
+		to.SetIconName(from.IconName())
+	}
+	w.status.selfMute.ConnectToggled(func() { syncMute(w.status.selfMute, w.narrowMute) })
+	w.narrowMute.ConnectToggled(func() { syncMute(w.narrowMute, w.status.selfMute) })
 
-	contentToolbar := adw.NewToolbarView()
-	contentToolbar.AddTopBar(contentHeader)
-	contentToolbar.SetContent(w.stack)
-	contentToolbar.AddBottomBar(w.status.root)
-
-	w.contentPage = adw.NewNavigationPage(contentToolbar, tr("Murmel"))
+	w.contentPage = adw.NewNavigationPage(w.stack, tr("Murmel"))
 	w.contentPage.SetTag("content")
 
 	// --- Split view.
@@ -252,6 +280,25 @@ func (w *Window) setCollapsed(collapsed bool) {
 	}
 	w.split.SetCollapsed(collapsed)
 	w.chatBtn.SetVisible(collapsed && w.connected)
+	w.narrowMute.SetVisible(collapsed)
+}
+
+// NarrowMuteButton is the microphone toggle the chat shows in its header
+// while the window is narrow (sidebar voice controls out of sight).
+func (w *Window) NarrowMuteButton() gtk.Widgetter { return w.narrowMute }
+
+// setServerTitle shows the server in the sidebar header ("Murmel" while
+// disconnected).
+func (w *Window) setServerTitle(address string) {
+	title := tr("Murmel")
+	if address != "" {
+		title = address
+		if host, _, err := net.SplitHostPort(address); err == nil {
+			title = host
+		}
+	}
+	w.serverTitle.SetTitle(title)
+	w.sidebarPage.SetTitle(title)
 }
 
 // showPrimary picks the page a collapsed split view shows: the channel list
@@ -298,6 +345,7 @@ func (w *Window) subscribe() {
 		w.status.setDisconnected()
 		w.connected = false
 		w.setAdminMenu(false)
+		w.setServerTitle("")
 		w.showPrimary()
 		w.status.SetSelfMuted(false)
 		w.status.SetSelfDeafened(false)
@@ -307,6 +355,7 @@ func (w *Window) subscribe() {
 		w.status.setError(ev.Text)
 		w.connected = false
 		w.setAdminMenu(false)
+		w.setServerTitle("")
 		w.showPrimary()
 	})
 	// Picking a chat target in the channel tree reveals the conversation
@@ -331,6 +380,7 @@ func (w *Window) subscribe() {
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(ev bus.ConnectionInfo) {
 		if w.connected {
 			w.status.setInfo(ev)
+			w.setServerTitle(ev.Address)
 		}
 	})
 	// Reflect server-confirmed self-mute/deafen state.

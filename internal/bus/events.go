@@ -476,3 +476,13 @@ type PacketStats struct {
 }
 
 func (UserStatsFetched) isBusEvent() {}
+
+// UnreadChanged reports the number of unread messages of a conversation:
+// Session is the private conversation partner, 0 for the channel chat.
+// Emitted by the chat view for the channel tree's badges.
+type UnreadChanged struct {
+	Session uint32
+	Count   int
+}
+
+func (UnreadChanged) isBusEvent() {}

@@ -48,7 +48,9 @@ func main() {
 		win.Sidebar().Set(tree.Root())
 
 		chatView := chat.NewView(ctx, b, ctrl)
+		chatView.AddChannelHeaderWidget(win.NarrowMuteButton())
 		win.Chat().Set(chatView.Root())
+		app.OnOpenChat(chatView.OpenConversation)
 
 		app.OnPreferences(func() {
 			pw := prefs.New(st, certsManager, app.SoundPlayer(), b)

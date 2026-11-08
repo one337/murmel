@@ -85,21 +85,17 @@ func newStatusBar(st settings.Settings, b *bus.Bus) *statusBar {
 	s.dotHolder.AddCSSClass("status-dot-holder")
 	s.dotHolder.Append(s.dot)
 
-	spacer := gtk.NewBox(gtk.OrientationHorizontal, 0)
-	spacer.SetHExpand(true)
-
+	// The voice controls sit at the bottom of the channel sidebar; the
+	// connection dot lives in the sidebar header (Window places dotHolder).
 	s.root = gtk.NewBox(gtk.OrientationHorizontal, 6)
-	s.root.SetMarginTop(4)
-	// Bottom matches the start margin so the buttons sit evenly in the
-	// window corner.
+	s.root.SetMarginTop(6)
 	s.root.SetMarginBottom(6)
 	s.root.SetMarginStart(6)
 	s.root.SetMarginEnd(6)
 	s.root.Append(linked(s.selfMute, micMenu))
 	s.root.Append(linked(s.selfDeafen, outMenu))
+	meterBtn.SetHExpand(true)
 	s.root.Append(meterBtn)
-	s.root.Append(spacer)
-	s.root.Append(s.dotHolder)
 	s.setDisconnected()
 	return s
 }
