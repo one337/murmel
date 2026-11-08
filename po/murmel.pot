@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
-"POT-Creation-Date: 2026-11-08 15:45+0100\n"
+"POT-Creation-Date: 2026-11-08 16:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -208,108 +208,113 @@ msgstr ""
 msgid "Statistics"
 msgstr ""
 
-#: internal/ui/admin/stats.go:109
+#: internal/ui/admin/stats.go:113
 msgid "Client"
 msgstr ""
 
-#: internal/ui/admin/stats.go:110
+#: internal/ui/admin/stats.go:114
 msgid "Version"
 msgstr ""
 
-#: internal/ui/admin/stats.go:111
+#: internal/ui/admin/stats.go:115
 msgid "Operating system"
 msgstr ""
 
-#: internal/ui/admin/stats.go:112
+#: internal/ui/admin/stats.go:116
 msgid "Opus codec"
 msgstr ""
 
-#: internal/ui/admin/stats.go:113
+#: internal/ui/admin/stats.go:117
 msgid "Certificate"
 msgstr ""
 
-#: internal/ui/admin/stats.go:114 internal/ui/prefs/window.go:244
+#: internal/ui/admin/stats.go:118 internal/ui/prefs/window.go:244
 msgid "Connection"
 msgstr ""
 
-#: internal/ui/admin/stats.go:115
+#: internal/ui/admin/stats.go:119
 msgid "Online for"
 msgstr ""
 
-#: internal/ui/admin/stats.go:116
+#: internal/ui/admin/stats.go:120
 msgid "Idle for"
 msgstr ""
 
-#: internal/ui/admin/stats.go:117
+#: internal/ui/admin/stats.go:121
 msgid "Bandwidth"
 msgstr ""
 
-#: internal/ui/admin/stats.go:118 internal/ui/connection/controller.go:142
+#: internal/ui/admin/stats.go:122 internal/ui/connection/controller.go:142
 msgid "Address"
 msgstr ""
 
-#: internal/ui/admin/stats.go:119
+#: internal/ui/admin/stats.go:123
 msgid "TCP ping"
 msgstr ""
 
-#: internal/ui/admin/stats.go:120
+#: internal/ui/admin/stats.go:124
 msgid "UDP ping"
 msgstr ""
 
-#: internal/ui/admin/stats.go:121
+#: internal/ui/admin/stats.go:125
 msgid "Voice Packets (UDP)"
 msgstr ""
 
-#: internal/ui/admin/stats.go:122
+#: internal/ui/admin/stats.go:126
 msgid "Sent"
 msgstr ""
 
-#: internal/ui/admin/stats.go:123
+#: internal/ui/admin/stats.go:127
 msgid "Received"
 msgstr ""
 
-#: internal/ui/admin/stats.go:156
+#: internal/ui/admin/stats.go:160
 msgid "(trusted)"
 msgstr ""
 
-#: internal/ui/admin/stats.go:158
+#: internal/ui/admin/stats.go:162
 msgid "(self-signed)"
 msgstr ""
 
-#: internal/ui/admin/stats.go:170
+#: internal/ui/admin/stats.go:174
 #, go-format
 msgid "%.1f kb/s"
 msgstr ""
 
-#: internal/ui/admin/stats.go:183
+#: internal/ui/admin/stats.go:196
+msgid ""
+"The server shares client details of other users only with administrators."
+msgstr ""
+
+#: internal/ui/admin/stats.go:204
 msgid "Yes"
 msgstr ""
 
-#: internal/ui/admin/stats.go:185
+#: internal/ui/admin/stats.go:206
 msgid "No"
 msgstr ""
 
-#: internal/ui/admin/stats.go:193
+#: internal/ui/admin/stats.go:214
 #, go-format
 msgid "%d h %d min"
 msgstr ""
 
-#: internal/ui/admin/stats.go:195
+#: internal/ui/admin/stats.go:216
 #, go-format
 msgid "%d min %d s"
 msgstr ""
 
-#: internal/ui/admin/stats.go:197
+#: internal/ui/admin/stats.go:218
 #, go-format
 msgid "%d s"
 msgstr ""
 
-#: internal/ui/admin/stats.go:205
+#: internal/ui/admin/stats.go:226
 #, go-format
-msgid "%.0f ms ± %.0f ms (%d pings)"
+msgid "%.0f ms ± %.0f ms"
 msgstr ""
 
-#: internal/ui/admin/stats.go:212
+#: internal/ui/admin/stats.go:233
 #, go-format
 msgid "%d good · %d late · %d lost"
 msgstr ""

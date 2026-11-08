@@ -88,15 +88,19 @@ func ShowUserStats(parent gtk.Widgetter, b *bus.Bus, session uint32, name string
 // statRows holds the property rows of the statistics page: the title is
 // the caption, the subtitle the value (libadwaita "property" style).
 type statRows struct {
-	rows map[string]*adw.ActionRow
+	page   *adw.PreferencesPage
+	rows   map[string]*adw.ActionRow
+	groups map[*adw.PreferencesGroup][]string
 }
 
 func newStatRows(page *adw.PreferencesPage) *statRows {
-	r := &statRows{rows: map[string]*adw.ActionRow{}}
+	r := &statRows{page: page, rows: map[string]*adw.ActionRow{},
+		groups: map[*adw.PreferencesGroup][]string{}}
 	group := func(title string, keys ...[2]string) {
 		g := adw.NewPreferencesGroup()
 		g.SetTitle(title)
 		for _, k := range keys {
+			r.groups[g] = append(r.groups[g], k[0])
 			row := adw.NewActionRow()
 			row.AddCSSClass("property")
 			row.SetTitle(k[1])
@@ -176,6 +180,23 @@ func (r *statRows) show(ev bus.UserStatsFetched) {
 	r.set("udpping", ping(ev.UDPPingAvg, ev.UDPPingVar, ev.UDPPackets))
 	r.set("fromclient", packets(ev.FromClient))
 	r.set("fromserver", packets(ev.FromServer))
+
+	// Groups the server sent nothing for disappear instead of showing an
+	// empty box.
+	for g, keys := range r.groups {
+		visible := false
+		for _, k := range keys {
+			visible = visible || r.rows[k].Visible()
+		}
+		g.SetVisible(visible)
+	}
+	// Servers share client details (version, OS, certificate, address)
+	// of other users only with administrators.
+	if ev.Release == "" && ev.OS == "" && ev.Version == "" {
+		r.page.SetDescription(tr("The server shares client details of other users only with administrators."))
+	} else {
+		r.page.SetDescription("")
+	}
 }
 
 func yesNo(b bool) string {
@@ -202,7 +223,7 @@ func ping(avg, variance float32, count uint32) string {
 		return ""
 	}
 	// The server reports the variance; ± shows the standard deviation.
-	return fmt.Sprintf(tr("%.0f ms ± %.0f ms (%d pings)"), avg, math.Sqrt(float64(variance)), count)
+	return fmt.Sprintf(tr("%.0f ms ± %.0f ms"), avg, math.Sqrt(float64(variance)))
 }
 
 func packets(p bus.PacketStats) string {
