@@ -376,3 +376,40 @@ func TestThresholdMapping(t *testing.T) {
 		t.Errorf("LevelFraction(-45) = %v, want 0.25", got)
 	}
 }
+
+// TestVADPreRollExcludesStartFrame guards against the onset click: the
+// engine sends PreRoll() and then the Start frame, so the pre-roll must
+// end with the frame before it — consecutive audio, no repetition.
+func TestVADPreRollExcludesStartFrame(t *testing.T) {
+	v := NewVAD(VADConfig{})
+	rng := rand.New(rand.NewSource(7))
+	feed(v, rng, 30, 100)
+	var sent [][]int16
+	for i := 0; i < 20; i++ {
+		f := noiseFrameAt(rng, 300)
+		if v.Sample(f) == Start {
+			for _, p := range v.PreRoll() {
+				sent = append(sent, append([]int16(nil), p...))
+			}
+			sent = append(sent, append([]int16(nil), f...))
+			break
+		}
+		sent = append(sent, nil) // marker: frame before Start
+		sent[len(sent)-1] = append([]int16(nil), f...)
+	}
+	// The last two transmitted frames (pre-roll tail, Start frame) must differ.
+	n := len(sent)
+	if n < 2 {
+		t.Fatal("no Start")
+	}
+	same := true
+	for i := range sent[n-1] {
+		if sent[n-1][i] != sent[n-2][i] {
+			same = false
+			break
+		}
+	}
+	if same {
+		t.Fatal("pre-roll ends with the Start frame: it would be transmitted twice")
+	}
+}

@@ -197,16 +197,21 @@ func (v *VAD) Sample(frame []int16) Decision {
 		}
 		return Silent
 	case 1: // opening
-		v.pushPreroll(frame)
 		if level >= v.openDB {
 			v.aboveRun++
 			if v.aboveRun >= v.openDelayFrames() {
+				// The Start frame is not added to the pre-roll: the
+				// consumer sends PreRoll() and then this frame, so adding
+				// it would transmit it twice — an audible click at every
+				// speech onset.
 				v.state = 2
 				v.hangover = 0
 				return Start
 			}
+			v.pushPreroll(frame)
 			return Silent
 		}
+		v.pushPreroll(frame)
 		v.state = 0 // transient (click/keystroke): rejected
 		v.aboveRun = 0
 		return Silent
