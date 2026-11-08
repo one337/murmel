@@ -19,6 +19,8 @@ const (
 	// rowServer is a message from the server itself (welcome text, notices
 	// sent with no user as sender).
 	rowServer
+	// rowLog is an event line (user joined, muted, …): small and faded.
+	rowLog
 )
 
 // rowStyle is the widget payload of one scrollback entry. All text is set
@@ -34,6 +36,9 @@ type rowStyle struct {
 // color via a Pango foreground attribute (never markup) so a name like
 // "<b>evil</b>" can never be interpreted.
 func newRow(st rowStyle) *gtk.ListBoxRow {
+	if st.kind == rowLog {
+		return newLogRow(st)
+	}
 	sender := gtk.NewLabel(st.sender)
 	sender.AddCSSClass("heading")
 	if rgba, ok := sender.StyleContext().LookupColor("accent_color"); ok && rgba != nil {
@@ -114,4 +119,28 @@ func errorRowText(reason string) string {
 		return tr("Message not delivered.")
 	}
 	return fmt.Sprintf(tr("Message not delivered: %s"), reason)
+}
+
+// newLogRow is a single faded line: time and event text.
+func newLogRow(st rowStyle) *gtk.ListBoxRow {
+	stamp := gtk.NewLabel(st.at.Format("15:04"))
+	stamp.AddCSSClass("numeric")
+	text := gtk.NewLabel(st.content)
+	text.SetWrap(true)
+	text.SetWrapMode(pango.WrapWordChar)
+	text.SetXAlign(0)
+	text.SetHExpand(true)
+	box := gtk.NewBox(gtk.OrientationHorizontal, 8)
+	box.AddCSSClass("log-line")
+	box.SetMarginStart(6)
+	box.SetMarginEnd(6)
+	box.SetMarginTop(1)
+	box.SetMarginBottom(1)
+	box.Append(stamp)
+	box.Append(text)
+	row := gtk.NewListBoxRow()
+	row.SetChild(box)
+	row.SetActivatable(false)
+	row.SetSelectable(false)
+	return row
 }

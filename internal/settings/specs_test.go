@@ -95,6 +95,12 @@ var keySpecs = map[string]keySpec{
 		get: func(s Settings) any { return s.NotifyServerPresence() },
 		set: func(s Settings, v any) { s.SetNotifyServerPresence(v.(bool)) },
 	},
+	"chat-log": {
+		key: "chat-log", gtype: "a{sb}", def: map[string]bool{},
+		sample: map[string]bool{"channel-join": false, "server-connect": true},
+		get:    func(s Settings) any { return s.ChatLogEvents() },
+		set:    func(s Settings, v any) { s.SetChatLogEvents(v.(map[string]bool)) },
+	},
 	"sounds-enabled": {
 		key: "sounds-enabled", gtype: "b", def: true, sample: false,
 		get: func(s Settings) any { return s.SoundsEnabled() },

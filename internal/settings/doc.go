@@ -55,6 +55,7 @@
 //	notification-enabled NotificationsEnabled / SetNotifications   notifications switch
 //	notify-channel-presence NotifyChannelPresence / SetNotifyChannelPresence channel join/leave switch
 //	notify-server-presence  NotifyServerPresence / SetNotifyServerPresence   server join/leave switch
+//	chat-log             ChatLogEvents / SetChatLogEvents           chat log switches
 //	sounds-enabled       SoundsEnabled / SetSoundsEnabled           sounds expander switch
 //	sound-events         SoundEvents / SetSoundEvents               per-event sound combos
 //	auto-reconnect       AutoReconnect / SetAutoReconnect           reconnect switch

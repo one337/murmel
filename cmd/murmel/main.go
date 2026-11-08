@@ -49,6 +49,7 @@ func main() {
 
 		chatView := chat.NewView(ctx, b, ctrl)
 		chatView.AddChannelHeaderWidget(win.NarrowMuteButton())
+		chatView.UseSettings(st)
 		win.Chat().Set(chatView.Root())
 		app.OnOpenChat(chatView.OpenConversation)
 

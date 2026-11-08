@@ -69,6 +69,11 @@ type Settings interface {
 	NotifyServerPresence() bool
 	SetNotifyServerPresence(v bool)
 
+	// ChatLogEvents returns the per-event overrides of the channel chat
+	// log (event → shown); the map is a copy.
+	ChatLogEvents() map[string]bool
+	SetChatLogEvents(v map[string]bool)
+
 	SoundsEnabled() bool
 	SetSoundsEnabled(v bool)
 

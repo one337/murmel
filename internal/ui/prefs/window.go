@@ -19,6 +19,7 @@ import (
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/certs"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/chat"
 	"io.github/murmel/internal/ui/levelmeter"
 )
 
@@ -37,6 +38,7 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	pw.Add(identityPage(st, m))
 	pw.Add(audioInputPage(st, b))
 	pw.Add(audioOutputPage(st))
+	pw.Add(chatPage(st))
 	pw.Add(behaviorPage(st, player, func() *gtk.Window { return &pw.Window.Window }))
 
 	return &Window{pw}
@@ -238,6 +240,36 @@ func audioOutputPage(st settings.Settings) *adw.PreferencesPage {
 
 	page.Add(devGroup)
 	page.Add(jitterGroup)
+	return page
+}
+
+// --- Chat page -------------------------------------------------------------
+
+func chatPage(st settings.Settings) *adw.PreferencesPage {
+	page := adw.NewPreferencesPage()
+	page.SetTitle(tr("Chat"))
+	page.SetName("chat")
+	page.SetIconName("chat-message-new-symbolic")
+
+	group := adw.NewPreferencesGroup()
+	group.SetTitle(tr("Channel Log"))
+	group.SetDescription(tr("Events shown as faded lines between the messages of the channel chat"))
+	for _, e := range chat.LogEvents {
+		row := adw.NewSwitchRow()
+		row.SetTitle(chat.LogLabel(e))
+		row.SetActive(chat.LogEnabled(st.ChatLogEvents(), e))
+		coreglib.InternObject(row).NotifyProperty("active", func() {
+			ov := st.ChatLogEvents()
+			if row.Active() == chat.LogDefault(e) {
+				delete(ov, string(e))
+			} else {
+				ov[string(e)] = row.Active()
+			}
+			st.SetChatLogEvents(ov)
+		})
+		group.Add(row)
+	}
+	page.Add(group)
 	return page
 }
 

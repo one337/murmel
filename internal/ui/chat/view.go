@@ -10,6 +10,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/presence"
 )
 
 // maxRows is the scrollback cap per conversation: beyond it the oldest row
@@ -33,9 +35,10 @@ type View struct {
 	// is shown (or the window is in the background).
 	channelUnread int
 
-	bus    *bus.Bus
-	sender Sender
-	maxLen int
+	bus      *bus.Bus
+	sender   Sender
+	settings settings.Settings // nil: log defaults
+	maxLen   int
 	// windowActive is read from the toplevel once the view is mapped.
 	windowActive func() bool
 }
@@ -60,8 +63,34 @@ func NewView(ctx context.Context, b *bus.Bus, sender Sender) *View {
 	v.nav.ConnectMap(v.trackWindow)
 
 	v.subscribe(ctx)
+	tracker := presence.NewTracker()
+	tracker.Listen(v.onPresence)
+	tracker.Subscribe(ctx, b)
 	v.refreshTitles()
 	return v
+}
+
+// UseSettings makes the channel chat log follow the chat-log setting.
+func (v *View) UseSettings(st settings.Settings) { v.settings = st }
+
+// onPresence writes the enabled log lines for a presence event into the
+// channel chat.
+func (v *View) onPresence(ev presence.Event) {
+	var stored map[string]bool
+	if v.settings != nil {
+		stored = v.settings.ChatLogEvents()
+	}
+	enabled := func(e LogEvent) bool { return LogEnabled(stored, e) }
+	st := v.bus.State()
+	name := func(id uint32) string {
+		if ch, ok := st.Channels[id]; ok {
+			return ch.Name
+		}
+		return tr("another channel")
+	}
+	for _, line := range logLines(ev, enabled, st.SelfSession, name) {
+		v.channel.append(rowStyle{kind: rowLog, at: time.Now(), content: line}, false)
+	}
 }
 
 // Root returns the region's top widget for the window's chat slot.

@@ -6,6 +6,7 @@ import (
 	"io.github/murmel/internal/audio/effects"
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/presence"
 )
 
 // connectMoveQuiet suppresses the "you moved" sound right after
@@ -29,7 +30,7 @@ func newEventSounds(app *App) *eventSounds {
 	s.play = func(choice string) {
 		app.soundPlayer.PlayChoice(choice, app.settings.AudioOutputDevice())
 	}
-	app.presence.listen(s.onPresence)
+	app.presence.Listen(s.onPresence)
 	bus.SubscribeCtx(app.ctx, app.bus, s.onTextMessage)
 	return s
 }
@@ -47,31 +48,31 @@ func (s *eventSounds) choice(ev effects.Event) string {
 	return effects.Choice(s.settings.SoundEvents(), ev)
 }
 
-func (s *eventSounds) onPresence(ev presenceEvent) {
-	switch ev.kind {
-	case presenceSelfConnected:
+func (s *eventSounds) onPresence(ev presence.Event) {
+	switch ev.Kind {
+	case presence.SelfConnected:
 		s.connectedAt = time.Now()
 		s.trigger(effects.SelfConnected)
-	case presenceSelfDisconnected:
+	case presence.SelfDisconnected:
 		s.trigger(effects.SelfDisconnected)
-	case presenceSelfMoved:
+	case presence.SelfMoved:
 		if time.Since(s.connectedAt) > connectMoveQuiet {
 			s.trigger(effects.SelfMoved)
 		}
-	case presenceUserJoinedChannel:
+	case presence.UserJoinedChannel:
 		s.trigger(effects.UserJoinedChannel)
-	case presenceUserLeftChannel:
+	case presence.UserLeftChannel:
 		s.trigger(effects.UserLeftChannel)
-	case presenceUserConnected:
+	case presence.UserConnected:
 		// Someone connecting straight into our channel sounds like a
 		// channel join (if that sound is on); otherwise like a server join.
-		if ev.inMyChannel && s.choice(effects.UserJoinedChannel) != effects.Off {
+		if ev.InMyChannel && s.choice(effects.UserJoinedChannel) != effects.Off {
 			s.trigger(effects.UserJoinedChannel)
 		} else {
 			s.trigger(effects.UserConnected)
 		}
-	case presenceUserDisconnected:
-		if ev.inMyChannel && s.choice(effects.UserLeftChannel) != effects.Off {
+	case presence.UserDisconnected:
+		if ev.InMyChannel && s.choice(effects.UserLeftChannel) != effects.Off {
 			s.trigger(effects.UserLeftChannel)
 		} else {
 			s.trigger(effects.UserDisconnected)

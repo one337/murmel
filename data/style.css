@@ -120,6 +120,13 @@ scrolledwindow.saved-connections {
   border-radius: 12px;
 }
 
+/* Event lines in the channel chat (joins, moves, mutes): small and faded
+   so they do not compete with messages. */
+.log-line {
+  font-size: 0.85em;
+  opacity: 0.55;
+}
+
 /* Unread messages next to a name in the channel tree. */
 .unread-badge {
   min-width: 10px;

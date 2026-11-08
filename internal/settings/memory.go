@@ -26,6 +26,7 @@ func memoryDefaults() map[string]any {
 		"notify-server-presence":  false,
 		"sounds-enabled":          true,
 		"sound-events":            map[string]string{},
+		"chat-log":                map[string]bool{},
 		"auto-reconnect":          true,
 		"window-width":            900,
 		"window-height":           700,
@@ -185,3 +186,15 @@ func (m *Memory) SetNoiseSuppression(v int) { m.set("noise-suppression", v) }
 
 func (m *Memory) EchoCancellation() bool     { return m.get("echo-cancellation").(bool) }
 func (m *Memory) SetEchoCancellation(v bool) { m.set("echo-cancellation", v) }
+
+func (m *Memory) ChatLogEvents() map[string]bool {
+	return maps.Clone(m.get("chat-log").(map[string]bool))
+}
+
+func (m *Memory) SetChatLogEvents(v map[string]bool) {
+	c := maps.Clone(v)
+	if c == nil {
+		c = map[string]bool{}
+	}
+	m.set("chat-log", c)
+}

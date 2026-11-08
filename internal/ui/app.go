@@ -14,6 +14,7 @@ import (
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/protocol/gumble"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/presence"
 	"io.github/murmel/internal/ui/resources"
 )
 
@@ -56,7 +57,7 @@ type App struct {
 	// windowCreated wires the subsystems once the window exists.
 	windowCreated func(*Window)
 	// presence derives join/leave/move events for notifier and sounds.
-	presence *presenceTracker
+	presence *presence.Tracker
 	// sounds plays the event sounds.
 	sounds *eventSounds
 	// soundPlayer is shared by the event sounds and the preferences
@@ -96,11 +97,11 @@ func NewApp(st settings.Settings, b *bus.Bus) *App {
 	app.ConnectShutdown(func() { app.cancel() })
 
 	app.registerActions()
-	app.presence = newPresenceTracker()
+	app.presence = presence.NewTracker()
 	app.notifier = newNotifier(app)
 	app.soundPlayer = effects.NewPlayer()
 	app.sounds = newEventSounds(app)
-	app.presence.subscribe(app.ctx, app.bus)
+	app.presence.Subscribe(app.ctx, app.bus)
 	return app
 }
 

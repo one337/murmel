@@ -86,6 +86,11 @@
       <summary>Sound per event</summary>
       <description>Overrides of the sound played per event (e.g. "user-joined-channel"). Values: "off", "builtin:&lt;id&gt;" or "file:&lt;path&gt;" (WAV or Ogg Vorbis). Events without an entry use their built-in default.</description>
     </key>
+    <key name="chat-log" type="a{sb}">
+      <default>{}</default>
+      <summary>Events logged in the channel chat</summary>
+      <description>Overrides which events appear as log lines in the channel chat (e.g. "channel-join": true). Events without an entry use their default.</description>
+    </key>
     <key name="auto-reconnect" type="b">
       <default>true</default>
       <summary>Reconnect automatically</summary>

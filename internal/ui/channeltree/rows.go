@@ -1,8 +1,8 @@
 package channeltree
 
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"

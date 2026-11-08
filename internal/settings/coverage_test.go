@@ -95,6 +95,11 @@ func parseDefault(gtype, lit string) (any, error) {
 			return []ServerEntry{}, nil
 		}
 		return nil, fmt.Errorf("unsupported string-array default %q (only [] is supported)", lit)
+	case "a{sb}":
+		if lit == "{}" {
+			return map[string]bool{}, nil
+		}
+		return nil, fmt.Errorf("unsupported dictionary default %q (only {} is supported)", lit)
 	case "a{ss}":
 		if lit == "{}" {
 			return map[string]string{}, nil
@@ -147,7 +152,7 @@ func TestKeyCoverage(t *testing.T) {
 
 		wantKind := map[string]reflect.Kind{
 			"b": reflect.Bool, "i": reflect.Int, "d": reflect.Float64,
-			"s": reflect.String, "as": reflect.Slice, "a{ss}": reflect.Map,
+			"s": reflect.String, "as": reflect.Slice, "a{ss}": reflect.Map, "a{sb}": reflect.Map,
 		}[schemaKey.Type]
 		if gotKind := reflect.TypeOf(spec.get(m)).Kind(); gotKind != wantKind {
 			t.Errorf("%s: accessor returns kind %s, want %s", key, gotKind, wantKind)

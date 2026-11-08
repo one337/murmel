@@ -6,6 +6,7 @@ import (
 
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/presence"
 )
 
 func newTestNotifier(t *testing.T) (*notifier, *[]string) {
@@ -183,7 +184,7 @@ func TestMessagePreviewTruncation(t *testing.T) {
 	}
 }
 
-func presenceNotifier(t *testing.T, channel, server bool) (*notifier, *[]string, *presenceTracker) {
+func presenceNotifier(t *testing.T, channel, server bool) (*notifier, *[]string, *presence.Tracker) {
 	t.Helper()
 	n, sent := newTestNotifier(t)
 	n.settings.SetNotifyChannelPresence(channel)
@@ -198,10 +199,10 @@ func presenceNotifier(t *testing.T, channel, server bool) (*notifier, *[]string,
 	}
 	n.bus.Emit(ev)
 	n.bus.Close()
-	pt := newPresenceTracker()
-	pt.listen(n.onPresence)
+	pt := presence.NewTracker()
+	pt.Listen(n.onPresence)
 	n.onConnected(ev)
-	pt.onConnected(ev)
+	pt.OnConnected(ev)
 	return n, sent, pt
 }
 
@@ -211,9 +212,9 @@ func TestPresenceOffByDefault(t *testing.T) {
 		t.Fatal("presence notifications must default to off")
 	}
 	_, sent, pt := presenceNotifier(t, false, false)
-	pt.onUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "new", Channel: 5}})
-	pt.onUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "peer", Channel: 5}, Changed: bus.UserChangeChannel})
-	pt.onUserRemoved(bus.UserRemoved{Session: 7})
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "new", Channel: 5}})
+	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "peer", Channel: 5}, Changed: bus.UserChangeChannel})
+	pt.OnUserRemoved(bus.UserRemoved{Session: 7})
 	if len(*sent) != 0 {
 		t.Fatalf("notified while disabled: %v", *sent)
 	}
@@ -221,11 +222,11 @@ func TestPresenceOffByDefault(t *testing.T) {
 
 func TestPresenceChannelJoinLeave(t *testing.T) {
 	_, sent, pt := presenceNotifier(t, true, false)
-	pt.onUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "peer", Channel: 5}, Changed: bus.UserChangeChannel})
-	pt.onUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "peer", Channel: 0}, Changed: bus.UserChangeChannel})
-	pt.onUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "elsewhere", Channel: 0}})
-	pt.onUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 10, Name: "direct", Channel: 5}})
-	pt.onUserRemoved(bus.UserRemoved{Session: 10})
+	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "peer", Channel: 5}, Changed: bus.UserChangeChannel})
+	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "peer", Channel: 0}, Changed: bus.UserChangeChannel})
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "elsewhere", Channel: 0}})
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 10, Name: "direct", Channel: 5}})
+	pt.OnUserRemoved(bus.UserRemoved{Session: 10})
 	want := []string{
 		"presence-7|peer joined your channel|From Root|",
 		"presence-7|peer left your channel|Moved to Root|",
@@ -239,14 +240,14 @@ func TestPresenceChannelJoinLeave(t *testing.T) {
 
 func TestPresenceOwnMoveSilent(t *testing.T) {
 	n, sent, pt := presenceNotifier(t, true, true)
-	pt.onUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 1, Name: "me", Channel: 0}, Changed: bus.UserChangeChannel})
+	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 1, Name: "me", Channel: 0}, Changed: bus.UserChangeChannel})
 	if len(*sent) != 0 {
 		t.Fatalf("own move notified: %v", *sent)
 	}
 	// After moving, peer (channel 0) is in our channel: leaving the
 	// server now counts.
 	n.settings.SetNotifyServerPresence(false)
-	pt.onUserRemoved(bus.UserRemoved{Session: 7, Kicked: true, Reason: "spam"})
+	pt.OnUserRemoved(bus.UserRemoved{Session: 7, Kicked: true, Reason: "spam"})
 	if len(*sent) != 1 || (*sent)[0] != "presence-7|peer left your channel|Kicked from the server: spam|" {
 		t.Fatalf("got %v", *sent)
 	}
@@ -254,8 +255,8 @@ func TestPresenceOwnMoveSilent(t *testing.T) {
 
 func TestPresenceServer(t *testing.T) {
 	_, sent, pt := presenceNotifier(t, true, true)
-	pt.onUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "new", Channel: 5}})
-	pt.onUserRemoved(bus.UserRemoved{Session: 7})
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "new", Channel: 5}})
+	pt.OnUserRemoved(bus.UserRemoved{Session: 7})
 	want := "presence-9|new connected|In Gaming|\npresence-7|peer disconnected||"
 	if strings.Join(*sent, "\n") != want {
 		t.Fatalf("got %v", *sent)
@@ -265,9 +266,9 @@ func TestPresenceServer(t *testing.T) {
 func TestPresenceIgnoresInitialSync(t *testing.T) {
 	n, sent := newTestNotifier(t)
 	n.settings.SetNotifyServerPresence(true)
-	pt := newPresenceTracker()
-	pt.listen(n.onPresence)
-	pt.onUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "early"}})
+	pt := presence.NewTracker()
+	pt.Listen(n.onPresence)
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "early"}})
 	if len(*sent) != 0 {
 		t.Fatalf("sync users notified: %v", *sent)
 	}

@@ -13,6 +13,7 @@ import (
 
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/presence"
 )
 
 // Notification identifiers. PM notifications use one id per sender so a
@@ -80,7 +81,7 @@ func (n *notifier) subscribe() {
 	bus.SubscribeCtx(n.app.ctx, n.bus, n.onTextMessage)
 	bus.SubscribeCtx(n.app.ctx, n.bus, n.onConnected)
 	bus.SubscribeCtx(n.app.ctx, n.bus, n.onDisconnected)
-	n.app.presence.listen(n.onPresence)
+	n.app.presence.Listen(n.onPresence)
 }
 
 // onTextMessage notifies on private messages received while unfocused.
@@ -140,30 +141,30 @@ func (n *notifier) onDisconnected(ev bus.Disconnected) {
 // onPresence turns presence events into join/leave notifications. A
 // connect/disconnect is announced as a server event when those are
 // enabled, otherwise as a channel event if it happened in our channel.
-func (n *notifier) onPresence(ev presenceEvent) {
-	u := ev.user
-	switch ev.kind {
-	case presenceUserConnected:
+func (n *notifier) onPresence(ev presence.Event) {
+	u := ev.User
+	switch ev.Kind {
+	case presence.UserConnected:
 		switch {
 		case n.wantServerPresence():
-			n.sendPresence(u, fmt.Sprintf(tr("%s connected"), u.Name), n.channelLabel(tr("In %s"), ev.to))
-		case ev.inMyChannel && n.wantChannelPresence():
-			n.sendPresence(u, fmt.Sprintf(tr("%s joined your channel"), u.Name), n.channelLabel(tr("In %s"), ev.to))
+			n.sendPresence(u, fmt.Sprintf(tr("%s connected"), u.Name), n.channelLabel(tr("In %s"), ev.To))
+		case ev.InMyChannel && n.wantChannelPresence():
+			n.sendPresence(u, fmt.Sprintf(tr("%s joined your channel"), u.Name), n.channelLabel(tr("In %s"), ev.To))
 		}
-	case presenceUserDisconnected:
+	case presence.UserDisconnected:
 		switch {
 		case n.wantServerPresence():
-			n.sendPresence(u, fmt.Sprintf(tr("%s disconnected"), u.Name), ev.reason)
-		case ev.inMyChannel && n.wantChannelPresence():
-			n.sendPresence(u, fmt.Sprintf(tr("%s left your channel"), u.Name), ev.reason)
+			n.sendPresence(u, fmt.Sprintf(tr("%s disconnected"), u.Name), ev.Reason)
+		case ev.InMyChannel && n.wantChannelPresence():
+			n.sendPresence(u, fmt.Sprintf(tr("%s left your channel"), u.Name), ev.Reason)
 		}
-	case presenceUserJoinedChannel:
+	case presence.UserJoinedChannel:
 		if n.wantChannelPresence() {
-			n.sendPresence(u, fmt.Sprintf(tr("%s joined your channel"), u.Name), n.channelLabel(tr("From %s"), ev.from))
+			n.sendPresence(u, fmt.Sprintf(tr("%s joined your channel"), u.Name), n.channelLabel(tr("From %s"), ev.From))
 		}
-	case presenceUserLeftChannel:
+	case presence.UserLeftChannel:
 		if n.wantChannelPresence() {
-			n.sendPresence(u, fmt.Sprintf(tr("%s left your channel"), u.Name), n.channelLabel(tr("Moved to %s"), ev.to))
+			n.sendPresence(u, fmt.Sprintf(tr("%s left your channel"), u.Name), n.channelLabel(tr("Moved to %s"), ev.To))
 		}
 	}
 }
