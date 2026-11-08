@@ -56,6 +56,13 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.0" date="2026-11-08">
+      <description>
+        <ul>
+          <li>New About dialog with version, website and issue tracker</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-11-08">
       <description>
         <ul>
