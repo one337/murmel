@@ -75,6 +75,15 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.3" date="2026-11-08">
+      <description>
+        <ul>
+          <li>Added echo cancellation for speakers instead of a headset (off by default)</li>
+          <li>Noise suppression and echo cancellation can also be set in the waveform popover, next to the activation threshold</li>
+          <li>Screenshots in the software center</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.2" date="2026-11-08">
       <description>
         <ul>
