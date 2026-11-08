@@ -11,17 +11,18 @@
     <p>
       Murmel is a GTK4/Libadwaita Mumble client for GNOME. It lets you join
       Mumble servers, chat with text messages, and talk with voice — with
-      low-latency Opus audio, per-user volume, and automatic reconnection.
+      low-latency Opus audio and automatic reconnection.
     </p>
     <p>Features:</p>
     <ul>
       <li>Native GTK4 / Libadwaita design following the GNOME HIG</li>
       <li>Responsive layout: works on mobile and desktop</li>
-      <li>Opus voice codec with jitter buffer</li>
-      <li>Client certificate identity management (TOFU)</li>
-      <li>Persistent GSettings-backed preferences</li>
-      <li>Desktop notifications for private messages</li>
-      <li>mumble:// URL handler</li>
+      <li>Voice activation with a live level meter, noise suppression and echo cancellation</li>
+      <li>Adjustable voice quality and device selection</li>
+      <li>Saved connections with passwords in the keyring</li>
+      <li>Client certificates and trust-on-first-use server certificates</li>
+      <li>Notifications and sounds for messages and users joining or leaving</li>
+      <li>mumble:// links</li>
     </ul>
   </description>
 
@@ -29,10 +30,28 @@
     <name>Murmel Contributors</name>
   </developer>
 
-  <url type="homepage">https://github.com/murmel/murmel</url>
-  <url type="bugtracker">https://github.com/murmel/murmel/issues</url>
+  <url type="homepage">https://simon-tschoep.de/software/murmel/</url>
+  <url type="bugtracker">https://github.com/one337/murmel/issues</url>
+  <url type="vcs-browser">https://github.com/one337/murmel</url>
 
   <launchable type="desktop-id">io.github.murmel.Murmel.desktop</launchable>
+
+  <!-- Served from the website (tools/release.sh uploads assets/screenshots
+       next to the Flatpak repository). -->
+  <screenshots>
+    <screenshot type="default">
+      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.2/server-connected.png</image>
+      <caption>Channels and chat while connected</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.2/start-app.png</image>
+      <caption>Start screen</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.2/server-connection.png</image>
+      <caption>Connecting to a server</caption>
+    </screenshot>
+  </screenshots>
 
   <provides>
     <mediatype>x-scheme-handler/mumble</mediatype>

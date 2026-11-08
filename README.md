@@ -5,6 +5,10 @@ written in Go with GTK 4 and Libadwaita.
 
 **Website and downloads:** https://simon-tschoep.de/software/murmel/
 
+![Murmel connected to a server: channel tree and chat](assets/screenshots/0.3.2/server-connected.png)
+
+![Murmel start screen](assets/screenshots/0.3.2/start-app.png)
+
 ## Features
 
 - Adaptive GNOME interface: channel tree in a sidebar, chat in the content

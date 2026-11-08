@@ -18,6 +18,7 @@
 #   murmel.gpg                         public signing key
 #   downloads/murmel-<version>.flatpak single-file bundles
 #   index.html                         install instructions
+#   screenshots/                       software center screenshots
 #
 # Release notes default to the feat/fix commit subjects since the last
 # tag; set RELEASE_NOTES (one item per line) to write them by hand.
@@ -126,6 +127,13 @@ EOR
 
 	sed -e "s|@URL@|$WEB_URL|g" -e "s|@VERSION@|$version|g" -e "s|@APP_ID@|$APP_ID|g" \
 		tools/release-index.html > "$WEB/index.html"
+
+	# Screenshots referenced by the metainfo (software centers load them
+	# from the website).
+	if [ -d assets/screenshots ]; then
+		mkdir -p "$WEB/screenshots"
+		cp -r assets/screenshots/. "$WEB/screenshots/"
+	fi
 	echo "release: web/ descriptors written for $version ($WEB_URL)"
 }
 

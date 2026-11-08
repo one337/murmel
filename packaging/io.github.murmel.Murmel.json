@@ -61,6 +61,7 @@
             "build-release",
             "target",
             "assets/murmel.psd",
+            "assets/screenshots",
             "murmel",
             "murmel-cli"
           ]
