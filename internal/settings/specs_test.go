@@ -70,6 +70,11 @@ var keySpecs = map[string]keySpec{
 		get: func(s Settings) any { return s.NoiseSuppression() },
 		set: func(s Settings, v any) { s.SetNoiseSuppression(v.(int)) },
 	},
+	"echo-cancellation": {
+		key: "echo-cancellation", gtype: "b", def: false, sample: true,
+		get: func(s Settings) any { return s.EchoCancellation() },
+		set: func(s Settings, v any) { s.SetEchoCancellation(v.(bool)) },
+	},
 	"audio-quality": {
 		key: "audio-quality", gtype: "i", def: 40, sample: 96,
 		get: func(s Settings) any { return s.AudioQuality() },

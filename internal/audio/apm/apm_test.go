@@ -3,6 +3,7 @@ package apm
 import (
 	"bytes"
 	"encoding/binary"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -178,4 +179,107 @@ func loadCorpus(t *testing.T, name string) []int16 {
 		pcm[j] = int16(binary.LittleEndian.Uint16(body[2*j:]))
 	}
 	return pcm
+}
+
+// TestEchoCancellationRemovesPlayback plays a speech-like signal as the
+// reference and feeds the microphone a delayed, attenuated copy of it (the
+// echo from the speakers). Compared is the echo energy that reaches the
+// output while the far end talks, after the canceller converged.
+func TestEchoCancellationRemovesPlayback(t *testing.T) {
+	far := loadCorpus(t, "speech_normal.wav")
+	for i := range far { // a remote talker at a normal playback level
+		far[i] = int16(max(-32768, min(32767, int(far[i])*20)))
+	}
+	const delayFrames = 6 // 60 ms acoustic + buffer delay
+	frames := len(far) / pipeline.FrameSize
+	echoAt := func(f int) []int16 {
+		mic := make([]int16, pipeline.FrameSize)
+		if g := f - delayFrames; g >= 0 {
+			for i := range mic {
+				mic[i] = far[g*pipeline.FrameSize+i] / 2 // room attenuation
+			}
+		}
+		return mic
+	}
+	run := func(echo bool) float64 {
+		pr, err := New(Config{EchoCancel: echo, HighPass: echo})
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer pr.Close()
+		var energy float64
+		for f := 0; f < frames; f++ {
+			if err := pr.ProcessReverse(far[f*pipeline.FrameSize : (f+1)*pipeline.FrameSize]); err != nil {
+				t.Fatal(err)
+			}
+			mic := echoAt(f)
+			active := pipeline.LevelDB(mic) > -40 // far end talking
+			if echo {
+				pr.SetStreamDelay(delayFrames * 10)
+			}
+			if err := pr.Process(mic); err != nil {
+				t.Fatal(err)
+			}
+			if f >= frames/2 && active {
+				for _, v := range mic {
+					energy += float64(v) * float64(v)
+				}
+			}
+		}
+		return 10 * math.Log10(energy+1)
+	}
+	off, on := run(false), run(true)
+	t.Logf("echo energy while the far end talks: reduced by %.1f dB", off-on)
+	if off-on < 20 {
+		t.Fatalf("echo cancellation removed only %.1f dB of the echo", off-on)
+	}
+}
+
+func TestClosedProcessorIsSafe(t *testing.T) {
+	pr, _ := New(Config{EchoCancel: true})
+	pr.Close()
+	pr.Close()
+	frame := make([]int16, pipeline.FrameSize)
+	if pr.Process(frame) == nil || pr.ProcessReverse(frame) == nil {
+		t.Fatal("closed processor accepted frames")
+	}
+	pr.SetStreamDelay(10)
+	pr.Configure(Config{})
+}
+
+// TestEchoCancellationKeepsOwnVoice: with nothing being played back, the
+// microphone signal must pass (almost) unchanged.
+func TestEchoCancellationKeepsOwnVoice(t *testing.T) {
+	near := loadCorpus(t, "speech_normal.wav")
+	for i := range near {
+		near[i] = int16(max(-32768, min(32767, int(near[i])*20)))
+	}
+	energy := func(echo bool) float64 {
+		pr, err := New(Config{EchoCancel: echo})
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer pr.Close()
+		silence := make([]int16, pipeline.FrameSize)
+		var e float64
+		for f := 0; (f+1)*pipeline.FrameSize <= len(near); f++ {
+			_ = pr.ProcessReverse(silence)
+			mic := append([]int16(nil), near[f*pipeline.FrameSize:(f+1)*pipeline.FrameSize]...)
+			if echo {
+				pr.SetStreamDelay(60)
+			}
+			if err := pr.Process(mic); err != nil {
+				t.Fatal(err)
+			}
+			if f >= 100 {
+				for _, v := range mic {
+					e += float64(v) * float64(v)
+				}
+			}
+		}
+		return 10 * math.Log10(e+1)
+	}
+	if loss := energy(false) - energy(true); loss > 3 {
+		t.Fatalf("own voice lost %.1f dB with echo cancellation and silent playback", loss)
+	}
 }

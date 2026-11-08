@@ -63,6 +63,9 @@ type Options struct {
 	// high, see apm.ForLevel), applied to the microphone before voice
 	// detection and encoding.
 	NoiseSuppression int
+	// EchoCancellation removes the played-back voices from the
+	// microphone (speakers instead of a headset).
+	EchoCancellation bool
 	// Bitrate is the wanted Opus bitrate in bit/s (0 = opus.BitrateDefault).
 	// The server's bandwidth limit may lower it, see EffectiveBitrate.
 	Bitrate int
@@ -113,6 +116,15 @@ type Engine struct {
 	packetFrames atomic.Int32  // outgoing 10 ms frames per packet
 	bitrate      atomic.Int64  // wanted Opus bitrate in bit/s
 	noise        atomic.Int32  // noise-suppression setting
+	echo         atomic.Bool   // echo cancellation on
+	// echoDelayMs is the playback-to-microphone delay hint for the echo
+	// canceller, derived from the current playback buffer.
+	echoDelayMs atomic.Int32
+
+	// proc is the WebRTC input processing shared by capture (noise and
+	// echo suppression) and playback (echo reference); nil when the
+	// module is unavailable.
+	proc *apm.Processor
 
 	enc *opus.Encoder
 
@@ -158,6 +170,13 @@ func New(client *gumble.Client, b *bus.Bus, self uint32, opts Options) (*Engine,
 	e.SetPacketFrames(opts.PacketFrames)
 	e.SetBitrate(opts.Bitrate)
 	e.SetNoiseSuppression(opts.NoiseSuppression)
+	e.SetEchoCancellation(opts.EchoCancellation)
+	if proc, err := apm.New(apm.Config{}); err != nil {
+		// Without the WebRTC module voice still works, just unprocessed.
+		slog.Warn("voice: input processing unavailable", "err", err)
+	} else {
+		e.proc = proc
+	}
 	if opts.JitterFrames > 0 {
 		e.SetJitterFrames(opts.JitterFrames)
 	}
@@ -185,7 +204,11 @@ func (e *Engine) Start(ctx context.Context) {
 // openLocked opens the configured devices and starts a capture loop bound
 // to that device. e.devMu must be held for writing.
 func (e *Engine) openLocked() {
-	dev, err := e.open(e.capName, e.outName, playbackPeriods[e.playStep])
+	period := playbackPeriods[e.playStep]
+	// Played audio reaches the microphone after about two playback
+	// periods plus one capture period; the canceller refines the rest.
+	e.echoDelayMs.Store(int32(2*period/time.Millisecond + 10))
+	dev, err := e.open(e.capName, e.outName, period)
 	if err != nil {
 		slog.Warn("voice engine: audio device unavailable", "err", err)
 		return
@@ -277,6 +300,10 @@ func validPacketFrames(n int) int {
 // from the next captured frame on. Safe from any goroutine.
 func (e *Engine) SetNoiseSuppression(level int) { e.noise.Store(int32(level)) }
 
+// SetEchoCancellation turns echo cancellation on or off from the next
+// captured frame on. Safe from any goroutine.
+func (e *Engine) SetEchoCancellation(on bool) { e.echo.Store(on) }
+
 // SetBitrate sets the wanted Opus bitrate in bit/s (0 = default). It
 // applies from the next transmission on. Safe from any goroutine.
 func (e *Engine) SetBitrate(bitsPerSecond int) {
@@ -307,7 +334,7 @@ func (e *Engine) applyBitrate(applied, packetFrames int) int {
 	return b
 }
 
-// Stop closes the audio device.
+// Stop closes the audio device and frees the input processing.
 func (e *Engine) Stop() {
 	e.devMu.Lock()
 	defer e.devMu.Unlock()
@@ -316,6 +343,9 @@ func (e *Engine) Stop() {
 		e.dev = nil
 	}
 	e.ctx = nil
+	if e.proc != nil {
+		e.proc.Close() // waits for running calls; later calls are no-ops
+	}
 }
 
 // --- Outgoing (capture → VAD → AudioOutgoing) ------------------------------
@@ -324,15 +354,10 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 	vad := pipeline.NewVAD(pipeline.VADConfig{})
 	appliedThreshold := math.NaN()
 
-	// Input processing (noise suppression). Without the WebRTC module
-	// voice still works, just unprocessed.
-	appliedNoise := int32(-1)
-	proc, err := apm.New(apm.Config{})
-	if err != nil {
-		slog.Warn("voice: input processing unavailable", "err", err)
-	} else {
-		defer proc.Close()
-	}
+	// Input processing configuration last applied (forced on the first
+	// frame).
+	appliedNoise, appliedEcho := int32(-1), false
+	proc := e.proc
 	var (
 		outCh   chan<- gumble.AudioBuffer
 		pack    packer
@@ -370,10 +395,17 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 		}
 		clipped := pipeline.Clipped(frame) // raw input overdrive
 		if proc != nil {
-			if n := e.noise.Load(); n != appliedNoise {
-				proc.Configure(apm.ForLevel(int(n)))
-				appliedNoise = n
-				slog.Info("voice: noise suppression", "level", n)
+			n, echo := e.noise.Load(), e.echo.Load()
+			if n != appliedNoise || echo != appliedEcho {
+				cfg := apm.ForLevel(int(n))
+				cfg.EchoCancel = echo
+				cfg.HighPass = cfg.HighPass || echo
+				proc.Configure(cfg)
+				appliedNoise, appliedEcho = n, echo
+				slog.Info("voice: input processing", "noise_suppression", n, "echo_cancellation", echo)
+			}
+			if echo {
+				proc.SetStreamDelay(int(e.echoDelayMs.Load()))
 			}
 			if err := proc.Process(frame); err != nil {
 				slog.Debug("voice: input processing failed", "err", err)
@@ -499,6 +531,7 @@ func (e *Engine) mixLoop(ctx context.Context) {
 	defer tick.Stop()
 	acc := make([]int32, pipeline.FrameSize)
 	out := make([]int16, pipeline.FrameSize)
+	silence := make([]int16, pipeline.FrameSize)
 	var (
 		watch   stallWatch
 		lastDev IO
@@ -552,6 +585,15 @@ func (e *Engine) mixLoop(ctx context.Context) {
 				if err := dev.Write(out); err != nil {
 					slog.Debug("voice engine: playback write error", "err", err)
 				}
+			}
+			// Echo reference: exactly what is played, silence included,
+			// one frame per tick so the canceller's timeline stays intact.
+			if e.proc != nil && e.echo.Load() {
+				ref := silence
+				if len(frames) > 0 {
+					ref = out
+				}
+				_ = e.proc.ProcessReverse(ref)
 			}
 			if st, ok := dev.(playbackStats); ok && watch.stalled(now, st) {
 				lastDev = nil // the reopened device gets a fresh watch

@@ -12,7 +12,7 @@ written in Go with GTK 4 and Libadwaita.
 - Voice over encrypted UDP with automatic TCP fallback, Opus codec
 - Voice activity detection with an absolute threshold set on a live level
   meter (also as a microphone test without a connection)
-- Noise suppression (WebRTC audio processing)
+- Noise suppression and echo cancellation (WebRTC audio processing)
 - Adjustable voice quality (32–192 kb/s), limited to the server's bandwidth
 - Input and output device selection right from the status bar
 - Adjustable jitter buffer and audio per packet (10–60 ms)

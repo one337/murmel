@@ -164,3 +164,6 @@ func (g *GSettings) SetAudioQuality(v int) { g.gs.SetInt("audio-quality", v) }
 
 func (g *GSettings) NoiseSuppression() int     { return g.gs.Int("noise-suppression") }
 func (g *GSettings) SetNoiseSuppression(v int) { g.gs.SetInt("noise-suppression", v) }
+
+func (g *GSettings) EchoCancellation() bool     { return g.gs.Boolean("echo-cancellation") }
+func (g *GSettings) SetEchoCancellation(v bool) { g.gs.SetBoolean("echo-cancellation", v) }

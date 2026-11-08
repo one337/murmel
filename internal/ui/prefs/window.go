@@ -134,6 +134,15 @@ func audioInputPage(st settings.Settings, b *bus.Bus) *adw.PreferencesPage {
 	})
 	devGroup.Add(noise)
 
+	echo := adw.NewSwitchRow()
+	echo.SetTitle(tr("Echo Cancellation"))
+	echo.SetSubtitle(tr("For speakers instead of a headset: keeps the others from hearing themselves through your microphone"))
+	echo.SetActive(st.EchoCancellation())
+	coreglib.InternObject(echo).NotifyProperty("active", func() {
+		st.SetEchoCancellation(echo.Active())
+	})
+	devGroup.Add(echo)
+
 	vadGroup := adw.NewPreferencesGroup()
 	vadGroup.SetTitle(tr("Voice Detection"))
 

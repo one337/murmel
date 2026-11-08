@@ -50,6 +50,11 @@
       <summary>Noise suppression</summary>
       <description>Strength of the microphone noise suppression: 0 off, 1 low, 2 moderate, 3 high, 4 very high.</description>
     </key>
+    <key name="echo-cancellation" type="b">
+      <default>false</default>
+      <summary>Echo cancellation</summary>
+      <description>Remove the voices played through the speakers from the microphone signal. Needed with speakers instead of a headset.</description>
+    </key>
     <key name="audio-quality" type="i">
       <range min="32" max="192"/>
       <default>40</default>

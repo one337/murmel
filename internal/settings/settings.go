@@ -53,6 +53,9 @@ type Settings interface {
 	NoiseSuppression() int
 	SetNoiseSuppression(v int)
 
+	EchoCancellation() bool
+	SetEchoCancellation(v bool)
+
 	// AudioQuality is the outgoing Opus bitrate in kbit/s.
 	AudioQuality() int
 	SetAudioQuality(v int)

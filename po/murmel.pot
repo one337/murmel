@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
-"POT-Creation-Date: 2026-11-08 16:05+0100\n"
+"POT-Creation-Date: 2026-11-08 16:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,8 +29,8 @@ msgstr ""
 #: internal/ui/admin/channel.go:30 internal/ui/admin/channel.go:66
 #: internal/ui/admin/channel.go:91 internal/ui/admin/kick.go:28
 #: internal/ui/connection/controller.go:278
-#: internal/ui/connection/controller.go:647
-#: internal/ui/connection/controller.go:1209 internal/ui/window.go:219
+#: internal/ui/connection/controller.go:648
+#: internal/ui/connection/controller.go:1212 internal/ui/window.go:219
 msgid "Cancel"
 msgstr ""
 
@@ -71,7 +71,7 @@ msgstr ""
 msgid "Group: %s"
 msgstr ""
 
-#: internal/ui/admin/acl.go:275 internal/ui/statusbar.go:293
+#: internal/ui/admin/acl.go:275 internal/ui/statusbar.go:325
 #, go-format
 msgid "User: %s"
 msgstr ""
@@ -228,7 +228,7 @@ msgstr ""
 msgid "Certificate"
 msgstr ""
 
-#: internal/ui/admin/stats.go:118 internal/ui/prefs/window.go:244
+#: internal/ui/admin/stats.go:118 internal/ui/prefs/window.go:253
 msgid "Connection"
 msgstr ""
 
@@ -413,7 +413,7 @@ msgstr ""
 msgid "View stats"
 msgstr ""
 
-#: internal/ui/channeltree/tree.go:52 internal/ui/statusbar.go:316
+#: internal/ui/channeltree/tree.go:52 internal/ui/statusbar.go:348
 #: internal/ui/window.go:273
 msgid "Not connected"
 msgstr ""
@@ -534,7 +534,7 @@ msgid "Account"
 msgstr ""
 
 #: internal/ui/connection/controller.go:276
-#: internal/ui/connection/controller.go:648
+#: internal/ui/connection/controller.go:649
 msgid "Connect"
 msgstr ""
 
@@ -568,52 +568,52 @@ msgid "The file could not be imported: %v"
 msgstr ""
 
 #: internal/ui/connection/controller.go:461
-#: internal/ui/connection/controller.go:1257
+#: internal/ui/connection/controller.go:1260
 msgid "OK"
 msgstr ""
 
-#: internal/ui/connection/controller.go:625
+#: internal/ui/connection/controller.go:626
 msgid "Password Required"
 msgstr ""
 
-#: internal/ui/connection/controller.go:626
+#: internal/ui/connection/controller.go:627
 msgid "This server is protected by a password."
 msgstr ""
 
-#: internal/ui/connection/controller.go:628
+#: internal/ui/connection/controller.go:629
 #, go-format
 msgid "The server needs the password for the user %s."
 msgstr ""
 
-#: internal/ui/connection/controller.go:631
+#: internal/ui/connection/controller.go:632
 msgid "Wrong Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go:632
+#: internal/ui/connection/controller.go:633
 msgid "The server did not accept the password. Please try again."
 msgstr ""
 
-#: internal/ui/connection/controller.go:636
+#: internal/ui/connection/controller.go:637
 msgid "Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go:638
+#: internal/ui/connection/controller.go:639
 msgid "Remember Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go:639
+#: internal/ui/connection/controller.go:640
 msgid "Stored in your keyring"
 msgstr ""
 
-#: internal/ui/connection/controller.go:789
+#: internal/ui/connection/controller.go:792
 msgid "Reconnecting…"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1197
+#: internal/ui/connection/controller.go:1200
 msgid "Server Certificate Changed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1199
+#: internal/ui/connection/controller.go:1202
 #, go-format
 msgid ""
 "The server's certificate has changed.\n"
@@ -624,11 +624,11 @@ msgid ""
 "Only continue if you trust this certificate."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1202
+#: internal/ui/connection/controller.go:1205
 msgid "New Server Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1204
+#: internal/ui/connection/controller.go:1207
 #, go-format
 msgid ""
 "This server's certificate has not been seen before.\n"
@@ -639,57 +639,57 @@ msgid ""
 "Trust and connect?"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1210
+#: internal/ui/connection/controller.go:1213
 msgid "Trust and Connect"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1237
+#: internal/ui/connection/controller.go:1240
 msgid "Authentication Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1238
+#: internal/ui/connection/controller.go:1241
 msgid "The server rejected the password or credentials."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1240
+#: internal/ui/connection/controller.go:1243
 msgid "Banned"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1241
+#: internal/ui/connection/controller.go:1244
 msgid "You are banned from this server."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1243
+#: internal/ui/connection/controller.go:1246
 msgid "Server Full"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1244
+#: internal/ui/connection/controller.go:1247
 msgid "The server has reached its maximum number of users."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1246
+#: internal/ui/connection/controller.go:1249
 msgid "TLS Handshake Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1247
+#: internal/ui/connection/controller.go:1250
 #, go-format
 msgid ""
 "Could not establish a secure connection:\n"
 "%s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1249
+#: internal/ui/connection/controller.go:1252
 msgid "Server Unreachable"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1250
+#: internal/ui/connection/controller.go:1253
 #, go-format
 msgid ""
 "The server could not be reached:\n"
 "%s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1252
+#: internal/ui/connection/controller.go:1255
 msgid "Connection Failed"
 msgstr ""
 
@@ -853,6 +853,7 @@ msgid "Play"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go:125 internal/ui/prefs/window.go:130
+#: internal/ui/statusbar.go:181
 msgid "Off"
 msgstr ""
 
@@ -912,11 +913,11 @@ msgstr ""
 msgid "Capture Device"
 msgstr ""
 
-#: internal/ui/prefs/window.go:124 internal/ui/prefs/window.go:212
+#: internal/ui/prefs/window.go:124 internal/ui/prefs/window.go:221
 msgid "Device"
 msgstr ""
 
-#: internal/ui/prefs/window.go:128
+#: internal/ui/prefs/window.go:128 internal/ui/statusbar.go:187
 msgid "Noise Suppression"
 msgstr ""
 
@@ -925,128 +926,138 @@ msgid ""
 "Removes steady background noise such as fans, hum or traffic from your voice"
 msgstr ""
 
-#: internal/ui/prefs/window.go:130
+#: internal/ui/prefs/window.go:130 internal/ui/statusbar.go:181
 msgid "Low"
 msgstr ""
 
-#: internal/ui/prefs/window.go:130
+#: internal/ui/prefs/window.go:130 internal/ui/statusbar.go:181
 msgid "Moderate"
 msgstr ""
 
-#: internal/ui/prefs/window.go:130
+#: internal/ui/prefs/window.go:130 internal/ui/statusbar.go:181
 msgid "High"
 msgstr ""
 
-#: internal/ui/prefs/window.go:130
+#: internal/ui/prefs/window.go:130 internal/ui/statusbar.go:181
 msgid "Very High"
 msgstr ""
 
-#: internal/ui/prefs/window.go:138
+#: internal/ui/prefs/window.go:138 internal/ui/statusbar.go:196
+msgid "Echo Cancellation"
+msgstr ""
+
+#: internal/ui/prefs/window.go:139
+msgid ""
+"For speakers instead of a headset: keeps the others from hearing themselves "
+"through your microphone"
+msgstr ""
+
+#: internal/ui/prefs/window.go:147
 msgid "Voice Detection"
 msgstr ""
 
-#: internal/ui/prefs/window.go:140
+#: internal/ui/prefs/window.go:149
 msgid ""
 "Speak normally and drag the handle just below your speech level: everything "
 "louder than the handle is transmitted. Without a connection the meter tests "
 "the selected microphone."
 msgstr ""
 
-#: internal/ui/prefs/window.go:146 internal/ui/statusbar.go:167
+#: internal/ui/prefs/window.go:155 internal/ui/statusbar.go:168
 msgid "Activation Threshold"
 msgstr ""
 
-#: internal/ui/prefs/window.go:158
+#: internal/ui/prefs/window.go:167
 msgid "Audio per packet"
 msgstr ""
 
-#: internal/ui/prefs/window.go:159
+#: internal/ui/prefs/window.go:168
 msgid "Longer packets need less bandwidth but add delay. Default: 20 ms"
 msgstr ""
 
-#: internal/ui/prefs/window.go:162
+#: internal/ui/prefs/window.go:171
 #, go-format
 msgid "%d ms"
 msgstr ""
 
-#: internal/ui/prefs/window.go:172
+#: internal/ui/prefs/window.go:181
 msgid "Quality (kb/s)"
 msgstr ""
 
-#: internal/ui/prefs/window.go:176
+#: internal/ui/prefs/window.go:185
 #, go-format
 msgid ""
 "Needs about %.1f kb/s including network overhead. Servers with a lower limit "
 "reduce it automatically. Default: 40 kb/s"
 msgstr ""
 
-#: internal/ui/prefs/window.go:192
+#: internal/ui/prefs/window.go:201
 msgid "Transmission"
 msgstr ""
 
-#: internal/ui/prefs/window.go:206
+#: internal/ui/prefs/window.go:215
 msgid "Audio Output"
 msgstr ""
 
-#: internal/ui/prefs/window.go:211
+#: internal/ui/prefs/window.go:220
 msgid "Playback Device"
 msgstr ""
 
-#: internal/ui/prefs/window.go:216
+#: internal/ui/prefs/window.go:225
 msgid "Jitter Buffer"
 msgstr ""
 
-#: internal/ui/prefs/window.go:222
+#: internal/ui/prefs/window.go:231
 msgid "Buffer (ms)"
 msgstr ""
 
-#: internal/ui/prefs/window.go:223
+#: internal/ui/prefs/window.go:232
 msgid ""
 "Raise it if voices stutter on unstable connections; lower values reduce "
 "delay. Default: 30 ms"
 msgstr ""
 
-#: internal/ui/prefs/window.go:239
+#: internal/ui/prefs/window.go:248
 msgid "Behavior"
 msgstr ""
 
-#: internal/ui/prefs/window.go:247
+#: internal/ui/prefs/window.go:256
 msgid "Auto-reconnect"
 msgstr ""
 
-#: internal/ui/prefs/window.go:248
+#: internal/ui/prefs/window.go:257
 msgid "Reconnect automatically after a connection drop"
 msgstr ""
 
-#: internal/ui/prefs/window.go:256
+#: internal/ui/prefs/window.go:265
 msgid "Notifications"
 msgstr ""
 
-#: internal/ui/prefs/window.go:259
+#: internal/ui/prefs/window.go:268
 msgid "Desktop notifications"
 msgstr ""
 
-#: internal/ui/prefs/window.go:260
+#: internal/ui/prefs/window.go:269
 msgid "Private messages and reconnects while Murmel is in the background"
 msgstr ""
 
-#: internal/ui/prefs/window.go:277
+#: internal/ui/prefs/window.go:286
 msgid "Users in my channel"
 msgstr ""
 
-#: internal/ui/prefs/window.go:278
+#: internal/ui/prefs/window.go:287
 msgid "When someone joins or leaves your channel"
 msgstr ""
 
-#: internal/ui/prefs/window.go:280
+#: internal/ui/prefs/window.go:289
 msgid "Users on the server"
 msgstr ""
 
-#: internal/ui/prefs/window.go:281
+#: internal/ui/prefs/window.go:290
 msgid "When someone connects to or disconnects from the server"
 msgstr ""
 
-#: internal/ui/prefs/window.go:305 internal/ui/statusbar.go:227
+#: internal/ui/prefs/window.go:314 internal/ui/statusbar.go:259
 msgid "System default"
 msgstr ""
 
@@ -1058,94 +1069,102 @@ msgstr ""
 msgid "Kicked from the server"
 msgstr ""
 
-#: internal/ui/statusbar.go:53
+#: internal/ui/statusbar.go:54
 msgid "Mute microphone"
 msgstr ""
 
-#: internal/ui/statusbar.go:60
+#: internal/ui/statusbar.go:61
 msgid "Deafen"
 msgstr ""
 
-#: internal/ui/statusbar.go:65
+#: internal/ui/statusbar.go:66
 msgid "Input device"
 msgstr ""
 
-#: internal/ui/statusbar.go:66
+#: internal/ui/statusbar.go:67
 msgid "Output device"
 msgstr ""
 
-#: internal/ui/statusbar.go:75
+#: internal/ui/statusbar.go:76
 msgid ""
 "Voice input: grey = below threshold, green = transmitting, red = too loud. "
 "Click to set the activation threshold."
 msgstr ""
 
-#: internal/ui/statusbar.go:162
+#: internal/ui/statusbar.go:163
 msgid "Input Device"
 msgstr ""
 
-#: internal/ui/statusbar.go:169
+#: internal/ui/statusbar.go:170
 msgid ""
 "Speak normally and drag the handle just below your speech level: everything "
 "louder than the handle is transmitted. Red means the input is too loud."
 msgstr ""
 
-#: internal/ui/statusbar.go:185
+#: internal/ui/statusbar.go:179
+msgid "Processing"
+msgstr ""
+
+#: internal/ui/statusbar.go:192
+msgid "For speakers instead of a headset"
+msgstr ""
+
+#: internal/ui/statusbar.go:217
 msgid "Output Device"
 msgstr ""
 
-#: internal/ui/statusbar.go:234
+#: internal/ui/statusbar.go:266
 #, go-format
 msgid "%s (not available)"
 msgstr ""
 
-#: internal/ui/statusbar.go:286
+#: internal/ui/statusbar.go:318
 msgid "Connected"
 msgstr ""
 
-#: internal/ui/statusbar.go:291
+#: internal/ui/statusbar.go:323
 #, go-format
 msgid "Connected to %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:296
+#: internal/ui/statusbar.go:328
 #, go-format
 msgid "Channel: %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:299
+#: internal/ui/statusbar.go:331
 #, go-format
 msgid "Server: Mumble %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:301
+#: internal/ui/statusbar.go:333
 msgid "UDP"
 msgstr ""
 
-#: internal/ui/statusbar.go:303
+#: internal/ui/statusbar.go:335
 msgid "TCP (UDP unavailable)"
 msgstr ""
 
-#: internal/ui/statusbar.go:305
+#: internal/ui/statusbar.go:337
 #, go-format
 msgid "Voice: %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:307
+#: internal/ui/statusbar.go:339
 #, go-format
 msgid "Ping: %d ms"
 msgstr ""
 
-#: internal/ui/statusbar.go:310
+#: internal/ui/statusbar.go:342
 #, go-format
 msgid "Bandwidth limit: %d kbit/s"
 msgstr ""
 
-#: internal/ui/statusbar.go:323
+#: internal/ui/statusbar.go:355
 msgid "Connection failed"
 msgstr ""
 
-#: internal/ui/statusbar.go:326
+#: internal/ui/statusbar.go:358
 #, go-format
 msgid "Connection failed: %s"
 msgstr ""

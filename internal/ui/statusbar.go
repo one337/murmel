@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"strings"
 
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
@@ -173,6 +174,37 @@ func (s *statusBar) fillThresholdPopover(box *gtk.Box) {
 	hint.AddCSSClass("caption")
 	hint.AddCSSClass("dim-label")
 	box.Append(hint)
+
+	box.Append(gtk.NewSeparator(gtk.OrientationHorizontal))
+	box.Append(heading(tr("Processing")))
+
+	noise := gtk.NewDropDownFromStrings([]string{tr("Off"), tr("Low"), tr("Moderate"), tr("High"), tr("Very High")})
+	noise.SetSelected(uint(min(4, max(0, s.settings.NoiseSuppression()))))
+	noise.SetVAlign(gtk.AlignCenter)
+	coreglib.InternObject(noise).NotifyProperty("selected", func() {
+		s.settings.SetNoiseSuppression(int(noise.Selected()))
+	})
+	box.Append(settingLine(tr("Noise Suppression"), noise))
+
+	echo := gtk.NewSwitch()
+	echo.SetActive(s.settings.EchoCancellation())
+	echo.SetVAlign(gtk.AlignCenter)
+	echo.SetTooltipText(tr("For speakers instead of a headset"))
+	coreglib.InternObject(echo).NotifyProperty("active", func() {
+		s.settings.SetEchoCancellation(echo.Active())
+	})
+	box.Append(settingLine(tr("Echo Cancellation"), echo))
+}
+
+// settingLine is a label with its control right-aligned.
+func settingLine(title string, control gtk.Widgetter) *gtk.Box {
+	l := gtk.NewLabel(title)
+	l.SetXAlign(0)
+	l.SetHExpand(true)
+	line := gtk.NewBox(gtk.OrientationHorizontal, 12)
+	line.Append(l)
+	line.Append(control)
+	return line
 }
 
 func (s *statusBar) fillOutputPopover(box *gtk.Box) {

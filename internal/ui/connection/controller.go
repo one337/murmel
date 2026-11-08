@@ -583,6 +583,7 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 		PacketFrames:     c.settings.AudioPacketFrames(),
 		Bitrate:          c.settings.AudioQuality() * 1000,
 		NoiseSuppression: c.settings.NoiseSuppression(),
+		EchoCancellation: c.settings.EchoCancellation(),
 	}
 	go c.reportConnectionInfo(voiceCtx, client, addr)
 	if eng, err := engine.New(client, c.appBus, selfSession, opts); err != nil {
@@ -739,6 +740,8 @@ func (c *Controller) onSettingChanged(key string) {
 		eng.SetPacketFrames(c.settings.AudioPacketFrames())
 	case "noise-suppression":
 		eng.SetNoiseSuppression(c.settings.NoiseSuppression())
+	case "echo-cancellation":
+		eng.SetEchoCancellation(c.settings.EchoCancellation())
 	case "audio-quality":
 		eng.SetBitrate(c.settings.AudioQuality() * 1000)
 	case "audio-input-device", "audio-output-device":

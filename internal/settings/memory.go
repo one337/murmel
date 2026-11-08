@@ -20,6 +20,7 @@ func memoryDefaults() map[string]any {
 		"audio-packet-frames":     2,
 		"audio-quality":           40,
 		"noise-suppression":       2,
+		"echo-cancellation":       false,
 		"notification-enabled":    true,
 		"notify-channel-presence": false,
 		"notify-server-presence":  false,
@@ -181,3 +182,6 @@ func (m *Memory) SetAudioQuality(v int) { m.set("audio-quality", v) }
 
 func (m *Memory) NoiseSuppression() int     { return m.get("noise-suppression").(int) }
 func (m *Memory) SetNoiseSuppression(v int) { m.set("noise-suppression", v) }
+
+func (m *Memory) EchoCancellation() bool     { return m.get("echo-cancellation").(bool) }
+func (m *Memory) SetEchoCancellation(v bool) { m.set("echo-cancellation", v) }
