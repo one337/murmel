@@ -119,3 +119,14 @@ menubutton.dropdown-arrow > button {
 scrolledwindow.saved-connections {
   border-radius: 12px;
 }
+
+/* Unread messages next to a name in the channel tree. */
+.unread-badge {
+  min-width: 10px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background-color: @accent_bg_color;
+  color: @accent_fg_color;
+  font-size: 0.8em;
+  font-weight: bold;
+}

@@ -31,6 +31,11 @@ type Tree struct {
 	// menuRefresh re-evaluates the open context menu's entries (nil when
 	// no menu is shown).
 	menuRefresh func()
+
+	// unread counts of private conversations (by session) and of the
+	// channel chat, kept across row rebuilds.
+	unread        map[uint32]int
+	channelUnread int
 }
 
 // NewTree builds the tree widget and subscribes to the bus. parent is the
@@ -81,6 +86,36 @@ func (t *Tree) subscribe(ctx context.Context) {
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserRemoved) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserUpdated) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.VoiceActivity) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(bus.Disconnected) {
+		t.unread, t.channelUnread = nil, 0
+	})
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.UnreadChanged) {
+		if ev.Session == 0 {
+			t.channelUnread = ev.Count
+		} else {
+			if t.unread == nil {
+				t.unread = map[uint32]int{}
+			}
+			t.unread[ev.Session] = ev.Count
+		}
+		t.applyUnread()
+	})
+}
+
+// applyUnread shows the unread badges: per user for private messages, on
+// the local user's channel for the channel chat.
+func (t *Tree) applyUnread() {
+	for session, r := range t.userRows {
+		setUnread(r.badge, t.unread[session])
+	}
+	self := t.model.users[t.model.self].Channel
+	for id, r := range t.channelRows {
+		n := 0
+		if id == self && t.model.self != 0 {
+			n = t.channelUnread
+		}
+		setUnread(r.badge, n)
+	}
 }
 
 // handle folds one event into the model: if the model signals a structural
@@ -126,6 +161,7 @@ func (t *Tree) rebuild() {
 			t.list.Append(r.root)
 		}
 	}
+	t.applyUnread()
 }
 
 // updateInPlace refreshes a single row without changing list structure.

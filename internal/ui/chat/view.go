@@ -147,6 +147,9 @@ func (v *View) subscribe(ctx context.Context) {
 	bus.SubscribeCtx(ctx, v.bus, func(bus.Disconnected) {
 		v.nav.PopToTag(channelTag)
 		v.refreshTitles()
+		// Sessions change with the next connection: start counting anew.
+		v.unread = map[convKey]int{}
+		v.channelUnread = 0
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(bus.UserAdded) { v.refreshTitles() })
 	bus.SubscribeCtx(ctx, v.bus, func(bus.UserRemoved) { v.refreshTitles() })

@@ -1,6 +1,7 @@
 package channeltree
 
 import (
+	"strconv"
 	"fmt"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
@@ -33,13 +34,39 @@ type channelRowWidgets struct {
 	here    *gtk.Image
 	name    *gtk.Label
 	count   *gtk.Label
+	badge   *gtk.Label
 }
 
 type userRowWidgets struct {
 	root   *gtk.ListBoxRow
 	avatar *adw.Avatar
 	name   *gtk.Label
+	badge  *gtk.Label
 	icons  map[string]*gtk.Image
+}
+
+// newBadge builds the unread-messages pill shown next to a name.
+func newBadge() *gtk.Label {
+	b := gtk.NewLabel("")
+	b.AddCSSClass("unread-badge")
+	b.AddCSSClass("numeric")
+	b.SetVAlign(gtk.AlignCenter)
+	b.SetVisible(false)
+	return b
+}
+
+// setUnread shows n unread messages on the badge (hidden at 0).
+func setUnread(b *gtk.Label, n int) {
+	b.SetVisible(n > 0)
+	switch {
+	case n > 99:
+		b.SetText("99+")
+	case n > 0:
+		b.SetText(strconv.Itoa(n))
+	}
+	if n > 0 {
+		b.SetTooltipText(fmt.Sprintf(tr("Unread messages: %d"), n))
+	}
 }
 
 func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float64)) *channelRowWidgets {
@@ -55,11 +82,11 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	r.name = gtk.NewLabel(n.info.Name)
 	r.name.AddCSSClass("channel-name")
 	r.name.SetXAlign(0.0)
-	r.name.SetHExpand(true)
 	r.name.SetEllipsize(pango.EllipsizeEnd)
 
 	r.count = gtk.NewLabel("")
 	r.count.AddCSSClass("dim-label")
+	r.badge = newBadge()
 
 	// "You are here" marker for the channel the local user is in.
 	r.here = gtk.NewImageFromIconName(iconCurrentChannel)
@@ -69,6 +96,8 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	box.Append(r.chevron)
 	box.Append(r.name)
+	box.Append(r.badge)
+	box.Append(expander())
 	box.Append(r.here)
 	box.Append(r.count)
 	applyIndent(box, depthOf(m, id))
@@ -99,7 +128,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	r.name = gtk.NewLabel(u.Name)
 	r.name.AddCSSClass("user-name")
 	r.name.SetXAlign(0.0)
-	r.name.SetHExpand(true)
+	r.name.SetHExpand(false)
 	r.name.SetEllipsize(pango.EllipsizeEnd)
 
 	for _, ic := range []struct {
@@ -119,9 +148,12 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	speak.SetVisible(false)
 	r.icons[iconSpeaking] = speak
 
+	r.badge = newBadge()
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	box.Append(r.avatar)
 	box.Append(r.name)
+	box.Append(r.badge)
+	box.Append(expander())
 	for _, k := range []string{iconSpeaking, iconPrioritySpeaker, iconRecording, iconMuted, iconDeafened} {
 		box.Append(r.icons[k])
 	}
@@ -352,4 +384,12 @@ func popupAt(row gtk.Widgetter, menu *gtk.PopoverMenu, x, y float64) {
 	rect := gdk.NewRectangle(int(x), int(y), 1, 1)
 	menu.SetPointingTo(&rect)
 	menu.Popup()
+}
+
+// expander is an empty widget that takes the free space in a row, so
+// names and badges stay left and status icons right.
+func expander() *gtk.Box {
+	b := gtk.NewBox(gtk.OrientationHorizontal, 0)
+	b.SetHExpand(true)
+	return b
 }
