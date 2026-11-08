@@ -45,14 +45,17 @@ const (
 	// FrameSize is the default frame size: 480 samples = 10 ms at 48 kHz.
 	FrameSize = 480
 
-	// BitrateDefault is the default encoder target: 32 kbps.
-	BitrateDefault = 32 * 1000
-	// BitrateMin is the lowest configurable encoder bitrate: 8 kbps.
+	// BitrateDefault is the default encoder target: 40 kbps, the official
+	// Mumble client's default quality.
+	BitrateDefault = 40 * 1000
+	// BitrateMin is the lowest encoder bitrate: 8 kbps (servers with a low
+	// bandwidth limit may force it this far down).
 	BitrateMin = 8 * 1000
-	// BitrateMax is the highest configurable encoder bitrate: 64 kbps.
-	BitrateMax = 64 * 1000
+	// BitrateMax is the highest encoder bitrate: 192 kbps, the official
+	// client's maximum quality.
+	BitrateMax = 192 * 1000
 
-	// MaxDataBytes is the largest encoded packet this wrapper produces when
-	// the caller does not impose a tighter cap (fits 64 kbps + header room).
+	// MaxDataBytes is the largest encoded 10 ms frame at BitrateMax
+	// (192 kbps × 10 ms = 240 bytes), plus header room.
 	MaxDataBytes = 256
 )

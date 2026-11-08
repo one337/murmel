@@ -55,10 +55,10 @@ func (a AudioBuffer) writeAudio(client *Client, seq int64, final bool, X, Y, Z *
 	if encoder == nil {
 		return nil
 	}
-	// AudioDataBytes budgets one 10 ms frame; a buffer spanning several
-	// frames (20/40/60 ms packets) gets a proportionally larger budget so
-	// the encoder keeps its bitrate (P13).
-	dataBytes := client.Config.AudioDataBytes * max(1, len(a)/AudioDefaultFrameSize)
+	// The byte budget follows the buffer length (20/40/60 ms packets) and,
+	// when set, the encoder bitrate, so the encoder can reach its target
+	// without exceeding it (P13).
+	dataBytes := client.audioDataBytes(len(a))
 	raw, err := encoder.Encode(a, len(a), dataBytes)
 	if final {
 		defer encoder.Reset()
@@ -84,4 +84,26 @@ type AudioPacket struct {
 
 	HasPosition bool
 	X, Y, Z     float32
+}
+
+// AudioMaxPacketBytes caps one encoded voice packet so the whole UDP
+// datagram stays within Mumble's 1024-byte voice buffer (P13).
+const AudioMaxPacketBytes = 1000
+
+// SetAudioBitrate makes the per-packet byte budget follow bitsPerSecond
+// (0 restores Config.AudioDataBytes per 10 ms frame). Safe for concurrent
+// use with an open AudioOutgoing stream.
+func (c *Client) SetAudioBitrate(bitsPerSecond int) {
+	c.audioBitrate.Store(int64(bitsPerSecond))
+}
+
+// audioDataBytes is the byte budget for one packet of samples samples.
+func (c *Client) audioDataBytes(samples int) int {
+	frames := max(1, samples/AudioDefaultFrameSize)
+	n := c.Config.AudioDataBytes * frames
+	if b := int(c.audioBitrate.Load()); b > 0 {
+		// bits/s × seconds / 8, rounded up.
+		n = (b*samples/AudioSampleRate + 7) / 8
+	}
+	return max(1, min(n, AudioMaxPacketBytes))
 }

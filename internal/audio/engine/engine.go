@@ -60,6 +60,9 @@ type Options struct {
 	// PacketFrames is the outgoing audio per packet in 10 ms frames: 1, 2,
 	// 4 or 6 (0 or another value selects 2, i.e. 20 ms).
 	PacketFrames int
+	// Bitrate is the wanted Opus bitrate in bit/s (0 = opus.BitrateDefault).
+	// The server's bandwidth limit may lower it, see EffectiveBitrate.
+	Bitrate int
 	// Open overrides how the audio endpoint is opened (tests, QA tools);
 	// nil opens the named system devices. playbackPeriod is the requested
 	// playback buffer granularity (see device.Config.PlaybackPeriod).
@@ -105,6 +108,7 @@ type Engine struct {
 
 	threshold    atomic.Uint64 // math.Float64bits of the VAD calibration
 	packetFrames atomic.Int32  // outgoing 10 ms frames per packet
+	bitrate      atomic.Int64  // wanted Opus bitrate in bit/s
 
 	enc *opus.Encoder
 
@@ -148,6 +152,7 @@ func New(client *gumble.Client, b *bus.Bus, self uint32, opts Options) (*Engine,
 	}
 	e.SetThreshold(opts.Threshold)
 	e.SetPacketFrames(opts.PacketFrames)
+	e.SetBitrate(opts.Bitrate)
 	if opts.JitterFrames > 0 {
 		e.SetJitterFrames(opts.JitterFrames)
 	}
@@ -262,6 +267,36 @@ func validPacketFrames(n int) int {
 	return 2
 }
 
+// SetBitrate sets the wanted Opus bitrate in bit/s (0 = default). It
+// applies from the next transmission on. Safe from any goroutine.
+func (e *Engine) SetBitrate(bitsPerSecond int) {
+	if bitsPerSecond <= 0 {
+		bitsPerSecond = opus.BitrateDefault
+	}
+	e.bitrate.Store(int64(bitsPerSecond))
+}
+
+// applyBitrate configures encoder and packet budget for the next
+// transmission; applied is the bitrate in effect so far (0 = none).
+func (e *Engine) applyBitrate(applied, packetFrames int) int {
+	want := int(e.bitrate.Load())
+	server := e.client.MaxBandwidth()
+	b := EffectiveBitrate(want, packetFrames, server)
+	if b == applied {
+		return applied
+	}
+	if err := e.enc.SetBitrate(b); err != nil {
+		slog.Warn("voice: cannot set bitrate", "bitrate", b, "err", err)
+		return applied
+	}
+	e.client.SetAudioBitrate(b)
+	if b < want {
+		slog.Info("voice: bitrate limited by the server", "wanted", want, "bitrate", b,
+			"server_max_bandwidth", server)
+	}
+	return b
+}
+
 // Stop closes the audio device.
 func (e *Engine) Stop() {
 	e.devMu.Lock()
@@ -279,8 +314,9 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 	vad := pipeline.NewVAD(pipeline.VADConfig{})
 	appliedThreshold := math.NaN()
 	var (
-		outCh chan<- gumble.AudioBuffer
-		pack  packer
+		outCh   chan<- gumble.AudioBuffer
+		pack    packer
+		bitrate int // in effect for the current/last transmission
 	)
 	send := func(frame []int16) {
 		if p := pack.add(frame); p != nil {
@@ -321,10 +357,11 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 		switch dec {
 		case pipeline.Start:
 			// Pre-roll: open channel and flush buffered pre-speech frames.
-			outCh = e.client.AudioOutgoing()
 			pack.reset(int(e.packetFrames.Load()))
+			bitrate = e.applyBitrate(bitrate, pack.frames)
+			outCh = e.client.AudioOutgoing()
 			slog.Info("voice: transmitting", "transport", e.client.VoiceTransport(),
-				"packet_ms", pack.frames*10)
+				"packet_ms", pack.frames*10, "bitrate", bitrate)
 			for _, pre := range vad.PreRoll() {
 				send(pre)
 			}

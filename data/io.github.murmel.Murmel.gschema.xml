@@ -44,6 +44,12 @@
       <summary>Audio per packet</summary>
       <description>Outgoing audio per voice packet in 10 ms frames: 1, 2, 4 or 6 (10, 20, 40 or 60 ms). Larger packets need less bandwidth but add latency. The official Mumble client defaults to 20 ms.</description>
     </key>
+    <key name="audio-quality" type="i">
+      <range min="32" max="192"/>
+      <default>40</default>
+      <summary>Voice quality</summary>
+      <description>Opus bitrate for outgoing voice in kbit/s (32–192). Servers with a lower bandwidth limit reduce it automatically.</description>
+    </key>
     <key name="notification-enabled" type="b">
       <default>true</default>
       <summary>Show notifications</summary>

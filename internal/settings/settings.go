@@ -48,6 +48,10 @@ type Settings interface {
 	AudioPacketFrames() int
 	SetAudioPacketFrames(v int)
 
+	// AudioQuality is the outgoing Opus bitrate in kbit/s.
+	AudioQuality() int
+	SetAudioQuality(v int)
+
 	NotificationsEnabled() bool
 	SetNotificationsEnabled(v bool)
 

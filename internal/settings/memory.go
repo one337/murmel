@@ -18,6 +18,7 @@ func memoryDefaults() map[string]any {
 		"vad-threshold":           0.5,
 		"jitter-target-frames":    3,
 		"audio-packet-frames":     2,
+		"audio-quality":           40,
 		"notification-enabled":    true,
 		"notify-channel-presence": false,
 		"notify-server-presence":  false,
@@ -173,3 +174,6 @@ func (m *Memory) SetSoundEvents(v map[string]string) {
 	}
 	m.set("sound-events", c)
 }
+
+func (m *Memory) AudioQuality() int     { return m.get("audio-quality").(int) }
+func (m *Memory) SetAudioQuality(v int) { m.set("audio-quality", v) }

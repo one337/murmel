@@ -65,6 +65,11 @@ var keySpecs = map[string]keySpec{
 		get: func(s Settings) any { return s.AudioPacketFrames() },
 		set: func(s Settings, v any) { s.SetAudioPacketFrames(v.(int)) },
 	},
+	"audio-quality": {
+		key: "audio-quality", gtype: "i", def: 40, sample: 96,
+		get: func(s Settings) any { return s.AudioQuality() },
+		set: func(s Settings, v any) { s.SetAudioQuality(v.(int)) },
+	},
 	"notification-enabled": {
 		key: "notification-enabled", gtype: "b", def: true, sample: false,
 		get: func(s Settings) any { return s.NotificationsEnabled() },

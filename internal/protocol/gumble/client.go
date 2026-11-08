@@ -98,7 +98,9 @@ type Client struct {
 	// Murmel patch (P12): server diagnostics.
 	serverVersion atomic.Value // ServerVersion
 	maxBandwidth  atomic.Int64
-	serverCrypt   struct{ good, late, lost atomic.Uint32 }
+	// audioBitrate drives the voice packet byte budget (SetAudioBitrate).
+	audioBitrate atomic.Int64
+	serverCrypt  struct{ good, late, lost atomic.Uint32 }
 }
 
 // Dial is an alias of DialWithDialer(new(net.Dialer), addr, config, nil).

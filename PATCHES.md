@@ -303,13 +303,17 @@ users requires knowing what the server received and decrypted.
 **Upstream**: layeh/gumble `gumble/handlers.go` (`handleVersion` is a
 no-op; `handlePing` reads only the timestamp).
 
-## P13 — Scale the encoder byte budget with the packet length
+## P13 — Size the encoder byte budget by packet length and bitrate
 
-**What**: `AudioBuffer.writeAudio` multiplies `Config.AudioDataBytes` by
-the number of 10 ms frames in the buffer.
+**What**: `AudioBuffer.writeAudio` asks `Client.audioDataBytes` for the
+budget: `Config.AudioDataBytes` per 10 ms frame in the buffer, or, once
+`Client.SetAudioBitrate` is set, exactly bitrate × packet duration / 8.
+Every packet is capped at `AudioMaxPacketBytes` (1000) so the datagram
+fits Mumble's 1024-byte voice buffer.
 
 **Why**: Murmel sends 20 ms packets by default (like the official
-client) and offers 10/20/40/60 ms. The byte budget was per buffer, so a
-20 ms buffer at the 40-byte default would cap Opus at half the bitrate.
+client), offers 10/20/40/60 ms, and lets the user pick 32–192 kb/s. The
+byte budget was a fixed 40 bytes per buffer, which capped Opus at
+32 kb/s for 10 ms packets and at half that for 20 ms packets.
 
 **Upstream**: layeh/gumble `gumble/audio.go` (`dataBytes := client.Config.AudioDataBytes`).

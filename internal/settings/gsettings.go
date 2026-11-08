@@ -158,3 +158,6 @@ func (g *GSettings) SetSoundEvents(v map[string]string) {
 	}
 	g.gs.SetValue("sound-events", glib.NewVariantArray(glib.NewVariantType("{ss}"), entries))
 }
+
+func (g *GSettings) AudioQuality() int     { return g.gs.Int("audio-quality") }
+func (g *GSettings) SetAudioQuality(v int) { g.gs.SetInt("audio-quality", v) }

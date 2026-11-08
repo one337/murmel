@@ -548,6 +548,7 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 		Threshold:      c.settings.VADThreshold(),
 		JitterFrames:   c.settings.JitterTargetFrames(),
 		PacketFrames:   c.settings.AudioPacketFrames(),
+		Bitrate:        c.settings.AudioQuality() * 1000,
 	}
 	go c.reportConnectionInfo(voiceCtx, client, addr)
 	if eng, err := engine.New(client, c.appBus, selfSession, opts); err != nil {
@@ -619,6 +620,8 @@ func (c *Controller) onSettingChanged(key string) {
 		eng.SetJitterFrames(c.settings.JitterTargetFrames())
 	case "audio-packet-frames":
 		eng.SetPacketFrames(c.settings.AudioPacketFrames())
+	case "audio-quality":
+		eng.SetBitrate(c.settings.AudioQuality() * 1000)
 	case "audio-input-device", "audio-output-device":
 		capture, playback := c.settings.AudioInputDevice(), c.settings.AudioOutputDevice()
 		// Reopening the stream blocks briefly; keep it off the main loop.

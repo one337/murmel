@@ -14,6 +14,7 @@ import (
 
 	"io.github/murmel/internal/audio/device"
 	"io.github/murmel/internal/audio/effects"
+	"io.github/murmel/internal/audio/engine"
 	"io.github/murmel/internal/audio/jitter"
 	"io.github/murmel/internal/certs"
 	"io.github/murmel/internal/settings"
@@ -148,13 +149,30 @@ func audioInputPage(st settings.Settings) *adw.PreferencesPage {
 			packetRow.SetSelected(uint(i))
 		}
 	}
+	// Quality: the Opus bitrate, like the official client's "Quality".
+	quality := adw.NewSpinRow(gtk.NewAdjustment(float64(st.AudioQuality()), 32, 192, 1, 8, 0), 8, 0)
+	quality.SetTitle(tr("Quality (kb/s)"))
+	updateQualityHint := func() {
+		total := engine.NetworkBandwidth(st.AudioQuality()*1000, st.AudioPacketFrames())
+		quality.SetSubtitle(fmt.Sprintf(
+			tr("Needs about %.1f kb/s including network overhead. Servers with a lower limit reduce it automatically. Default: 40 kb/s"),
+			float64(total)/1000))
+	}
+	updateQualityHint()
+	coreglib.InternObject(quality).NotifyProperty("value", func() {
+		st.SetAudioQuality(int(quality.Value()))
+		updateQualityHint()
+	})
+
 	coreglib.InternObject(packetRow).NotifyProperty("selected", func() {
 		if sel := int(packetRow.Selected()); sel < len(packetSizes) {
 			st.SetAudioPacketFrames(packetSizes[sel])
+			updateQualityHint()
 		}
 	})
 	txGroup := adw.NewPreferencesGroup()
 	txGroup.SetTitle(tr("Transmission"))
+	txGroup.Add(quality)
 	txGroup.Add(packetRow)
 
 	page.Add(devGroup)

@@ -2,6 +2,7 @@ package opus
 
 import (
 	"fmt"
+	"sync"
 
 	hrabanopus "gopkg.in/hraban/opus.v2"
 )
@@ -38,12 +39,17 @@ type CodecRegistry interface {
 
 // Encoder encodes mono 48 kHz PCM to Opus packets (VOIP application).
 // It satisfies gumble.AudioEncoder.
+//
+// Encode, Reset and the setters are serialized: the encoder runs on
+// gumble's stream goroutine while the bitrate may change from the voice
+// engine.
 type Encoder struct {
+	mu      sync.Mutex
 	enc     *hrabanopus.Encoder
 	bitrate int
 }
 
-// NewEncoder returns an Opus VOIP encoder: 48 kHz mono, 32 kbps default
+// NewEncoder returns an Opus VOIP encoder: 48 kHz mono, BitrateDefault
 // target bitrate.
 func NewEncoder() (*Encoder, error) {
 	enc, err := hrabanopus.NewEncoder(SampleRate, Channels, hrabanopus.AppVoIP)
@@ -76,7 +82,9 @@ func (e *Encoder) Encode(pcm []int16, frameSize, maxDataBytes int) ([]byte, erro
 		return nil, fmt.Errorf("opus: pcm length %d not a multiple of frame size %d", len(pcm), frameSize*Channels)
 	}
 	data := make([]byte, maxDataBytes)
+	e.mu.Lock()
 	n, err := e.enc.Encode(pcm, data)
+	e.mu.Unlock()
 	if err != nil {
 		return nil, fmt.Errorf("opus: encode: %w", err)
 	}
@@ -86,6 +94,8 @@ func (e *Encoder) Encode(pcm []int16, frameSize, maxDataBytes int) ([]byte, erro
 // Reset implements gumble.AudioEncoder.Reset: returns the encoder to a
 // freshly initialized state, keeping the configured bitrate.
 func (e *Encoder) Reset() {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	if err := e.enc.Reset(); err == nil {
 		return
 	}
@@ -98,9 +108,11 @@ func (e *Encoder) Reset() {
 	}
 }
 
-// SetBitrate sets the target bitrate in bits per second, clamped by policy
-// to the 8–64 kbps range Mumble traffic needs.
+// SetBitrate sets the target bitrate in bits per second, within
+// [BitrateMin, BitrateMax].
 func (e *Encoder) SetBitrate(bitsPerSecond int) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	if bitsPerSecond < BitrateMin || bitsPerSecond > BitrateMax {
 		return fmt.Errorf("opus: bitrate %d outside [%d, %d] bps", bitsPerSecond, BitrateMin, BitrateMax)
 	}
@@ -112,12 +124,18 @@ func (e *Encoder) SetBitrate(bitsPerSecond int) error {
 }
 
 // Bitrate returns the configured target bitrate in bits per second.
-func (e *Encoder) Bitrate() int { return e.bitrate }
+func (e *Encoder) Bitrate() int {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.bitrate
+}
 
 // SetInBandFEC enables in-band forward error correction in future packets
 // (costs bitrate; makes DecodeFEC able to recover the frame before a lost
 // one).
 func (e *Encoder) SetInBandFEC(enabled bool) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	if err := e.enc.SetInBandFEC(enabled); err != nil {
 		return fmt.Errorf("opus: set in-band FEC: %w", err)
 	}
@@ -127,6 +145,8 @@ func (e *Encoder) SetInBandFEC(enabled bool) error {
 // SetPacketLossPerc tells the encoder the expected packet loss percentage so
 // it can size FEC redundancy accordingly.
 func (e *Encoder) SetPacketLossPct(lossPerc int) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	if err := e.enc.SetPacketLossPerc(lossPerc); err != nil {
 		return fmt.Errorf("opus: set packet loss percentage: %w", err)
 	}
