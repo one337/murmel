@@ -10,7 +10,7 @@ import (
 const (
 	// infoCollapsedLines is how much of the description shows collapsed
 	// (images are cut at the same height).
-	infoCollapsedLines = 2
+	infoCollapsedLines = 4
 	// infoExpandedMaxPx caps the expanded description; longer ones scroll.
 	infoExpandedMaxPx = 360
 	// Displayed image bounds inside the description.
@@ -19,7 +19,7 @@ const (
 )
 
 // channelInfo shows the channel description above the channel chat:
-// collapsed to two lines with the rest fading out, expandable with a
+// collapsed to a few lines with the rest fading out, expandable with a
 // button. Hidden while the channel has no description.
 type channelInfo struct {
 	root   *gtk.Box
@@ -32,6 +32,10 @@ type channelInfo struct {
 	expanded bool
 	// onShown reports when the area appears or disappears.
 	onShown func(bool)
+	// bottomFade continues the area's colour into the chat: an overlay at
+	// the top of the chat (the toolbar puts a gap between top bars and
+	// content, which would otherwise show as a stripe).
+	bottomFade *gtk.Box
 	// lastWidth is the width the overflow was last measured for.
 	lastWidth int
 }
@@ -70,9 +74,12 @@ func newChannelInfo() *channelInfo {
 	})
 	i.scroll.AddController(click)
 
-	// The grey of the area fades into the chat below it.
-	bottomFade := gtk.NewBox(gtk.OrientationVertical, 0)
-	bottomFade.AddCSSClass("channel-info-bottom")
+	// The colour of the area fades into the chat below it.
+	i.bottomFade = gtk.NewBox(gtk.OrientationVertical, 0)
+	i.bottomFade.AddCSSClass("channel-info-bottom")
+	i.bottomFade.SetVAlign(gtk.AlignStart)
+	i.bottomFade.SetCanTarget(false)
+	i.bottomFade.SetVisible(false)
 
 	inner := gtk.NewBox(gtk.OrientationVertical, 0)
 	inner.AddCSSClass("channel-info")
@@ -81,7 +88,6 @@ func newChannelInfo() *channelInfo {
 
 	i.root = gtk.NewBox(gtk.OrientationVertical, 0)
 	i.root.Append(inner)
-	i.root.Append(bottomFade)
 	i.root.SetVisible(false)
 
 	// Re-check the overflow when the width changes (text rewraps).
@@ -104,6 +110,7 @@ func (i *channelInfo) set(html string) {
 	i.expanded = false
 	blocks := richtext.Parse(html)
 	i.root.SetVisible(len(blocks) > 0)
+	i.bottomFade.SetVisible(len(blocks) > 0)
 	if i.onShown != nil {
 		i.onShown(len(blocks) > 0)
 	}
@@ -127,7 +134,7 @@ const lineSample = "X\nX"
 func (i *channelInfo) collapsedHeight() int {
 	l := gtk.NewLabel(lineSample)
 	_, nat, _, _ := l.Measure(gtk.OrientationVertical, -1)
-	return nat * infoCollapsedLines / 2
+	return nat * infoCollapsedLines / 2 // lineSample has two lines
 }
 
 // layout applies the collapsed/expanded state: collapsed clips the text

@@ -149,19 +149,27 @@ picture.composer-thumb {
 }
 
 /* Channel description under the channel chat's header, in the header's
-   grey: two lines, the rest fades out until expanded; the grey itself
-   fades into the chat below. */
+   colour (a header without its separator line shows the window colour):
+   collapsed, the rest fades out until expanded; the colour itself fades
+   into the chat below. */
 .channel-info {
   padding: 2px 12px 0 12px;
-  background-color: @headerbar_bg_color;
+  background-color: @window_bg_color;
 }
 .channel-info-fade {
-  min-height: 22px;
-  background-image: linear-gradient(to bottom, alpha(@headerbar_bg_color, 0), @headerbar_bg_color);
+  min-height: 28px;
+  background-image: linear-gradient(to bottom, alpha(@window_bg_color, 0), @window_bg_color);
+}
+/* The whole chat area in the view colour, so nothing of the window colour
+   shows between the channel description and the messages. */
+scrolledwindow.chat-scroll,
+scrolledwindow.chat-scroll > viewport,
+list.chat-list {
+  background-color: @view_bg_color;
 }
 .channel-info-bottom {
   min-height: 14px;
-  background-image: linear-gradient(to bottom, @headerbar_bg_color, @view_bg_color);
+  background-image: linear-gradient(to bottom, @window_bg_color, @view_bg_color);
 }
 button.channel-info-toggle {
   min-height: 0;

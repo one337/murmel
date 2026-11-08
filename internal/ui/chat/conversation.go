@@ -40,6 +40,7 @@ func newConversation(tag, title, emptyText string) *conversation {
 	c.scroll.SetChild(c.list)
 	c.scroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
 	c.scroll.SetVExpand(true)
+	c.scroll.AddCSSClass("chat-scroll")
 	adj := c.scroll.VAdjustment()
 	adj.ConnectValueChanged(func() {
 		c.pin = c.atBottom()
@@ -88,6 +89,7 @@ func newConversation(tag, title, emptyText string) *conversation {
 		// grey; while it shows, the header loses its separator line.
 		c.info = newChannelInfo()
 		toolbar.AddTopBar(c.info.root)
+		overlay.AddOverlay(c.info.bottomFade)
 		c.info.onShown = func(shown bool) {
 			if shown {
 				toolbar.SetTopBarStyle(adw.ToolbarFlat)
