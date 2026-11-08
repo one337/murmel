@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
-"POT-Creation-Date: 2026-11-07 22:23+0100\n"
+"POT-Creation-Date: 2026-11-08 10:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -302,7 +302,7 @@ msgid "View stats"
 msgstr ""
 
 #: internal/ui/channeltree/tree.go:48 internal/ui/statusbar.go:324
-#: internal/ui/window.go:225
+#: internal/ui/window.go:226
 msgid "Not connected"
 msgstr ""
 
@@ -967,34 +967,38 @@ msgid "Show chat"
 msgstr ""
 
 #: internal/ui/window.go:110 internal/ui/window.go:118
-#: internal/ui/window.go:233
+#: internal/ui/window.go:234
 msgid "Channels"
 msgstr ""
 
 #: internal/ui/window.go:173
+msgid "About Murmel"
+msgstr ""
+
+#: internal/ui/window.go:174
 msgid "Quit"
 msgstr ""
 
-#: internal/ui/window.go:181
+#: internal/ui/window.go:182
 msgid "Main Menu"
 msgstr ""
 
-#: internal/ui/window.go:218
+#: internal/ui/window.go:219
 msgid "Connect…"
 msgstr ""
 
-#: internal/ui/window.go:226
+#: internal/ui/window.go:227
 msgid "Join a Mumble server to start talking."
 msgstr ""
 
-#: internal/ui/window.go:234
+#: internal/ui/window.go:235
 msgid "Connect to a server to browse its channels."
 msgstr ""
 
-#: internal/ui/window.go:269
+#: internal/ui/window.go:270
 msgid "The microphone stopped delivering audio. Choose another input device."
 msgstr ""
 
-#: internal/ui/window.go:271
+#: internal/ui/window.go:272
 msgid "The output device is not playing audio. Choose another output device."
 msgstr ""

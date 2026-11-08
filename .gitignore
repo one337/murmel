@@ -28,6 +28,7 @@ go.work.sum
 # build artifacts (T15 QA binary location)
 /target/
 
-# Release output (upload web/ to the server)
+# Release output (upload web/ to the server) and local release settings
 web/
 build-release/
+tools/release.local.conf

@@ -86,11 +86,13 @@ go test -mod=vendor ./...
 
 `tools/release.sh <x.y.z>` bumps the version and release notes, tags the
 commit, builds a signed Flatpak repository into `web/` (with
-`.flatpakrepo`, `.flatpakref`, a single-file bundle and an index page) for
-upload to the website. Settings are in `tools/release.conf`; the signing
-key is kept outside the repository.
+`.flatpakrepo`, `.flatpakref`, a single-file bundle and an index page) and
+uploads it to the website (`--upload` repeats only the upload). Settings
+are in `tools/release.conf` and an untracked `tools/release.local.conf`
+(upload target); the signing key is kept outside the repository.
 
 ## License
 
-GPL-3.0-or-later, see [LICENSE](LICENSE). Murmel is not affiliated with
-the Mumble project.
+The source code is licensed under GPL-3.0-or-later, see [LICENSE](LICENSE).
+Murmel is not affiliated with the Mumble project.
+

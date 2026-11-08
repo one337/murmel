@@ -3,12 +3,17 @@
 // harness. Every subcommand is a self-contained connection that prints a
 // single JSON object to stdout and exits 0 on success.
 //
-//	murmel-cli connect --addr localhost:64738 --cert tools/harness/testdata/client.pem
+//	murmel-cli connect --addr localhost:64738 --cert client.pem
 //	murmel-cli join Lobby
 //	murmel-cli text "interop-hello"
 //	murmel-cli voice-in --seconds 3
 //	murmel-cli listen --seconds 5
 //	murmel-cli stats
+//
+// A throwaway client certificate for --cert can be created with:
+//
+//	openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj /CN=murmel-test \
+//	  -keyout client.pem -out client.pem
 package main
 
 import (

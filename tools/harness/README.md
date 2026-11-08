@@ -137,7 +137,7 @@ go run ./peerbot [flags]
 | `--expect-text SUBSTR` | fail (exit 1) unless some received text contains SUBSTR within the listen window |
 | `--expect-nothing` | fail (exit 1) if any text message is received during the listen window |
 | `--expect-voice-from NAME` | fail (exit 1) unless voice packets were decoded from user NAME |
-| `--cert FILE` / `--key FILE` | optional client certificate (PEM); `--key` defaults to `--cert` |
+| `--cert FILE` / `--key FILE` | optional client certificate (PEM); `--key` defaults to `--cert`. Create a throwaway one with `openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj /CN=murmel-test -keyout client.pem -out client.pem` (never commit it) |
 | `--timeout DURATION` | connect timeout (default 15s) |
 
 `--expect-text`, `--expect-nothing` and `--expect-voice-from` require

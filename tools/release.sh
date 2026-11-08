@@ -5,7 +5,11 @@
 #   tools/release.sh <version>     release x.y.z: bump, commit, tag, build, publish
 #   tools/release.sh --refs-only   only regenerate the web/ descriptor files
 #                                  and the latest bundle (e.g. after changing
-#                                  WEB_URL in tools/release.conf)
+#                                  WEB_URL in tools/release.conf), then upload
+#   tools/release.sh --upload      only upload web/ to the server
+#
+# A release ends by uploading web/ to the server configured in
+# tools/release.conf (an SFTP location mounted via GVfs).
 #
 # web/ afterwards holds everything to upload (rsync it as a whole):
 #   repo/                              signed OSTree Flatpak repository
@@ -21,6 +25,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source tools/release.conf
+# Upload target and other local settings, kept out of git.
+if [ -f tools/release.local.conf ]; then
+	source tools/release.local.conf
+fi
 
 APP_ID=io.github.murmel.Murmel
 MANIFEST=packaging/$APP_ID.json
@@ -112,11 +120,63 @@ EOR
 	echo "release: web/ descriptors written for $version ($WEB_URL)"
 }
 
-if [ "${1:-}" = "--refs-only" ]; then
+# upload mirrors web/ to the GVfs-mounted SFTP target, remounting it when
+# the connection dropped. GVfs SFTP does not keep modification times, so
+# rsync cannot detect changes by time. The repository layout makes that
+# unnecessary: objects, deltas and versioned bundles are named by content
+# or version and never change (size comparison suffices), while the few
+# mutable files are always copied. The order keeps the published
+# repository consistent: content first, then refs/summary/descriptors,
+# and only then are stale files deleted.
+upload() {
+	if [ -z "${UPLOAD_HOST:-}" ]; then
+		echo "release: no upload target configured; upload web/ to $WEB_URL by hand"
+		return
+	fi
+	local mount="/run/user/$(id -u)/gvfs/sftp:host=$UPLOAD_HOST,port=$UPLOAD_PORT,user=$UPLOAD_USER"
+	local dest="$mount$UPLOAD_PATH"
+	if [ ! -d "$dest" ]; then
+		gio mount "sftp://$UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_PORT/" </dev/null >/dev/null 2>&1 || true
+	fi
+	[ -d "$dest" ] || die "upload target $dest not reachable; open it once in Files (save the password), then run tools/release.sh --upload"
+
+	local base=(-r --no-perms --no-times --omit-dir-times)
+	local mutable=(
+		--include='/repo/' --include='/repo/summary*' --include='/repo/summaries/***'
+		--include='/repo/refs/***' --include='/repo/config'
+		--include='/downloads/' --include='/downloads/murmel-latest.flatpak'
+		--include='/*.flatpakrepo' --include='/*.flatpakref' --include='/murmel.gpg' --include='/index.html'
+	)
+	# 1. Immutable content, compared by size.
+	rsync "${base[@]}" --size-only \
+		--exclude='/repo/summary*' --exclude='/repo/summaries/' --exclude='/repo/refs/' --exclude='/repo/config' \
+		--exclude='/downloads/murmel-latest.flatpak' \
+		--exclude='/*.flatpakrepo' --exclude='/*.flatpakref' --exclude='/murmel.gpg' --exclude='/index.html' \
+		"$WEB/" "$dest/"
+	# 2. Mutable files, always copied.
+	rsync "${base[@]}" --ignore-times "${mutable[@]}" --exclude='*' "$WEB/" "$dest/"
+	# 3. Remove what web/ no longer has (pruned objects, old deltas).
+	rsync "${base[@]}" --delete --existing --ignore-existing "$WEB/" "$dest/"
+
+	local code
+	code=$(curl -s -o /dev/null -w '%{http_code}' "${WEB_URL}repo/summary" || true)
+	[ "$code" = 200 ] || die "uploaded, but ${WEB_URL}repo/summary answers HTTP $code"
+	echo "release: uploaded web/ to $WEB_URL"
+}
+
+case "${1:-}" in
+--refs-only)
 	[ -d "$REPO" ] || die "no $REPO yet; run a release first"
 	write_descriptors
+	upload
 	exit 0
-fi
+	;;
+--upload)
+	[ -d "$REPO" ] || die "no $REPO yet; run a release first"
+	upload
+	exit 0
+	;;
+esac
 
 version=${1:-}
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "usage: tools/release.sh <x.y.z> | --refs-only"
@@ -137,4 +197,5 @@ flatpak-builder --force-clean --default-branch="$BRANCH" "${GPG_ARGS[@]}" \
 flatpak build-update-repo "${GPG_ARGS[@]}" --title="Murmel" \
 	--default-branch="$BRANCH" --generate-static-deltas --prune --prune-depth=5 "$REPO"
 write_descriptors
-echo "release: v$version done — upload web/ to $WEB_URL"
+upload
+echo "release: v$version done"

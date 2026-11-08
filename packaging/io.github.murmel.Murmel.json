@@ -35,7 +35,7 @@
       "name": "murmel",
       "buildsystem": "simple",
       "build-commands": [
-        "go build -v -o /app/bin/murmel ./cmd/murmel",
+        "go build -v -ldflags \"-X io.github/murmel/internal/ui.Version=$(cat VERSION)\" -o /app/bin/murmel ./cmd/murmel",
         "install -Dm644 data/io.github.murmel.Murmel.desktop /app/share/applications/io.github.murmel.Murmel.desktop",
         "install -Dm644 packaging/io.github.murmel.Murmel.metainfo.xml /app/share/metainfo/io.github.murmel.Murmel.metainfo.xml",
         "install -Dm644 data/icons/hicolor/256x256/apps/io.github.murmel.Murmel.png /app/share/icons/hicolor/256x256/apps/io.github.murmel.Murmel.png",

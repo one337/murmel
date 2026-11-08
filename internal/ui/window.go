@@ -170,6 +170,7 @@ func newPrimaryMenuButton() *gtk.MenuButton {
 
 	general := gio.NewMenu()
 	general.Append(tr("Preferences"), "app.preferences")
+	general.Append(tr("About Murmel"), "app.about")
 	general.Append(tr("Quit"), "app.quit")
 
 	menu := gio.NewMenu()

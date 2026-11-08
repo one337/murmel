@@ -207,6 +207,10 @@ func (a *App) registerActions() {
 	})
 	a.AddAction(banList)
 
+	about := gio.NewSimpleAction("about", nil)
+	about.ConnectActivate(func(*glib.Variant) { a.showAbout() })
+	a.AddAction(about)
+
 	userList := gio.NewSimpleAction("userlist", nil)
 	userList.ConnectActivate(func(*glib.Variant) {
 		if a.userListRequested != nil {
