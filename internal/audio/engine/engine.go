@@ -67,11 +67,17 @@ type Options struct {
 }
 
 // playbackPeriods is the escalation ladder for the playback buffer: start
-// at one frame (lowest latency); when the output device stalls, reopen with
-// the next size. Some PipeWire USB headsets (seen: EPOS GSA 70) never start
-// a PulseAudio-protocol stream below ~50–100 ms.
+// at the smallest safe size; when the output device stalls anyway, reopen
+// with the next size.
+//
+// The ladder must not start lower. Through pipewire-pulse a 10 ms buffer
+// requests a 256-sample graph quantum (40 ms still rounds down to 256),
+// and some USB headsets (measured: EPOS GSA 70) cannot run at that: the
+// ALSA device xruns into a permanent "broken pipe" state that silences
+// every application on it until the device is reopened — a larger buffer
+// afterwards no longer helps. 50 ms requests 600 samples, i.e. a 512
+// quantum (~10.7 ms per period), which those devices handle.
 var playbackPeriods = []time.Duration{
-	10 * time.Millisecond,
 	50 * time.Millisecond,
 	100 * time.Millisecond,
 	200 * time.Millisecond,

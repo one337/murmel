@@ -130,3 +130,17 @@ func TestMixerConfigurablePrebuffer(t *testing.T) {
 		t.Fatal("playback did not start once the jitter buffer was full")
 	}
 }
+
+// TestPlaybackLadderStartsSafe guards the EPOS GSA 70 finding: a first
+// playback buffer below 50 ms makes pipewire-pulse pick a 256-sample
+// quantum that wedges some USB headsets for every application.
+func TestPlaybackLadderStartsSafe(t *testing.T) {
+	if playbackPeriods[0] < 50*time.Millisecond {
+		t.Fatalf("first playback buffer %v < 50 ms", playbackPeriods[0])
+	}
+	for i := 1; i < len(playbackPeriods); i++ {
+		if playbackPeriods[i] <= playbackPeriods[i-1] {
+			t.Fatalf("ladder not increasing at %d", i)
+		}
+	}
+}
