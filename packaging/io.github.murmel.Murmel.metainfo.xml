@@ -56,6 +56,16 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.1" date="2026-11-08">
+      <description>
+        <ul>
+          <li>Fixed voice activation: the threshold now works directly and is set on a live level meter, and the click at the start of speech is gone</li>
+          <li>Fixed audio latency problems: playback no longer stalls USB headsets that cannot handle very small buffers</li>
+          <li>Added noise suppression for the microphone</li>
+          <li>Added an adjustable voice quality (32–192 kb/s), limited to the server's bandwidth</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.0" date="2026-11-08">
       <description>
         <ul>
