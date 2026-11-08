@@ -192,11 +192,15 @@ upload() {
 build_and_publish() {
 	mkdir -p "$WEB"
 	flatpak-builder --force-clean --default-branch="$BRANCH" "${GPG_ARGS[@]}" \
-		--mirror-screenshots-url="${WEB_URL}media/" \
+		--mirror-screenshots-url="${WEB_URL}media/" --compose-url-policy=full \
 		--repo="$REPO" build-release "$MANIFEST"
-	if [ -d build-release/screenshots ]; then
+	# The mirrored screenshots and thumbnails compose produced; the
+	# AppStream data points at them with full URLs (url policy "full",
+	# since the repository summary drops a relative media base URL).
+	local media=build-release/files/share/app-info/media
+	if [ -d "$media" ]; then
 		mkdir -p "$WEB/media"
-		cp -r build-release/screenshots/. "$WEB/media/"
+		cp -r "$media/." "$WEB/media/"
 	fi
 	flatpak build-update-repo "${GPG_ARGS[@]}" --title="Murmel" \
 		--default-branch="$BRANCH" --generate-static-deltas --prune --prune-depth=5 "$REPO"
