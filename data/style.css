@@ -56,13 +56,12 @@ menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):n
 /* Chat composer: one rounded field across the full width — the text on
    top, a toolbar (formatting left, send right) inside the same frame. */
 .composer-frame {
-  margin: 0 6px 6px 6px;
+  margin: 0 8px 8px 8px;
   border-radius: 12px;
-  background-color: @view_bg_color;
-  box-shadow: inset 0 0 0 1px alpha(currentColor, 0.15);
+  background-color: alpha(currentColor, 0.05);
 }
 .composer-frame:focus-within {
-  box-shadow: inset 0 0 0 2px alpha(@accent_color, 0.6);
+  box-shadow: inset 0 0 0 1px alpha(@accent_color, 0.45);
 }
 .composer-toolbar {
   padding: 0 6px 6px 6px;
@@ -149,16 +148,20 @@ picture.composer-thumb {
   border-radius: 6px;
 }
 
-/* Channel description above the channel chat: two lines, the rest fades
-   out until expanded. */
+/* Channel description under the channel chat's header, in the header's
+   grey: two lines, the rest fades out until expanded; the grey itself
+   fades into the chat below. */
 .channel-info {
-  padding: 8px 12px 0 12px;
-  border-bottom: 1px solid alpha(currentColor, 0.1);
-  background-color: @view_bg_color;
+  padding: 2px 12px 0 12px;
+  background-color: @headerbar_bg_color;
 }
 .channel-info-fade {
   min-height: 22px;
-  background-image: linear-gradient(to bottom, alpha(@view_bg_color, 0), @view_bg_color);
+  background-image: linear-gradient(to bottom, alpha(@headerbar_bg_color, 0), @headerbar_bg_color);
+}
+.channel-info-bottom {
+  min-height: 14px;
+  background-image: linear-gradient(to bottom, @headerbar_bg_color, @view_bg_color);
 }
 button.channel-info-toggle {
   min-height: 0;

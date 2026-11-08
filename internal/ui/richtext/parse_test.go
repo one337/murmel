@@ -2,6 +2,7 @@ package richtext
 
 import (
 	"encoding/base64"
+	"strings"
 	"testing"
 )
 
@@ -38,7 +39,7 @@ func TestParse(t *testing.T) {
 		{"unsafe link", `<a href="javascript:alert(1)">click</a>`, []string{"click"}},
 		{"script dropped", "<script>evil()</script>ok", []string{"ok"}},
 		{"unknown tags", `<font color="red"><span style="x">t</span></font>`, []string{"t"}},
-		{"remote image", `see <img src="https://tracker/x.png">`, []string{"see [image]"}},
+		{"remote image", `see <img src="https://tracker/x.png">`, []string{`see <a href="https://tracker/x.png">[image]</a>`}},
 		{"data image", "pic:<img src=\"data:image/png;base64," + png + "\">after", []string{"pic:", "[img]", "after"}},
 		{"image only", "<img src=\"data:image/png;base64," + png + "\"/>", []string{"[img]"}},
 		{"empty", "<p> </p>", nil},
@@ -84,5 +85,27 @@ func TestFit(t *testing.T) {
 		if w, h := fit(tt.w, tt.h, tt.mw, tt.mh); w != tt.ww || h != tt.wh {
 			t.Errorf("fit(%d,%d,%d,%d) = %d,%d, want %d,%d", tt.w, tt.h, tt.mw, tt.mh, w, h, tt.ww, tt.wh)
 		}
+	}
+}
+
+func TestDataURIVariants(t *testing.T) {
+	data := []byte("\x89PNG\r\n\x1a\nsome image bytes!")
+	std := base64.StdEncoding.EncodeToString(data)
+	for name, src := range map[string]string{
+		"plain":        "data:image/png;base64," + std,
+		"upper case":   "DATA:IMAGE/PNG;BASE64," + std,
+		"parameters":   "data:image/png;charset=utf-8;base64," + std,
+		"url encoded":  "data:image/png;base64," + strings.ReplaceAll(strings.ReplaceAll(std, "+", "%2B"), "/", "%2F"),
+		"wrapped":      "data:image/png;base64," + std[:10] + "\n  " + std[10:],
+		"no padding":   "data:image/png;base64," + strings.TrimRight(std, "="),
+		"url-safe b64": "data:image/png;base64," + base64.RawURLEncoding.EncodeToString(data),
+	} {
+		got, ok := decodeDataURI(src)
+		if !ok || string(got) != string(data) {
+			t.Errorf("%s: not decoded", name)
+		}
+	}
+	if _, ok := decodeDataURI("data:text/html;base64," + std); ok {
+		t.Error("non-image data URI accepted")
 	}
 }

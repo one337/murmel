@@ -12,7 +12,10 @@ import (
 const (
 	meterBarPx   = 3 // bar width; whole pixels keep the edges crisp
 	meterGapPx   = 2
-	meterBars    = 21 // history length: 21 × 30 ms ≈ 0.6 s
+	// meterBars is the minimum number of bars (21 × 30 ms ≈ 0.6 s); the
+	// meter shows more history as it gets wider, up to meterMaxBars.
+	meterBars    = 21
+	meterMaxBars = 96
 	meterWidthPx = meterBars*(meterBarPx+meterGapPx) - meterGapPx
 	meterFloorDB = -60.0
 )
@@ -40,7 +43,7 @@ type meterSample struct {
 type voiceMeter struct {
 	root      *gtk.Box
 	area      *gtk.DrawingArea
-	samples   [meterBars]meterSample
+	samples   [meterMaxBars]meterSample
 	head      int // index of the oldest sample
 	threshold float64
 }
@@ -49,6 +52,7 @@ func newVoiceMeter() *voiceMeter {
 	m := &voiceMeter{threshold: -1}
 	m.area = gtk.NewDrawingArea()
 	m.area.SetContentWidth(meterWidthPx)
+	m.area.SetHExpand(true)
 	m.area.SetVExpand(true)
 	m.area.SetDrawFunc(m.draw)
 
@@ -57,6 +61,7 @@ func newVoiceMeter() *voiceMeter {
 	m.root = gtk.NewBox(gtk.OrientationHorizontal, 0)
 	m.root.AddCSSClass("voice-meter")
 	m.root.SetVAlign(gtk.AlignFill)
+	m.root.SetHExpand(true)
 	m.root.Append(m.area)
 	return m
 }
@@ -72,7 +77,7 @@ func (m *voiceMeter) push(ev bus.InputLevel, muted bool) {
 		st = meterTalking
 	}
 	m.samples[m.head] = meterSample{level: normDB(ev.LevelDB), state: st}
-	m.head = (m.head + 1) % meterBars
+	m.head = (m.head + 1) % meterMaxBars
 	m.threshold = normDB(ev.ThresholdDB)
 	m.setState(st)
 	m.area.QueueDraw()
@@ -80,7 +85,7 @@ func (m *voiceMeter) push(ev bus.InputLevel, muted bool) {
 
 // reset clears the history (disconnect: no capture running).
 func (m *voiceMeter) reset() {
-	m.samples = [meterBars]meterSample{}
+	m.samples = [meterMaxBars]meterSample{}
 	m.head = 0
 	m.threshold = -1
 	m.setState(meterQuiet)
@@ -116,7 +121,9 @@ func (m *voiceMeter) draw(area *gtk.DrawingArea, cr *cairo.Context, width, heigh
 	// Pixel-snapped layout: bars of whole-pixel width at whole-pixel
 	// positions, centred in the area, so antialiasing only softens the
 	// rounded ends.
-	total := meterBars*(meterBarPx+meterGapPx) - meterGapPx
+	// As many bars as fit, newest on the right.
+	bars := min(meterMaxBars, max(1, (width+meterGapPx)/(meterBarPx+meterGapPx)))
+	total := bars*(meterBarPx+meterGapPx) - meterGapPx
 	x0 := float64((width - total) / 2)
 	mid := float64(height) / 2
 	const r = meterBarPx / 2.0
@@ -140,8 +147,9 @@ func (m *voiceMeter) draw(area *gtk.DrawingArea, cr *cairo.Context, width, heigh
 		cr.Fill()
 	}
 
-	for i := 0; i < meterBars; i++ {
-		s := m.samples[(m.head+i)%meterBars]
+	for i := 0; i < bars; i++ {
+		// Bar i shows the sample (bars-1-i) steps before the newest.
+		s := m.samples[(m.head-bars+i+2*meterMaxBars)%meterMaxBars]
 		switch s.state {
 		case meterClipping:
 			cr.SetSourceRGBA(0.878, 0.106, 0.141, 1) // Adwaita red_3 #e01b24

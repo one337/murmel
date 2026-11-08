@@ -30,6 +30,8 @@ type channelInfo struct {
 	html     string
 	content  *gtk.Box
 	expanded bool
+	// onShown reports when the area appears or disappears.
+	onShown func(bool)
 	// lastWidth is the width the overflow was last measured for.
 	lastWidth int
 }
@@ -68,10 +70,18 @@ func newChannelInfo() *channelInfo {
 	})
 	i.scroll.AddController(click)
 
+	// The grey of the area fades into the chat below it.
+	bottomFade := gtk.NewBox(gtk.OrientationVertical, 0)
+	bottomFade.AddCSSClass("channel-info-bottom")
+
+	inner := gtk.NewBox(gtk.OrientationVertical, 0)
+	inner.AddCSSClass("channel-info")
+	inner.Append(overlay)
+	inner.Append(i.toggle)
+
 	i.root = gtk.NewBox(gtk.OrientationVertical, 0)
-	i.root.AddCSSClass("channel-info")
-	i.root.Append(overlay)
-	i.root.Append(i.toggle)
+	i.root.Append(inner)
+	i.root.Append(bottomFade)
 	i.root.SetVisible(false)
 
 	// Re-check the overflow when the width changes (text rewraps).
@@ -94,6 +104,9 @@ func (i *channelInfo) set(html string) {
 	i.expanded = false
 	blocks := richtext.Parse(html)
 	i.root.SetVisible(len(blocks) > 0)
+	if i.onShown != nil {
+		i.onShown(len(blocks) > 0)
+	}
 	if len(blocks) == 0 {
 		i.scroll.SetChild(nil)
 		i.content = nil

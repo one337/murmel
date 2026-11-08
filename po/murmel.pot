@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
-"POT-Creation-Date: 2026-11-08 18:45+0100\n"
+"POT-Creation-Date: 2026-11-08 18:55+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -423,51 +423,47 @@ msgstr ""
 msgid "Not connected"
 msgstr ""
 
-#: internal/ui/chat/channelinfo.go:139
+#: internal/ui/chat/channelinfo.go:156
 msgid "Show less"
 msgstr ""
 
-#: internal/ui/chat/channelinfo.go:147
+#: internal/ui/chat/channelinfo.go:164
 msgid "Show more"
 msgstr ""
 
-#: internal/ui/chat/composer.go:106 internal/ui/chat/composer.go:333
+#: internal/ui/chat/composer.go:105 internal/ui/chat/composer.go:322
 msgid "Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"
 msgstr ""
 
-#: internal/ui/chat/composer.go:133
+#: internal/ui/chat/composer.go:132
 msgid "Bold (Ctrl+B)"
 msgstr ""
 
-#: internal/ui/chat/composer.go:134
+#: internal/ui/chat/composer.go:133
 msgid "Italic (Ctrl+I)"
 msgstr ""
 
-#: internal/ui/chat/composer.go:147
-msgid "Formatting"
-msgstr ""
-
-#: internal/ui/chat/composer.go:152
+#: internal/ui/chat/composer.go:139
 msgid "Attach an image"
 msgstr ""
 
-#: internal/ui/chat/composer.go:163
+#: internal/ui/chat/composer.go:150
 msgid "Remove image"
 msgstr ""
 
-#: internal/ui/chat/composer.go:184
+#: internal/ui/chat/composer.go:171
 msgid "Send message"
 msgstr ""
 
-#: internal/ui/chat/composer.go:255
+#: internal/ui/chat/composer.go:243
 msgid "Images"
 msgstr ""
 
-#: internal/ui/chat/composer.go:260
+#: internal/ui/chat/composer.go:248
 msgid "Attach Image"
 msgstr ""
 
-#: internal/ui/chat/composer.go:411
+#: internal/ui/chat/composer.go:400
 msgid "[image]"
 msgstr ""
 

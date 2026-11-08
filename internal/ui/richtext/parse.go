@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"html"
+	"log/slog"
 	"net/url"
 	"strings"
 )
@@ -238,28 +239,45 @@ func (p *parser) flush() {
 	}
 }
 
-// image adds an embedded image as its own block; other sources become a
-// text placeholder.
+// image adds an embedded image as its own block. A remote image is not
+// fetched (that would tell its host who reads the message); it becomes a
+// link to open in the browser.
 func (p *parser) image(src string) {
 	data, ok := decodeDataURI(src)
-	if !ok {
-		if src != "" {
-			p.text(" [image] ")
-		}
+	if ok {
+		p.flush()
+		p.blocks = append(p.blocks, Block{Image: data})
 		return
 	}
-	p.flush()
-	p.blocks = append(p.blocks, Block{Image: data})
+	if src == "" {
+		return
+	}
+	if safeLink(src) {
+		p.push("img", "a", `<a href="`+html.EscapeString(src)+`">`)
+		p.text("[image]")
+		p.pop("img")
+		return
+	}
+	slog.Debug("richtext: image source not supported", "src", truncate(src, 48))
+	p.text(" [image] ")
 }
 
+// decodeDataURI decodes a data: image URI, tolerating the variants found
+// in the wild: any case, extra parameters before ";base64", URL-encoded
+// or wrapped payloads, missing padding and URL-safe base64.
 func decodeDataURI(src string) ([]byte, bool) {
-	rest, ok := strings.CutPrefix(strings.TrimSpace(src), "data:image/")
-	if !ok {
+	src = strings.TrimSpace(src)
+	if len(src) < 11 || !strings.EqualFold(src[:11], "data:image/") {
 		return nil, false
 	}
-	_, payload, ok := strings.Cut(rest, ";base64,")
-	if !ok || base64.StdEncoding.DecodedLen(len(payload)) > maxImageBytes {
+	meta, payload, ok := strings.Cut(src[5:], ",")
+	if !ok || !strings.Contains(strings.ToLower(meta), ";base64") {
 		return nil, false
+	}
+	if strings.Contains(payload, "%") {
+		if u, err := url.PathUnescape(payload); err == nil {
+			payload = u
+		}
 	}
 	payload = strings.Map(func(r rune) rune {
 		if r == '\n' || r == '\r' || r == ' ' || r == '\t' {
@@ -267,11 +285,27 @@ func decodeDataURI(src string) ([]byte, bool) {
 		}
 		return r
 	}, payload)
-	data, err := base64.StdEncoding.DecodeString(payload)
-	if err != nil || len(data) == 0 {
+	if base64.StdEncoding.DecodedLen(len(payload)) > maxImageBytes {
 		return nil, false
 	}
-	return data, true
+	trimmed := strings.TrimRight(payload, "=")
+	for _, dec := range []func(string) ([]byte, error){
+		base64.StdEncoding.DecodeString,
+		func(s string) ([]byte, error) { return base64.RawStdEncoding.DecodeString(trimmed) },
+		func(s string) ([]byte, error) { return base64.RawURLEncoding.DecodeString(trimmed) },
+	} {
+		if data, err := dec(payload); err == nil && len(data) > 0 {
+			return data, true
+		}
+	}
+	return nil, false
+}
+
+func truncate(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n] + "…"
 }
 
 // safeLink allows only schemes a click may open.

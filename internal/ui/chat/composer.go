@@ -69,7 +69,6 @@ type composer struct {
 	attachment *gtk.Box
 	thumb      *gtk.Picture
 	imageBtn   *gtk.Button
-	formatBtn  *gtk.MenuButton
 }
 
 func newComposer() *composer {
@@ -132,20 +131,8 @@ func newComposer() *composer {
 
 	c.boldBtn = c.formatToggle("format-text-bold-symbolic", tr("Bold (Ctrl+B)"), c.boldTag, func(on bool) { c.typing.bold = on })
 	c.italicBtn = c.formatToggle("format-text-italic-symbolic", tr("Italic (Ctrl+I)"), c.italicTag, func(on bool) { c.typing.italic = on })
-	formatBox := gtk.NewBox(gtk.OrientationHorizontal, 0)
-	formatBox.AddCSSClass("linked")
-	formatBox.Append(c.boldBtn)
-	formatBox.Append(c.italicBtn)
-	formatPop := gtk.NewPopover()
-	formatPop.SetChild(formatBox)
-	formatBtn := gtk.NewMenuButton()
-	formatBtn.SetIconName("format-text-rich-symbolic")
-	formatBtn.SetAlwaysShowArrow(true)
-	formatBtn.SetPopover(formatPop)
-	formatBtn.SetDirection(gtk.ArrowUp)
-	formatBtn.AddCSSClass("flat")
-	formatBtn.SetTooltipText(tr("Formatting"))
-	c.formatBtn = formatBtn
+	c.boldBtn.AddCSSClass("flat")
+	c.italicBtn.AddCSSClass("flat")
 
 	c.imageBtn = gtk.NewButtonFromIconName("insert-image-symbolic")
 	c.imageBtn.AddCSSClass("flat")
@@ -189,7 +176,8 @@ func newComposer() *composer {
 	spacer.SetHExpand(true)
 	c.toolbar = gtk.NewBox(gtk.OrientationHorizontal, 6)
 	c.toolbar.AddCSSClass("composer-toolbar")
-	c.toolbar.Append(formatBtn)
+	c.toolbar.Append(c.boldBtn)
+	c.toolbar.Append(c.italicBtn)
 	c.toolbar.Append(c.imageBtn)
 	c.toolbar.Append(spacer)
 	c.toolbar.Append(c.counter)
@@ -316,7 +304,8 @@ func (c *composer) SetImageLimit(n int) {
 
 // SetHTMLAllowed hides formatting and images on servers without HTML.
 func (c *composer) SetHTMLAllowed(on bool) {
-	c.formatBtn.SetVisible(on)
+	c.boldBtn.SetVisible(on)
+	c.italicBtn.SetVisible(on)
 	c.imageBtn.SetVisible(on && c.imageLimit > 0)
 }
 
