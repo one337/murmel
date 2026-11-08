@@ -2,6 +2,7 @@ package bus
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"sort"
 
@@ -101,6 +102,9 @@ func (g *gumbleBridge) OnUserChange(e *gumble.UserChangeEvent) {
 		g.bus.Emit(UserAdded{User: copyUser(e.User)})
 	default:
 		g.bus.Emit(UserUpdated{User: copyUser(e.User), Changed: userChanges(e.Type)})
+		if e.Type.Has(gumble.UserChangeStats) && e.User != nil && e.User.Stats != nil {
+			g.bus.Emit(statsEvent(e.User))
+		}
 	}
 }
 
@@ -401,6 +405,7 @@ func copyUser(u *gumble.User) UserInfo {
 		SelfDeafened:    u.SelfDeafened,
 		PrioritySpeaker: u.PrioritySpeaker,
 		Recording:       u.Recording,
+		HasCertificate:  u.Hash != "",
 	}
 	if u.Channel != nil {
 		info.Channel = u.Channel.ID
@@ -529,4 +534,38 @@ func copyACLUsers(m map[uint32]*gumble.ACLUser) []ACLUserInfo {
 		out = append(out, ACLUserInfo{UserID: u.UserID, Name: u.Name})
 	}
 	return out
+}
+
+func statsEvent(u *gumble.User) UserStatsFetched {
+	st := u.Stats
+	ev := UserStatsFetched{
+		Session:           u.Session,
+		Release:           st.Version.Release,
+		OS:                st.Version.OS,
+		OSVersion:         st.Version.OSVersion,
+		Connected:         st.Connected,
+		Idle:              st.Idle,
+		Bandwidth:         st.Bandwidth,
+		Opus:              st.Opus,
+		StrongCertificate: st.StrongCertificate,
+		TCPPackets:        st.TCPPackets,
+		UDPPackets:        st.UDPPackets,
+		TCPPingAvg:        st.TCPPingAverage,
+		TCPPingVar:        st.TCPPingVariance,
+		UDPPingAvg:        st.UDPPingAverage,
+		UDPPingVar:        st.UDPPingVariance,
+		FromClient:        PacketStats(st.FromClient),
+		FromServer:        PacketStats(st.FromServer),
+	}
+	if st.Version.Version != 0 {
+		major, minor, patch := st.Version.SemanticVersion()
+		ev.Version = fmt.Sprintf("%d.%d.%d", major, minor, patch)
+	}
+	if st.IP != nil {
+		ev.IP = st.IP.String()
+	}
+	if len(st.Certificates) > 0 {
+		ev.CertificateSubject = st.Certificates[0].Subject.CommonName
+	}
+	return ev
 }

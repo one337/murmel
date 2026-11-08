@@ -84,9 +84,12 @@ func userMenuPerms(m *treeModel, session uint32) userMenuState {
 		return userMenuState{}
 	}
 	if session == m.self {
+		// Registering binds the account to the client certificate: not
+		// possible without one, nor for the (already registered) SuperUser.
 		return userMenuState{
-			register: u.UserID == 0 && m.allowed(0, gumble.PermissionRegisterSelf),
-			stats:    true,
+			register: u.UserID == 0 && u.HasCertificate && !m.isSuperUser() &&
+				m.allowed(0, gumble.PermissionRegisterSelf),
+			stats: true,
 		}
 	}
 	inMyChannel := false
@@ -102,7 +105,7 @@ func userMenuPerms(m *treeModel, session uint32) userMenuState {
 		priority: muteDeafen,
 		kick:     m.allowed(0, gumble.PermissionKick),
 		ban:      m.allowed(0, gumble.PermissionBan),
-		register: u.UserID == 0 && m.allowed(0, gumble.PermissionRegister),
+		register: u.UserID == 0 && u.HasCertificate && m.allowed(0, gumble.PermissionRegister),
 		stats:    true,
 	}
 }

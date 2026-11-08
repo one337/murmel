@@ -8,16 +8,18 @@ row.current-channel {
 row.current-channel:selected {
   background-color: alpha(@accent_bg_color, 0.28);
 }
-row.current-channel label {
+/* Only the row's own name and marker: context menus are popovers inside
+   the row and must not inherit this styling. */
+row.current-channel label.channel-name {
   font-weight: bold;
   color: @accent_color;
 }
-row.current-channel image {
+row.current-channel image.here-icon {
   color: @accent_color;
 }
 
 /* The local user's own row. */
-row.self-user label {
+row.self-user label.user-name {
   font-weight: bold;
 }
 

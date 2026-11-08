@@ -53,6 +53,7 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	r.chevron.ConnectClicked(toggle)
 
 	r.name = gtk.NewLabel(n.info.Name)
+	r.name.AddCSSClass("channel-name")
 	r.name.SetXAlign(0.0)
 	r.name.SetHExpand(true)
 	r.name.SetEllipsize(pango.EllipsizeEnd)
@@ -62,6 +63,7 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 
 	// "You are here" marker for the channel the local user is in.
 	r.here = gtk.NewImageFromIconName(iconCurrentChannel)
+	r.here.AddCSSClass("here-icon")
 	r.here.SetTooltipText(tr("You are in this channel"))
 
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
@@ -95,6 +97,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64)) *userRowW
 
 	r.avatar = adw.NewAvatar(avatarSizePx, u.Name, true)
 	r.name = gtk.NewLabel(u.Name)
+	r.name.AddCSSClass("user-name")
 	r.name.SetXAlign(0.0)
 	r.name.SetHExpand(true)
 	r.name.SetEllipsize(pango.EllipsizeEnd)

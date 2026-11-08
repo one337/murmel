@@ -180,6 +180,9 @@ type UserInfo struct {
 	SelfDeafened    bool
 	PrioritySpeaker bool
 	Recording       bool
+	// HasCertificate reports whether the user connected with a client
+	// certificate (the server announced its hash); registering needs one.
+	HasCertificate bool
 }
 
 // UserAdded is emitted when a user connected (gumble UserChangeConnected).
@@ -445,3 +448,31 @@ func (ChatTargetChanged) isBusEvent()   {}
 func (BanListFetched) isBusEvent()      {}
 func (UserListFetched) isBusEvent()     {}
 func (ACLFetched) isBusEvent()          {}
+
+// UserStatsFetched carries a user's connection statistics, the server's
+// reply to UserStatsRequested. Fields the server did not send (it limits
+// details for non-admins) are zero.
+type UserStatsFetched struct {
+	Session uint32
+
+	Version, Release, OS, OSVersion string
+	Connected                       time.Time
+	Idle                            time.Duration
+	Bandwidth                       int // bit/s, 0 if unknown
+	IP                              string
+	Opus                            bool
+	CertificateSubject              string
+	StrongCertificate               bool
+
+	TCPPackets, UDPPackets uint32
+	TCPPingAvg, TCPPingVar float32 // ms
+	UDPPingAvg, UDPPingVar float32 // ms
+	FromClient, FromServer PacketStats
+}
+
+// PacketStats counts the encrypted UDP voice packets in one direction.
+type PacketStats struct {
+	Good, Late, Lost, Resync uint32
+}
+
+func (UserStatsFetched) isBusEvent() {}

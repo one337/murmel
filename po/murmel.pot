@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
-"POT-Creation-Date: 2026-11-08 15:12+0100\n"
+"POT-Creation-Date: 2026-11-08 15:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -200,8 +200,118 @@ msgstr ""
 msgid "Kick"
 msgstr ""
 
-#: internal/ui/admin/reply.go:40
+#: internal/ui/admin/reply.go:40 internal/ui/admin/stats.go:66
 msgid "You do not have permission to view this on this server."
+msgstr ""
+
+#: internal/ui/admin/stats.go:41 internal/ui/admin/stats.go:47
+msgid "Statistics"
+msgstr ""
+
+#: internal/ui/admin/stats.go:109
+msgid "Client"
+msgstr ""
+
+#: internal/ui/admin/stats.go:110
+msgid "Version"
+msgstr ""
+
+#: internal/ui/admin/stats.go:111
+msgid "Operating system"
+msgstr ""
+
+#: internal/ui/admin/stats.go:112
+msgid "Opus codec"
+msgstr ""
+
+#: internal/ui/admin/stats.go:113
+msgid "Certificate"
+msgstr ""
+
+#: internal/ui/admin/stats.go:114 internal/ui/prefs/window.go:244
+msgid "Connection"
+msgstr ""
+
+#: internal/ui/admin/stats.go:115
+msgid "Online for"
+msgstr ""
+
+#: internal/ui/admin/stats.go:116
+msgid "Idle for"
+msgstr ""
+
+#: internal/ui/admin/stats.go:117
+msgid "Bandwidth"
+msgstr ""
+
+#: internal/ui/admin/stats.go:118 internal/ui/connection/controller.go:142
+msgid "Address"
+msgstr ""
+
+#: internal/ui/admin/stats.go:119
+msgid "TCP ping"
+msgstr ""
+
+#: internal/ui/admin/stats.go:120
+msgid "UDP ping"
+msgstr ""
+
+#: internal/ui/admin/stats.go:121
+msgid "Voice Packets (UDP)"
+msgstr ""
+
+#: internal/ui/admin/stats.go:122
+msgid "Sent"
+msgstr ""
+
+#: internal/ui/admin/stats.go:123
+msgid "Received"
+msgstr ""
+
+#: internal/ui/admin/stats.go:156
+msgid "(trusted)"
+msgstr ""
+
+#: internal/ui/admin/stats.go:158
+msgid "(self-signed)"
+msgstr ""
+
+#: internal/ui/admin/stats.go:170
+#, go-format
+msgid "%.1f kb/s"
+msgstr ""
+
+#: internal/ui/admin/stats.go:183
+msgid "Yes"
+msgstr ""
+
+#: internal/ui/admin/stats.go:185
+msgid "No"
+msgstr ""
+
+#: internal/ui/admin/stats.go:193
+#, go-format
+msgid "%d h %d min"
+msgstr ""
+
+#: internal/ui/admin/stats.go:195
+#, go-format
+msgid "%d min %d s"
+msgstr ""
+
+#: internal/ui/admin/stats.go:197
+#, go-format
+msgid "%d s"
+msgstr ""
+
+#: internal/ui/admin/stats.go:205
+#, go-format
+msgid "%.0f ms ± %.0f ms (%d pings)"
+msgstr ""
+
+#: internal/ui/admin/stats.go:212
+#, go-format
+msgid "%d good · %d late · %d lost"
 msgstr ""
 
 #: internal/ui/admin/userlist.go:45 internal/ui/admin/userlist.go:60
@@ -226,75 +336,75 @@ msgstr ""
 msgid "Expand or collapse"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:65 internal/ui/channeltree/rows.go:83
+#: internal/ui/channeltree/rows.go:67 internal/ui/channeltree/rows.go:85
 msgid "You are in this channel"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:78
+#: internal/ui/channeltree/rows.go:80
 msgid "Double-click to join"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:245
+#: internal/ui/channeltree/rows.go:248
 msgid "Join"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:246
+#: internal/ui/channeltree/rows.go:249
 msgid "Create sub-channel…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:247
+#: internal/ui/channeltree/rows.go:250
 msgid "Edit…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:248
+#: internal/ui/channeltree/rows.go:251
 msgid "Remove…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:249
+#: internal/ui/channeltree/rows.go:252
 msgid "Edit ACL…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:311
+#: internal/ui/channeltree/rows.go:314
 msgid "Mute on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:313
+#: internal/ui/channeltree/rows.go:316
 msgid "Unmute on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:315
+#: internal/ui/channeltree/rows.go:318
 msgid "Deafen on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:317
+#: internal/ui/channeltree/rows.go:320
 msgid "Undeafen on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:321
+#: internal/ui/channeltree/rows.go:324
 msgid "Send message…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:322
+#: internal/ui/channeltree/rows.go:325
 msgid "Move to my channel"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:325
+#: internal/ui/channeltree/rows.go:328
 msgid "Priority speaker"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:326
+#: internal/ui/channeltree/rows.go:329
 msgid "Kick…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:327
+#: internal/ui/channeltree/rows.go:330
 msgid "Ban…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:328
+#: internal/ui/channeltree/rows.go:331
 msgid "Register"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:329
+#: internal/ui/channeltree/rows.go:332
 msgid "View stats"
 msgstr ""
 
@@ -375,10 +485,6 @@ msgstr ""
 
 #: internal/ui/connection/controller.go:137
 msgid "Connect to Server"
-msgstr ""
-
-#: internal/ui/connection/controller.go:142
-msgid "Address"
 msgstr ""
 
 #: internal/ui/connection/controller.go:146
@@ -897,10 +1003,6 @@ msgstr ""
 
 #: internal/ui/prefs/window.go:239
 msgid "Behavior"
-msgstr ""
-
-#: internal/ui/prefs/window.go:244
-msgid "Connection"
 msgstr ""
 
 #: internal/ui/prefs/window.go:247

@@ -37,6 +37,7 @@ func forwardBus(src, dst *bus.Bus, onDisconnected func()) (stop func()) {
 	sub(bus.Subscribe(src, func(ev bus.BanListFetched) { dst.Emit(ev) }))
 	sub(bus.Subscribe(src, func(ev bus.UserListFetched) { dst.Emit(ev) }))
 	sub(bus.Subscribe(src, func(ev bus.ACLFetched) { dst.Emit(ev) }))
+	sub(bus.Subscribe(src, func(ev bus.UserStatsFetched) { dst.Emit(ev) }))
 
 	return func() {
 		for _, s := range stops {

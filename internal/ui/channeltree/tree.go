@@ -225,7 +225,7 @@ func (t *Tree) showUserMenu(session uint32, x, y float64) {
 		Kick:     func() { admin.ShowKick(t.parent, t.b, session, userName) },
 		Ban:      func() { admin.ShowBan(t.parent, t.b, session, userName) },
 		Register: func() { t.b.Emit(bus.UserRegisterRequested{Session: session}) },
-		Stats:    func() { t.b.Emit(bus.UserStatsRequested{Session: session}) },
+		Stats:    func() { admin.ShowUserStats(t.parent, t.b, session, userName) },
 	}
 	menu, refresh := buildUserMenu(t.model, session, a)
 	t.openMenu(menu, refresh, permissionChannels(t.model, 0, session))

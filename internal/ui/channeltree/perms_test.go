@@ -58,8 +58,19 @@ func TestRegularUserPermissions(t *testing.T) {
 	if u.kick || u.ban || u.mute || u.move || u.register {
 		t.Fatalf("regular user gets admin actions: %+v", u)
 	}
+	if userMenuPerms(m, 1).register {
+		t.Fatal("registering without a certificate must be disabled")
+	}
+	self := m.users[1]
+	self.HasCertificate = true
+	m.users[1] = self
 	if !userMenuPerms(m, 1).register {
-		t.Fatal("an unregistered user with RegisterSelf must be able to register")
+		t.Fatal("an unregistered user with a certificate and RegisterSelf must be able to register")
+	}
+	self.UserID = 42
+	m.users[1] = self
+	if userMenuPerms(m, 1).register {
+		t.Fatal("an already registered user must not register again")
 	}
 }
 
@@ -76,8 +87,17 @@ func TestAdminPermissions(t *testing.T) {
 		t.Fatal("the root channel must never be removable")
 	}
 	u := userMenuPerms(m, 7)
-	if !u.kick || !u.ban || !u.mute || !u.move || !u.register || !u.priority {
+	if !u.kick || !u.ban || !u.mute || !u.move || !u.priority {
 		t.Fatalf("admin user menu = %+v", u)
+	}
+	if u.register {
+		t.Fatal("registering a user without a certificate must be disabled")
+	}
+	peer := m.users[7]
+	peer.HasCertificate = true
+	m.users[7] = peer
+	if !userMenuPerms(m, 7).register {
+		t.Fatal("an admin must be able to register a user with a certificate")
 	}
 }
 
@@ -105,6 +125,12 @@ func TestSuperUserHasAllPermissions(t *testing.T) {
 	}
 	if u := userMenuPerms(m, 7); !u.mute || !u.move || !u.kick {
 		t.Fatalf("SuperUser user menu = %+v", u)
+	}
+	su := m.users[1]
+	su.HasCertificate = true
+	m.users[1] = su
+	if userMenuPerms(m, 1).register {
+		t.Fatal("the SuperUser is already registered")
 	}
 
 	// Someone merely named like that without root write is not trusted.
