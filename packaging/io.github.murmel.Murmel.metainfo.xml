@@ -56,6 +56,20 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.2" date="2026-11-08">
+      <description>
+        <ul>
+          <li>mumble:// links open the connect dialog with the link's server and user filled in, and join the linked channel</li>
+          <li>Disconnect from the main menu; quitting while connected asks for confirmation</li>
+          <li>Ban list and registered users work and only appear while connected</li>
+          <li>Context menu entries follow your permissions on the server</li>
+          <li>A password the server asks for (e.g. SuperUser) is requested and can be remembered in the keyring</li>
+          <li>User statistics: version, connection, ping and packet counters</li>
+          <li>Register is only offered when it is possible (requires a certificate)</li>
+          <li>Context menus look the same in every row</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.1" date="2026-11-08">
       <description>
         <ul>
