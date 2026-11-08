@@ -51,7 +51,7 @@ func main() {
 		win.Chat().Set(chatView.Root())
 
 		app.OnPreferences(func() {
-			pw := prefs.New(st, certsManager, app.SoundPlayer())
+			pw := prefs.New(st, certsManager, app.SoundPlayer(), b)
 			pw.SetTransientFor(&win.ApplicationWindow.ApplicationWindow.Window)
 			pw.Present()
 		})

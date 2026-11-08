@@ -16,8 +16,10 @@ import (
 	"io.github/murmel/internal/audio/effects"
 	"io.github/murmel/internal/audio/engine"
 	"io.github/murmel/internal/audio/jitter"
+	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/certs"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/levelmeter"
 )
 
 // Window is the preferences dialog. It is not reused: create a new one each
@@ -27,13 +29,13 @@ type Window struct {
 }
 
 // New constructs the preferences window. It does not present itself.
-func New(st settings.Settings, m *certs.Manager, player *effects.Player) *Window {
+func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus) *Window {
 	pw := adw.NewPreferencesWindow()
 	pw.SetTitle(tr("Preferences"))
 	pw.SetSearchEnabled(false)
 
 	pw.Add(identityPage(st, m))
-	pw.Add(audioInputPage(st))
+	pw.Add(audioInputPage(st, b))
 	pw.Add(audioOutputPage(st))
 	pw.Add(behaviorPage(st, player, func() *gtk.Window { return &pw.Window.Window }))
 
@@ -111,7 +113,7 @@ func identityPage(st settings.Settings, m *certs.Manager) *adw.PreferencesPage {
 
 // --- Audio Input page ------------------------------------------------------
 
-func audioInputPage(st settings.Settings) *adw.PreferencesPage {
+func audioInputPage(st settings.Settings, b *bus.Bus) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("Audio Input"))
 	page.SetName("audio-input")
@@ -125,14 +127,20 @@ func audioInputPage(st settings.Settings) *adw.PreferencesPage {
 	vadGroup := adw.NewPreferencesGroup()
 	vadGroup.SetTitle(tr("Voice Detection"))
 
-	threshold := adw.NewSpinRow(gtk.NewAdjustment(
-		st.VADThreshold()*100, 0, 100, 1, 10, 0), 1, 0)
-	threshold.SetTitle(tr("Sensitivity"))
-	threshold.SetSubtitle(tr("Higher = less sensitive (0–100)"))
-	coreglib.InternObject(threshold).NotifyProperty("value", func() {
-		st.SetVADThreshold(threshold.Value() / 100)
-	})
-	vadGroup.Add(threshold)
+	vadGroup.SetDescription(tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Without a connection the meter tests the selected microphone."))
+	meterBox := gtk.NewBox(gtk.OrientationVertical, 6)
+	meterBox.SetMarginTop(12)
+	meterBox.SetMarginBottom(12)
+	meterBox.SetMarginStart(12)
+	meterBox.SetMarginEnd(12)
+	title := gtk.NewLabel(tr("Activation Threshold"))
+	title.SetXAlign(0)
+	meterBox.Append(title)
+	meterBox.Append(levelmeter.New(st, b, nil).Root())
+	meterRow := gtk.NewListBoxRow()
+	meterRow.SetActivatable(false)
+	meterRow.SetChild(meterBox)
+	vadGroup.Add(meterRow)
 
 	// Audio per packet: the official client's "Audio per packet" setting.
 	packetSizes := []int{1, 2, 4, 6} // 10 ms frames

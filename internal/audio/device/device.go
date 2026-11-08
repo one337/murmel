@@ -42,6 +42,8 @@ type Config struct {
 	// PlaybackOnly opens no capture stream (event sounds): Read then
 	// blocks until Close, and the desktop shows no microphone in use.
 	PlaybackOnly bool
+	// CaptureOnly opens no playback stream (microphone level test).
+	CaptureOnly bool
 }
 
 // Device pairs a capture and a playback malgo stream (see package doc).
@@ -115,15 +117,17 @@ func Open(cfg Config) (*Device, error) {
 		}
 		d.capDev = capDev
 	}
-	playDev, err := malgo.InitDevice(ctx.Context, streams.playback, malgo.DeviceCallbacks{
-		Data: func(output, _ []byte, frames uint32) { d.data(output, nil, frames) },
-		Stop: d.stopped,
-	})
-	if err != nil {
-		d.release()
-		return nil, fmt.Errorf("device: open playback stream (48 kHz mono S16): %w", err)
+	if !cfg.CaptureOnly {
+		playDev, err := malgo.InitDevice(ctx.Context, streams.playback, malgo.DeviceCallbacks{
+			Data: func(output, _ []byte, frames uint32) { d.data(output, nil, frames) },
+			Stop: d.stopped,
+		})
+		if err != nil {
+			d.release()
+			return nil, fmt.Errorf("device: open playback stream (48 kHz mono S16): %w", err)
+		}
+		d.playDev = playDev
 	}
-	d.playDev = playDev
 	// malgo Start() pulls the first playback period synchronously, so the
 	// rings must exist before Start — they do; d was built complete.
 	if d.capDev != nil {
@@ -132,9 +136,11 @@ func Open(cfg Config) (*Device, error) {
 			return nil, fmt.Errorf("device: start capture stream: %w", err)
 		}
 	}
-	if err := playDev.Start(); err != nil {
-		d.release()
-		return nil, fmt.Errorf("device: start playback stream: %w", err)
+	if d.playDev != nil {
+		if err := d.playDev.Start(); err != nil {
+			d.release()
+			return nil, fmt.Errorf("device: start playback stream: %w", err)
+		}
 	}
 	return d, nil
 }

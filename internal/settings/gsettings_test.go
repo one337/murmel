@@ -70,16 +70,16 @@ func TestGSettingsRoundtrip(t *testing.T) {
 	}
 
 	// QA scenario steps, verbatim values.
-	if g.VADThreshold() != 0.5 {
-		t.Errorf("vad-threshold default = %v, want 0.5", g.VADThreshold())
+	if g.VADThreshold() != 0.35 {
+		t.Errorf("vad-threshold default = %v, want 0.35", g.VADThreshold())
 	}
 	g.SetVADThreshold(0.7)
 	if g.VADThreshold() != 0.7 {
 		t.Errorf("vad-threshold after set = %v, want 0.7", g.VADThreshold())
 	}
 	g.Reset("vad-threshold")
-	if g.VADThreshold() != 0.5 {
-		t.Errorf("vad-threshold after reset = %v, want 0.5", g.VADThreshold())
+	if g.VADThreshold() != 0.35 {
+		t.Errorf("vad-threshold after reset = %v, want 0.35", g.VADThreshold())
 	}
 }
 

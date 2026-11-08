@@ -51,7 +51,7 @@ var keySpecs = map[string]keySpec{
 		set: func(s Settings, v any) { s.SetAudioOutputDevice(v.(string)) },
 	},
 	"vad-threshold": {
-		key: "vad-threshold", gtype: "d", def: 0.5, sample: 0.7,
+		key: "vad-threshold", gtype: "d", def: 0.35, sample: 0.7,
 		get: func(s Settings) any { return s.VADThreshold() },
 		set: func(s Settings, v any) { s.SetVADThreshold(v.(float64)) },
 	},

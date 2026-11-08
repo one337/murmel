@@ -96,7 +96,7 @@ func newWindow(app *App) *Window {
 	w.SetIconName(settings.SchemaID)
 	w.SetSizeRequest(minWindowWidth, minWindowHeight)
 
-	w.status = newStatusBar(app.settings)
+	w.status = newStatusBar(app.settings, app.bus)
 	w.sidebar = newSlot()
 	w.chat = newSlot()
 

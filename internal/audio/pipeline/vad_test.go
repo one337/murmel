@@ -333,3 +333,46 @@ func TestVADContinuousSpeechStaysOpen(t *testing.T) {
 		t.Fatalf("Continue decisions = %d, want ≈195", continues)
 	}
 }
+
+func TestVADAbsoluteThreshold(t *testing.T) {
+	v := NewVAD(VADConfig{})
+	v.SetOpenThresholdDB(-30)
+	quiet := make([]int16, FrameSize) // about -40 dBFS
+	loud := make([]int16, FrameSize)  // about -20 dBFS
+	for i := range quiet {
+		sign := int16(1)
+		if i%2 == 1 {
+			sign = -1
+		}
+		quiet[i] = sign * 328
+		loud[i] = sign * 3277
+	}
+	for i := 0; i < 50; i++ {
+		if d := v.Sample(quiet); d != Silent {
+			t.Fatalf("frame %d: quiet input below the absolute threshold gave %v", i, d)
+		}
+	}
+	if open, closeDB := v.Thresholds(); open != -30 || closeDB != -36 {
+		t.Fatalf("thresholds = %.1f/%.1f, want -30/-36", open, closeDB)
+	}
+	started := false
+	for i := 0; i < 10; i++ {
+		if v.Sample(loud) == Start {
+			started = true
+		}
+	}
+	if !started {
+		t.Fatal("loud input above the absolute threshold did not start an episode")
+	}
+}
+
+func TestThresholdMapping(t *testing.T) {
+	for _, tt := range []struct{ x, db float64 }{{0, -60}, {0.5, -30}, {1, 0}, {-1, -60}, {2, 0}} {
+		if got := ThresholdDB(tt.x); got != tt.db {
+			t.Errorf("ThresholdDB(%v) = %v, want %v", tt.x, got, tt.db)
+		}
+	}
+	if got := LevelFraction(-45); got != 0.25 {
+		t.Errorf("LevelFraction(-45) = %v, want 0.25", got)
+	}
+}

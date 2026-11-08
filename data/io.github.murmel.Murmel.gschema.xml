@@ -28,9 +28,9 @@
     </key>
     <key name="vad-threshold" type="d">
       <range min="0.0" max="1.0"/>
-      <default>0.5</default>
-      <summary>Voice activity detection threshold</summary>
-      <description>RMS energy threshold (0.0–1.0, normalized) above which the voice activity detector considers the microphone active. Lower values are more sensitive.</description>
+      <default>0.35</default>
+      <summary>Voice activation threshold</summary>
+      <description>Microphone level above which voice is transmitted, as a position on the level meter: 0.0 is -60 dBFS, 1.0 is 0 dBFS (default 0.35 ≈ -39 dBFS). Lower values are more sensitive.</description>
     </key>
     <key name="jitter-target-frames" type="i">
       <range min="2" max="8"/>

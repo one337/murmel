@@ -137,6 +137,10 @@ type VAD struct {
 	hangover   int // frames below close threshold (speaking state)
 	frameIdx   int
 	userOffset float64 // dB offset from SetThreshold
+	// absolute, when set, replaces the adaptive open threshold with
+	// absOpenDB (SetOpenThresholdDB).
+	absolute  bool
+	absOpenDB float64
 
 	lastLevel float64 // dBFS, for GetLevel
 	floorDB   float64
@@ -174,8 +178,12 @@ func (v *VAD) Sample(frame []int16) Decision {
 		v.ringFilled++
 	}
 	v.floorDB = v.noiseFloor()
-	margin := v.cfg.OpenMargin + v.userOffset
-	v.openDB = math.Max(v.floorDB+margin, v.cfg.AbsFloor)
+	if v.absolute {
+		v.openDB = v.absOpenDB
+	} else {
+		margin := v.cfg.OpenMargin + v.userOffset
+		v.openDB = math.Max(v.floorDB+margin, v.cfg.AbsFloor)
+	}
 	v.closeDB = v.openDB - v.cfg.Hysteresis
 
 	v.frameIdx++
@@ -276,6 +284,15 @@ func (v *VAD) PreRollFrames() int { return v.preN }
 // SetThreshold applies user calibration in [0,1]: 0.5 is neutral, each
 // extreme shifts the open threshold by ±ThresholdRange/2 dB. Values are
 // clamped.
+// SetOpenThresholdDB switches the VAD to an absolute threshold: frames
+// at or above db (dBFS RMS) open an episode, regardless of the noise
+// floor. This is what the user's threshold slider sets — the line drawn
+// on the level meter is exactly where transmission starts.
+func (v *VAD) SetOpenThresholdDB(db float64) {
+	v.absolute = true
+	v.absOpenDB = db
+}
+
 func (v *VAD) SetThreshold(x float64) {
 	x = math.Min(1, math.Max(0, x))
 	v.userOffset = (x - 0.5) * v.cfg.ThresholdRange

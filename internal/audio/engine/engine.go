@@ -30,9 +30,6 @@ import (
 // (30 ms), about 33 per second — smooth for the meter, light on the bus.
 const levelEveryFrames = 3
 
-// clipSample is the absolute sample value treated as clipping (≈ −0.2 dBFS).
-const clipSample = 32400
-
 // IO is the audio endpoint an Engine captures from and plays to.
 // *device.Device implements it; tests substitute synthetic sources.
 type IO interface {
@@ -51,8 +48,9 @@ type Options struct {
 	// system default.
 	CaptureDevice  string
 	PlaybackDevice string
-	// Threshold is the VAD calibration in [0,1] (0.5 neutral, higher is
-	// less sensitive), see pipeline.VAD.SetThreshold.
+	// Threshold is the activation threshold as a position on the level
+	// meter in [0,1], see pipeline.ThresholdDB: speech at or above it is
+	// transmitted.
 	Threshold float64
 	// JitterFrames is the receive jitter buffer in 10 ms frames (0 keeps
 	// the default of 3).
@@ -240,8 +238,9 @@ func (e *Engine) escalatePlayback() {
 		"device", e.outputName(), "buffer", period)
 }
 
-// SetThreshold updates the VAD calibration in [0,1]; the capture loop picks
-// it up with the next frame. Safe from any goroutine.
+// SetThreshold updates the activation threshold (meter position in [0,1],
+// see Options.Threshold); the capture loop picks it up with the next
+// frame. Safe from any goroutine.
 func (e *Engine) SetThreshold(x float64) {
 	e.threshold.Store(math.Float64bits(x))
 }
@@ -349,7 +348,7 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 			break
 		}
 		if t := math.Float64frombits(e.threshold.Load()); t != appliedThreshold {
-			vad.SetThreshold(t)
+			vad.SetOpenThresholdDB(pipeline.ThresholdDB(t))
 			appliedThreshold = t
 		}
 
@@ -385,7 +384,7 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 		if l := vad.GetLevel(); l > maxLevel {
 			maxLevel = l
 		}
-		if !clipping && peakAbs(frame) >= clipSample {
+		if !clipping && pipeline.Clipped(frame) {
 			clipping = true
 		}
 		frames++
@@ -428,21 +427,6 @@ func sendPacket(out chan<- gumble.AudioBuffer, packet gumble.AudioBuffer) {
 	case <-time.After(pipeline.FrameDuration):
 		slog.Debug("voice: outgoing packet dropped (encoder busy)")
 	}
-}
-
-// peakAbs returns the largest absolute sample value in frame.
-func peakAbs(frame []int16) int {
-	peak := 0
-	for _, s := range frame {
-		v := int(s)
-		if v < 0 {
-			v = -v
-		}
-		if v > peak {
-			peak = v
-		}
-	}
-	return peak
 }
 
 // errLoop watches the device error channel and logs unexpected stops.

@@ -11,6 +11,7 @@ import (
 	"io.github/murmel/internal/audio/device"
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/levelmeter"
 )
 
 const (
@@ -41,10 +42,11 @@ type statusBar struct {
 	dotHolder  *gtk.Box
 
 	settings settings.Settings
+	bus      *bus.Bus
 }
 
-func newStatusBar(st settings.Settings) *statusBar {
-	s := &statusBar{settings: st}
+func newStatusBar(st settings.Settings, b *bus.Bus) *statusBar {
+	s := &statusBar{settings: st, bus: b}
 
 	s.selfMute = gtk.NewToggleButton()
 	s.selfMute.SetIconName(iconMicOn)
@@ -163,18 +165,8 @@ func (s *statusBar) fillInputPopover(box *gtk.Box) {
 
 func (s *statusBar) fillThresholdPopover(box *gtk.Box) {
 	box.Append(heading(tr("Activation Threshold")))
-	scale := gtk.NewScaleWithRange(gtk.OrientationHorizontal, 0, 100, 1)
-	scale.SetValue(s.settings.VADThreshold() * 100)
-	scale.SetDrawValue(false)
-	scale.AddMark(0, gtk.PosBottom, tr("Sensitive"))
-	scale.AddMark(50, gtk.PosBottom, "")
-	scale.AddMark(100, gtk.PosBottom, tr("Strict"))
-	scale.ConnectValueChanged(func() {
-		s.settings.SetVADThreshold(scale.Value() / 100)
-	})
-	box.Append(scale)
-
-	hint := gtk.NewLabel(tr("Speech rising above the shaded band in the meter is transmitted (green). Red means the input is too loud."))
+	box.Append(levelmeter.New(s.settings, s.bus, nil).Root())
+	hint := gtk.NewLabel(tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Red means the input is too loud."))
 	hint.SetWrap(true)
 	hint.SetMaxWidthChars(36)
 	hint.SetXAlign(0)

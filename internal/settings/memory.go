@@ -15,7 +15,7 @@ func memoryDefaults() map[string]any {
 		"server-list":             []ServerEntry{},
 		"audio-input-device":      "",
 		"audio-output-device":     "",
-		"vad-threshold":           0.5,
+		"vad-threshold":           0.35,
 		"jitter-target-frames":    3,
 		"audio-packet-frames":     2,
 		"audio-quality":           40,
