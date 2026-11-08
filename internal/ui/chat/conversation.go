@@ -83,18 +83,31 @@ func newConversation(tag, title, emptyText string) *conversation {
 
 	toolbar := adw.NewToolbarView()
 	toolbar.AddTopBar(c.header)
-	toolbar.SetContent(overlay)
-	if tag == channelTag {
-		// The description sits right under the header, in the header's
-		// grey; while it shows, the header loses its separator line.
+	if tag != channelTag {
+		toolbar.SetContent(overlay)
+	} else {
+		// The description sits right under the header in the header's
+		// colour (no separator line). A banner image instead starts at the
+		// window's top edge: the content runs under the transparent header.
 		c.info = newChannelInfo()
+		c.info.headerHeight = func() int { return c.header.Height() }
 		toolbar.AddTopBar(c.info.root)
 		overlay.AddOverlay(c.info.bottomFade)
-		c.info.onShown = func(shown bool) {
-			if shown {
-				toolbar.SetTopBarStyle(adw.ToolbarFlat)
+		content := gtk.NewBox(gtk.OrientationVertical, 0)
+		content.Append(c.info.heroRoot)
+		content.Append(overlay)
+		toolbar.SetContent(content)
+		c.info.onMode = func(m infoMode) {
+			toolbar.SetExtendContentToTopEdge(m == infoHero)
+			if m == infoHero {
+				c.header.AddCSSClass("hero-header")
 			} else {
+				c.header.RemoveCSSClass("hero-header")
+			}
+			if m == infoNone {
 				toolbar.SetTopBarStyle(adw.ToolbarRaisedBorder)
+			} else {
+				toolbar.SetTopBarStyle(adw.ToolbarFlat)
 			}
 		}
 	}

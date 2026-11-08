@@ -176,3 +176,30 @@ button.channel-info-toggle {
   padding: 2px 10px;
   margin: 0 0 4px 0;
 }
+
+/* Banner mode: the channel description's first image starts at the
+   window's top edge behind a transparent header; a dark scrim keeps the
+   white title and window buttons legible on any image. */
+.channel-hero-scrim {
+  min-height: 96px;
+  background-image: linear-gradient(to bottom, alpha(black, 0.55), alpha(black, 0));
+}
+.channel-info.channel-hero-toggle-row {
+  padding-top: 0;
+}
+headerbar.hero-header {
+  background: none;
+  box-shadow: none;
+  color: white;
+}
+headerbar.hero-header .title,
+headerbar.hero-header .subtitle {
+  text-shadow: 0 1px 3px alpha(black, 0.7);
+}
+headerbar.hero-header windowcontrols > button > image,
+headerbar.hero-header button {
+  color: white;
+}
+headerbar.hero-header windowcontrols > button > image {
+  background-color: alpha(black, 0.3);
+}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/murmel/murmel/issues\n"
-"POT-Creation-Date: 2026-11-08 18:55+0100\n"
+"POT-Creation-Date: 2026-11-08 19:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -423,11 +423,11 @@ msgstr ""
 msgid "Not connected"
 msgstr ""
 
-#: internal/ui/chat/channelinfo.go:156
+#: internal/ui/chat/channelinfo.go:290 internal/ui/chat/channelinfo.go:335
 msgid "Show less"
 msgstr ""
 
-#: internal/ui/chat/channelinfo.go:164
+#: internal/ui/chat/channelinfo.go:298 internal/ui/chat/channelinfo.go:339
 msgid "Show more"
 msgstr ""
 
@@ -467,11 +467,11 @@ msgstr ""
 msgid "[image]"
 msgstr ""
 
-#: internal/ui/chat/conversation.go:56
+#: internal/ui/chat/conversation.go:57
 msgid "Jump to latest"
 msgstr ""
 
-#: internal/ui/chat/conversation.go:59
+#: internal/ui/chat/conversation.go:60
 msgid "Scroll to the newest message"
 msgstr ""
 
