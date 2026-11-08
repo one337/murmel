@@ -138,6 +138,10 @@ func newChannelInfo() *channelInfo {
 	i.heroSizer = gtk.NewBox(gtk.OrientationVertical, 0)
 	heroImage := gtk.NewOverlay()
 	heroImage.SetChild(i.heroSizer)
+	// The picture stops short of the bottom, where the fade is opaque:
+	// with fractional scaling its last pixel row would otherwise peek out
+	// below the fade as a thin line.
+	i.heroPic.SetMarginBottom(heroPicInset)
 	heroImage.AddOverlay(i.heroPic)
 	heroImage.AddOverlay(scrim)
 	heroImage.SetOverflow(gtk.OverflowHidden)
@@ -253,6 +257,9 @@ func (i *channelInfo) set(html string) {
 	i.lastWidth = 0
 	i.layout()
 }
+
+// heroPicInset is how far the banner picture ends above its faded bottom.
+const heroPicInset = 8
 
 // stackedHeaderShrink: with the text description as a second top bar,
 // libadwaita collapses the header's spacing, so the text starts this much

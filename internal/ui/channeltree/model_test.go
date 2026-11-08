@@ -101,3 +101,23 @@ func TestUserMoveBetweenRootChildren(t *testing.T) {
 		t.Fatalf("users not moved: A=%v B=%v", m.channels[1].users, m.channels[2].users)
 	}
 }
+
+// TestCollapsedChannelHidesUsers: collapsing a channel hides its users,
+// not only its sub-channels.
+func TestCollapsedChannelHidesUsers(t *testing.T) {
+	m := newTreeModel()
+	m.apply(bus.Connected{
+		Channels: []bus.ChannelInfo{ch(0, 0, "Root", 0), ch(1, 0, "A", 0)},
+		Users:    []bus.UserInfo{{Session: 7, Name: "u", Channel: 1}},
+	})
+	m.channels[1].expanded = false
+	for _, e := range m.walk() {
+		if e.kind == entryUser {
+			t.Fatalf("user %d shown in a collapsed channel: %+v", e.id, m.walk())
+		}
+	}
+	m.channels[1].expanded = true
+	if got := m.walk(); len(got) != 3 || got[2].kind != entryUser {
+		t.Fatalf("expanded walk = %+v", got)
+	}
+}

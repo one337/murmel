@@ -285,8 +285,8 @@ func (m *treeModel) selfChannel() uint32 {
 	return 0
 }
 
-// walk flattens the visible (expanded) tree depth-first: channels in order,
-// then each channel's users, recursing into expanded channels.
+// walk flattens the visible (expanded) tree depth-first: each channel, then
+// (if expanded) its users and its sub-channels.
 func (m *treeModel) walk() []entry {
 	var out []entry
 	var rec func(id uint32, depth int)
@@ -296,11 +296,11 @@ func (m *treeModel) walk() []entry {
 			return
 		}
 		out = append(out, entry{kind: entryChannel, id: id, depth: depth})
+		if !n.expanded {
+			return // a collapsed channel hides its users and sub-channels
+		}
 		for _, s := range n.users {
 			out = append(out, entry{kind: entryUser, id: s, depth: depth + 1})
-		}
-		if !n.expanded {
-			return
 		}
 		for _, c := range n.children {
 			rec(c, depth+1)
