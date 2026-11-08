@@ -19,6 +19,9 @@
 #   downloads/murmel-<version>.flatpak single-file bundles
 #   index.html                         install instructions
 #
+# Release notes default to the feat/fix commit subjects since the last
+# tag; set RELEASE_NOTES (one item per line) to write them by hand.
+#
 # Requires a clean git tree for a release. The signing key lives outside
 # the project (see tools/release.conf).
 
@@ -46,8 +49,14 @@ WEB_URL="${WEB_URL%/}/"
 # xml_escape escapes text for XML element content.
 xml_escape() { sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
 
-# release_notes prints <li> items for user-facing commits since the last tag.
+# release_notes prints <li> items: RELEASE_NOTES if set, otherwise the
+# user-facing commits since the last tag.
 release_notes() {
+	if [ -n "${RELEASE_NOTES:-}" ]; then
+		printf '%s\n' "$RELEASE_NOTES" | sed '/^[[:space:]]*$/d' | xml_escape |
+			sed -e 's/^/          <li>/' -e 's/$/<\/li>/'
+		return
+	fi
 	local range=HEAD
 	if last=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null); then
 		range="$last..HEAD"
