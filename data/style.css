@@ -215,10 +215,19 @@ headerbar.hero-header windowcontrols > button > image {
   background-color: alpha(black, 0.3);
 }
 
-/* No hard lines: the sidebar's grey meets the content directly. */
+/* The column separator: libadwaita draws it as an inset shadow in the
+   sidebar's background, which anything in the sidebar with its own
+   background covers (a broken line). Drawn instead as a border of the
+   content pane, which its children cannot cover: one continuous line from
+   top to bottom, only in the wide layout. */
 navigation-split-view > .sidebar-pane,
 navigation-split-view > .sidebar-pane:dir(ltr),
 navigation-split-view > .sidebar-pane:dir(rtl) {
-  border: none;
   box-shadow: none;
+}
+navigation-split-view.split-wide > .content-pane:dir(ltr) {
+  border-left: 1px solid var(--border-color);
+}
+navigation-split-view.split-wide > .content-pane:dir(rtl) {
+  border-right: 1px solid var(--border-color);
 }

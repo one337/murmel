@@ -179,6 +179,7 @@ func newWindow(app *App) *Window {
 	// While disconnected the content page carries the Connect button, so
 	// that is what a collapsed window shows first.
 	w.split.SetShowContent(true)
+	w.split.AddCSSClass("split-wide")
 	w.toasts = adw.NewToastOverlay()
 	w.toasts.SetChild(w.split)
 	w.SetContent(w.toasts)
@@ -279,6 +280,12 @@ func (w *Window) setCollapsed(collapsed bool) {
 		return
 	}
 	w.split.SetCollapsed(collapsed)
+	// The column separator (style.css) only belongs to the wide layout.
+	if collapsed {
+		w.split.RemoveCSSClass("split-wide")
+	} else {
+		w.split.AddCSSClass("split-wide")
+	}
 	w.chatBtn.SetVisible(collapsed && w.connected)
 	w.narrowMute.SetVisible(collapsed)
 }
