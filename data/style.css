@@ -55,6 +55,10 @@ menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):n
 
 /* Chat composer: one rounded field across the full width — the text on
    top, a toolbar (formatting left, send right) inside the same frame. */
+/* The area around the composer in the chat's colour, like the messages. */
+.composer-bar {
+  background-color: @view_bg_color;
+}
 .composer-frame {
   margin: 0 8px 8px 8px;
   border-radius: 12px;

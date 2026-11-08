@@ -111,7 +111,11 @@ func newConversation(tag, title, emptyText string) *conversation {
 			}
 		}
 	}
-	toolbar.AddBottomBar(c.composer.root)
+	// The composer's surroundings (its margin) in the chat's colour.
+	bar := gtk.NewBox(gtk.OrientationVertical, 0)
+	bar.AddCSSClass("composer-bar")
+	bar.Append(c.composer.root)
+	toolbar.AddBottomBar(bar)
 	// No raised bar behind the composer: the field itself is the frame.
 	toolbar.SetBottomBarStyle(adw.ToolbarFlat)
 
