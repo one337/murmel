@@ -8,14 +8,36 @@ import "io.github/murmel/internal/protocol/gumble"
 // priority speaker and move against the target user's channel. Unknown
 // permissions (not yet answered by the server) count as not granted.
 
+// superUserName is reserved by Mumble servers for the server
+// administrator; nobody else can log in under it.
+const superUserName = "SuperUser"
+
 // channelPerm returns the local user's permissions in channel id and
-// whether the server has told us.
+// whether they are known. The SuperUser bypasses all ACLs, so the server
+// never answers its permission queries for channels other than the root;
+// like the official client, its root permissions apply everywhere.
 func (m *treeModel) channelPerm(id uint32) (gumble.Permission, bool) {
-	n, ok := m.channels[id]
-	if !ok || n.info.Permissions == nil {
-		return 0, false
+	if n, ok := m.channels[id]; ok && n.info.Permissions != nil {
+		return gumble.Permission(*n.info.Permissions), true
 	}
-	return gumble.Permission(*n.info.Permissions), true
+	if m.isSuperUser() {
+		return m.rootPerm(), true
+	}
+	return 0, false
+}
+
+func (m *treeModel) rootPerm() gumble.Permission {
+	if n, ok := m.channels[0]; ok && n.info.Permissions != nil {
+		return gumble.Permission(*n.info.Permissions)
+	}
+	return 0
+}
+
+// isSuperUser reports whether the local user is the server's SuperUser.
+func (m *treeModel) isSuperUser() bool {
+	self, ok := m.users[m.self]
+	return ok && self.Name == superUserName && self.UserID == 0 &&
+		m.rootPerm().Has(gumble.PermissionWrite)
 }
 
 func (m *treeModel) allowed(id uint32, perms ...gumble.Permission) bool {

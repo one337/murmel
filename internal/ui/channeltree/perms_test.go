@@ -90,3 +90,27 @@ func TestPermissionChannels(t *testing.T) {
 		t.Fatalf("channel 5 menu needs root and 5, got %v", got)
 	}
 }
+
+// TestSuperUserHasAllPermissions: the server answers the SuperUser's
+// permission queries only for the root channel.
+func TestSuperUserHasAllPermissions(t *testing.T) {
+	all := p(gumble.PermissionWrite, gumble.PermissionEnter, gumble.PermissionMuteDeafen,
+		gumble.PermissionMove, gumble.PermissionMakeChannel, gumble.PermissionKick,
+		gumble.PermissionBan, gumble.PermissionRegister)
+	m := permModel(all, nil) // sub-channel permissions never arrive
+	m.users[1] = bus.UserInfo{Session: 1, Name: "SuperUser", Channel: 0}
+	c := channelMenuPerms(m, 5)
+	if !c.edit || !c.remove || !c.acl || !c.createSub || !c.join {
+		t.Fatalf("SuperUser channel menu = %+v, want everything", c)
+	}
+	if u := userMenuPerms(m, 7); !u.mute || !u.move || !u.kick {
+		t.Fatalf("SuperUser user menu = %+v", u)
+	}
+
+	// Someone merely named like that without root write is not trusted.
+	m2 := permModel(p(gumble.PermissionEnter), nil)
+	m2.users[1] = bus.UserInfo{Session: 1, Name: "SuperUser", Channel: 0}
+	if channelMenuPerms(m2, 5).edit {
+		t.Fatal("name alone must not grant permissions")
+	}
+}
