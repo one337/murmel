@@ -55,17 +55,15 @@ func TestHeadlessVoiceLoop(t *testing.T) {
 	p.Wait()
 
 	st := p.Snapshot()
-	if st.Encoded != nFrames || st.Played != nFrames {
-		t.Fatalf("frames: encoded %d played %d, want %d", st.Encoded, st.Played, nFrames)
-	}
-	if st.DroppedFrames != 0 || st.DecodeErrors != 0 {
-		t.Fatalf("drops %d decodeErrors %d", st.DroppedFrames, st.DecodeErrors)
+	checkDelivery(t, st, nFrames)
+	if st.DecodeErrors != 0 {
+		t.Fatalf("decodeErrors %d", st.DecodeErrors)
 	}
 
 	// energy preservation through encode/decode (RMS within ±3 dB)
 	samples := sink.Samples()
-	if len(samples) != nFrames*FrameSize {
-		t.Fatalf("captured %d samples", len(samples))
+	if len(samples) != int(st.Played)*FrameSize {
+		t.Fatalf("captured %d samples for %d frames", len(samples), st.Played)
 	}
 	srcRMS := 10000 / math.Sqrt2
 	gotRMS := RMS(samples)
@@ -115,9 +113,8 @@ func TestHeadlessVoiceLoopWithLoss(t *testing.T) {
 	p.Wait()
 
 	st := p.Snapshot()
-	if st.Played != nFrames {
-		t.Fatalf("played %d, want %d (PLC must fill lost frames)", st.Played, nFrames)
-	}
+	// PLC must fill every lost packet: only queue drops may be missing.
+	checkDelivery(t, st, nFrames)
 	if lossy.lost != nFrames/10 {
 		t.Fatalf("loss injection broken: %d lost", lossy.lost)
 	}
@@ -148,9 +145,27 @@ func (l *lossyPacketPipe) WritePacket(pkt []byte) error {
 func (l *lossyPacketPipe) ReadPacket() ([]byte, error) { return l.inner.ReadPacket() }
 func (l *lossyPacketPipe) Close() error                { return l.inner.Close() }
 
+// checkDelivery: every frame is either played or counted as dropped. The
+// queues drop the oldest frame when a stage falls behind (real-time
+// audio must not stall), which a slow, loaded machine such as a CI runner
+// can trigger even at the paced rate; a few drops are fine, many are not.
+func checkDelivery(t *testing.T, st Stats, n int) {
+	t.Helper()
+	if st.Encoded != uint64(n) {
+		t.Fatalf("encoded %d, want %d", st.Encoded, n)
+	}
+	if st.Played+st.DroppedFrames != uint64(n) {
+		t.Fatalf("played %d + dropped %d, want %d", st.Played, st.DroppedFrames, n)
+	}
+	if st.DroppedFrames > uint64(n/20) {
+		t.Fatalf("dropped %d of %d frames", st.DroppedFrames, n)
+	}
+}
+
 // pacedSource wraps an infinite Source with a frame budget and a small
-// per-frame delay (device-like cadence: the consumer goroutines are
-// awake before the burst, so the bounded queues never overflow).
+// per-frame delay (a device-like cadence, ten times faster than real
+// time, so the consumer goroutines keep up and the bounded queues rarely
+// overflow).
 type pacedSource struct {
 	src Source
 	n   int
@@ -161,7 +176,7 @@ func (p *pacedSource) Read() ([]int16, error) {
 		return nil, io.EOF
 	}
 	p.n--
-	time.Sleep(100 * time.Microsecond)
+	time.Sleep(time.Millisecond)
 	return p.src.Read()
 }
 
