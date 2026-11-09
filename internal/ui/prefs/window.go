@@ -37,7 +37,7 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	pw.SetTitle(tr("Preferences"))
 	pw.SetSearchEnabled(false)
 
-	pw.Add(identityPage(st, m))
+	pw.Add(identityPage(st, m, pw))
 	pw.Add(audioInputPage(st, b))
 	pw.Add(audioOutputPage(st))
 	pw.Add(chatPage(st))
@@ -48,7 +48,7 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 
 // --- Identity page ---------------------------------------------------------
 
-func identityPage(st settings.Settings, m *certs.Manager) *adw.PreferencesPage {
+func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesWindow) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("Identity"))
 	page.SetName("identity")
@@ -88,25 +88,45 @@ func identityPage(st settings.Settings, m *certs.Manager) *adw.PreferencesPage {
 	group.SetTitle(tr("Client Certificate"))
 	group.Add(row)
 
-	// Import / export buttons as action rows
 	importRow := adw.NewActionRow()
 	importRow.SetTitle(tr("Import identity…"))
-	importRow.SetSubtitle(tr("Load a PEM certificate + key pair"))
+	importRow.SetSubtitle(tr("Load a PEM file with certificate and private key"))
 	importRow.SetActivatable(true)
 	importRow.AddSuffix(gtk.NewImageFromIconName("document-open-symbolic"))
-	importRow.ConnectActivated(func() {
-		// TODO T25: open file chooser dialog and call m.Import(pemData)
-		slog.Info("prefs: import identity (not yet wired)")
-	})
 
 	exportRow := adw.NewActionRow()
 	exportRow.SetTitle(tr("Export identity…"))
-	exportRow.SetSubtitle(tr("Save the selected identity as PEM"))
+	exportRow.SetSubtitle(tr("Save the selected identity as PEM, including its private key — keep the file safe"))
 	exportRow.SetActivatable(true)
 	exportRow.AddSuffix(gtk.NewImageFromIconName("document-save-symbolic"))
+	updateExport := func() { exportRow.SetSensitive(row.Selected() > 0) }
+	coreglib.InternObject(row).NotifyProperty("selected", updateExport)
+	updateExport()
+
+	parent := &pw.Window.Window
+	importRow.ConnectActivated(func() {
+		importIdentity(parent, m, func(meta certs.IdentityMeta) {
+			identities = append(identities, meta)
+			store.Append(meta.Name)
+			row.SetSelected(uint(len(identities))) // also makes it the default
+			pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
+		}, func(err error) {
+			pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Import failed: %v"), err)))
+		})
+	})
 	exportRow.ConnectActivated(func() {
-		// TODO T25: open file chooser dialog and call m.Export(id)
-		slog.Info("prefs: export identity (not yet wired)")
+		sel := int(row.Selected())
+		if sel == 0 || sel-1 >= len(identities) {
+			return
+		}
+		meta := identities[sel-1]
+		exportIdentity(parent, m, meta, func(err error) {
+			if err != nil {
+				pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Export failed: %v"), err)))
+				return
+			}
+			pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Exported identity %s"), meta.Name)))
+		})
 	})
 
 	group.Add(importRow)
