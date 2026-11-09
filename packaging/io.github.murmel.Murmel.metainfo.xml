@@ -75,6 +75,22 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.5" date="2026-11-09">
+      <description>
+        <ul>
+          <li>Avatars: users' uploaded pictures are shown in the channel list, round like the initials shown otherwise; set your own avatar per saved connection or a default one in Preferences</li>
+          <li>New channel editor (Edit… in the channel menu) with pages for name, position, user limit and password; the description with a formatting toolbar and live preview; groups; and permissions with allow, deny or inherit per right</li>
+          <li>Channels with a password ask for it when you join</li>
+          <li>The voice level is shown as thin waves: green while you are heard, yellow while your voice is detected but not sent (muted or not connected), red when too loud; it works from the start, before connecting</li>
+          <li>While you are muted and speak, the crossed-out microphone next to your name lights up yellow</li>
+          <li>The connect dialog shows more saved connections and makes clear that the list scrolls</li>
+          <li>Identities can be imported and exported in Preferences</li>
+          <li>Channel names line up whether or not a channel has users, and avatars line up with them</li>
+          <li>Fixed rare crashes when the server changed users or channels while you clicked</li>
+          <li>Fixed the root channel's permissions never loading</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.4" date="2026-11-09">
       <description>
         <ul>
