@@ -32,12 +32,12 @@ needed.
 
 ## Updating a translation
 
-When messages change, merge the new template into the catalog and
-translate what is marked `fuzzy` or empty:
-
-```sh
-msgmerge --update po/de.po po/murmel.pot
-```
+`tools/update-pot.sh` regenerates the template and merges it into every
+`po/*.po`: new messages are added empty, changed ones keep their old
+translation marked `fuzzy`, removed ones are kept at the end as `#~`.
+Translate what is empty or `fuzzy` (and remove the `fuzzy` mark); until
+then those messages show in English. `tools/verify.sh` prints how many
+messages each language still lacks.
 
 ## For developers
 
@@ -48,7 +48,9 @@ msgmerge --update po/de.po po/murmel.pot
 - Regenerate the template with `tools/update-pot.sh` (CI fails when it is
   out of date).
 
-The app picks the first of the user's languages (`LANGUAGE`, `LC_ALL`,
-`LC_MESSAGES`, `LANG`) that has a translation, falling back from a
-regional variant (`de_AT`) to the language (`de`), and loads it from
+Users can pick the language in Preferences → General (it applies after
+a restart). Otherwise the app picks the first of the user's languages
+(`LANGUAGE`, `LC_ALL`, `LC_MESSAGES`, `LANG`) that has a translation,
+falling back from a regional variant (`de_AT`) to the language (`de`),
+and English when there is none. Translations are loaded from
 `/app/share/locale` (Flatpak) or `/usr/share/locale`.

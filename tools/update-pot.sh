@@ -21,3 +21,14 @@ xgettext \
   --msgid-bugs-address="https://github.com/one337/murmel/issues" \
   -o "$out" \
   $(find internal/ui -name '*.go' ! -name '*_test.go' | LC_ALL=C sort) 2>/dev/null
+
+# Writing the real template also brings every translation up to date:
+# new messages are added empty, changed ones keep their old translation
+# marked fuzzy (shown in English until reviewed), removed ones become
+# obsolete (#~). Existing translations are kept.
+if [ "$out" = "po/murmel.pot" ]; then
+  for po in po/*.po; do
+    [ -e "$po" ] || continue
+    msgmerge --quiet --update --backup=none "$po" "$out"
+  done
+fi

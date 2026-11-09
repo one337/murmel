@@ -118,6 +118,11 @@ if tools/install-translations.sh 2>&1; then
 else
   fail "a translation does not compile (msgfmt --check)"
 fi
+# Informational: open messages per language (they show in English).
+for po in po/*.po; do
+  [ -e "$po" ] || continue
+  printf '  %s: %s\n' "$(basename "$po" .po)" "$(msgfmt --statistics -o /dev/null "$po" 2>&1)"
+done
 
 printf '========================\n'
 if [ "$failures" -eq 0 ]; then
