@@ -75,6 +75,9 @@ type dialParams struct {
 	rememberPassword bool
 	// texture is the avatar image sent after connecting (nil = none).
 	texture []byte
+	// droppedPassword: this attempt left out the form's password after
+	// the server refused a registered name with it (see onDialError).
+	droppedPassword bool
 	// tokens are access tokens (channel passwords) given this session;
 	// a reconnect sends them again.
 	tokens []string
@@ -725,6 +728,19 @@ func (c *Controller) onDialError(err error, p *dialParams) {
 	// no certificate, or the wrong account password) gets its own choice:
 	// a password alone cannot help when the certificate is the problem.
 	if isReject && p != nil {
+		// Mumble 1.6 checks a password sent by a name registered with a
+		// certificate as that account's password, so the server password
+		// from the form makes the login fail although registered users do
+		// not need it. Try once more without it.
+		if ev.Reason == bus.RejectUserCredentials && p.identity != nil && p.password != "" && !p.droppedPassword {
+			slog.Info("registered name refused with password: retrying without it")
+			retry := *p
+			retry.password = ""
+			retry.droppedPassword = true
+			retry.rememberPassword = false
+			c.startDial(&retry)
+			return
+		}
 		switch {
 		case ev.Reason == bus.RejectServerPassword,
 			ev.Reason == bus.RejectUserCredentials && strings.EqualFold(p.username, "SuperUser"):
