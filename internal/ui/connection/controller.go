@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -50,6 +51,7 @@ type Controller struct {
 	boff      backoff
 	retryStop context.CancelFunc
 	lastDial  *dialParams // saved for auto-reconnect
+	lastJoin  joinAttempt // for the channel password prompt
 
 	voiceEngine *engine.Engine
 	voiceCancel context.CancelFunc
@@ -70,6 +72,15 @@ type dialParams struct {
 	rememberPassword bool
 	// texture is the avatar image sent after connecting (nil = none).
 	texture []byte
+	// tokens are access tokens (channel passwords) given this session;
+	// a reconnect sends them again.
+	tokens []string
+}
+
+// joinAttempt is the user's latest channel join request.
+type joinAttempt struct {
+	id uint32
+	at time.Time
 }
 
 // avatarStore holds the user's own avatars next to the certificates.
@@ -102,7 +113,9 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 	bus.SubscribeCtx(ctx, appBus, c.onUserBanRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelCreateRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelDeleteRequested)
-	bus.SubscribeCtx(ctx, appBus, c.onChannelRenameRequested)
+	bus.SubscribeCtx(ctx, appBus, c.onChannelEditRequested)
+	bus.SubscribeCtx(ctx, appBus, c.onAccessTokenAdded)
+	bus.SubscribeCtx(ctx, appBus, c.onPermissionDenied)
 	bus.SubscribeCtx(ctx, appBus, c.onDisconnectRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelPermissionRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelDescriptionRequested)
@@ -558,6 +571,7 @@ func (c *Controller) dial(p *dialParams) {
 	cfg := gumble.NewConfig()
 	cfg.Username = p.username
 	cfg.Password = p.password
+	cfg.Tokens = gumble.AccessTokens(p.tokens)
 	cfg.UDPVoice = true
 
 	// The per-connection bus and its forwarding into the app bus must exist
@@ -924,17 +938,16 @@ func (c *Controller) withClient(f func(*gumble.Client)) bool {
 
 func (c *Controller) onJoinRequested(ev bus.ChannelJoinRequested) {
 	c.mu.Lock()
-	client := c.client
+	c.lastJoin = joinAttempt{id: ev.ChannelID, at: time.Now()}
 	c.mu.Unlock()
-
-	if client == nil || client.Self == nil {
-		return
-	}
-	ch := client.Channels[ev.ChannelID]
-	if ch == nil {
-		return
-	}
-	client.Self.Move(ch)
+	c.withClient(func(client *gumble.Client) {
+		if client.Self == nil {
+			return
+		}
+		if ch := client.Channels[ev.ChannelID]; ch != nil {
+			client.Self.Move(ch)
+		}
+	})
 }
 
 // --- User actions (T18) ----------------------------------------------------
@@ -1048,10 +1061,101 @@ func (c *Controller) onChannelDeleteRequested(ev bus.ChannelDeleteRequested) {
 	})
 }
 
-func (c *Controller) onChannelRenameRequested(ev bus.ChannelRenameRequested) {
+func (c *Controller) onChannelEditRequested(ev bus.ChannelEditRequested) {
 	c.withClient(func(client *gumble.Client) {
+		ch := client.Channels[ev.ChannelID]
+		if ch == nil {
+			return
+		}
+		if ev.Name != nil {
+			ch.SetName(*ev.Name)
+		}
+		if ev.Description != nil {
+			ch.SetDescription(*ev.Description)
+		}
+		if ev.Position != nil {
+			ch.SetPosition(*ev.Position)
+		}
+		if ev.MaxUsers != nil {
+			ch.SetMaxUsers(*ev.MaxUsers)
+		}
+	})
+}
+
+// joinPromptWindow is how long after a join request a refusal to enter
+// counts as the answer to it (and asks for the channel password).
+const joinPromptWindow = 10 * time.Second
+
+// onPermissionDenied asks for a channel password when the server refused
+// the user's own join request (password channels deny Enter to everyone
+// without the password as an access token).
+func (c *Controller) onPermissionDenied(ev bus.PermissionDenied) {
+	if ev.Reason != bus.DenyPermission || ev.Permission&int(gumble.PermissionEnter) == 0 || ev.ChannelID == 0 {
+		return
+	}
+	c.mu.Lock()
+	recent := c.lastJoin.id == ev.ChannelID && time.Since(c.lastJoin.at) < joinPromptWindow
+	c.lastJoin = joinAttempt{}
+	c.mu.Unlock()
+	if recent {
+		c.promptChannelPassword(ev.ChannelID)
+	}
+}
+
+func (c *Controller) promptChannelPassword(channelID uint32) {
+	name := ""
+	if ch, ok := c.appBus.State().Channels[channelID]; ok {
+		name = ch.Name
+	}
+	entry := adw.NewPasswordEntryRow()
+	entry.SetTitle(tr("Password"))
+	group := adw.NewPreferencesGroup()
+	group.Add(entry)
+
+	alert := adw.NewAlertDialog(tr("Channel Password"),
+		fmt.Sprintf(tr("The channel %s is protected by a password."), name))
+	alert.SetExtraChild(group)
+	alert.AddResponse("cancel", tr("Cancel"))
+	alert.AddResponse("join", tr("Join"))
+	alert.SetResponseAppearance("join", adw.ResponseSuggested)
+	alert.SetDefaultResponse("join")
+	alert.SetCloseResponse("cancel")
+	alert.SetResponseEnabled("join", false)
+	entry.ConnectChanged(func() { alert.SetResponseEnabled("join", entry.Text() != "") })
+	entry.SetActivatesDefault(true)
+	alert.ConnectResponse(func(response string) {
+		if response == "join" {
+			c.appBus.Emit(bus.AccessTokenAdded{Token: entry.Text(), ChannelID: channelID})
+		}
+	})
+	alert.Present(c.win)
+	entry.GrabFocus()
+}
+
+// onAccessTokenAdded hands the server the token (with all earlier ones of
+// this connection; reconnects send them again) and retries the join.
+func (c *Controller) onAccessTokenAdded(ev bus.AccessTokenAdded) {
+	c.mu.Lock()
+	var tokens []string
+	if p := c.lastDial; p != nil {
+		if !slices.Contains(p.tokens, ev.Token) {
+			p.tokens = append(p.tokens, ev.Token)
+		}
+		tokens = slices.Clone(p.tokens)
+	} else {
+		tokens = []string{ev.Token}
+	}
+	if ev.ChannelID != 0 {
+		c.lastJoin = joinAttempt{id: ev.ChannelID, at: time.Now()}
+	}
+	c.mu.Unlock()
+	c.withClient(func(client *gumble.Client) {
+		client.Send(gumble.AccessTokens(tokens))
+		if ev.ChannelID == 0 || client.Self == nil {
+			return
+		}
 		if ch := client.Channels[ev.ChannelID]; ch != nil {
-			ch.SetName(ev.Name)
+			client.Self.Move(ch)
 		}
 	})
 }

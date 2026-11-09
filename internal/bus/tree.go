@@ -110,10 +110,21 @@ type ChannelDeleteRequested struct {
 	ChannelID uint32
 }
 
-// ChannelRenameRequested asks the controller to rename a channel.
-type ChannelRenameRequested struct {
+// ChannelEditRequested asks the controller to change a channel's
+// properties. Nil fields stay unchanged.
+type ChannelEditRequested struct {
+	ChannelID   uint32
+	Name        *string
+	Description *string
+	Position    *int32
+	MaxUsers    *uint32
+}
+
+// AccessTokenAdded gives the server an access token (a channel password)
+// and, if ChannelID is set, retries joining that channel with it.
+type AccessTokenAdded struct {
+	Token     string
 	ChannelID uint32
-	Name      string
 }
 
 // ACLRequested asks the controller to fetch a channel's ACL from the server.
@@ -182,7 +193,8 @@ func (UserKickRequested) isBusEvent()           {}
 func (UserBanRequested) isBusEvent()            {}
 func (ChannelCreateRequested) isBusEvent()      {}
 func (ChannelDeleteRequested) isBusEvent()      {}
-func (ChannelRenameRequested) isBusEvent()      {}
+func (ChannelEditRequested) isBusEvent()        {}
+func (AccessTokenAdded) isBusEvent()            {}
 func (ACLRequested) isBusEvent()                {}
 func (ACLSaveRequested) isBusEvent()            {}
 func (BanListRequested) isBusEvent()            {}

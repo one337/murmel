@@ -49,38 +49,6 @@ func ShowCreateSub(parent gtk.Widgetter, b *bus.Bus, parentID uint32) {
 	alert.Present(parent)
 }
 
-// ShowRename presents a dialog to rename an existing channel. On confirmation
-// it emits bus.ChannelRenameRequested. Called on the main loop.
-func ShowRename(parent gtk.Widgetter, b *bus.Bus, channelID uint32, currentName string) {
-	nameEntry := adw.NewEntryRow()
-	nameEntry.SetTitle(tr("New name"))
-	nameEntry.SetText(currentName)
-
-	list := gtk.NewListBox()
-	list.SetSelectionMode(gtk.SelectionNone)
-	list.AddCSSClass("boxed-list")
-	list.Append(nameEntry)
-
-	alert := adw.NewAlertDialog(tr("Rename Channel"), "")
-	alert.SetExtraChild(list)
-	alert.AddResponse("cancel", tr("Cancel"))
-	alert.AddResponse("rename", tr("Rename"))
-	alert.SetResponseAppearance("rename", adw.ResponseSuggested)
-	alert.SetDefaultResponse("rename")
-	alert.SetCloseResponse("cancel")
-	alert.ConnectResponse(func(response string) {
-		if response != "rename" {
-			return
-		}
-		name := nameEntry.Text()
-		if name == "" || name == currentName {
-			return
-		}
-		b.Emit(bus.ChannelRenameRequested{ChannelID: channelID, Name: name})
-	})
-	alert.Present(parent)
-}
-
 // ShowDelete presents a destructive confirmation to remove a channel. On
 // confirmation it emits bus.ChannelDeleteRequested. Called on the main loop.
 func ShowDelete(parent gtk.Widgetter, b *bus.Bus, channelID uint32, name string) {

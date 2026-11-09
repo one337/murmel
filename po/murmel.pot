@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 11:45+0100\n"
+"POT-Creation-Date: 2026-11-09 12:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,15 +22,17 @@ msgid "Inherit parent ACLs"
 msgstr ""
 
 #: internal/ui/admin/acl.go:95 internal/ui/admin/banlist.go:41
+#: internal/ui/admin/channeledit.go:59
 msgid "Save"
 msgstr ""
 
 #: internal/ui/admin/acl.go:98 internal/ui/admin/ban.go:28
-#: internal/ui/admin/channel.go:30 internal/ui/admin/channel.go:66
-#: internal/ui/admin/channel.go:91 internal/ui/admin/kick.go:28
-#: internal/ui/connection/controller.go:316
-#: internal/ui/connection/controller.go:729
-#: internal/ui/connection/controller.go:1272 internal/ui/window.go:248
+#: internal/ui/admin/channel.go:30 internal/ui/admin/channel.go:59
+#: internal/ui/admin/channeledit.go:61 internal/ui/admin/kick.go:28
+#: internal/ui/connection/controller.go:329
+#: internal/ui/connection/controller.go:743
+#: internal/ui/connection/controller.go:1118
+#: internal/ui/connection/controller.go:1376 internal/ui/window.go:248
 msgid "Cancel"
 msgstr ""
 
@@ -146,11 +148,11 @@ msgstr ""
 msgid "Channel name"
 msgstr ""
 
-#: internal/ui/admin/channel.go:19
+#: internal/ui/admin/channel.go:19 internal/ui/admin/channeledit.go:155
 msgid "Temporary"
 msgstr ""
 
-#: internal/ui/admin/channel.go:20
+#: internal/ui/admin/channel.go:20 internal/ui/admin/channeledit.go:156
 msgid "Removed automatically when the last user leaves"
 msgstr ""
 
@@ -163,28 +165,71 @@ msgid "Create"
 msgstr ""
 
 #: internal/ui/admin/channel.go:56
-msgid "New name"
-msgstr ""
-
-#: internal/ui/admin/channel.go:64
-msgid "Rename Channel"
-msgstr ""
-
-#: internal/ui/admin/channel.go:67
-msgid "Rename"
-msgstr ""
-
-#: internal/ui/admin/channel.go:88
 #, go-format
 msgid "Remove %s?"
 msgstr ""
 
-#: internal/ui/admin/channel.go:89
+#: internal/ui/admin/channel.go:57
 msgid "This channel and all its sub-channels will be permanently removed."
 msgstr ""
 
-#: internal/ui/admin/channel.go:92
+#: internal/ui/admin/channel.go:60
 msgid "Remove"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:57
+msgid "General"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:79
+#, go-format
+msgid "Edit Channel %s"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:135
+msgid "Name"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:140
+msgid "Position"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:141
+msgid "Order among sibling channels: lower numbers come first"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:145
+msgid "Maximum Users"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:146
+msgid "0 = no limit beyond the server's own"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:161
+#: internal/ui/connection/controller.go:732
+#: internal/ui/connection/controller.go:1111
+msgid "Password"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:165
+msgid "Access"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:166
+msgid "Loading the channel's permissions…"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:179
+msgid ""
+"You may not view this channel's permissions, so its password cannot be "
+"changed here."
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:185
+msgid ""
+"Users need this password to enter the channel. Leave it empty for an open "
+"channel."
 msgstr ""
 
 #: internal/ui/admin/kick.go:24
@@ -244,7 +289,7 @@ msgstr ""
 msgid "Bandwidth"
 msgstr ""
 
-#: internal/ui/admin/stats.go:122 internal/ui/connection/controller.go:161
+#: internal/ui/admin/stats.go:122 internal/ui/connection/controller.go:174
 msgid "Address"
 msgstr ""
 
@@ -379,6 +424,7 @@ msgid "Double-click to join"
 msgstr ""
 
 #: internal/ui/channeltree/rows.go:329
+#: internal/ui/connection/controller.go:1119
 msgid "Join"
 msgstr ""
 
@@ -702,7 +748,7 @@ msgstr ""
 msgid "The user is offline"
 msgstr ""
 
-#: internal/ui/chat/view.go:435 internal/ui/connection/controller.go:174
+#: internal/ui/chat/view.go:435 internal/ui/connection/controller.go:187
 msgid "Server"
 msgstr ""
 
@@ -718,146 +764,151 @@ msgstr ""
 msgid "message too long"
 msgstr ""
 
-#: internal/ui/connection/controller.go:156
+#: internal/ui/connection/controller.go:169
 msgid "Connect to Server"
 msgstr ""
 
-#: internal/ui/connection/controller.go:165
+#: internal/ui/connection/controller.go:178
 msgid "Port"
 msgstr ""
 
-#: internal/ui/connection/controller.go:170
+#: internal/ui/connection/controller.go:183
 msgid "Server Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go:181
+#: internal/ui/connection/controller.go:194
 msgid "Username"
 msgstr ""
 
-#: internal/ui/connection/controller.go:187
+#: internal/ui/connection/controller.go:200
 msgid "None (anonymous)"
 msgstr ""
 
-#: internal/ui/connection/controller.go:192
+#: internal/ui/connection/controller.go:205
 msgid "User Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go:209
+#: internal/ui/connection/controller.go:222
 msgid "Import certificate (PEM file with certificate and private key)"
 msgstr ""
 
-#: internal/ui/connection/controller.go:221
+#: internal/ui/connection/controller.go:234
 msgid "Save Connection"
 msgstr ""
 
-#: internal/ui/connection/controller.go:232
+#: internal/ui/connection/controller.go:245
 msgid "Saved as username@address"
 msgstr ""
 
-#: internal/ui/connection/controller.go:235
+#: internal/ui/connection/controller.go:248
 #, go-format
 msgid "Saved as %s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:247
+#: internal/ui/connection/controller.go:260
 msgid "Optional"
 msgstr ""
 
-#: internal/ui/connection/controller.go:249
+#: internal/ui/connection/controller.go:262
 msgid "Optional — otherwise your default avatar is used"
 msgstr ""
 
-#: internal/ui/connection/controller.go:252 internal/ui/prefs/window.go:145
+#: internal/ui/connection/controller.go:265 internal/ui/prefs/window.go:145
 msgid "Avatar"
 msgstr ""
 
-#: internal/ui/connection/controller.go:260
+#: internal/ui/connection/controller.go:273
 msgid "Account"
 msgstr ""
 
-#: internal/ui/connection/controller.go:314
-#: internal/ui/connection/controller.go:730
+#: internal/ui/connection/controller.go:327
+#: internal/ui/connection/controller.go:744
 msgid "Connect"
 msgstr ""
 
-#: internal/ui/connection/controller.go:404
+#: internal/ui/connection/controller.go:417
 msgid "Saved Connections"
 msgstr ""
 
-#: internal/ui/connection/controller.go:446
+#: internal/ui/connection/controller.go:459
 msgid "Forget connection"
 msgstr ""
 
-#: internal/ui/connection/controller.go:493
+#: internal/ui/connection/controller.go:506
 #: internal/ui/prefs/identityfiles.go:17
 msgid "PEM Certificates"
 msgstr ""
 
-#: internal/ui/connection/controller.go:499
+#: internal/ui/connection/controller.go:512
 #: internal/ui/prefs/identityfiles.go:23
 msgid "All Files"
 msgstr ""
 
-#: internal/ui/connection/controller.go:507
+#: internal/ui/connection/controller.go:520
 msgid "Select User Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go:527
+#: internal/ui/connection/controller.go:540
 msgid "Certificate Import Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:528
+#: internal/ui/connection/controller.go:541
 #, go-format
 msgid "The file could not be imported: %v"
 msgstr ""
 
-#: internal/ui/connection/controller.go:529
-#: internal/ui/connection/controller.go:1320
+#: internal/ui/connection/controller.go:542
+#: internal/ui/connection/controller.go:1424
 msgid "OK"
 msgstr ""
 
-#: internal/ui/connection/controller.go:707
+#: internal/ui/connection/controller.go:721
 msgid "Password Required"
 msgstr ""
 
-#: internal/ui/connection/controller.go:708
+#: internal/ui/connection/controller.go:722
 msgid "This server is protected by a password."
 msgstr ""
 
-#: internal/ui/connection/controller.go:710
+#: internal/ui/connection/controller.go:724
 #, go-format
 msgid "The server needs the password for the user %s."
 msgstr ""
 
-#: internal/ui/connection/controller.go:713
+#: internal/ui/connection/controller.go:727
 msgid "Wrong Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go:714
+#: internal/ui/connection/controller.go:728
 msgid "The server did not accept the password. Please try again."
 msgstr ""
 
-#: internal/ui/connection/controller.go:718
-msgid "Password"
-msgstr ""
-
-#: internal/ui/connection/controller.go:720
+#: internal/ui/connection/controller.go:734
 msgid "Remember Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go:721
+#: internal/ui/connection/controller.go:735
 msgid "Stored in your keyring"
 msgstr ""
 
-#: internal/ui/connection/controller.go:875
+#: internal/ui/connection/controller.go:889
 msgid "Reconnecting…"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1260
+#: internal/ui/connection/controller.go:1115
+msgid "Channel Password"
+msgstr ""
+
+#: internal/ui/connection/controller.go:1116
+#, go-format
+msgid "The channel %s is protected by a password."
+msgstr ""
+
+#: internal/ui/connection/controller.go:1364
 msgid "Server Certificate Changed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1262
+#: internal/ui/connection/controller.go:1366
 #, go-format
 msgid ""
 "The server's certificate has changed.\n"
@@ -868,11 +919,11 @@ msgid ""
 "Only continue if you trust this certificate."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1265
+#: internal/ui/connection/controller.go:1369
 msgid "New Server Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1267
+#: internal/ui/connection/controller.go:1371
 #, go-format
 msgid ""
 "This server's certificate has not been seen before.\n"
@@ -883,57 +934,57 @@ msgid ""
 "Trust and connect?"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1273
+#: internal/ui/connection/controller.go:1377
 msgid "Trust and Connect"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1300
+#: internal/ui/connection/controller.go:1404
 msgid "Authentication Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1301
+#: internal/ui/connection/controller.go:1405
 msgid "The server rejected the password or credentials."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1303
+#: internal/ui/connection/controller.go:1407
 msgid "Banned"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1304
+#: internal/ui/connection/controller.go:1408
 msgid "You are banned from this server."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1306
+#: internal/ui/connection/controller.go:1410
 msgid "Server Full"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1307
+#: internal/ui/connection/controller.go:1411
 msgid "The server has reached its maximum number of users."
 msgstr ""
 
-#: internal/ui/connection/controller.go:1309
+#: internal/ui/connection/controller.go:1413
 msgid "TLS Handshake Failed"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1310
+#: internal/ui/connection/controller.go:1414
 #, go-format
 msgid ""
 "Could not establish a secure connection:\n"
 "%s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1312
+#: internal/ui/connection/controller.go:1416
 msgid "Server Unreachable"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1313
+#: internal/ui/connection/controller.go:1417
 #, go-format
 msgid ""
 "The server could not be reached:\n"
 "%s"
 msgstr ""
 
-#: internal/ui/connection/controller.go:1315
+#: internal/ui/connection/controller.go:1419
 msgid "Connection Failed"
 msgstr ""
 

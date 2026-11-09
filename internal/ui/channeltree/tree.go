@@ -224,7 +224,9 @@ func (t *Tree) showChannelMenu(id uint32, x, y float64) {
 			admin.ShowCreateSub(t.parent, t.b, chID)
 		},
 		Edit: func(chID uint32) {
-			admin.ShowRename(t.parent, t.b, chID, name)
+			if n, ok := t.model.channels[chID]; ok {
+				admin.ShowChannelEditor(t.parent, t.b, n.info, admin.PageGeneral)
+			}
 		},
 		Delete: func(chID uint32) {
 			admin.ShowDelete(t.parent, t.b, chID, name)
