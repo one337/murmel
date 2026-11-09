@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 14:57+0100\n"
+"POT-Creation-Date: 2026-11-09 15:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1083,6 +1083,38 @@ msgstr ""
 
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
 msgid "OK"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+#, go-format
+msgid ""
+"The name %s is registered on this server, and the server does not recognize "
+"you as its owner. Connect with the certificate the name was registered with, "
+"choose another name, or enter the account's password if it has one."
+msgstr ""
+
+#: internal/ui/connection/controller.go
+#, go-format
+msgid ""
+"The name %s is registered on this server with a different certificate than "
+"%s. Connect with the certificate the name was registered with, choose "
+"another name, or enter the account's password if it has one."
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "Account password"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "Name Already Registered"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "Change Name or Certificate…"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "Log In with Password"
 msgstr ""
 
 #: internal/ui/connection/controller.go

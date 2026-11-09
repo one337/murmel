@@ -720,13 +720,72 @@ func (c *Controller) onDialError(err error, p *dialParams) {
 		c.appBus.Emit(bus.ConnectError{Text: err.Error()})
 	}
 
-	// A missing or wrong password is asked for instead of reported.
-	if isReject && p != nil &&
-		(ev.Reason == bus.RejectUserCredentials || ev.Reason == bus.RejectServerPassword) {
-		c.promptPassword(p, ev.Reason == bus.RejectUserCredentials)
-		return
+	// A missing or wrong password is asked for instead of reported. A
+	// registered name the server does not recognize (another certificate,
+	// no certificate, or the wrong account password) gets its own choice:
+	// a password alone cannot help when the certificate is the problem.
+	if isReject && p != nil {
+		switch {
+		case ev.Reason == bus.RejectServerPassword,
+			ev.Reason == bus.RejectUserCredentials && strings.EqualFold(p.username, "SuperUser"):
+			c.promptPassword(p, ev.Reason == bus.RejectUserCredentials)
+			return
+		case ev.Reason == bus.RejectUserCredentials:
+			c.promptRegisteredName(p)
+			return
+		}
 	}
 	c.showErrorDialog(class, err)
+}
+
+// promptRegisteredName explains that the name is registered on the server
+// with another certificate (or a password) and offers the ways out:
+// change the name or certificate, or log in with the account's password.
+func (c *Controller) promptRegisteredName(p *dialParams) {
+	body := fmt.Sprintf(tr("The name %s is registered on this server, and the server does not recognize you as its owner. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username)
+	if p.identity != nil {
+		body = fmt.Sprintf(tr("The name %s is registered on this server with a different certificate than %s. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username, p.identity.Meta.Name)
+	}
+	entry := adw.NewPasswordEntryRow()
+	entry.SetTitle(tr("Account password"))
+	group := adw.NewPreferencesGroup()
+	group.Add(entry)
+
+	alert := adw.NewAlertDialog(tr("Name Already Registered"), body)
+	alert.SetExtraChild(group)
+	alert.AddResponse("cancel", tr("Cancel"))
+	alert.AddResponse("change", tr("Change Name or Certificate…"))
+	alert.AddResponse("password", tr("Log In with Password"))
+	alert.SetResponseAppearance("password", adw.ResponseSuggested)
+	alert.SetResponseEnabled("password", false)
+	alert.SetDefaultResponse("change")
+	alert.SetCloseResponse("cancel")
+	entry.ConnectChanged(func() {
+		on := entry.Text() != ""
+		alert.SetResponseEnabled("password", on)
+		if on {
+			alert.SetDefaultResponse("password")
+		} else {
+			alert.SetDefaultResponse("change")
+		}
+	})
+	entry.SetActivatesDefault(true)
+	alert.ConnectResponse(func(r string) {
+		switch r {
+		case "password":
+			retry := *p
+			retry.password = entry.Text()
+			c.startDial(&retry)
+		case "change":
+			host, portStr, err := net.SplitHostPort(p.addr)
+			if err != nil {
+				host = p.addr
+			}
+			port, _ := strconv.Atoi(portStr)
+			c.showConnectDialog(ui.ConnectRequest{Host: host, Port: port, Username: p.username, Password: p.password})
+		}
+	})
+	alert.Present(c.win)
 }
 
 // promptPassword asks for the password the server wants — the user's
