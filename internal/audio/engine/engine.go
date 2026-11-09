@@ -181,7 +181,9 @@ func New(client *gumble.Client, b *bus.Bus, self uint32, opts Options) (*Engine,
 		e.SetJitterFrames(opts.JitterFrames)
 	}
 
-	client.Config.AudioListeners.Attach(e)
+	// gumble's audio dispatch goroutine walks the listener list under its
+	// state lock; attaching outside it is a data race.
+	client.Do(func() { client.Config.AudioListeners.Attach(e) })
 	return e, nil
 }
 

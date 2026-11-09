@@ -527,11 +527,13 @@ func (c *Controller) dial(p *dialParams) {
 		return
 	}
 	self := "?"
-	if client.Self != nil {
-		self = fmt.Sprintf("session=%d channel=%q mute=%v suppressed=%v selfmute=%v",
-			client.Self.Session, channelName(client.Self.Channel), client.Self.Muted,
-			client.Self.Suppressed, client.Self.SelfMuted)
-	}
+	client.Do(func() {
+		if client.Self != nil {
+			self = fmt.Sprintf("session=%d channel=%q mute=%v suppressed=%v selfmute=%v",
+				client.Self.Session, channelName(client.Self.Channel), client.Self.Muted,
+				client.Self.Suppressed, client.Self.SelfMuted)
+		}
+	})
 	slog.Info("connected", "addr", p.addr, "server", client.ServerVersion().String(),
 		"max_bandwidth", client.MaxBandwidth(), "self", self)
 
@@ -561,22 +563,26 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 		})
 	}
 
-	// Join the channel a mumble:// link pointed to.
-	if p := c.lastDial; p != nil && len(p.channelPath) > 0 && client.Self != nil {
-		if ch := client.Channels.Find(p.channelPath...); ch != nil {
-			client.Self.Move(ch)
-		} else {
-			slog.Info("link channel not found", "path", strings.Join(p.channelPath, "/"))
+	// Join the channel a mumble:// link pointed to; read the session for
+	// the voice engine. gumble's read loop is already running (withClient).
+	var selfSession uint32
+	client.Do(func() {
+		if client.Self == nil {
+			return
 		}
-	}
+		selfSession = client.Self.Session
+		if p := c.lastDial; p != nil && len(p.channelPath) > 0 {
+			if ch := client.Channels.Find(p.channelPath...); ch != nil {
+				client.Self.Move(ch)
+			} else {
+				slog.Info("link channel not found", "path", strings.Join(p.channelPath, "/"))
+			}
+		}
+	})
 
 	// Start voice engine on a per-connection context.
 	var voiceCtx context.Context
 	voiceCtx, c.voiceCancel = context.WithCancel(c.appCtx)
-	var selfSession uint32
-	if client.Self != nil {
-		selfSession = client.Self.Session
-	}
 	opts := engine.Options{
 		CaptureDevice:    c.settings.AudioInputDevice(),
 		PlaybackDevice:   c.settings.AudioOutputDevice(),
@@ -711,10 +717,12 @@ func (c *Controller) reportConnectionInfo(ctx context.Context, client *gumble.Cl
 			Ping:          client.TCPPing(),
 			MaxBandwidth:  client.MaxBandwidth(),
 		}
-		if self := client.Self; self != nil {
-			info.Username = self.Name
-			info.Channel = channelName(self.Channel)
-		}
+		client.Do(func() {
+			if self := client.Self; self != nil {
+				info.Username = self.Name
+				info.Channel = channelName(self.Channel)
+			}
+		})
 		c.appBus.Emit(info)
 		select {
 		case <-ctx.Done():
@@ -822,6 +830,23 @@ func (c *Controller) disconnectLocked() {
 	}
 }
 
+// withClient runs f with the live client while gumble holds its state
+// lock. gumble's read loop mutates Users, Channels and Self on its own
+// goroutine; reading them unsynchronised from the main loop is a data race,
+// and a concurrent map read and write aborts the process. gumble fires its
+// listeners only after releasing the lock, so this cannot deadlock with
+// the bus. Reports false when there is no connection.
+func (c *Controller) withClient(f func(*gumble.Client)) bool {
+	c.mu.Lock()
+	client := c.client
+	c.mu.Unlock()
+	if client == nil {
+		return false
+	}
+	client.Do(func() { f(client) })
+	return true
+}
+
 // --- Channel join ----------------------------------------------------------
 
 func (c *Controller) onJoinRequested(ev bus.ChannelJoinRequested) {
@@ -842,163 +867,120 @@ func (c *Controller) onJoinRequested(ev bus.ChannelJoinRequested) {
 // --- User actions (T18) ----------------------------------------------------
 
 func (c *Controller) onSelfMuteToggle(ev bus.SelfMuteToggle) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil || client.Self == nil {
-		return
-	}
-	client.Self.SetSelfMuted(ev.Muted)
+	c.withClient(func(client *gumble.Client) {
+		if client.Self == nil {
+			return
+		}
+		client.Self.SetSelfMuted(ev.Muted)
+	})
 }
 
 func (c *Controller) onSelfDeafenToggle(ev bus.SelfDeafenToggle) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil || client.Self == nil {
-		return
-	}
-	client.Self.SetSelfDeafened(ev.Deafened)
+	c.withClient(func(client *gumble.Client) {
+		if client.Self == nil {
+			return
+		}
+		client.Self.SetSelfDeafened(ev.Deafened)
+	})
 }
 
 func (c *Controller) onUserMoveRequested(ev bus.UserMoveRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil || client.Self == nil {
-		return
-	}
-	target := client.Users[ev.Session]
-	if target == nil || target.Channel == nil {
-		return
-	}
-	target.Move(client.Self.Channel)
+	c.withClient(func(client *gumble.Client) {
+		if client.Self == nil {
+			return
+		}
+		target := client.Users[ev.Session]
+		if target == nil || target.Channel == nil {
+			return
+		}
+		target.Move(client.Self.Channel)
+	})
 }
 
 func (c *Controller) onUserMuteRequested(ev bus.UserMuteRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if u := client.Users[ev.Session]; u != nil {
-		u.SetMuted(ev.Muted)
-	}
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil {
+			u.SetMuted(ev.Muted)
+		}
+	})
 }
 
 func (c *Controller) onUserDeafenRequested(ev bus.UserDeafenRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if u := client.Users[ev.Session]; u != nil {
-		u.SetDeafened(ev.Deafened)
-	}
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil {
+			u.SetDeafened(ev.Deafened)
+		}
+	})
 }
 
 func (c *Controller) onUserPriorityRequested(ev bus.UserPriorityRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if u := client.Users[ev.Session]; u != nil {
-		u.SetPrioritySpeaker(ev.Priority)
-	}
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil {
+			u.SetPrioritySpeaker(ev.Priority)
+		}
+	})
 }
 
 func (c *Controller) onUserRegisterRequested(ev bus.UserRegisterRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if u := client.Users[ev.Session]; u != nil {
-		u.Register()
-	}
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil {
+			u.Register()
+		}
+	})
 }
 
 func (c *Controller) onUserStatsRequested(ev bus.UserStatsRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	u := client.Users[ev.Session]
-	if u == nil {
-		return
-	}
-	u.RequestStats()
+	c.withClient(func(client *gumble.Client) {
+		u := client.Users[ev.Session]
+		if u == nil {
+			return
+		}
+		u.RequestStats()
+	})
 }
 
 // --- Admin actions (T21) ---------------------------------------------------
 
 func (c *Controller) onUserKickRequested(ev bus.UserKickRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if u := client.Users[ev.Session]; u != nil {
-		u.Kick(ev.Reason)
-	}
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil {
+			u.Kick(ev.Reason)
+		}
+	})
 }
 
 func (c *Controller) onUserBanRequested(ev bus.UserBanRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if u := client.Users[ev.Session]; u != nil {
-		u.Ban(ev.Reason)
-	}
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil {
+			u.Ban(ev.Reason)
+		}
+	})
 }
 
 func (c *Controller) onChannelCreateRequested(ev bus.ChannelCreateRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	parent := client.Channels[ev.ParentID]
-	if parent == nil {
-		return
-	}
-	parent.Add(ev.Name, ev.Temporary)
+	c.withClient(func(client *gumble.Client) {
+		parent := client.Channels[ev.ParentID]
+		if parent == nil {
+			return
+		}
+		parent.Add(ev.Name, ev.Temporary)
+	})
 }
 
 func (c *Controller) onChannelDeleteRequested(ev bus.ChannelDeleteRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if ch := client.Channels[ev.ChannelID]; ch != nil {
-		ch.Remove()
-	}
+	c.withClient(func(client *gumble.Client) {
+		if ch := client.Channels[ev.ChannelID]; ch != nil {
+			ch.Remove()
+		}
+	})
 }
 
 func (c *Controller) onChannelRenameRequested(ev bus.ChannelRenameRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if ch := client.Channels[ev.ChannelID]; ch != nil {
-		ch.SetName(ev.Name)
-	}
+	c.withClient(func(client *gumble.Client) {
+		if ch := client.Channels[ev.ChannelID]; ch != nil {
+			ch.SetName(ev.Name)
+		}
+	})
 }
 
 // onDisconnectRequested leaves the server on the user's request: no
@@ -1022,39 +1004,27 @@ func (c *Controller) onDisconnectRequested(bus.DisconnectRequested) {
 }
 
 func (c *Controller) onChannelPermissionRequested(ev bus.ChannelPermissionRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Permission() == nil {
-		ch.RequestPermission()
-	}
+	c.withClient(func(client *gumble.Client) {
+		if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Permission() == nil {
+			ch.RequestPermission()
+		}
+	})
 }
 
 func (c *Controller) onChannelDescriptionRequested(ev bus.ChannelDescriptionRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Description == "" && len(ch.DescriptionHash) > 0 {
-		ch.RequestDescription()
-	}
+	c.withClient(func(client *gumble.Client) {
+		if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Description == "" && len(ch.DescriptionHash) > 0 {
+			ch.RequestDescription()
+		}
+	})
 }
 
 func (c *Controller) onUserTextureRequested(ev bus.UserTextureRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if u := client.Users[ev.Session]; u != nil && len(u.Texture) == 0 && len(u.TextureHash) > 0 {
-		u.RequestTexture()
-	}
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil && len(u.Texture) == 0 && len(u.TextureHash) > 0 {
+			u.RequestTexture()
+		}
+	})
 }
 
 func (c *Controller) onBanListRequested(_ bus.BanListRequested) {
@@ -1102,83 +1072,74 @@ func (c *Controller) onUserUnregisterRequested(ev bus.UserUnregisterRequested) {
 }
 
 func (c *Controller) onACLRequested(ev bus.ACLRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	if ch := client.Channels[ev.ChannelID]; ch != nil {
-		ch.RequestACL()
-	}
+	c.withClient(func(client *gumble.Client) {
+		if ch := client.Channels[ev.ChannelID]; ch != nil {
+			ch.RequestACL()
+		}
+	})
 }
 
 func (c *Controller) onACLSaveRequested(ev bus.ACLSaveRequested) {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return
-	}
-	ch := client.Channels[ev.ChannelID]
-	if ch == nil {
-		return
-	}
-	acl := &gumble.ACL{
-		Channel:  ch,
-		Inherits: ev.Inherits,
-	}
-	for _, gi := range ev.Groups {
-		g := &gumble.ACLGroup{
-			Name:         gi.Name,
-			InheritUsers: gi.InheritUsers,
-			Inheritable:  gi.Inheritable,
-			UsersAdd:     make(map[uint32]*gumble.ACLUser, len(gi.UsersAdd)),
-			UsersRemove:  make(map[uint32]*gumble.ACLUser, len(gi.UsersRemove)),
+	c.withClient(func(client *gumble.Client) {
+		ch := client.Channels[ev.ChannelID]
+		if ch == nil {
+			return
 		}
-		for _, u := range gi.UsersAdd {
-			g.UsersAdd[u.UserID] = &gumble.ACLUser{UserID: u.UserID, Name: u.Name}
+		acl := &gumble.ACL{
+			Channel:  ch,
+			Inherits: ev.Inherits,
 		}
-		for _, u := range gi.UsersRemove {
-			g.UsersRemove[u.UserID] = &gumble.ACLUser{UserID: u.UserID, Name: u.Name}
+		for _, gi := range ev.Groups {
+			g := &gumble.ACLGroup{
+				Name:         gi.Name,
+				InheritUsers: gi.InheritUsers,
+				Inheritable:  gi.Inheritable,
+				UsersAdd:     make(map[uint32]*gumble.ACLUser, len(gi.UsersAdd)),
+				UsersRemove:  make(map[uint32]*gumble.ACLUser, len(gi.UsersRemove)),
+			}
+			for _, u := range gi.UsersAdd {
+				g.UsersAdd[u.UserID] = &gumble.ACLUser{UserID: u.UserID, Name: u.Name}
+			}
+			for _, u := range gi.UsersRemove {
+				g.UsersRemove[u.UserID] = &gumble.ACLUser{UserID: u.UserID, Name: u.Name}
+			}
+			acl.Groups = append(acl.Groups, g)
 		}
-		acl.Groups = append(acl.Groups, g)
-	}
-	for _, ri := range ev.Rules {
-		r := &gumble.ACLRule{
-			AppliesCurrent:  ri.AppliesCurrent,
-			AppliesChildren: ri.AppliesChildren,
-			Granted:         gumble.Permission(ri.Granted),
-			Denied:          gumble.Permission(ri.Denied),
+		for _, ri := range ev.Rules {
+			r := &gumble.ACLRule{
+				AppliesCurrent:  ri.AppliesCurrent,
+				AppliesChildren: ri.AppliesChildren,
+				Granted:         gumble.Permission(ri.Granted),
+				Denied:          gumble.Permission(ri.Denied),
+			}
+			if ri.GroupName != "" {
+				r.Group = &gumble.ACLGroup{Name: ri.GroupName}
+			} else if ri.UserID != 0 {
+				r.User = &gumble.ACLUser{UserID: ri.UserID, Name: ri.UserName}
+			}
+			acl.Rules = append(acl.Rules, r)
 		}
-		if ri.GroupName != "" {
-			r.Group = &gumble.ACLGroup{Name: ri.GroupName}
-		} else if ri.UserID != 0 {
-			r.User = &gumble.ACLUser{UserID: ri.UserID, Name: ri.UserName}
-		}
-		acl.Rules = append(acl.Rules, r)
-	}
-	client.Send(acl)
+		client.Send(acl)
+	})
 }
 
 // --- chat.Sender -----------------------------------------------------------
 
 // SendText implements chat.Sender. Called on the main loop.
 func (c *Controller) SendText(channelID, session uint32, message string) error {
-	c.mu.Lock()
-	client := c.client
-	c.mu.Unlock()
-	if client == nil {
-		return fmt.Errorf("not connected")
-	}
-	if session != 0 {
-		if u := client.Users[session]; u != nil {
-			u.Send(message)
+	connected := c.withClient(func(client *gumble.Client) {
+		if session != 0 {
+			if u := client.Users[session]; u != nil {
+				u.Send(message)
+			}
+			return
 		}
-		return nil
-	}
-	if ch := client.Channels[channelID]; ch != nil {
-		ch.Send(message, false)
+		if ch := client.Channels[channelID]; ch != nil {
+			ch.Send(message, false)
+		}
+	})
+	if !connected {
+		return fmt.Errorf("not connected")
 	}
 	return nil
 }
