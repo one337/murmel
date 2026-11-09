@@ -112,6 +112,11 @@ uploads it to the website (`--upload` repeats only the upload). Settings
 are in `tools/release.conf` and an untracked `tools/release.local.conf`
 (upload target); the signing key is kept outside the repository.
 
+## Contributing
+
+Bug reports, ideas, translations and code are welcome; see
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Translations
 
 Murmel is available in English and German; how to add or improve a

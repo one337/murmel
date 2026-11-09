@@ -1,0 +1,43 @@
+name: Bug report
+description: Something does not work as it should
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Connect to …
+        2. Click …
+  - type: input
+    id: version
+    attributes:
+      label: Murmel version
+      description: Shown in the main menu under "About Murmel".
+      placeholder: "0.3.6"
+    validations:
+      required: true
+  - type: input
+    id: server
+    attributes:
+      label: Mumble server version
+      description: Shown in the tooltip of the connection dot, if you were connected.
+      placeholder: "1.6.870"
+  - type: input
+    id: system
+    attributes:
+      label: Distribution and desktop
+      placeholder: "Fedora 45, GNOME 51"
+  - type: textarea
+    id: log
+    attributes:
+      label: Log output
+      description: Run `flatpak run io.github.murmel.Murmel` in a terminal and paste what it prints around the problem. Remove server addresses or names you do not want to share.
+      render: text
