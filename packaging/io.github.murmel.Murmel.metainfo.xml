@@ -40,16 +40,20 @@
        next to the Flatpak repository). -->
   <screenshots>
     <screenshot type="default">
-      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.2/server-connected.png</image>
+      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.6/murmel-channel-light.png</image>
       <caption>Channels and chat while connected</caption>
     </screenshot>
     <screenshot>
-      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.2/start-app.png</image>
+      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.6/murmel-channel-dark.png</image>
+      <caption>The same in the dark style</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.6/murmel-start.png</image>
       <caption>Start screen</caption>
     </screenshot>
     <screenshot>
-      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.2/server-connection.png</image>
-      <caption>Connecting to a server</caption>
+      <image>https://simon-tschoep.de/software/murmel/screenshots/0.3.6/murmel-channel-settings.png</image>
+      <caption>Editing a channel</caption>
     </screenshot>
   </screenshots>
 

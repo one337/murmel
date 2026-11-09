@@ -5,6 +5,13 @@ written in Go with GTK 4 and Libadwaita.
 
 **Website and downloads:** https://simon-tschoep.de/software/murmel/
 
+![Murmel start screen](assets/screenshots/0.3.6/murmel-start.png)
+
+<p>
+  <img src="assets/screenshots/0.3.6/murmel-channel-dark.png" width="49%" alt="Channel with chat in the dark style">
+  <img src="assets/screenshots/0.3.6/murmel-channel-light.png" width="49%" alt="Channel with chat in the light style">
+</p>
+
 ## Features
 
 - Adaptive GNOME interface: channel tree in a sidebar, chat in the content
