@@ -50,6 +50,11 @@
       <summary>Noise suppression</summary>
       <description>Strength of the microphone noise suppression: 0 off, 1 low, 2 moderate, 3 high, 4 very high.</description>
     </key>
+    <key name="language" type="s">
+      <default>''</default>
+      <summary>Language</summary>
+      <description>Language of the user interface as a code such as "de"; empty follows the system language (English when Murmel has no translation for it). Takes effect after a restart.</description>
+    </key>
     <key name="color-scheme" type="s">
       <choices>
         <choice value="system"/>

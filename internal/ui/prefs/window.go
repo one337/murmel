@@ -22,6 +22,7 @@ import (
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/certs"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui"
 	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/chat"
 	"io.github/murmel/internal/ui/identities"
@@ -44,7 +45,7 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	pw.Add(audioInputPage(st, b))
 	pw.Add(audioOutputPage(st))
 	pw.Add(chatPage(st))
-	pw.Add(behaviorPage(st, player, func() *gtk.Window { return &pw.Window.Window }))
+	pw.Add(generalPage(st, player, pw))
 
 	return &Window{pw}
 }
@@ -421,12 +422,14 @@ func chatPage(st settings.Settings) *adw.PreferencesPage {
 
 // --- Behavior page ---------------------------------------------------------
 
-func behaviorPage(st settings.Settings, player *effects.Player, parent func() *gtk.Window) *adw.PreferencesPage {
+func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesWindow) *adw.PreferencesPage {
+	parent := func() *gtk.Window { return &pw.Window.Window }
 	page := adw.NewPreferencesPage()
-	page.SetTitle(tr("Behavior"))
-	page.SetName("behavior")
+	page.SetTitle(tr("General"))
+	page.SetName("general")
 	page.SetIconName("preferences-other-symbolic")
 
+	page.Add(languageGroup(st, pw))
 	page.Add(appearanceGroup(st))
 
 	group := adw.NewPreferencesGroup()
@@ -550,6 +553,36 @@ func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
 	})
 	group := adw.NewPreferencesGroup()
 	group.SetTitle(tr("Appearance"))
+	group.Add(row)
+	return group
+}
+
+// languageGroup overrides the interface language (default: the system's,
+// English when Murmel has no translation for it). Applies on restart.
+func languageGroup(st settings.Settings, pw *adw.PreferencesWindow) *adw.PreferencesGroup {
+	codes := append([]string{"", "en"}, ui.Languages()...)
+	names := []string{tr("Follow System"), ui.LanguageName("en")}
+	for _, c := range codes[2:] {
+		names = append(names, ui.LanguageName(c))
+	}
+	row := adw.NewComboRow()
+	row.SetTitle(tr("Language"))
+	row.SetSubtitle(tr("Follow System uses the desktop's language, or English if Murmel has no translation for it"))
+	row.SetModel(gtk.NewStringList(names))
+	for i, c := range codes {
+		if c == st.Language() {
+			row.SetSelected(uint(i))
+		}
+	}
+	coreglib.InternObject(row).NotifyProperty("selected", func() {
+		i := int(row.Selected())
+		if i >= len(codes) || codes[i] == st.Language() {
+			return
+		}
+		st.SetLanguage(codes[i])
+		pw.AddToast(adw.NewToast(tr("Restart Murmel to use the new language.")))
+	})
+	group := adw.NewPreferencesGroup()
 	group.Add(row)
 	return group
 }

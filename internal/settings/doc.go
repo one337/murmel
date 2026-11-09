@@ -53,6 +53,7 @@
 //	noise-suppression    NoiseSuppression / SetNoiseSuppression     noise suppression combo (0–4)
 //	echo-cancellation    EchoCancellation / SetEchoCancellation     echo cancellation switch
 //	color-scheme         ColorScheme / SetColorScheme               system, light or dark style
+//	language             Language / SetLanguage                     interface language ("" = system)
 //	notification-enabled NotificationsEnabled / SetNotifications   notifications switch
 //	notify-channel-presence NotifyChannelPresence / SetNotifyChannelPresence channel join/leave switch
 //	notify-server-presence  NotifyServerPresence / SetNotifyServerPresence   server join/leave switch

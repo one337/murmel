@@ -56,6 +56,10 @@ type Settings interface {
 	EchoCancellation() bool
 	SetEchoCancellation(v bool)
 
+	// Language is the interface language code ("" = the system's).
+	Language() string
+	SetLanguage(v string)
+
 	// ColorScheme is "system", "light" or "dark".
 	ColorScheme() string
 	SetColorScheme(v string)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 16:25+0100\n"
+"POT-Creation-Date: 2026-11-09 17:09+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -102,16 +102,24 @@ msgid "Changes nothing"
 msgstr "Ändert nichts"
 
 #: internal/ui/admin/aclpages.go
-msgid "No matching registered users. Users must be registered on the server; online ones and those from the user list are shown."
-msgstr "Keine passenden registrierten Benutzer. Benutzer müssen auf dem Server registriert sein; angezeigt werden die online und die aus der Benutzerliste."
+msgid ""
+"No matching registered users. Users must be registered on the server; online "
+"ones and those from the user list are shown."
+msgstr ""
+"Keine passenden registrierten Benutzer. Benutzer müssen auf dem Server "
+"registriert sein; angezeigt werden die online und die aus der Benutzerliste."
 
 #: internal/ui/admin/aclpages.go internal/ui/admin/channeledit.go
 msgid "Groups"
 msgstr "Gruppen"
 
 #: internal/ui/admin/aclpages.go
-msgid "Groups collect registered users. Rules on the Permissions page can refer to them as @name."
-msgstr "Gruppen fassen registrierte Benutzer zusammen. Regeln auf der Seite „Rechte“ können sie als @Name verwenden."
+msgid ""
+"Groups collect registered users. Rules on the Permissions page can refer to "
+"them as @name."
+msgstr ""
+"Gruppen fassen registrierte Benutzer zusammen. Regeln auf der Seite „Rechte“ "
+"können sie als @Name verwenden."
 
 #: internal/ui/admin/aclpages.go
 msgid "No groups in this channel"
@@ -182,15 +190,21 @@ msgstr "Geerbte Regeln"
 
 #: internal/ui/admin/aclpages.go
 msgid "Defined in parent channels; they apply before the rules below."
-msgstr "In übergeordneten Kanälen festgelegt; sie gelten vor den Regeln darunter."
+msgstr ""
+"In übergeordneten Kanälen festgelegt; sie gelten vor den Regeln darunter."
 
 #: internal/ui/admin/aclpages.go
 msgid "Rules of This Channel"
 msgstr "Regeln dieses Kanals"
 
 #: internal/ui/admin/aclpages.go
-msgid "Applied from top to bottom: a later rule overrides an earlier one. The password on the General page adds its own rules, which are not listed here."
-msgstr "Werden von oben nach unten angewendet: Eine spätere Regel hat Vorrang vor einer früheren. Das Passwort auf der Seite „Allgemein“ legt eigene Regeln an, die hier nicht aufgeführt sind."
+msgid ""
+"Applied from top to bottom: a later rule overrides an earlier one. The "
+"password on the General page adds its own rules, which are not listed here."
+msgstr ""
+"Werden von oben nach unten angewendet: Eine spätere Regel hat Vorrang vor "
+"einer früheren. Das Passwort auf der Seite „Allgemein“ legt eigene Regeln "
+"an, die hier nicht aufgeführt sind."
 
 #: internal/ui/admin/aclpages.go
 msgid "No rules in this channel"
@@ -353,7 +367,7 @@ msgstr "Dieser Kanal und alle seine Unterkanäle werden dauerhaft entfernt."
 msgid "Remove"
 msgstr "Entfernen"
 
-#: internal/ui/admin/channeledit.go
+#: internal/ui/admin/channeledit.go internal/ui/prefs/window.go
 msgid "General"
 msgstr "Allgemein"
 
@@ -380,7 +394,8 @@ msgstr "Position"
 
 #: internal/ui/admin/channeledit.go
 msgid "Order among sibling channels: lower numbers come first"
-msgstr "Reihenfolge unter Kanälen derselben Ebene: kleinere Zahlen stehen weiter oben"
+msgstr ""
+"Reihenfolge unter Kanälen derselben Ebene: kleinere Zahlen stehen weiter oben"
 
 #: internal/ui/admin/channeledit.go
 msgid "Maximum Users"
@@ -403,16 +418,26 @@ msgid "Loading the channel's permissions…"
 msgstr "Rechte des Kanals werden geladen …"
 
 #: internal/ui/admin/channeledit.go
-msgid "You may not view this channel's permissions, so its password cannot be changed here."
-msgstr "Du darfst die Rechte dieses Kanals nicht einsehen, daher kann sein Passwort hier nicht geändert werden."
+msgid ""
+"You may not view this channel's permissions, so its password cannot be "
+"changed here."
+msgstr ""
+"Du darfst die Rechte dieses Kanals nicht einsehen, daher kann sein Passwort "
+"hier nicht geändert werden."
 
 #: internal/ui/admin/channeledit.go
-msgid "You do not have permission to view this channel's groups and permissions."
-msgstr "Du hast keine Berechtigung, die Gruppen und Rechte dieses Kanals einzusehen."
+msgid ""
+"You do not have permission to view this channel's groups and permissions."
+msgstr ""
+"Du hast keine Berechtigung, die Gruppen und Rechte dieses Kanals einzusehen."
 
 #: internal/ui/admin/channeledit.go
-msgid "Users need this password to enter the channel. Leave it empty for an open channel."
-msgstr "Benutzer brauchen dieses Passwort, um den Kanal zu betreten. Leer lassen für einen offenen Kanal."
+msgid ""
+"Users need this password to enter the channel. Leave it empty for an open "
+"channel."
+msgstr ""
+"Benutzer brauchen dieses Passwort, um den Kanal zu betreten. Leer lassen für "
+"einen offenen Kanal."
 
 #: internal/ui/admin/descedit.go internal/ui/chat/composer.go
 msgid "Bold (Ctrl+B)"
@@ -439,8 +464,12 @@ msgid "Preview"
 msgstr "Vorschau"
 
 #: internal/ui/admin/descedit.go
-msgid "An image at the very start that is at least 480 px wide is shown as a banner across the channel header."
-msgstr "Ein Bild ganz am Anfang, das mindestens 480 px breit ist, wird als Banner über den Kanalkopf angezeigt."
+msgid ""
+"An image at the very start that is at least 480 px wide is shown as a banner "
+"across the channel header."
+msgstr ""
+"Ein Bild ganz am Anfang, das mindestens 480 px breit ist, wird als Banner "
+"über den Kanalkopf angezeigt."
 
 #: internal/ui/admin/descedit.go
 msgid "Apply"
@@ -582,8 +611,11 @@ msgid "%.1f kb/s"
 msgstr "%.1f kb/s"
 
 #: internal/ui/admin/stats.go
-msgid "The server shares client details of other users only with administrators."
-msgstr "Der Server gibt Client-Details anderer Benutzer nur an Administratoren weiter."
+msgid ""
+"The server shares client details of other users only with administrators."
+msgstr ""
+"Der Server gibt Client-Details anderer Benutzer nur an Administratoren "
+"weiter."
 
 #: internal/ui/admin/stats.go
 msgid "Yes"
@@ -745,7 +777,9 @@ msgstr "Mehr anzeigen"
 
 #: internal/ui/chat/composer.go
 msgid "Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"
-msgstr "Nachricht – Eingabetaste sendet, Umschalt+Eingabe fügt eine Zeile ein, Strg+B / Strg+I formatieren"
+msgstr ""
+"Nachricht – Eingabetaste sendet, Umschalt+Eingabe fügt eine Zeile ein, "
+"Strg+B / Strg+I formatieren"
 
 #: internal/ui/chat/composer.go
 msgid "Attach an image"
@@ -1028,7 +1062,8 @@ msgstr "Benutzerzertifikat"
 
 #: internal/ui/connection/controller.go
 msgid "Import certificate (PEM file with certificate and private key)"
-msgstr "Zertifikat importieren (PEM-Datei mit Zertifikat und privatem Schlüssel)"
+msgstr ""
+"Zertifikat importieren (PEM-Datei mit Zertifikat und privatem Schlüssel)"
 
 #: internal/ui/connection/controller.go internal/ui/prefs/window.go
 msgid "Create a new certificate"
@@ -1102,13 +1137,27 @@ msgstr "OK"
 
 #: internal/ui/connection/controller.go
 #, go-format
-msgid "The name %s is registered on this server, and the server does not recognize you as its owner. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."
-msgstr "Der Name %s ist auf diesem Server registriert, und der Server erkennt dich nicht als Inhaber. Verbinde dich mit dem Zertifikat, mit dem der Name registriert wurde, wähle einen anderen Namen oder gib das Passwort des Kontos ein, falls es eines hat."
+msgid ""
+"The name %s is registered on this server, and the server does not recognize "
+"you as its owner. Connect with the certificate the name was registered with, "
+"choose another name, or enter the account's password if it has one."
+msgstr ""
+"Der Name %s ist auf diesem Server registriert, und der Server erkennt dich "
+"nicht als Inhaber. Verbinde dich mit dem Zertifikat, mit dem der Name "
+"registriert wurde, wähle einen anderen Namen oder gib das Passwort des "
+"Kontos ein, falls es eines hat."
 
 #: internal/ui/connection/controller.go
 #, go-format
-msgid "The name %s is registered on this server with a different certificate than %s. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."
-msgstr "Der Name %s ist auf diesem Server mit einem anderen Zertifikat als %s registriert. Verbinde dich mit dem Zertifikat, mit dem der Name registriert wurde, wähle einen anderen Namen oder gib das Passwort des Kontos ein, falls es eines hat."
+msgid ""
+"The name %s is registered on this server with a different certificate than "
+"%s. Connect with the certificate the name was registered with, choose "
+"another name, or enter the account's password if it has one."
+msgstr ""
+"Der Name %s ist auf diesem Server mit einem anderen Zertifikat als %s "
+"registriert. Verbinde dich mit dem Zertifikat, mit dem der Name registriert "
+"wurde, wähle einen anderen Namen oder gib das Passwort des Kontos ein, falls "
+"es eines hat."
 
 #: internal/ui/connection/controller.go
 msgid "Account password"
@@ -1145,7 +1194,8 @@ msgstr "Falsches Passwort"
 
 #: internal/ui/connection/controller.go
 msgid "The server did not accept the password. Please try again."
-msgstr "Der Server hat das Passwort nicht akzeptiert. Bitte versuche es erneut."
+msgstr ""
+"Der Server hat das Passwort nicht akzeptiert. Bitte versuche es erneut."
 
 #: internal/ui/connection/controller.go
 msgid "Remember Password"
@@ -1164,8 +1214,12 @@ msgid "Certificate Required"
 msgstr "Zertifikat erforderlich"
 
 #: internal/ui/connection/controller.go
-msgid "The server needs a certificate for this, for example to register your account. Create one now? Murmel then reconnects with it."
-msgstr "Der Server braucht dafür ein Zertifikat, zum Beispiel um dein Konto zu registrieren. Jetzt eines erstellen? Murmel verbindet sich dann damit neu."
+msgid ""
+"The server needs a certificate for this, for example to register your "
+"account. Create one now? Murmel then reconnects with it."
+msgstr ""
+"Der Server braucht dafür ein Zertifikat, zum Beispiel um dein Konto zu "
+"registrieren. Jetzt eines erstellen? Murmel verbindet sich dann damit neu."
 
 #: internal/ui/connection/controller.go
 msgid "Create Certificate…"
@@ -1186,8 +1240,20 @@ msgstr "Server-Zertifikat geändert"
 
 #: internal/ui/connection/controller.go
 #, go-format
-msgid "The server's certificate has changed.\n\nNew fingerprint:\n%s\n\nOnly continue if you trust this certificate."
-msgstr "Das Zertifikat des Servers hat sich geändert.\n\nNeuer Fingerabdruck:\n%s\n\nFahre nur fort, wenn du diesem Zertifikat vertraust."
+msgid ""
+"The server's certificate has changed.\n"
+"\n"
+"New fingerprint:\n"
+"%s\n"
+"\n"
+"Only continue if you trust this certificate."
+msgstr ""
+"Das Zertifikat des Servers hat sich geändert.\n"
+"\n"
+"Neuer Fingerabdruck:\n"
+"%s\n"
+"\n"
+"Fahre nur fort, wenn du diesem Zertifikat vertraust."
 
 #: internal/ui/connection/controller.go
 msgid "New Server Certificate"
@@ -1195,8 +1261,20 @@ msgstr "Neues Server-Zertifikat"
 
 #: internal/ui/connection/controller.go
 #, go-format
-msgid "This server's certificate has not been seen before.\n\nFingerprint:\n%s\n\nTrust and connect?"
-msgstr "Das Zertifikat dieses Servers ist bisher unbekannt.\n\nFingerabdruck:\n%s\n\nVertrauen und verbinden?"
+msgid ""
+"This server's certificate has not been seen before.\n"
+"\n"
+"Fingerprint:\n"
+"%s\n"
+"\n"
+"Trust and connect?"
+msgstr ""
+"Das Zertifikat dieses Servers ist bisher unbekannt.\n"
+"\n"
+"Fingerabdruck:\n"
+"%s\n"
+"\n"
+"Vertrauen und verbinden?"
 
 #: internal/ui/connection/controller.go
 msgid "Trust and Connect"
@@ -1232,8 +1310,12 @@ msgstr "TLS-Verbindungsaufbau fehlgeschlagen"
 
 #: internal/ui/connection/controller.go
 #, go-format
-msgid "Could not establish a secure connection:\n%s"
-msgstr "Es konnte keine sichere Verbindung hergestellt werden:\n%s"
+msgid ""
+"Could not establish a secure connection:\n"
+"%s"
+msgstr ""
+"Es konnte keine sichere Verbindung hergestellt werden:\n"
+"%s"
 
 #: internal/ui/connection/controller.go
 msgid "Server Unreachable"
@@ -1241,8 +1323,12 @@ msgstr "Server nicht erreichbar"
 
 #: internal/ui/connection/controller.go
 #, go-format
-msgid "The server could not be reached:\n%s"
-msgstr "Der Server konnte nicht erreicht werden:\n%s"
+msgid ""
+"The server could not be reached:\n"
+"%s"
+msgstr ""
+"Der Server konnte nicht erreicht werden:\n"
+"%s"
 
 #: internal/ui/connection/controller.go
 msgid "Connection Failed"
@@ -1253,8 +1339,15 @@ msgid "E-mail (optional)"
 msgstr "E-Mail (optional)"
 
 #: internal/ui/identities/create.go
-msgid "A certificate is your identity on Mumble servers: registered accounts are recognized by it. Keep a backup — if it is lost, so is the registration. The e-mail address is only stored in the certificate."
-msgstr "Ein Zertifikat ist deine Identität auf Mumble-Servern: Registrierte Konten werden daran erkannt. Bewahre eine Sicherung auf – geht es verloren, ist auch die Registrierung weg. Die E-Mail-Adresse wird nur im Zertifikat gespeichert."
+msgid ""
+"A certificate is your identity on Mumble servers: registered accounts are "
+"recognized by it. Keep a backup — if it is lost, so is the registration. The "
+"e-mail address is only stored in the certificate."
+msgstr ""
+"Ein Zertifikat ist deine Identität auf Mumble-Servern: Registrierte Konten "
+"werden daran erkannt. Bewahre eine Sicherung auf – geht es verloren, ist "
+"auch die Registrierung weg. Die E-Mail-Adresse wird nur im Zertifikat "
+"gespeichert."
 
 #: internal/ui/identities/create.go
 msgid "New Certificate"
@@ -1275,8 +1368,13 @@ msgstr "Zertifikat erstellt"
 
 #: internal/ui/identities/create.go
 #, go-format
-msgid "Save a backup of “%s” now? Without it you cannot use your registered accounts on another computer or after reinstalling."
-msgstr "Jetzt eine Sicherung von „%s“ speichern? Ohne sie kannst du deine registrierten Konten nicht auf einem anderen Rechner oder nach einer Neuinstallation nutzen."
+msgid ""
+"Save a backup of “%s” now? Without it you cannot use your registered "
+"accounts on another computer or after reinstalling."
+msgstr ""
+"Jetzt eine Sicherung von „%s“ speichern? Ohne sie kannst du deine "
+"registrierten Konten nicht auf einem anderen Rechner oder nach einer "
+"Neuinstallation nutzen."
 
 #. TRANSLATORS: Button: back up the new certificate later.
 #: internal/ui/identities/create.go
@@ -1300,8 +1398,13 @@ msgid "Export Identity"
 msgstr "Identität exportieren"
 
 #: internal/ui/levelmeter/levelmeter.go
-msgid "Drag the handle to set the activation threshold: speech louder than the handle is transmitted. Arrow keys move it by 1 dB."
-msgstr "Ziehe den Regler, um die Aktivierungsschwelle einzustellen: Sprache, die lauter ist als der Regler, wird übertragen. Die Pfeiltasten verschieben ihn um 1 dB."
+msgid ""
+"Drag the handle to set the activation threshold: speech louder than the "
+"handle is transmitted. Arrow keys move it by 1 dB."
+msgstr ""
+"Ziehe den Regler, um die Aktivierungsschwelle einzustellen: Sprache, die "
+"lauter ist als der Regler, wird übertragen. Die Pfeiltasten verschieben ihn "
+"um 1 dB."
 
 #: internal/ui/levelmeter/levelmeter.go
 msgid "No microphone"
@@ -1450,7 +1553,8 @@ msgstr "Klänge"
 
 #: internal/ui/prefs/sounds.go
 msgid "Play a sound for connection, channel and message events"
-msgstr "Bei Verbindungs-, Kanal- und Nachrichtenereignissen einen Klang abspielen"
+msgstr ""
+"Bei Verbindungs-, Kanal- und Nachrichtenereignissen einen Klang abspielen"
 
 #: internal/ui/prefs/sounds.go
 msgid "Play"
@@ -1487,7 +1591,8 @@ msgstr "Standard-Avatar"
 
 #: internal/ui/prefs/window.go
 msgid "Optional — sent to servers for connections without their own avatar"
-msgstr "Optional – wird bei Verbindungen ohne eigenen Avatar an Server gesendet"
+msgstr ""
+"Optional – wird bei Verbindungen ohne eigenen Avatar an Server gesendet"
 
 #: internal/ui/prefs/window.go
 msgid "Default identity"
@@ -1506,8 +1611,12 @@ msgid "Certificates"
 msgstr "Zertifikate"
 
 #: internal/ui/prefs/window.go
-msgid "Servers recognize registered accounts by their certificate. Keep a backup of the ones you use."
-msgstr "Server erkennen registrierte Konten an ihrem Zertifikat. Bewahre eine Sicherung der Zertifikate auf, die du verwendest."
+msgid ""
+"Servers recognize registered accounts by their certificate. Keep a backup of "
+"the ones you use."
+msgstr ""
+"Server erkennen registrierte Konten an ihrem Zertifikat. Bewahre eine "
+"Sicherung der Zertifikate auf, die du verwendest."
 
 #: internal/ui/prefs/window.go
 msgid "Create…"
@@ -1541,7 +1650,9 @@ msgstr "Noch keine Zertifikate"
 
 #: internal/ui/prefs/window.go
 msgid "Without one you connect anonymously and cannot register on servers."
-msgstr "Ohne Zertifikat verbindest du dich anonym und kannst dich nicht auf Servern registrieren."
+msgstr ""
+"Ohne Zertifikat verbindest du dich anonym und kannst dich nicht auf Servern "
+"registrieren."
 
 #: internal/ui/prefs/window.go
 #, go-format
@@ -1572,8 +1683,14 @@ msgid "Delete “%s”?"
 msgstr "„%s“ löschen?"
 
 #: internal/ui/prefs/window.go
-msgid "Servers on which you registered with this certificate will no longer recognize you. Export it first if you might need it again. This cannot be undone."
-msgstr "Server, auf denen du dich mit diesem Zertifikat registriert hast, erkennen dich dann nicht mehr. Exportiere es vorher, falls du es noch einmal brauchen könntest. Das kann nicht rückgängig gemacht werden."
+msgid ""
+"Servers on which you registered with this certificate will no longer "
+"recognize you. Export it first if you might need it again. This cannot be "
+"undone."
+msgstr ""
+"Server, auf denen du dich mit diesem Zertifikat registriert hast, erkennen "
+"dich dann nicht mehr. Exportiere es vorher, falls du es noch einmal brauchen "
+"könntest. Das kann nicht rückgängig gemacht werden."
 
 #: internal/ui/prefs/window.go
 #, go-format
@@ -1602,8 +1719,11 @@ msgid "Noise Suppression"
 msgstr "Rauschunterdrückung"
 
 #: internal/ui/prefs/window.go
-msgid "Removes steady background noise such as fans, hum or traffic from your voice"
-msgstr "Entfernt gleichmäßige Hintergrundgeräusche wie Lüfter, Brummen oder Verkehr aus deiner Stimme"
+msgid ""
+"Removes steady background noise such as fans, hum or traffic from your voice"
+msgstr ""
+"Entfernt gleichmäßige Hintergrundgeräusche wie Lüfter, Brummen oder Verkehr "
+"aus deiner Stimme"
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go
 msgid "Low"
@@ -1626,16 +1746,26 @@ msgid "Echo Cancellation"
 msgstr "Echounterdrückung"
 
 #: internal/ui/prefs/window.go
-msgid "For speakers instead of a headset: keeps the others from hearing themselves through your microphone"
-msgstr "Für Lautsprecher statt Headset: Die anderen hören sich nicht selbst über dein Mikrofon"
+msgid ""
+"For speakers instead of a headset: keeps the others from hearing themselves "
+"through your microphone"
+msgstr ""
+"Für Lautsprecher statt Headset: Die anderen hören sich nicht selbst über "
+"dein Mikrofon"
 
 #: internal/ui/prefs/window.go
 msgid "Voice Detection"
 msgstr "Spracherkennung"
 
 #: internal/ui/prefs/window.go
-msgid "Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Without a connection the meter tests the selected microphone."
-msgstr "Sprich normal und ziehe den Regler knapp unter deinen Sprachpegel: Alles, was lauter ist als der Regler, wird übertragen. Ohne Verbindung testet die Anzeige das ausgewählte Mikrofon."
+msgid ""
+"Speak normally and drag the handle just below your speech level: everything "
+"louder than the handle is transmitted. Without a connection the meter tests "
+"the selected microphone."
+msgstr ""
+"Sprich normal und ziehe den Regler knapp unter deinen Sprachpegel: Alles, "
+"was lauter ist als der Regler, wird übertragen. Ohne Verbindung testet die "
+"Anzeige das ausgewählte Mikrofon."
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go
 msgid "Activation Threshold"
@@ -1647,7 +1777,9 @@ msgstr "Audio pro Paket"
 
 #: internal/ui/prefs/window.go
 msgid "Longer packets need less bandwidth but add delay. Default: 20 ms"
-msgstr "Längere Pakete brauchen weniger Bandbreite, erhöhen aber die Verzögerung. Standard: 20 ms"
+msgstr ""
+"Längere Pakete brauchen weniger Bandbreite, erhöhen aber die Verzögerung. "
+"Standard: 20 ms"
 
 #: internal/ui/prefs/window.go
 #, go-format
@@ -1660,8 +1792,12 @@ msgstr "Qualität (kb/s)"
 
 #: internal/ui/prefs/window.go
 #, go-format
-msgid "Needs about %.1f kb/s including network overhead. Servers with a lower limit reduce it automatically. Default: 40 kb/s"
-msgstr "Braucht etwa %.1f kb/s einschließlich Netzwerk-Overhead. Server mit einer niedrigeren Grenze reduzieren sie automatisch. Standard: 40 kb/s"
+msgid ""
+"Needs about %.1f kb/s including network overhead. Servers with a lower limit "
+"reduce it automatically. Default: 40 kb/s"
+msgstr ""
+"Braucht etwa %.1f kb/s einschließlich Netzwerk-Overhead. Server mit einer "
+"niedrigeren Grenze reduzieren sie automatisch. Standard: 40 kb/s"
 
 #: internal/ui/prefs/window.go
 msgid "Transmission"
@@ -1684,8 +1820,12 @@ msgid "Buffer (ms)"
 msgstr "Puffer (ms)"
 
 #: internal/ui/prefs/window.go
-msgid "Raise it if voices stutter on unstable connections; lower values reduce delay. Default: 30 ms"
-msgstr "Erhöhen, wenn Stimmen bei instabilen Verbindungen stocken; niedrigere Werte verringern die Verzögerung. Standard: 30 ms"
+msgid ""
+"Raise it if voices stutter on unstable connections; lower values reduce "
+"delay. Default: 30 ms"
+msgstr ""
+"Erhöhen, wenn Stimmen bei instabilen Verbindungen stocken; niedrigere Werte "
+"verringern die Verzögerung. Standard: 30 ms"
 
 #: internal/ui/prefs/window.go
 msgid "Chat"
@@ -1697,11 +1837,9 @@ msgstr "Kanalprotokoll"
 
 #: internal/ui/prefs/window.go
 msgid "Events shown as faded lines between the messages of the channel chat"
-msgstr "Ereignisse, die als blasse Zeilen zwischen den Nachrichten im Kanal-Chat erscheinen"
-
-#: internal/ui/prefs/window.go
-msgid "Behavior"
-msgstr "Verhalten"
+msgstr ""
+"Ereignisse, die als blasse Zeilen zwischen den Nachrichten im Kanal-Chat "
+"erscheinen"
 
 #: internal/ui/prefs/window.go
 msgid "Auto-reconnect"
@@ -1721,7 +1859,8 @@ msgstr "Desktop-Benachrichtigungen"
 
 #: internal/ui/prefs/window.go
 msgid "Private messages and reconnects while Murmel is in the background"
-msgstr "Private Nachrichten und Neuverbindungen, während Murmel im Hintergrund ist"
+msgstr ""
+"Private Nachrichten und Neuverbindungen, während Murmel im Hintergrund ist"
 
 #: internal/ui/prefs/window.go
 msgid "Users in my channel"
@@ -1750,7 +1889,7 @@ msgstr "Stil"
 
 #: internal/ui/prefs/window.go
 msgid "Light or dark; Follow System uses the desktop's setting"
-msgstr "Hell oder dunkel; „System folgen“ übernimmt die Einstellung des Desktops"
+msgstr "Hell, dunkel oder wie der Desktop"
 
 #: internal/ui/prefs/window.go
 msgid "Follow System"
@@ -1767,6 +1906,22 @@ msgstr "Dunkel"
 #: internal/ui/prefs/window.go
 msgid "Appearance"
 msgstr "Erscheinungsbild"
+
+#: internal/ui/prefs/window.go
+msgid "Language"
+msgstr "Sprache"
+
+#: internal/ui/prefs/window.go
+msgid ""
+"Follow System uses the desktop's language, or English if Murmel has no "
+"translation for it"
+msgstr ""
+"„System folgen“ verwendet die Sprache des Desktops oder Englisch, wenn "
+"Murmel dafür keine Übersetzung hat"
+
+#: internal/ui/prefs/window.go
+msgid "Restart Murmel to use the new language."
+msgstr "Starte Murmel neu, um die neue Sprache zu verwenden."
 
 #: internal/ui/presence/presence.go
 msgid "Banned from the server"
@@ -1793,16 +1948,27 @@ msgid "Output device"
 msgstr "Ausgabegerät"
 
 #: internal/ui/statusbar.go
-msgid "Voice input: grey = below threshold, green = transmitting, yellow = voice detected but not sent (muted or not connected), red = too loud. Click to set the activation threshold."
-msgstr "Spracheingabe: grau = unter der Schwelle, grün = wird übertragen, gelb = Sprache erkannt, aber nicht gesendet (stummgeschaltet oder nicht verbunden), rot = zu laut. Klicken, um die Aktivierungsschwelle einzustellen."
+msgid ""
+"Voice input: grey = below threshold, green = transmitting, yellow = voice "
+"detected but not sent (muted or not connected), red = too loud. Click to set "
+"the activation threshold."
+msgstr ""
+"Spracheingabe: grau = unter der Schwelle, grün = wird übertragen, gelb = "
+"Sprache erkannt, aber nicht gesendet (stummgeschaltet oder nicht verbunden), "
+"rot = zu laut. Klicken, um die Aktivierungsschwelle einzustellen."
 
 #: internal/ui/statusbar.go
 msgid "Input Device"
 msgstr "Eingabegerät"
 
 #: internal/ui/statusbar.go
-msgid "Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Red means the input is too loud."
-msgstr "Sprich normal und ziehe den Regler knapp unter deinen Sprachpegel: Alles, was lauter ist als der Regler, wird übertragen. Rot bedeutet, dass die Eingabe zu laut ist."
+msgid ""
+"Speak normally and drag the handle just below your speech level: everything "
+"louder than the handle is transmitted. Red means the input is too loud."
+msgstr ""
+"Sprich normal und ziehe den Regler knapp unter deinen Sprachpegel: Alles, "
+"was lauter ist als der Regler, wird übertragen. Rot bedeutet, dass die "
+"Eingabe zu laut ist."
 
 #: internal/ui/statusbar.go
 msgid "Processing"
@@ -1907,7 +2073,8 @@ msgstr "Murmel beenden?"
 
 #: internal/ui/window.go
 msgid "You are still connected to a server. Quitting ends the connection."
-msgstr "Du bist noch mit einem Server verbunden. Beenden trennt die Verbindung."
+msgstr ""
+"Du bist noch mit einem Server verbunden. Beenden trennt die Verbindung."
 
 #: internal/ui/window.go
 msgid "Connect…"
@@ -1931,4 +2098,8 @@ msgstr "Das Mikrofon liefert keinen Ton mehr. Wähle ein anderes Eingabegerät."
 
 #: internal/ui/window.go
 msgid "The output device is not playing audio. Choose another output device."
-msgstr "Das Ausgabegerät gibt keinen Ton wieder. Wähle ein anderes Ausgabegerät."
+msgstr ""
+"Das Ausgabegerät gibt keinen Ton wieder. Wähle ein anderes Ausgabegerät."
+
+#~ msgid "Behavior"
+#~ msgstr "Verhalten"

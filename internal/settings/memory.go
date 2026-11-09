@@ -22,6 +22,7 @@ func memoryDefaults() map[string]any {
 		"noise-suppression":       2,
 		"echo-cancellation":       false,
 		"color-scheme":            "system",
+		"language":                "",
 		"notification-enabled":    true,
 		"notify-channel-presence": false,
 		"notify-server-presence":  false,
@@ -187,6 +188,8 @@ func (m *Memory) SetNoiseSuppression(v int) { m.set("noise-suppression", v) }
 
 func (m *Memory) EchoCancellation() bool     { return m.get("echo-cancellation").(bool) }
 func (m *Memory) SetEchoCancellation(v bool) { m.set("echo-cancellation", v) }
+func (m *Memory) Language() string           { return m.get("language").(string) }
+func (m *Memory) SetLanguage(v string)       { m.set("language", v) }
 func (m *Memory) ColorScheme() string        { return m.get("color-scheme").(string) }
 func (m *Memory) SetColorScheme(v string)    { m.set("color-scheme", v) }
 

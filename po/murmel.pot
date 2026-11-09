@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 16:25+0100\n"
+"POT-Creation-Date: 2026-11-09 17:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -359,7 +359,7 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go
+#: internal/ui/admin/channeledit.go internal/ui/prefs/window.go
 msgid "General"
 msgstr ""
 
@@ -1760,10 +1760,6 @@ msgid "Events shown as faded lines between the messages of the channel chat"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Behavior"
-msgstr ""
-
-#: internal/ui/prefs/window.go
 msgid "Auto-reconnect"
 msgstr ""
 
@@ -1826,6 +1822,20 @@ msgstr ""
 
 #: internal/ui/prefs/window.go
 msgid "Appearance"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Language"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid ""
+"Follow System uses the desktop's language, or English if Murmel has no "
+"translation for it"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Restart Murmel to use the new language."
 msgstr ""
 
 #: internal/ui/presence/presence.go

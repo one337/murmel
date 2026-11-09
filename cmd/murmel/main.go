@@ -26,6 +26,7 @@ func main() {
 	gumble.RegisterMurmelOpusCodec()
 
 	st := settings.New()
+	ui.ApplyLanguage(st.Language()) // before any UI text is created
 	b := bus.New(nil)
 
 	certsManager, err := certs.NewManager()
