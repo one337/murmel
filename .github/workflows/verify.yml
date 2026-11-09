@@ -1,0 +1,47 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # Murmel targets the current GNOME stack (GTK 4.24, Libadwaita 1.10,
+    # Go 1.27), which Fedora ships; Ubuntu's runner images are too old.
+    container: fedora:45
+    env:
+      GOCACHE: /github/home/.cache/go-build
+      GOMODCACHE: /github/home/go/pkg/mod
+    steps:
+      # git first, so checkout produces a real repository (verify.sh uses
+      # git ls-files).
+      - name: Install build dependencies
+        run: >-
+          dnf -y install --setopt=install_weak_deps=False
+          git golang gcc gcc-c++ pkgconf-pkg-config
+          gtk4-devel libadwaita-devel gobject-introspection-devel graphene-devel
+          opus-devel webrtc-audio-processing-devel
+          glib2-devel gettext xorg-x11-server-Xvfb
+
+      - uses: actions/checkout@v5
+
+      - name: Trust the workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # The first build compiles the GTK bindings (several minutes); the
+      # cache makes later runs fast.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /github/home/.cache/go-build
+            /github/home/go/pkg/mod
+          key: go-${{ hashFiles('go.sum') }}-${{ github.sha }}
+          restore-keys: go-${{ hashFiles('go.sum') }}-
+
+      - name: Verify
+        run: tools/verify.sh
