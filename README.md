@@ -15,17 +15,21 @@ written in Go with GTK 4 and Libadwaita.
   pane, works on narrow windows
 - Voice over encrypted UDP with automatic TCP fallback, Opus codec
 - Voice activity detection with an absolute threshold set on a live level
-  meter (also as a microphone test without a connection)
-- Noise suppression and echo cancellation (WebRTC audio processing)
+  meter
+- Noise suppression and echo cancellation (WebRTC)
 - Adjustable voice quality (32–192 kb/s), limited to the server's bandwidth
 - Input and output device selection right from the status bar
-- Adjustable jitter buffer and audio per packet (10–60 ms)
-- Saved connections; server passwords are kept in the desktop keyring
-- Client certificates (import PEM), trust-on-first-use server certificates
-- Text chat with channel and private messages, welcome message
-- Desktop notifications for private messages and, optionally, users
-  joining or leaving your channel or the server
-- Event sounds with per-event choice (built-in or your own WAV/Ogg files)
+- Adjustable jitter buffer and audio per packet
+- Saved connections; server passwords are stored securely in the desktop
+  keyring
+- Client certificates (PEM import; generating new ones is not supported
+  yet), trust-on-first-use server certificates
+- Text chat with channel messages and private conversations, formatting
+  and images, channel descriptions, unread markers
+- User avatars
+- Server administration: kick, ban, ban list, registered users, channels
+- Desktop notifications for messages and events (configurable)
+- Event sounds with per-event choice (built-in or your own audio files)
 - `mumble://` links
 
 ## Install
