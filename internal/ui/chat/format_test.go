@@ -3,7 +3,12 @@ package chat
 import (
 	"encoding/base64"
 	"encoding/xml"
+	"image"
+	"image/color"
+	"image/png"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -69,8 +74,33 @@ func TestScaleTo(t *testing.T) {
 	}
 }
 
+// testScreenshot writes a screenshot-sized PNG with gradients and noise,
+// so it neither fits the limits as-is nor compresses trivially.
+func testScreenshot(t *testing.T) string {
+	t.Helper()
+	img := image.NewRGBA(image.Rect(0, 0, 1600, 1000))
+	seed := uint32(1)
+	for y := range 1000 {
+		for x := range 1600 {
+			seed = seed*1664525 + 1013904223
+			n := uint8(seed >> 27)
+			img.Set(x, y, color.RGBA{uint8(x/7) + n, uint8(y/4) + n, uint8((x+y)/12) + n, 0xff})
+		}
+	}
+	path := filepath.Join(t.TempDir(), "screenshot.png")
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	if err := png.Encode(f, img); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
 func TestEncodeImageFitsLimit(t *testing.T) {
-	const path = "../../../assets/screenshots/0.3.2/server-connected.png"
+	path := testScreenshot(t)
 	for _, limit := range []int{defaultImageMessageLength, 40000} {
 		uri, err := encodeImage(path, limit)
 		if err != nil {
