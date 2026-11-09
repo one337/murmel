@@ -1,4 +1,4 @@
-// Package prefs implements the application preferences window (T25).
+// Package prefs implements the application preferences window.
 // It is an adw.PreferencesWindow with five pages covering identity,
 // audio input, audio output, positional audio, and behavior settings.
 // All widgets bind directly to the Settings module with instant-apply.

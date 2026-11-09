@@ -2,7 +2,7 @@
 // live murmur server, dialing through the Murmel certs package's TLSConfig
 // seam (client cert + TOFU).
 //
-// TEST-ONLY throwaway harness client for the T7 registration QA scenario.
+// TEST-ONLY throwaway harness client for the registration QA scenario.
 // Not part of any build; lives under testdata so the go tool ignores it.
 //
 // -cert selects an identity slot inside -datadir: the first run generates and

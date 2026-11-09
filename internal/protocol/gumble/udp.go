@@ -4,7 +4,7 @@
 // handling) and decrypts to a standalone packet whose header byte carries
 // the message type in its top three bits — ping = 1 (header byte 0x20) or
 // Opus voice = 4 (0x80), byte-identical to the UDPTunnel body framed for TCP
-// (MumbleProtocol.h LegacyUDPMessageType, pinned by the T6 golden tests).
+// (MumbleProtocol.h LegacyUDPMessageType, pinned by the framing golden tests).
 //
 // Lifecycle: UDP is the primary voice path. Once a full CryptSetup installs
 // key material, the transport probes with encrypted pings; the first
@@ -311,7 +311,7 @@ func (t *udpTransport) handleDatagram(datagram []byte) {
 	t.mu.Unlock()
 
 	if voice {
-		// Same standalone bytes as a UDPTunnel body (T6 contract).
+		// Same standalone bytes as a UDPTunnel body (framing contract).
 		_ = t.client.handleVoicePacket(plain)
 	}
 }

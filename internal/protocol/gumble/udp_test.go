@@ -295,7 +295,7 @@ func TestUDPCryptResync(t *testing.T) {
 // asserts the production-timing contract: no decryptable datagram within
 // the 3 s handshake window → permanent fallback (well inside the plan's
 // 5 s bound), after which voice packets take the TCP UDPTunnel with the
-// exact T6 golden framing bytes.
+// exact golden framing bytes.
 func TestUDPFallback(t *testing.T) {
 	client, wire := framingConn(t)
 	key, clientNonce, serverNonce, _ := cryptSetupMaterial(t)
@@ -351,7 +351,7 @@ func TestUDPFallback(t *testing.T) {
 		t.Fatalf("fallback state inconsistent: stats=%+v transport=%q", s, client.VoiceTransport())
 	}
 
-	// Voice continues over the TCP tunnel with the T6 golden bytes for
+	// Voice continues over the TCP tunnel with the golden framing bytes for
 	// (Opus, target 0, seq 7, final, 3-byte payload): header 0x80,
 	// varint 7, length 3|0x2000 → 0xA0 0x03, payload.
 	frame := []byte{0xAA, 0xBB, 0xCC}
@@ -372,7 +372,7 @@ func TestUDPFallback(t *testing.T) {
 	}
 }
 
-// TestUDPVoiceDatagramMatchesTCPTunnel pins the T6 contract on the wire:
+// TestUDPVoiceDatagramMatchesTCPTunnel pins the framing contract on the wire:
 // while UDP is active, the same writeAudioPacket input produces the exact
 // same standalone packet bytes inside the encrypted datagram as the TCP
 // UDPTunnel body carries after fallback — one framing function, two

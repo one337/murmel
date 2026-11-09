@@ -348,7 +348,7 @@ func TestConcurrentPlaybackConservation(t *testing.T) {
 // TestInitNoDevice is the headless-safety gate: on a host without a
 // sound server (or audio libraries), context init, GetDevices and Open
 // must all fail with clean Go errors — no panic, cgo abort or hang. On
-// hosts with live audio it skips (real-device verification is T20/F3).
+// hosts with live audio it skips (real devices are verified by hand).
 func TestInitNoDevice(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short mode: skipping live backend probe")
@@ -399,7 +399,7 @@ func TestDuplexIntegration(t *testing.T) {
 		t.Skip("short mode: no live audio")
 	}
 	if os.Getenv("MURMEL_AUDIO_INTEGRATION") == "" {
-		t.Skip("opt-in: set MURMEL_AUDIO_INTEGRATION=1 (real-device verification happens in T20/F3)")
+		t.Skip("opt-in: set MURMEL_AUDIO_INTEGRATION=1 (real devices are verified by hand)")
 	}
 	d, err := Open(Config{})
 	if err != nil {

@@ -310,7 +310,7 @@ type ServerConfigUpdated struct {
 }
 
 // VoiceActivity is a voice-activity-detection decision. It is emitted by the
-// audio pipeline (T20), not by the gumble bridge; the event type and
+// audio pipeline, not by the gumble bridge; the event type and
 // subscription support land here so consumers can be written first.
 type VoiceActivity struct {
 	Session uint32
@@ -352,8 +352,8 @@ type AudioDeviceProblem struct {
 }
 
 // ChatTargetChanged announces a new chat target: where newly composed
-// messages go. Emitters are the channel tree selection (T16), per-user
-// "send message" actions (T18), and the chat view's own target menu (T17).
+// messages go. Emitters are the channel tree selection, per-user
+// "send message" actions, and the chat view's own target menu.
 //
 // Contract: exactly one field is non-zero, except the zero value which means
 // "follow the local user's current channel" (the default target). A non-zero
@@ -368,7 +368,7 @@ type ChatTargetChanged struct {
 }
 
 // LatencyStats carries round-trip and jitter measurements. It is emitted by
-// the audio/connection metrics pipeline (T20); the event type and
+// the audio/connection metrics pipeline; the event type and
 // subscription support land here so consumers can be written first.
 type LatencyStats struct {
 	// RTT is the current round-trip time estimate.

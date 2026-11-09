@@ -1043,7 +1043,7 @@ func (c *Controller) onJoinRequested(ev bus.ChannelJoinRequested) {
 	})
 }
 
-// --- User actions (T18) ----------------------------------------------------
+// --- User actions ----------------------------------------------------------
 
 func (c *Controller) onSelfMuteToggle(ev bus.SelfMuteToggle) {
 	c.withClient(func(client *gumble.Client) {
@@ -1118,7 +1118,7 @@ func (c *Controller) onUserStatsRequested(ev bus.UserStatsRequested) {
 	})
 }
 
-// --- Admin actions (T21) ---------------------------------------------------
+// --- Admin actions ---------------------------------------------------------
 
 func (c *Controller) onUserKickRequested(ev bus.UserKickRequested) {
 	c.withClient(func(client *gumble.Client) {

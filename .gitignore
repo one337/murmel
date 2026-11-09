@@ -25,7 +25,7 @@ data/gschemas.compiled
 go.work
 go.work.sum
 
-# build artifacts (T15 QA binary location)
+# build artifacts (local QA binaries)
 /target/
 
 # Release output (upload web/ to the server) and local release settings

@@ -112,7 +112,7 @@ func parseDefault(gtype, lit string) (any, error) {
 // TestKeyCoverage asserts that every key in the GSchema file has a typed
 // accessor spec (and vice versa) and that the Memory defaults equal the
 // schema defaults. It guards the package against drift between the schema,
-// the accessor layer and the T25 preference widgets.
+// the accessor layer and the preference widgets.
 func TestKeyCoverage(t *testing.T) {
 	schemaKeys := parseSchema(t)
 

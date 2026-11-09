@@ -11,7 +11,7 @@ import (
 
 // Source yields 480-sample mono PCM frames. Read blocks until a frame is
 // available and returns io.EOF at end of stream. The returned slice is
-// valid until the next Read. malgo's capture callback (T12) adapts by
+// valid until the next Read. malgo's capture callback adapts by
 // handing each callback buffer to the same consumption path.
 type Source interface {
 	Read() ([]int16, error)

@@ -304,7 +304,8 @@ func sameRow(a, b *gtk.ListBoxRow) bool {
 }
 
 // onActivate fires when the user double-clicks or presses Enter on a row.
-// Channel rows request a join; user rows do nothing (T18 adds actions).
+// Channel rows request a join; user rows have their own click handler
+// (it opens the conversation).
 func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 	for id, r := range t.channelRows {
 		if sameRow(r.root, row) {

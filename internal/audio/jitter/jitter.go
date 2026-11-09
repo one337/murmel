@@ -1,11 +1,11 @@
 // Package jitter implements the playback-side de-jitter buffer for
 // received voice frames: the absorbing layer between order-independent
-// packet arrival (T9 transport, upstream gumble TODO handlers.go:116
-// "use in jitter buffer") and the fixed 10 ms playback cadence (T20
+// packet arrival (UDP transport, upstream gumble TODO handlers.go:116
+// "use in jitter buffer") and the fixed 10 ms playback cadence (
 // pipeline integration).
 //
 // The component is pure: decoded frames enter via Consume keyed by the
-// per-sender monotonic sequence number (int64, T6 framing semantics),
+// per-sender monotonic sequence number (int64, as in the voice framing),
 // playback frames leave via Next. There is no transport or audio-device
 // coupling and no timing inside — the caller's real-time pacing (one
 // Next per 10 ms) provides the clock. One Buffer serves one sender.
@@ -37,7 +37,7 @@
 //
 // The target depth is the steady-state buffering level the caller's
 // pacing maintains (default 3 frames = 30 ms; configurable 2–8). All
-// accounting is exposed via Metrics for the UI latency display (T20/T25).
+// accounting is exposed via Metrics for the UI latency display.
 package jitter
 
 import "fmt"
@@ -90,7 +90,7 @@ func (m Metrics) Drops() uint64 { return m.Duplicates + m.Late + m.Burst }
 func (m Metrics) Outputs() uint64 { return m.Delivered + m.PLC }
 
 // Buffer is the playback-side jitter buffer for one sender's stream.
-// It is not safe for concurrent use; the T20 integration owns it on the
+// It is not safe for concurrent use; the voice engine owns it on the
 // playback goroutine (Consume arrives via the decode callback hand-off).
 type Buffer struct {
 	target  int

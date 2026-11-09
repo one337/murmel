@@ -39,7 +39,7 @@ const (
 	// which ResyncNeeded reports true. The official client instead triggers
 	// on wall-clock time (no good packet for 5 s, at most one request per
 	// 5 s — ServerHandler.cpp); a failure count is equivalent for the pure
-	// state machine and deterministic in tests. T9 may layer the official
+	// state machine and deterministic in tests. The UDP transport may layer the official
 	// timing on top.
 	ResyncThreshold = 8
 )
@@ -358,7 +358,7 @@ func (cs *CryptState) ResyncNeeded() bool {
 // the CryptState's part of that exchange: it resets the consecutive-failure
 // count, rate-limiting requests to one per ResyncThreshold failures (the
 // official client uses a 5-second tLastRequest timer instead). Sending the
-// empty CryptSetup over the control channel is T9's job.
+// empty CryptSetup over the control channel is the UDP transport's job.
 func (cs *CryptState) GenResync() {
 	cs.consecutiveFailures = 0
 }

@@ -17,7 +17,7 @@ type ServerEntry struct {
 }
 
 // Settings is the typed accessor layer over the GSchema keys. See the
-// package doc comment for the key ↔ accessor ↔ T25 widget mapping table.
+// package doc comment for the key ↔ accessor ↔ preferences widget mapping table.
 //
 // All methods must be called from the GTK main thread (see package doc).
 // Setters that violate a schema range are refused by the GSettings backend

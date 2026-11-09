@@ -39,8 +39,6 @@ log, are the record.
 
 ## P1 — Replace gopus codec registration with explicit codec seam
 
-- **Commits**: `9937f55` (T8 glue: `feat(protocol): wire audio/opus wrapper
-  into fork codec registry`) + this ledger/doc consolidation commit
 - **What**: upstream's Opus registration lived in the separate
   `layeh.com/gumble/opus` subpackage — an `init()` registering a gopus-backed
   generator (unmaintained cgo, embedded Opus 1.1.2). That subpackage was not
@@ -56,7 +54,7 @@ log, are the record.
   instead of the dropped import side effect.
 - **Why**: drop the unmaintained gopus dependency from the main module while
   keeping the codec-registry interface stable as the drop-in hook for
-  `internal/audio/opus` (T8) and any future codec implementation.
+  `internal/audio/opus` and any future codec implementation.
 - **Upstream**: https://github.com/layeh/gumble/blob/d1df60a3cc14e2d47e2b46d0d887dc79c2ff64c9/opus/opus.go
 
 ---
@@ -97,7 +95,7 @@ log, are the record.
   dropped instead of blocking the read loop; `Client.AudioDropped()` counts
   the drops. The codec is resolved on the read loop at enqueue time because
   `c.audioCodec` is written by `handleCodecVersion` on that goroutine. The
-  P1/T8 codec seam is unaffected — the registry still routes to
+  P1 codec seam is unaffected — the registry still routes to
   `internal/audio/opus` via `RegisterMurmelOpusCodec`.
 - **Why**: voice decode (cgo libopus) and consumer back-pressure must never
   stall control-channel processing; this is the precondition for the GTK app
@@ -167,7 +165,7 @@ log, are the record.
   `TestEncodeMinInt64Terminates` alongside `MinInt64+1 == -MaxInt64`).
 - **Why**: any field that ever carried `MinInt64` (or an attacker-controlled
   varint echoed back) turned an O(1) encode into unbounded recursion →
-  buffer/stack exhaustion panic. Found by T6's edge-table tests; no Mumble
+  buffer/stack exhaustion panic. Found by the varint edge-case tests; no Mumble
   protocol field currently sends negative values, so this is latent rather
   than reachable from a stock server.
 - **Proof**: pre-fix, `Encode(buf, math.MinInt64)` panics with
@@ -196,7 +194,7 @@ log, are the record.
   nothing locally. `requestCryptResync()` sends the empty CryptSetup that
   Murmur answers with `{server_nonce: its encrypt IV}`. Key material lives
   in a new mutex-guarded `Client.crypt` (`lockedCrypt`) over
-  `internal/protocol/crypt` (T5) — the rolling nonces are touched from the
+  `internal/protocol/crypt` — the rolling nonces are touched from the
   read loop, the UDP loops and voice writers concurrently, and
   `crypt.CryptState` is not concurrency-safe.
 - **Why**: precondition for native UDP voice (P8); also stops silently
@@ -214,7 +212,7 @@ log, are the record.
   (created by `DialWithDialer` when the new `Config.UDPVoice` is set) that
   binds a connected UDP socket to the server address and speaks the legacy
   UDP wire format the client's protocol version advertises. Every datagram
-  is OCB2-encrypted through P7's `lockedCrypt` (T5 `crypt.CryptState`,
+  is OCB2-encrypted through P7's `lockedCrypt` (`crypt.CryptState`,
   keys from the server's CryptSetup). Lifecycle mirrors the official
   client (`ServerHandler.cpp`): once a full CryptSetup installs key
   material the transport probes with encrypted pings (header byte 0x20 +
@@ -229,7 +227,7 @@ log, are the record.
   `crypt.ResyncThreshold`) trigger the P7 resync request (rate-limited to
   one per 5 s). To make both transports carry byte-identical packets,
   `Conn.WriteAudio`'s framing moved into `buildVoicePacket` (the exact
-  bytes the T6 golden tests pin), and the UDPTunnel receive handler was
+  bytes the framing golden tests pin), and the UDPTunnel receive handler was
   split into `handleVoicePacket` — the same parse the UDP receive loop
   feeds decrypted datagrams into. Exposed: `Client.VoiceTransport()`
   ("udp"/"tcp") and `Client.UDPVoiceStats()` (pings/voice/resync/fallback
@@ -243,7 +241,7 @@ log, are the record.
   format golden + rejects), `TestUDPCryptResync` (8 corrupt datagrams →
   empty CryptSetup request on TCP → `{server_nonce}` answer → next packet
   decrypts; no fallback), `TestUDPFallback` (bound-sink blackhole →
-  fallback in ~3 s < 5 s bound → voice continues via UDPTunnel with T6
+  fallback in ~3 s < 5 s bound → voice continues via UDPTunnel with the golden
   golden bytes), `TestUDPVoiceDatagramMatchesTCPTunnel` (UDP datagram
   plaintext == TCP tunnel body, byte-for-byte). Verified live against the
   harness server in both directions (transport=UDP, peerbot decodes

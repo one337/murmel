@@ -1,5 +1,5 @@
-// Package engine wires the audio pipeline components (T11–T12) with the
-// gumble transport (T9) and event bus (T14) into the voice end-to-end path:
+// Package engine wires the audio pipeline components with the
+// gumble transport and the event bus into the voice end-to-end path:
 //
 //   - Capture: malgo device → energy VAD → gumble AudioOutgoing channel
 //     (gumble encodes Opus and routes via UDP/TCP)

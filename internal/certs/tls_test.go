@@ -155,7 +155,7 @@ func TestTLSConfigCallbackCanAcceptChanged(t *testing.T) {
 	var seenResults []VerifyResult
 	accepting := func(result VerifyResult, stored, presented ServerEntry) error {
 		seenResults = append(seenResults, result)
-		return nil // T19 dialog: user clicked "accept anyway"
+		return nil // trust dialog: user clicked "accept anyway"
 	}
 	cfg2 := m.TLSConfig(client, addr2, accepting)
 	if err := dialTLS(t, cfg2, addr2); err != nil {

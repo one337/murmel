@@ -11,7 +11,7 @@ import (
 // Sink consumes decoded 480-sample frames. Write is called from the sink
 // stage goroutine only. The frame slice aliases a pooled buffer and is
 // valid only for the duration of the call — implementations that retain
-// it must copy. The malgo playback callback (T12) copies into the device
+// it must copy. The malgo playback callback copies into the device
 // buffer and returns.
 type Sink interface {
 	Write(frame []int16) error

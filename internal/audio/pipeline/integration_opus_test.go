@@ -10,7 +10,7 @@ import (
 	"io.github/murmel/internal/audio/opus"
 )
 
-// opusEncode/Decode adapt the T8 wrapper (internal/audio/opus) to the
+// opusEncode/Decode adapt the Opus wrapper (internal/audio/opus) to the
 // pipeline callbacks without touching that package.
 func opusEncode(t *testing.T) (EncodeFunc, *opus.Encoder) {
 	t.Helper()
@@ -88,7 +88,7 @@ func TestHeadlessVoiceLoop(t *testing.T) {
 
 // TestHeadlessVoiceLoopWithLoss models packet loss on the mock network:
 // every 10th packet is delivered as an empty payload, which the decoder
-// must paper over with PLC (T8 Decode(nil) → concealment), so playback
+// must paper over with PLC (Decode(nil) → concealment), so playback
 // keeps a full frame cadence.
 func TestHeadlessVoiceLoopWithLoss(t *testing.T) {
 	const nFrames = 100
@@ -182,7 +182,7 @@ func (p *pacedSource) Read() ([]int16, error) {
 
 // BenchmarkEncodeOpus and BenchmarkDecodeOpus measure the codec side of
 // the ≤3 ms encode budget (libopus via cgo). Allocation here comes from
-// the T8 wrapper's output buffers, not the pipeline; recorded in the
+// the Opus wrapper's output buffers, not the pipeline; recorded in the
 // task-11 evidence.
 func BenchmarkEncodeOpus(b *testing.B) {
 	enc, err := opus.NewEncoder()

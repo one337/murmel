@@ -13,7 +13,7 @@ import (
 	"io.github/murmel/internal/audio/ring"
 )
 
-// Compile-time proof that Device satisfies both halves of the T11
+// Compile-time proof that Device satisfies both halves of the pipeline's
 // pipeline contract.
 var (
 	_ pipeline.Source = (*Device)(nil)
@@ -30,7 +30,7 @@ var ErrClosed = errors.New("device: closed")
 
 // Config selects the devices for Open. Nil IDs mean the system default;
 // non-nil IDs come from GetDevices and are opaque values the settings
-// module (T25) stores verbatim.
+// module stores verbatim.
 type Config struct {
 	CaptureID  *malgo.DeviceID
 	PlaybackID *malgo.DeviceID

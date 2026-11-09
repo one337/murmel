@@ -54,7 +54,7 @@ type Config struct {
 	Sink     Sink
 
 	// PreSink is the decode→sink seam. Nil → internal drop-oldest queue.
-	// The jitter buffer (T10/T20) plugs in here.
+	// The jitter buffer plugs in here.
 	PreSink FrameRelay
 
 	// QueueDepth is the depth of each bounded inter-stage queue in

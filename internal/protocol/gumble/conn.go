@@ -77,7 +77,7 @@ func (c *Conn) WriteAudio(format, target byte, sequence int64, final bool, data 
 // terminator bit for the final frame, the payload, and — when X is non-nil
 // — three little-endian float32 position fields. The result is a standalone
 // packet: the body of a TCP UDPTunnel message and, byte-for-byte, the
-// (pre-encryption) payload of a native UDP voice datagram (T6 golden
+// (pre-encryption) payload of a native UDP voice datagram (golden
 // contract; used by both transports).
 func buildVoicePacket(format, target byte, sequence int64, final bool, data []byte, X, Y, Z *float32) ([]byte, error) {
 	var buff [1 + varint.MaxVarintLen*2]byte

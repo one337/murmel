@@ -20,7 +20,7 @@ import (
 
 // App owns the adw.Application lifecycle: the unique instance, the app-level
 // actions and accelerators, mumble:// URL intake, and clean shutdown. It
-// owns exactly one Window; later windows (preferences T25, about) attach to
+// owns exactly one Window; later windows (preferences, about) attach to
 // the same application.
 type App struct {
 	*adw.Application
@@ -33,26 +33,26 @@ type App struct {
 
 	window *Window
 
-	// connectRequested is the T19 seam: set via OnConnect to open the
+	// connectRequested is the connect seam: set via OnConnect to open the
 	// connect dialog, pre-filled from the request. Until then requests are
 	// only logged.
 	connectRequested func(req ConnectRequest)
 
-	// prefsRequested is the T25 seam: set via OnPreferences to open the
+	// prefsRequested is the preferences seam: set via OnPreferences to open the
 	// preferences window. Until wired the action is a no-op.
 	prefsRequested func()
 
-	// banListRequested is the T21 seam: opens the server ban list dialog.
+	// banListRequested is the admin seam: opens the server ban list dialog.
 	banListRequested func()
 
-	// userListRequested is the T21 seam: opens the registered users dialog.
+	// userListRequested is the admin seam: opens the registered users dialog.
 	userListRequested func()
 
-	// onOpenChat is the T17 seam: set via OnOpenChat to open a user's
-	// conversation. Activating a PM notification routes here (T26).
+	// onOpenChat is the chat seam: set via OnOpenChat to open a user's
+	// conversation. Activating a PM notification routes here.
 	onOpenChat func(session uint32)
 
-	// notifier implements the T26 desktop notifications.
+	// notifier implements the desktop notifications.
 	notifier *notifier
 	// windowCreated wires the subsystems once the window exists.
 	windowCreated func(*Window)
@@ -110,29 +110,29 @@ func NewApp(st settings.Settings, b *bus.Bus) *App {
 
 // OnConnect installs the handler invoked for every connect request — both
 // the empty-state Connect button and mumble:// URLs from the command line
-// or a second instance. T19 points this at its dialog.
+// or a second instance. The connection controller points this at its dialog.
 func (a *App) OnConnect(f func(req ConnectRequest)) { a.connectRequested = f }
 
 // OnOpenChat installs the handler invoked when a conversation should be
-// shown — activating a PM notification. T17 points this at the chat view.
+// shown — activating a PM notification. main.go points this at the chat view.
 func (a *App) OnOpenChat(f func(session uint32)) { a.onOpenChat = f }
 
 // SoundPlayer returns the player for event sounds (preferences preview).
 func (a *App) SoundPlayer() *effects.Player { return a.soundPlayer }
 
 // OnPreferences installs the handler invoked when the user opens Preferences.
-// T25 (main.go) points this at prefs.New().Present(win).
+// main.go points this at prefs.New().Present(win).
 func (a *App) OnPreferences(f func()) { a.prefsRequested = f }
 
 // OnBanList installs the handler invoked when the user opens the ban list.
-// T21 (main.go) points this at admin.ShowBanList(win, bus).
+// main.go points this at admin.ShowBanList(win, bus).
 func (a *App) OnBanList(f func()) { a.banListRequested = f }
 
 // OnUserList installs the handler invoked when the user opens the user list.
-// T21 (main.go) points this at admin.ShowUserList(win, bus).
+// main.go points this at admin.ShowUserList(win, bus).
 func (a *App) OnUserList(f func()) { a.userListRequested = f }
 
-// RequestConnect routes a connect request into the T19 seam. Main loop only.
+// RequestConnect routes a connect request into the connect seam. Main loop only.
 func (a *App) RequestConnect(req ConnectRequest) {
 	slog.Info("connect requested", "host", req.Host, "port", req.Port, "source", req.URL)
 	if a.connectRequested != nil {
@@ -141,7 +141,7 @@ func (a *App) RequestConnect(req ConnectRequest) {
 }
 
 // Context is cancelled once the application shuts down; long-lived UI-side
-// workers (the T19 connector, T20 audio) watch it for teardown.
+// workers (the connection controller, the voice engine) watch it for teardown.
 func (a *App) Context() context.Context { return a.ctx }
 
 // Window returns the main application window. It is non-nil only after the

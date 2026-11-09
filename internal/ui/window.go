@@ -33,8 +33,8 @@ const (
 )
 
 // Slot is a mount point where a later task installs its region widget:
-// the sidebar slot is filled by the channel tree (T16), the chat slot by
-// the conversation view (T17). The shell ships placeholder content in each
+// the sidebar slot is filled by the channel tree, the chat slot by
+// the conversation view. The shell ships placeholder content in each
 // slot; Set replaces it. Main loop only.
 type Slot struct {
 	holder *gtk.Box
@@ -261,10 +261,10 @@ func (w *Window) confirmQuit() {
 	alert.Present(w)
 }
 
-// Sidebar returns the sidebar region slot (channel tree, T16).
+// Sidebar returns the sidebar region slot (channel tree).
 func (w *Window) Sidebar() *Slot { return w.sidebar }
 
-// Chat returns the chat region slot (conversation view, T17).
+// Chat returns the chat region slot (conversation view).
 func (w *Window) Chat() *Slot { return w.chat }
 
 func (w *Window) newNarrowBreakpoint() *adw.Breakpoint {
@@ -424,7 +424,7 @@ func (w *Window) registerActions() {
 	})
 	w.AddAction(fullscreen)
 
-	// Quick switcher (T26): the action and accelerator exist so the
+	// Quick switcher: the action and accelerator exist so the
 	// shortcut is reserved; the handler is filled in later.
 	quickSwitcher := gio.NewSimpleAction("quick-switcher", nil)
 	quickSwitcher.ConnectActivate(func(*glib.Variant) {})

@@ -1,6 +1,6 @@
 package bus
 
-// UI-originated tree events (T16). These are the outbound half of the
+// UI-originated tree events. These are the outbound half of the
 // channel-tree contract: the tree widget renders state from the events in
 // events.go and, when the user acts, emits the events below. A controller
 // (internal/ui/channeltree/controller.go) translates the *Requested commands
@@ -20,7 +20,7 @@ type ChannelJoinRequested struct {
 // ChatTargetSelected is emitted when the tree selection changes. Exactly one
 // of ChannelID / Session is non-zero: selecting a channel row targets the
 // channel, selecting a user row targets a private conversation with that
-// user. T17 binds the chat composer target to this event.
+// user. The chat composer binds its target to this event.
 type ChatTargetSelected struct {
 	// ChannelID is the selected channel ID (0 when a user is selected).
 	ChannelID uint32

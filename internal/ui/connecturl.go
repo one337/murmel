@@ -10,7 +10,7 @@ import (
 // carries none.
 const DefaultPort = 64738
 
-// ConnectRequest carries everything the connect dialog (T19) needs to open
+// ConnectRequest carries everything the connect dialog needs to open
 // pre-filled. It is produced by ParseConnectURL for mumble:// URLs handed to
 // the binary; an empty request opens the dialog blank.
 type ConnectRequest struct {

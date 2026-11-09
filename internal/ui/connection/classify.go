@@ -15,7 +15,7 @@ import (
 )
 
 // errorClass selects which distinct error dialog a connection failure
-// produces (plan T19: five actionable classes plus fallthroughs).
+// produces (five actionable classes plus fallthroughs).
 type errorClass int
 
 const (

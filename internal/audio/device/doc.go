@@ -36,5 +36,5 @@
 // callback signal a channel: channel operations take locks inside the
 // runtime and are therefore banned from the audio thread. Sub-
 // millisecond average wake-up latency on a 10 ms frame cadence is well
-// inside the budget the jitter buffer (T10) absorbs.
+// inside the budget the jitter buffer absorbs.
 package device

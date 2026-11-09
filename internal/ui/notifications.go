@@ -35,7 +35,7 @@ const (
 // truncated at a rune boundary with an ellipsis.
 const previewMaxRunes = 120
 
-// notifier implements the desktop notifications of T26: private-message
+// notifier implements the desktop notifications: private-message
 // notifications while the window is unfocused, and a
 // reconnected-after-drop notification. Both are gated by the
 // notification-enabled GSettings key. Channel messages never notify.
@@ -264,7 +264,7 @@ func messagePreview(msg string) string {
 }
 
 // openChat routes a notification activation: focus the window, then hand
-// the sender session to the T17 chat seam (OnOpenChat). Until T17 lands the
+// the sender session to the chat seam (OnOpenChat). Without a chat view the
 // request is only logged.
 func (a *App) openChat(session uint32) {
 	slog.Info("open chat requested", "session", session)

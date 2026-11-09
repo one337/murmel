@@ -10,7 +10,7 @@
 //
 // The capture stage runs taps (VAD, level meter) synchronously on the
 // capture goroutine — taps must not block or allocate. The FrameRelay
-// between decode and sink is the seam where the jitter buffer (T10/T20)
+// between decode and sink is the seam where the jitter buffer
 // will be inserted; the default relay is a bounded drop-oldest queue.
 //
 // # Zero allocation hot path
@@ -21,7 +21,7 @@
 // (internal/audio/opus) allocates its output buffers itself; that cost is
 // codec-side and recorded separately in the task-11 benchmark evidence.
 //
-// # Device adapter (T12)
+// # Device adapter
 //
 // Source is designed so a malgo capture callback adapts thinly: the
 // callback copies its input buffer into the next pooled frame and hands it

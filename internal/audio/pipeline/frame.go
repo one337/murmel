@@ -158,7 +158,7 @@ func (q *queueRelay) Drops() uint64 { return q.dropped.Load() }
 func (q *queueRelay) Len() int { return len(q.ch) }
 
 // FrameRelay is the seam between the decode stage and the playback sink
-// where the jitter buffer (T10/T20) plugs in. Push must be non-blocking;
+// where the jitter buffer plugs in. Push must be non-blocking;
 // consumers block in WaitReady.
 type FrameRelay interface {
 	Push(*Frame)

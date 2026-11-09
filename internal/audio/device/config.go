@@ -9,7 +9,7 @@ import (
 )
 
 // The stream format is the pipeline voice format by construction — the
-// constants alias T11's, so capture output can flow into the encode
+// constants alias the pipeline's, so capture output can flow into the encode
 // stage and decode output into playback with no conversion anywhere.
 // There is no resampling in this system: 48 kHz end to end.
 const (

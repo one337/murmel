@@ -36,11 +36,11 @@
 //
 // # Key ↔ accessor ↔ preference widget mapping
 //
-// This table is the single source of truth that task T25 (preferences
+// This table is the single source of truth that the preferences window (
 // dialog) maps against; coverage_test.go enforces that it stays in sync
 // with the schema XML:
 //
-//	Schema key           Typed accessors                            T25 widget
+//	Schema key           Typed accessors                            Preferences widget
 //	first-run            FirstRun / SetFirstRun                     (none: first-run flow)
 //	last-identity        LastIdentity / SetLastIdentity             identity picker
 //	server-list          Servers / SetServers                       favorites list

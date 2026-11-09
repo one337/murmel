@@ -1,6 +1,6 @@
 # GTK stack versions
 
-Working, verified combination for the Murmel UI (validated 2026-11-04, Task 4).
+Working, verified combination for the Murmel UI (validated 2026-11-04).
 
 ## Go modules
 

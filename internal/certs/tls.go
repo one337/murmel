@@ -9,7 +9,7 @@ import (
 
 // VerifyCallback observes TOFU results during the TLS handshake and decides
 // whether the connection may proceed: returning nil accepts, an error aborts
-// the handshake. It is the hook the T19 trust dialog will use to present a
+// the handshake. It is the hook the trust dialog uses to present a
 // changed fingerprint and honor an "accept anyway" choice.
 type VerifyCallback func(result VerifyResult, stored, presented ServerEntry) error
 

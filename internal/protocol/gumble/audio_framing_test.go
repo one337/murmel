@@ -24,7 +24,7 @@ import (
 //	               <length> Opus payload bytes
 //	               [3x float32 LE X,Y,Z]    — only for positional streams
 //
-// The voice packet body must parse standalone: T9 (UDP transport) sends the
+// The voice packet body must parse standalone: the UDP transport sends the
 // same bytes as the datagram payload, without the 6-byte TCP message header.
 
 // udpVoicePacket is a parsed standalone voice packet (what a UDP datagram or
@@ -406,7 +406,7 @@ func TestWriteAudioPositionalGatedOnX(t *testing.T) {
 	}
 }
 
-// TestWriteAudioTCPTunnelUDPParity locks the T9 contract: the UDPTunnel
+// TestWriteAudioTCPTunnelUDPParity locks the UDP transport's contract: the UDPTunnel
 // body must be a complete, standalone voice packet — the same bytes a UDP
 // socket will later send as the (plaintext) datagram payload. The declared
 // TCP length must equal the body length, and parsing the body standalone

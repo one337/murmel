@@ -223,7 +223,7 @@ assume sub-minute builds after a cache invalidation.
 **Xvfb**: `xvfb-run-ui.sh` needs `Xvfb` and ImageMagick (`import`); it exits
 with code 3 when either is missing.
 
-## Build prerequisite: system libopus (main module, T8+)
+## Build prerequisite: system libopus (main module)
 
 Unlike the bots (which use gopus's **embedded** Opus 1.1.2), the main
 `io.github/murmel` module wraps `gopkg.in/hraban/opus.v2`, which links
@@ -243,5 +243,5 @@ Note: hraban/opus.v2 upstream also requires pkg-config `opusfile`
 use and which is NOT installed here. The root `go.mod` therefore redirects
 the module to the verbatim trimmed copy in `third_party/hraban-opus/` that
 excludes only the opusfile-backed files — see that directory's README.
-The T2 harness bots are unaffected (separate module, gopus embeds Opus).
+The harness bots are unaffected (separate module, gopus embeds Opus).
 The Flatpak build uses the libopus shipped in the GNOME runtime.

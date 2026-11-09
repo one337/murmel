@@ -53,7 +53,7 @@ type ServerEntry struct {
 }
 
 // Fingerprint returns the SHA-256 fingerprint of cert as lowercase hex bytes
-// joined by colons ("aa:bb:cc:…") — the format shown in the T19 trust dialog.
+// joined by colons ("aa:bb:cc:…") — the format shown in the trust dialog.
 func Fingerprint(cert *x509.Certificate) string {
 	sum := sha256.Sum256(cert.Raw)
 	parts := make([]string, len(sum))

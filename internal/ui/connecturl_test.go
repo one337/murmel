@@ -81,6 +81,6 @@ func TestParseConnectURL(t *testing.T) {
 
 func TestTRReturnsInput(t *testing.T) {
 	if got := tr("Not connected"); got != "Not connected" {
-		t.Errorf("tr identity until T27 wires gettext, got %q", got)
+		t.Errorf("tr identity without a translation, got %q", got)
 	}
 }

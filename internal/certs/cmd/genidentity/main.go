@@ -1,5 +1,5 @@
 // Command genidentity generates an Murmel identity and prints a JSON
-// summary. QA helper used for the T7 openssl cross-check scenario.
+// summary. QA helper for cross-checking identities with openssl.
 //
 // TEST-ONLY helper; safe to run against a throwaway --out directory.
 package main

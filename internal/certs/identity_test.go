@@ -205,7 +205,7 @@ func TestFingerprintFormat(t *testing.T) {
 	id, _ := m.Generate("Fp", "")
 
 	fp := Fingerprint(id.Certificate)
-	// SHA-256 over DER, rendered as 32 colon-separated lowercase hex bytes (T19 dialog format).
+	// SHA-256 over DER, rendered as 32 colon-separated lowercase hex bytes (trust dialog format).
 	want := regexp.MustCompile(`^([0-9a-f]{2}:){31}[0-9a-f]{2}$`)
 	if !want.MatchString(fp) {
 		t.Errorf("Fingerprint %q does not match grouped-hex SHA-256 format", fp)
