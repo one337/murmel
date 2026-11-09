@@ -40,13 +40,17 @@ menubutton.voice-meter-button > button {
   box-shadow: none;
   border-radius: 9px;
 }
-menubutton.voice-meter-button > button:hover .voice-meter:not(.transmitting):not(.clipping),
-menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):not(.clipping) {
+menubutton.voice-meter-button > button:hover .voice-meter:not(.transmitting):not(.clipping):not(.detected),
+menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):not(.clipping):not(.detected) {
   background-color: alpha(currentColor, 0.13);
 }
 .voice-meter.transmitting {
   background-color: alpha(#2ec27e, 0.12);
   box-shadow: inset 0 0 0 1px alpha(#2ec27e, 0.55);
+}
+.voice-meter.detected {
+  background-color: alpha(#e5a50a, 0.12);
+  box-shadow: inset 0 0 0 1px alpha(#e5a50a, 0.6);
 }
 .voice-meter.clipping {
   background-color: alpha(#e01b24, 0.12);

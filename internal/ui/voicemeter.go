@@ -2,6 +2,7 @@ package ui
 
 import (
 	"math"
+	"time"
 
 	"github.com/diamondburned/gotk4/pkg/cairo"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -10,46 +11,56 @@ import (
 )
 
 const (
-	meterBarPx = 3 // bar width; whole pixels keep the edges crisp
-	meterGapPx = 2
-	// meterBars is the minimum number of bars (21 × 30 ms ≈ 0.6 s); the
-	// meter shows more history as it gets wider, up to meterMaxBars.
-	meterBars    = 21
-	meterMaxBars = 96
-	meterWidthPx = meterBars*(meterBarPx+meterGapPx) - meterGapPx
+	meterWidthPx = 104 // minimum; the meter grows with its button
 	meterFloorDB = -60.0
+	// meterSmooth is how many 30 ms readings the wave height averages
+	// (≈ 0.12 s): steady enough to read, quick enough to feel live.
+	meterSmooth = 4
 )
 
-// meterState is the colour class of one bar.
+// meterState is the colour of the wave.
 type meterState uint8
 
 const (
-	meterQuiet    meterState = iota // below threshold / not transmitting: grey
-	meterTalking                    // above threshold, voice is transmitted: green
+	meterQuiet    meterState = iota // below threshold: faint grey
+	meterDetected                   // voice detected but not sent (muted): yellow
+	meterTalking                    // voice is transmitted: green
 	meterClipping                   // input overdriven: red
 )
 
-type meterSample struct {
-	level float64 // 0..1
-	state meterState
+// meterWave is one of the overlaid sine waves.
+type meterWave struct {
+	cycles float64 // sine periods across the width
+	speed  float64 // phase speed in rad/s (sign = direction)
+	amp    float64 // share of the current amplitude
+	alpha  float64
+	width  float64 // line width in px
 }
 
-// voiceMeter shows the recent microphone input as a small mirrored
-// waveform of rounded bars inside a pill (the child of the status bar's
-// threshold button): grey while below
-// the activation threshold (or muted), green while the voice is
-// transmitted, red when the input clips. A faint band marks the
-// threshold; the pill's outline lights up green/red with the live state.
+// Three thin waves drifting at different speeds; their sum reads as a
+// single living line that swells with the voice.
+var meterWaves = [...]meterWave{
+	{cycles: 2.0, speed: 4.0, amp: 1.0, alpha: 1.0, width: 1.5},
+	{cycles: 3.1, speed: -3.0, amp: 0.65, alpha: 0.5, width: 1.2},
+	{cycles: 1.4, speed: 2.2, amp: 0.45, alpha: 0.3, width: 1.0},
+}
+
+// voiceMeter shows the microphone input as thin sine waves inside a pill
+// (the child of the status bar's threshold button). Their height follows
+// the input level; the colour tells what happens to the voice: faint grey
+// below the activation threshold, green while it is transmitted, yellow
+// while it is detected but not sent (muted), red when the input clips.
+// The pill's outline takes the same colour.
 type voiceMeter struct {
-	root      *gtk.Box
-	area      *gtk.DrawingArea
-	samples   [meterMaxBars]meterSample
-	head      int // index of the oldest sample
-	threshold float64
+	root   *gtk.Box
+	area   *gtk.DrawingArea
+	levels [meterSmooth]float64 // recent levels 0..1, ring
+	head   int
+	state  meterState
 }
 
 func newVoiceMeter() *voiceMeter {
-	m := &voiceMeter{threshold: -1}
+	m := &voiceMeter{}
 	m.area = gtk.NewDrawingArea()
 	m.area.SetContentWidth(meterWidthPx)
 	m.area.SetHExpand(true)
@@ -66,33 +77,37 @@ func newVoiceMeter() *voiceMeter {
 	return m
 }
 
-// push appends one InputLevel window. muted forces grey (nothing is
-// transmitted while self-muted, whatever the VAD decides).
+// push takes one InputLevel window. muted: the voice is not sent whatever
+// the voice detection decides, so detected speech shows yellow.
 func (m *voiceMeter) push(ev bus.InputLevel, muted bool) {
-	st := meterQuiet
-	switch {
-	case ev.Clipping:
-		st = meterClipping
-	case ev.Transmitting && !muted:
-		st = meterTalking
-	}
-	m.samples[m.head] = meterSample{level: normDB(ev.LevelDB), state: st}
-	m.head = (m.head + 1) % meterMaxBars
-	m.threshold = normDB(ev.ThresholdDB)
-	m.setState(st)
-	m.area.QueueDraw()
+	m.levels[m.head] = normDB(ev.LevelDB)
+	m.head = (m.head + 1) % meterSmooth
+	m.setState(levelState(ev, muted))
+	m.area.QueueDraw() // also advances the waves' phase
 }
 
-// reset clears the history (disconnect: no capture running).
+func levelState(ev bus.InputLevel, muted bool) meterState {
+	switch {
+	case ev.Clipping:
+		return meterClipping
+	case ev.Transmitting && muted:
+		return meterDetected
+	case ev.Transmitting:
+		return meterTalking
+	}
+	return meterQuiet
+}
+
+// reset flattens the wave (disconnect: no capture running).
 func (m *voiceMeter) reset() {
-	m.samples = [meterMaxBars]meterSample{}
-	m.head = 0
-	m.threshold = -1
+	m.levels = [meterSmooth]float64{}
 	m.setState(meterQuiet)
 	m.area.QueueDraw()
 }
 
 func (m *voiceMeter) setState(st meterState) {
+	m.state = st
+	toggleClass(m.root, "detected", st == meterDetected)
 	toggleClass(m.root, "transmitting", st == meterTalking)
 	toggleClass(m.root, "clipping", st == meterClipping)
 }
@@ -118,61 +133,52 @@ func normDB(db float64) float64 {
 }
 
 func (m *voiceMeter) draw(area *gtk.DrawingArea, cr *cairo.Context, width, height int) {
-	// Pixel-snapped layout: bars of whole-pixel width at whole-pixel
-	// positions, centred in the area, so antialiasing only softens the
-	// rounded ends.
-	// As many bars as fit, newest on the right.
-	bars := min(meterMaxBars, max(1, (width+meterGapPx)/(meterBarPx+meterGapPx)))
-	total := bars*(meterBarPx+meterGapPx) - meterGapPx
-	x0 := float64((width - total) / 2)
-	mid := float64(height) / 2
-	const r = meterBarPx / 2.0
-	maxHalf := mid - 1
+	w, h := float64(width), float64(height)
+	mid := h / 2
 
-	fg := area.Color()
-	setFG := func(alpha float64) {
-		if fg != nil {
-			cr.SetSourceRGBA(float64(fg.Red()), float64(fg.Green()), float64(fg.Blue()), alpha)
-		} else {
-			cr.SetSourceRGBA(0.5, 0.5, 0.5, alpha)
-		}
+	level := 0.0
+	for _, l := range m.levels {
+		level += l / meterSmooth
 	}
+	// A hint of movement even in silence, so the line reads as live.
+	amp := math.Max(0.6, level*(mid-1.5))
 
-	// Activation threshold: a faint band behind the bars — everything
-	// that stays inside it is not transmitted.
-	if m.threshold > 0 {
-		off := math.Max(r, m.threshold*maxHalf)
-		setFG(0.08)
-		roundedRect(cr, x0-2, mid-off, float64(total)+4, 2*off, math.Min(off, 3))
-		cr.Fill()
-	}
-
-	for i := 0; i < bars; i++ {
-		// Bar i shows the sample (bars-1-i) steps before the newest.
-		s := m.samples[(m.head-bars+i+2*meterMaxBars)%meterMaxBars]
-		switch s.state {
+	setColor := func(alpha float64) {
+		switch m.state {
 		case meterClipping:
-			cr.SetSourceRGBA(0.878, 0.106, 0.141, 1) // Adwaita red_3 #e01b24
+			cr.SetSourceRGBA(0.878, 0.106, 0.141, alpha) // Adwaita red_3 #e01b24
 		case meterTalking:
-			cr.SetSourceRGBA(0.180, 0.761, 0.494, 1) // Adwaita green_4 #2ec27e
+			cr.SetSourceRGBA(0.180, 0.761, 0.494, alpha) // Adwaita green_4 #2ec27e
+		case meterDetected:
+			cr.SetSourceRGBA(0.898, 0.647, 0.039, alpha) // Adwaita yellow_5 #e5a50a
 		default:
-			setFG(0.35)
+			// Quiet: the foreground colour, faint enough not to stand out.
+			alpha *= 0.35
+			if fg := area.Color(); fg != nil {
+				cr.SetSourceRGBA(float64(fg.Red()), float64(fg.Green()), float64(fg.Blue()), alpha)
+			} else {
+				cr.SetSourceRGBA(0.5, 0.5, 0.5, alpha)
+			}
 		}
-		// Minimum height is one bar width: silence reads as a row of dots.
-		half := math.Max(r, math.Round(s.level*maxHalf))
-		x := x0 + float64(i*(meterBarPx+meterGapPx))
-		roundedRect(cr, x, mid-half, meterBarPx, 2*half, r)
-		cr.Fill()
 	}
-}
 
-// roundedRect adds a rectangle with corner radius r to the current path.
-func roundedRect(cr *cairo.Context, x, y, w, h, r float64) {
-	r = math.Min(r, math.Min(w, h)/2)
-	cr.NewPath()
-	cr.Arc(x+w-r, y+r, r, -math.Pi/2, 0)
-	cr.Arc(x+w-r, y+h-r, r, 0, math.Pi/2)
-	cr.Arc(x+r, y+h-r, r, math.Pi/2, math.Pi)
-	cr.Arc(x+r, y+r, r, math.Pi, 3*math.Pi/2)
-	cr.ClosePath()
+	t := float64(time.Now().UnixMilli()) / 1000
+	cr.SetLineCap(cairo.LineCapRound)
+	cr.SetLineJoin(cairo.LineJoinRound)
+	for _, wv := range meterWaves {
+		cr.NewPath()
+		cr.SetLineWidth(wv.width)
+		for x := 0.0; x <= w; x++ {
+			u := x / w
+			taper := math.Pow(math.Sin(math.Pi*u), 2) // calm at both ends
+			y := mid + amp*wv.amp*taper*math.Sin(2*math.Pi*wv.cycles*u+wv.speed*t)
+			if x == 0 {
+				cr.MoveTo(x, y)
+			} else {
+				cr.LineTo(x, y)
+			}
+		}
+		setColor(wv.alpha)
+		cr.Stroke()
+	}
 }
