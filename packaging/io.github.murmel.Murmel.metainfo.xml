@@ -75,6 +75,19 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.6" date="2026-11-09">
+      <description>
+        <ul>
+          <li>Dark mode: choose Follow System, Light or Dark in Preferences → Behavior</li>
+          <li>Create certificates in the app: from the connect dialog (+ next to the certificate) or in Preferences → Identity, which now lists all certificates with export and delete; Murmel offers to back up a new certificate</li>
+          <li>When a server needs a certificate (for example to register your name), Murmel offers to create one and reconnects with it</li>
+          <li>Fixed logging in with a registered name on Mumble 1.6 servers that have a server password</li>
+          <li>A name registered with another certificate is explained instead of asking for a password again and again</li>
+          <li>The chat starts empty for each new connection; after an automatic reconnect it is kept and the welcome message is not repeated</li>
+          <li>The microphone, headphone and level buttons line up with the message field</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.5" date="2026-11-09">
       <description>
         <ul>
