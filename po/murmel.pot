@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 12:03+0100\n"
+"POT-Creation-Date: 2026-11-09 12:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,13 +22,13 @@ msgid "Inherit parent ACLs"
 msgstr ""
 
 #: internal/ui/admin/acl.go:95 internal/ui/admin/banlist.go:41
-#: internal/ui/admin/channeledit.go:59
+#: internal/ui/admin/channeledit.go:66
 msgid "Save"
 msgstr ""
 
 #: internal/ui/admin/acl.go:98 internal/ui/admin/ban.go:28
 #: internal/ui/admin/channel.go:30 internal/ui/admin/channel.go:59
-#: internal/ui/admin/channeledit.go:61 internal/ui/admin/kick.go:28
+#: internal/ui/admin/channeledit.go:68 internal/ui/admin/kick.go:28
 #: internal/ui/connection/controller.go:329
 #: internal/ui/connection/controller.go:743
 #: internal/ui/connection/controller.go:1118
@@ -148,11 +148,11 @@ msgstr ""
 msgid "Channel name"
 msgstr ""
 
-#: internal/ui/admin/channel.go:19 internal/ui/admin/channeledit.go:155
+#: internal/ui/admin/channel.go:19 internal/ui/admin/channeledit.go:186
 msgid "Temporary"
 msgstr ""
 
-#: internal/ui/admin/channel.go:20 internal/ui/admin/channeledit.go:156
+#: internal/ui/admin/channel.go:20 internal/ui/admin/channeledit.go:187
 msgid "Removed automatically when the last user leaves"
 msgstr ""
 
@@ -177,59 +177,138 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:57
+#: internal/ui/admin/channeledit.go:62
 msgid "General"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:79
+#: internal/ui/admin/channeledit.go:64
+msgid "Description"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:86
 #, go-format
 msgid "Edit Channel %s"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:135
+#: internal/ui/admin/channeledit.go:166
 msgid "Name"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:140
+#: internal/ui/admin/channeledit.go:171
 msgid "Position"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:141
+#: internal/ui/admin/channeledit.go:172
 msgid "Order among sibling channels: lower numbers come first"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:145
+#: internal/ui/admin/channeledit.go:176
 msgid "Maximum Users"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:146
+#: internal/ui/admin/channeledit.go:177
 msgid "0 = no limit beyond the server's own"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:161
+#: internal/ui/admin/channeledit.go:192
 #: internal/ui/connection/controller.go:732
 #: internal/ui/connection/controller.go:1111
 msgid "Password"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:165
+#: internal/ui/admin/channeledit.go:196
 msgid "Access"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:166
+#: internal/ui/admin/channeledit.go:197
 msgid "Loading the channel's permissions…"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:179
+#: internal/ui/admin/channeledit.go:210
 msgid ""
 "You may not view this channel's permissions, so its password cannot be "
 "changed here."
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:185
+#: internal/ui/admin/channeledit.go:216
 msgid ""
 "Users need this password to enter the channel. Leave it empty for an open "
 "channel."
+msgstr ""
+
+#: internal/ui/admin/descedit.go:127 internal/ui/chat/composer.go:132
+msgid "Bold (Ctrl+B)"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:128 internal/ui/chat/composer.go:133
+msgid "Italic (Ctrl+I)"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:137
+msgid "Heading"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:143
+msgid "Bullet list"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:145
+msgid "Insert image…"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:170
+msgid "Preview"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:189
+msgid ""
+"An image at the very start that is at least 480 px wide is shown as a banner "
+"across the channel header."
+msgstr ""
+
+#: internal/ui/admin/descedit.go:441
+msgid "Apply"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:443
+msgid "Remove Link"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:444
+msgid "Select the text to link first."
+msgstr ""
+
+#: internal/ui/admin/descedit.go:465
+msgid "Link"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:539 internal/ui/avatarpick/avatarpick.go:191
+#: internal/ui/chat/composer.go:243
+msgid "Images"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:544
+msgid "Insert Image"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:555
+msgid "Preparing image…"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:562
+msgid "The image does not fit into the description."
+msgstr ""
+
+#: internal/ui/admin/descedit.go:583 internal/ui/avatarpick/avatarpick.go:211
+msgid "This image could not be read."
+msgstr ""
+
+#: internal/ui/admin/descedit.go:732
+msgid "No description"
+msgstr ""
+
+#: internal/ui/admin/descedit.go:741 internal/ui/admin/descedit.go:742
+msgid "Too long for this server"
 msgstr ""
 
 #: internal/ui/admin/kick.go:24
@@ -394,16 +473,8 @@ msgstr ""
 msgid "Shown to others next to your name"
 msgstr ""
 
-#: internal/ui/avatarpick/avatarpick.go:191 internal/ui/chat/composer.go:243
-msgid "Images"
-msgstr ""
-
 #: internal/ui/avatarpick/avatarpick.go:196
 msgid "Choose Avatar"
-msgstr ""
-
-#: internal/ui/avatarpick/avatarpick.go:211
-msgid "This image could not be read."
 msgstr ""
 
 #: internal/ui/channeltree/rows.go:68
@@ -503,14 +574,6 @@ msgstr ""
 
 #: internal/ui/chat/composer.go:105 internal/ui/chat/composer.go:322
 msgid "Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"
-msgstr ""
-
-#: internal/ui/chat/composer.go:132
-msgid "Bold (Ctrl+B)"
-msgstr ""
-
-#: internal/ui/chat/composer.go:133
-msgid "Italic (Ctrl+I)"
 msgstr ""
 
 #: internal/ui/chat/composer.go:139

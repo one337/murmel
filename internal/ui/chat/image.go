@@ -65,3 +65,8 @@ func flatten(src *gdkpixbuf.Pixbuf, w, h int) *gdkpixbuf.Pixbuf {
 	src.Composite(dst, 0, 0, w, h, 0, 0, sx, sy, gdkpixbuf.InterpBilinear, 255)
 	return dst
 }
+
+// EncodeImage scales and compresses an image file into a JPEG data: URI
+// that, with some markup around it, fits limit bytes (channel descriptions
+// use it too).
+func EncodeImage(path string, limit int) (string, error) { return encodeImage(path, limit) }

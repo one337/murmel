@@ -25,6 +25,11 @@ type State struct {
 	LastError string
 	Channels  map[uint32]ChannelInfo
 	Users     map[uint32]UserInfo
+	// MaxMessageLength and MaxImageMessageLength are the server's limits
+	// for text (also channel descriptions) and for text with images, in
+	// bytes; 0 while the server has not announced them.
+	MaxMessageLength      int
+	MaxImageMessageLength int
 }
 
 // store is the single-writer state store. The bus pump goroutine (fed by
@@ -72,6 +77,14 @@ func (s *store) apply(ev Event) {
 		s.state.Connection = StateDisconnected
 		s.state.Channels = make(map[uint32]ChannelInfo)
 		s.state.Users = make(map[uint32]UserInfo)
+		s.state.MaxMessageLength, s.state.MaxImageMessageLength = 0, 0
+	case ServerConfigUpdated:
+		if e.MaxMessageLength != nil {
+			s.state.MaxMessageLength = *e.MaxMessageLength
+		}
+		if e.MaxImageMessageLength != nil {
+			s.state.MaxImageMessageLength = *e.MaxImageMessageLength
+		}
 	case ConnectError:
 		s.state.Connection = StateDisconnected
 		s.state.LastError = e.Text
@@ -108,6 +121,9 @@ func (s *store) snapshot() State {
 		LastError:   s.state.LastError,
 		Channels:    make(map[uint32]ChannelInfo, len(s.state.Channels)),
 		Users:       make(map[uint32]UserInfo, len(s.state.Users)),
+
+		MaxMessageLength:      s.state.MaxMessageLength,
+		MaxImageMessageLength: s.state.MaxImageMessageLength,
 	}
 	for id, ch := range s.state.Channels {
 		if len(ch.Links) > 0 {

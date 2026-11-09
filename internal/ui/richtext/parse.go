@@ -345,3 +345,9 @@ func visible(markup string) bool {
 	}
 	return false
 }
+
+// DecodeDataURI decodes a data: image URI (see decodeDataURI).
+func DecodeDataURI(src string) ([]byte, bool) { return decodeDataURI(src) }
+
+// SafeLink reports whether a link may be opened by a click.
+func SafeLink(href string) bool { return safeLink(href) }

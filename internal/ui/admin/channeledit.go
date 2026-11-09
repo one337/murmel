@@ -18,8 +18,9 @@ const (
 )
 
 const (
-	editorWidth  = 640
-	editorHeight = 620
+	editorWidth  = 880
+	editorHeight = 640
+	formWidth    = 600 // pages with a plain form stay this narrow
 	maxPosition  = 10000
 	maxUsersCap  = 10000
 )
@@ -42,6 +43,10 @@ type channelEditor struct {
 	password    *adw.PasswordEntryRow
 	accessGroup *adw.PreferencesGroup
 
+	// Description page; desc is nil until the description is known.
+	desc     *descEditor
+	descPage *gtk.Box
+
 	// acl is nil until the server sent it (or refused: aclDenied).
 	acl       *bus.ACLFetched
 	aclDenied bool
@@ -54,7 +59,9 @@ func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, p
 	e := &channelEditor{b: b, info: info}
 
 	e.stack = adw.NewViewStack()
-	e.addPage(PageGeneral, tr("General"), "document-properties-symbolic", e.generalPage())
+	e.addPage(PageGeneral, tr("General"), "document-properties-symbolic", e.generalPage(), formWidth)
+	e.descPage = gtk.NewBox(gtk.OrientationVertical, 0)
+	e.stack.AddTitledWithIcon(e.descPage, PageDescription, tr("Description"), "format-justify-left-symbolic")
 
 	e.saveBtn = gtk.NewButtonWithLabel(tr("Save"))
 	e.saveBtn.AddCSSClass("suggested-action")
@@ -102,15 +109,39 @@ func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, p
 	cancelBtn.ConnectClicked(func() { e.dialog.Close() })
 	e.saveBtn.ConnectClicked(e.save)
 
+	// The description may still have to be fetched (only its hash known).
+	if info.DescriptionPending {
+		spinner := adw.NewSpinner()
+		spinner.SetVExpand(true)
+		e.descPage.Append(spinner)
+		subscribeWhileOpen(e.dialog, b, func(ev bus.ChannelUpdated) {
+			if ev.Channel.ID == info.ID && !ev.Channel.DescriptionPending && e.desc == nil {
+				e.descPage.Remove(spinner)
+				e.loadDescription(ev.Channel.Description)
+			}
+		})
+		b.Emit(bus.ChannelDescriptionRequested{ChannelID: info.ID})
+	} else {
+		e.loadDescription(info.Description)
+	}
+
 	b.Emit(bus.ACLRequested{ChannelID: info.ID})
 	e.dialog.Present(parent)
 	e.name.GrabFocus()
 }
 
-// addPage puts content (scrollable, with the usual margins) on the stack.
-func (e *channelEditor) addPage(name, title, icon string, content gtk.Widgetter) {
+func (e *channelEditor) loadDescription(html string) {
+	st := e.b.State()
+	limit := st.MaxImageMessageLength
+	e.desc = newDescEditor(html, limit)
+	e.desc.root.SetVExpand(true)
+	e.descPage.Append(e.desc.root)
+}
+
+// addPage puts content (scrollable, at most width wide) on the stack.
+func (e *channelEditor) addPage(name, title, icon string, content gtk.Widgetter, width int) {
 	clamp := adw.NewClamp()
-	clamp.SetMaximumSize(editorWidth - 48)
+	clamp.SetMaximumSize(width)
 	clamp.SetChild(content)
 	scroll := gtk.NewScrolledWindow()
 	scroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
@@ -205,6 +236,14 @@ func (e *channelEditor) save() {
 	}
 	if mu := uint32(e.maxUsers.Value()); mu != e.info.MaxUsers {
 		edit.MaxUsers, changed = &mu, true
+	}
+	if e.desc != nil && e.desc.Changed() {
+		if e.desc.TooLong() {
+			e.stack.SetVisibleChildName(PageDescription)
+			return
+		}
+		html := e.desc.HTML()
+		edit.Description, changed = &html, true
 	}
 	if changed {
 		e.b.Emit(edit)
