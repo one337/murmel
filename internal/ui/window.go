@@ -340,6 +340,9 @@ func (w *Window) installPlaceholders() {
 // subscribe wires every shell state change to a bus subscription; the
 // window context cancellation tears them all down (SubscribeCtx).
 func (w *Window) subscribe() {
+	context.AfterFunc(w.ctx, func() {
+		glib.IdleAdd(w.status.stopIdleMic)
+	})
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(bus.Connected) {
 		w.stack.SetVisibleChildName("session")
 		w.status.setConnected()

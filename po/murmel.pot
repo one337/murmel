@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 09:47+0100\n"
+"POT-Creation-Date: 2026-11-09 11:06+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -71,7 +71,7 @@ msgstr ""
 msgid "Group: %s"
 msgstr ""
 
-#: internal/ui/admin/acl.go:275 internal/ui/statusbar.go:321
+#: internal/ui/admin/acl.go:275 internal/ui/statusbar.go:330
 #, go-format
 msgid "User: %s"
 msgstr ""
@@ -354,71 +354,71 @@ msgstr ""
 msgid "Double-click to join"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:292
+#: internal/ui/channeltree/rows.go:312
 msgid "Join"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:293
+#: internal/ui/channeltree/rows.go:313
 msgid "Create sub-channel…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:294
+#: internal/ui/channeltree/rows.go:314
 msgid "Edit…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:295
+#: internal/ui/channeltree/rows.go:315
 msgid "Remove…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:296
+#: internal/ui/channeltree/rows.go:316
 msgid "Edit ACL…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:358
+#: internal/ui/channeltree/rows.go:378
 msgid "Mute on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:360
+#: internal/ui/channeltree/rows.go:380
 msgid "Unmute on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:362
+#: internal/ui/channeltree/rows.go:382
 msgid "Deafen on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:364
+#: internal/ui/channeltree/rows.go:384
 msgid "Undeafen on server"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:368
+#: internal/ui/channeltree/rows.go:388
 msgid "Send message…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:369
+#: internal/ui/channeltree/rows.go:389
 msgid "Move to my channel"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:372
+#: internal/ui/channeltree/rows.go:392
 msgid "Priority speaker"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:373
+#: internal/ui/channeltree/rows.go:393
 msgid "Kick…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:374
+#: internal/ui/channeltree/rows.go:394
 msgid "Ban…"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:375
+#: internal/ui/channeltree/rows.go:395
 msgid "Register"
 msgstr ""
 
-#: internal/ui/channeltree/rows.go:376
+#: internal/ui/channeltree/rows.go:396
 msgid "View stats"
 msgstr ""
 
-#: internal/ui/channeltree/tree.go:62 internal/ui/statusbar.go:344
+#: internal/ui/channeltree/tree.go:62 internal/ui/statusbar.go:354
 #: internal/ui/window.go:327
 msgid "Not connected"
 msgstr ""
@@ -1063,7 +1063,7 @@ msgid "Play"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go:125 internal/ui/prefs/window.go:132
-#: internal/ui/statusbar.go:177
+#: internal/ui/statusbar.go:180
 msgid "Off"
 msgstr ""
 
@@ -1127,7 +1127,7 @@ msgstr ""
 msgid "Device"
 msgstr ""
 
-#: internal/ui/prefs/window.go:130 internal/ui/statusbar.go:183
+#: internal/ui/prefs/window.go:130 internal/ui/statusbar.go:186
 msgid "Noise Suppression"
 msgstr ""
 
@@ -1136,23 +1136,23 @@ msgid ""
 "Removes steady background noise such as fans, hum or traffic from your voice"
 msgstr ""
 
-#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:177
+#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:180
 msgid "Low"
 msgstr ""
 
-#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:177
+#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:180
 msgid "Moderate"
 msgstr ""
 
-#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:177
+#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:180
 msgid "High"
 msgstr ""
 
-#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:177
+#: internal/ui/prefs/window.go:132 internal/ui/statusbar.go:180
 msgid "Very High"
 msgstr ""
 
-#: internal/ui/prefs/window.go:140 internal/ui/statusbar.go:192
+#: internal/ui/prefs/window.go:140 internal/ui/statusbar.go:195
 msgid "Echo Cancellation"
 msgstr ""
 
@@ -1173,7 +1173,7 @@ msgid ""
 "the selected microphone."
 msgstr ""
 
-#: internal/ui/prefs/window.go:157 internal/ui/statusbar.go:164
+#: internal/ui/prefs/window.go:157 internal/ui/statusbar.go:167
 msgid "Activation Threshold"
 msgstr ""
 
@@ -1279,7 +1279,7 @@ msgstr ""
 msgid "When someone connects to or disconnects from the server"
 msgstr ""
 
-#: internal/ui/prefs/window.go:346 internal/ui/statusbar.go:255
+#: internal/ui/prefs/window.go:346 internal/ui/statusbar.go:258
 msgid "System default"
 msgstr ""
 
@@ -1291,102 +1291,103 @@ msgstr ""
 msgid "Kicked from the server"
 msgstr ""
 
-#: internal/ui/statusbar.go:54 internal/ui/window.go:158
+#: internal/ui/statusbar.go:56 internal/ui/window.go:158
 msgid "Mute microphone"
 msgstr ""
 
-#: internal/ui/statusbar.go:61
+#: internal/ui/statusbar.go:63
 msgid "Deafen"
 msgstr ""
 
-#: internal/ui/statusbar.go:66
+#: internal/ui/statusbar.go:68
 msgid "Input device"
 msgstr ""
 
-#: internal/ui/statusbar.go:67
+#: internal/ui/statusbar.go:69
 msgid "Output device"
 msgstr ""
 
-#: internal/ui/statusbar.go:76
+#: internal/ui/statusbar.go:78
 msgid ""
-"Voice input: grey = below threshold, green = transmitting, red = too loud. "
-"Click to set the activation threshold."
+"Voice input: grey = below threshold, green = transmitting, yellow = voice "
+"detected but not sent (muted or not connected), red = too loud. Click to set "
+"the activation threshold."
 msgstr ""
 
-#: internal/ui/statusbar.go:159
+#: internal/ui/statusbar.go:162
 msgid "Input Device"
 msgstr ""
 
-#: internal/ui/statusbar.go:166
+#: internal/ui/statusbar.go:169
 msgid ""
 "Speak normally and drag the handle just below your speech level: everything "
 "louder than the handle is transmitted. Red means the input is too loud."
 msgstr ""
 
-#: internal/ui/statusbar.go:175
+#: internal/ui/statusbar.go:178
 msgid "Processing"
 msgstr ""
 
-#: internal/ui/statusbar.go:188
+#: internal/ui/statusbar.go:191
 msgid "For speakers instead of a headset"
 msgstr ""
 
-#: internal/ui/statusbar.go:213
+#: internal/ui/statusbar.go:216
 msgid "Output Device"
 msgstr ""
 
-#: internal/ui/statusbar.go:262
+#: internal/ui/statusbar.go:265
 #, go-format
 msgid "%s (not available)"
 msgstr ""
 
-#: internal/ui/statusbar.go:314
+#: internal/ui/statusbar.go:323
 msgid "Connected"
 msgstr ""
 
-#: internal/ui/statusbar.go:319
+#: internal/ui/statusbar.go:328
 #, go-format
 msgid "Connected to %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:324
+#: internal/ui/statusbar.go:333
 #, go-format
 msgid "Channel: %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:327
+#: internal/ui/statusbar.go:336
 #, go-format
 msgid "Server: Mumble %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:329
+#: internal/ui/statusbar.go:338
 msgid "UDP"
 msgstr ""
 
-#: internal/ui/statusbar.go:331
+#: internal/ui/statusbar.go:340
 msgid "TCP (UDP unavailable)"
 msgstr ""
 
-#: internal/ui/statusbar.go:333
+#: internal/ui/statusbar.go:342
 #, go-format
 msgid "Voice: %s"
 msgstr ""
 
-#: internal/ui/statusbar.go:335
+#: internal/ui/statusbar.go:344
 #, go-format
 msgid "Ping: %d ms"
 msgstr ""
 
-#: internal/ui/statusbar.go:338
+#: internal/ui/statusbar.go:347
 #, go-format
 msgid "Bandwidth limit: %d kbit/s"
 msgstr ""
 
-#: internal/ui/statusbar.go:351
+#: internal/ui/statusbar.go:364
 msgid "Connection failed"
 msgstr ""
 
-#: internal/ui/statusbar.go:354
+#: internal/ui/statusbar.go:367
 #, go-format
 msgid "Connection failed: %s"
 msgstr ""
@@ -1441,10 +1442,10 @@ msgstr ""
 msgid "Connect to a server to browse its channels."
 msgstr ""
 
-#: internal/ui/window.go:376
+#: internal/ui/window.go:379
 msgid "The microphone stopped delivering audio. Choose another input device."
 msgstr ""
 
-#: internal/ui/window.go:378
+#: internal/ui/window.go:381
 msgid "The output device is not playing audio. Choose another output device."
 msgstr ""

@@ -39,6 +39,8 @@ type statusBar struct {
 	selfMute   *gtk.ToggleButton
 	selfDeafen *gtk.ToggleButton
 	meter      *voiceMeter
+	idle       *idleMic // the microphone while not connected
+	connected  bool
 	dot        *gtk.Box
 	dotHolder  *gtk.Box
 
@@ -73,7 +75,7 @@ func newStatusBar(st settings.Settings, b *bus.Bus) *statusBar {
 	meterBtn.SetDirection(gtk.ArrowUp)
 	meterBtn.SetVAlign(gtk.AlignFill)
 	meterBtn.AddCSSClass("voice-meter-button")
-	meterBtn.SetTooltipText(tr("Voice input: grey = below threshold, green = transmitting, red = too loud. Click to set the activation threshold."))
+	meterBtn.SetTooltipText(tr("Voice input: grey = below threshold, green = transmitting, yellow = voice detected but not sent (muted or not connected), red = too loud. Click to set the activation threshold."))
 
 	// The dot sits in a padded holder so the tooltip has a comfortable
 	// hover target.
@@ -96,6 +98,7 @@ func newStatusBar(st settings.Settings, b *bus.Bus) *statusBar {
 	s.root.Append(linked(s.selfDeafen, outMenu))
 	meterBtn.SetHExpand(true)
 	s.root.Append(meterBtn)
+	s.idle = newIdleMic(st, b)
 	s.setDisconnected()
 	return s
 }
@@ -294,10 +297,14 @@ func (s *statusBar) SelfMuted() bool         { return s.selfMute.Active() }
 func (s *statusBar) SetSelfDeafened(deafened bool) { s.selfDeafen.SetActive(deafened) }
 func (s *statusBar) SelfDeafened() bool            { return s.selfDeafen.Active() }
 
-// pushLevel feeds the voice meter.
+// pushLevel feeds the voice meter. Without a connection detected voice
+// is never sent, like while muted.
 func (s *statusBar) pushLevel(ev bus.InputLevel) {
-	s.meter.push(ev, s.SelfMuted() || s.SelfDeafened())
+	s.meter.push(ev, !s.connected || s.SelfMuted() || s.SelfDeafened())
 }
+
+// stopIdleMic releases the microphone (window closed).
+func (s *statusBar) stopIdleMic() { s.idle.stop() }
 
 func (s *statusBar) setDot(connected bool, tooltip string) {
 	if connected {
@@ -311,6 +318,8 @@ func (s *statusBar) setDot(connected bool, tooltip string) {
 }
 
 func (s *statusBar) setConnected() {
+	s.connected = true
+	s.idle.stop() // the voice engine captures now
 	s.setDot(true, tr("Connected"))
 }
 
@@ -341,12 +350,16 @@ func (s *statusBar) setInfo(ev bus.ConnectionInfo) {
 }
 
 func (s *statusBar) setDisconnected() {
+	s.connected = false
 	s.setDot(false, tr("Not connected"))
 	s.meter.reset()
+	s.idle.start()
 }
 
 func (s *statusBar) setError(text string) {
+	s.connected = false
 	s.meter.reset()
+	s.idle.start()
 	if text == "" {
 		s.setDot(false, tr("Connection failed"))
 		return
