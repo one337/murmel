@@ -112,6 +112,13 @@ else
 fi
 rm -f "$TMPOT"
 
+step "i18n: translations compile"
+if tools/install-translations.sh 2>&1; then
+  pass "po/*.po in po/LINGUAS compile"
+else
+  fail "a translation does not compile (msgfmt --check)"
+fi
+
 printf '========================\n'
 if [ "$failures" -eq 0 ]; then
   printf 'ALL CHECKS PASSED\n'
