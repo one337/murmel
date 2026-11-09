@@ -21,6 +21,9 @@ var (
 	errNoCodec              = errors.New("gumble: no audio codec")
 )
 
+// queryUsersType is the QueryUsers message type (its index in handlers).
+const queryUsersType = 14
+
 var handlers = [...]func(*Client, []byte) error{
 	(*Client).handleVersion,
 	(*Client).handleUDPTunnel,
@@ -865,8 +868,38 @@ func (c *Client) handleACL(buffer []byte) error {
 			acl.Rules = append(acl.Rules, aclRule)
 		}
 	}
+	// The server follows an ACL with a QueryUsers message naming the users
+	// it references, but only when there are names to send (P15). Without
+	// user references the ACL is complete now; otherwise readRoutine
+	// delivers it before the next message if no QueryUsers arrives.
+	if !aclReferencesUsers(acl) {
+		c.Config.Listeners.onACL(&ACLEvent{Client: c, ACL: acl})
+		return nil
+	}
 	c.tmpACL = acl
 	return nil
+}
+
+func aclReferencesUsers(acl *ACL) bool {
+	for _, g := range acl.Groups {
+		if len(g.UsersAdd) > 0 || len(g.UsersRemove) > 0 || len(g.UsersInherited) > 0 {
+			return true
+		}
+	}
+	for _, r := range acl.Rules {
+		if r.User != nil {
+			return true
+		}
+	}
+	return false
+}
+
+// flushPendingACL delivers an ACL whose user names never came (P15).
+func (c *Client) flushPendingACL() {
+	if acl := c.tmpACL; acl != nil {
+		c.tmpACL = nil
+		c.Config.Listeners.onACL(&ACLEvent{Client: c, ACL: acl})
+	}
 }
 
 func (c *Client) handleQueryUsers(buffer []byte) error {

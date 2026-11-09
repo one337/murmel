@@ -317,6 +317,9 @@ func (c *Client) readRoutine() {
 		if err != nil {
 			break
 		}
+		if c.tmpACL != nil && pType != queryUsersType {
+			c.flushPendingACL()
+		}
 		if int(pType) < len(handlers) {
 			handlers[pType](c, data)
 		}

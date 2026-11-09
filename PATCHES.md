@@ -330,3 +330,17 @@ Without them the UI could not tell whether to offer those actions (nor
 the ban list and registered users) until it queried the root channel.
 
 **Upstream**: layeh/gumble `gumble/handlers.go` (`handleServerSync` ignores `Permissions`).
+
+## P15 — Deliver ACLs that come without user names
+
+**What**: `handleACL` fires the ACL event at once when the ACL references
+no users. Otherwise it still waits for the QueryUsers message with their
+names, but `readRoutine` delivers the pending ACL (without names) as soon
+as any other message arrives instead.
+
+**Why**: The server follows an ACL with QueryUsers only when it has names
+to send. Upstream always waited for it, so an ACL without (resolvable)
+user references — the root channel's default ACL, for one — never
+reached the application, and the channel editor kept loading.
+
+**Upstream**: layeh/gumble `gumble/handlers.go` (`handleACL` stores `tmpACL`, `handleQueryUsers` fires the event).
