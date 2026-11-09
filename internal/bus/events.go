@@ -186,6 +186,13 @@ type UserInfo struct {
 	// HasCertificate reports whether the user connected with a client
 	// certificate (the server announced its hash); registering needs one.
 	HasCertificate bool
+	// Texture is the user's avatar image as uploaded (PNG/JPEG; very old
+	// clients sent raw pixels, which are not shown). nil if none or not
+	// fetched yet.
+	Texture []byte
+	// TexturePending: the server announced an avatar (by hash) that has
+	// not been fetched yet (UserTextureRequested).
+	TexturePending bool
 }
 
 // UserAdded is emitted when a user connected (gumble UserChangeConnected).

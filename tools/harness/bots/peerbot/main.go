@@ -142,6 +142,7 @@ func main() {
 	certFile := flag.String("cert", "", "client certificate PEM file (optional)")
 	keyFile := flag.String("key", "", "client key PEM file (defaults to --cert)")
 	timeout := flag.Duration("timeout", 15*time.Second, "connect timeout")
+	flag.StringVar(&avatarFile, "avatar", "", "set this image file as the bot's avatar (texture) after joining")
 	flag.Parse()
 
 	if *expectText != "" && *listenSeconds <= 0 {
@@ -253,6 +254,14 @@ func run(addr, name, channelName, pmUser, certFile, keyFile string, timeout time
 	}
 	s.Joined = true
 
+	if avatarFile != "" {
+		data, err := os.ReadFile(avatarFile)
+		if err != nil {
+			return fmt.Errorf("avatar: %w", err)
+		}
+		client.Do(func() { client.Self.SetTexture(data) })
+	}
+
 	if s.SendText != "" {
 		if pmUser != "" {
 			user := findUser(client, pmUser)
@@ -277,6 +286,9 @@ func run(addr, name, channelName, pmUser, certFile, keyFile string, timeout time
 
 	return nil
 }
+
+// avatarFile is the --avatar image (empty: none).
+var avatarFile string
 
 func joinChannel(client *gumble.Client, channelName string) error {
 	ch := findChannel(client, channelName)

@@ -36,6 +36,11 @@ type Tree struct {
 	// channel chat, kept across row rebuilds.
 	unread        map[uint32]int
 	channelUnread int
+
+	// Decoded avatars by session, and the avatars already requested from
+	// the server (both reset on disconnect).
+	avatars          map[uint32]avatarEntry
+	textureRequested map[uint32]bool
 }
 
 // NewTree builds the tree widget and subscribes to the bus. parent is the
@@ -88,6 +93,11 @@ func (t *Tree) subscribe(ctx context.Context) {
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.VoiceActivity) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(bus.Disconnected) {
 		t.unread, t.channelUnread = nil, 0
+		t.avatars, t.textureRequested = nil, nil
+	})
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserRemoved) {
+		delete(t.avatars, ev.Session)
+		delete(t.textureRequested, ev.Session)
 	})
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UnreadChanged) {
 		if ev.Session == 0 {
@@ -158,6 +168,7 @@ func (t *Tree) rebuild() {
 				func(x, y float64) { t.showUserMenu(session, x, y) },
 				func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) })
 			t.userRows[session] = r
+			t.applyAvatar(r, t.model.users[session])
 			t.list.Append(r.root)
 		}
 	}
@@ -176,6 +187,7 @@ func (t *Tree) updateInPlace(ev bus.Event) {
 	case bus.UserUpdated:
 		if r, ok := t.userRows[e.User.Session]; ok {
 			r.update(e.User, t.model.speaking[e.User.Session])
+			t.applyAvatar(r, e.User)
 		}
 	case bus.ChannelUpdated:
 		if r, ok := t.channelRows[e.Channel.ID]; ok {

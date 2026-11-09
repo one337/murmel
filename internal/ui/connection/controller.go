@@ -98,6 +98,7 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 	bus.SubscribeCtx(ctx, appBus, c.onDisconnectRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelPermissionRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onChannelDescriptionRequested)
+	bus.SubscribeCtx(ctx, appBus, c.onUserTextureRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onBanListRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onUserListRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onBanListWriteRequested)
@@ -1041,6 +1042,18 @@ func (c *Controller) onChannelDescriptionRequested(ev bus.ChannelDescriptionRequ
 	}
 	if ch := client.Channels[ev.ChannelID]; ch != nil && ch.Description == "" && len(ch.DescriptionHash) > 0 {
 		ch.RequestDescription()
+	}
+}
+
+func (c *Controller) onUserTextureRequested(ev bus.UserTextureRequested) {
+	c.mu.Lock()
+	client := c.client
+	c.mu.Unlock()
+	if client == nil {
+		return
+	}
+	if u := client.Users[ev.Session]; u != nil && len(u.Texture) == 0 && len(u.TextureHash) > 0 {
+		u.RequestTexture()
 	}
 }
 

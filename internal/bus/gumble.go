@@ -406,6 +406,8 @@ func copyUser(u *gumble.User) UserInfo {
 		PrioritySpeaker: u.PrioritySpeaker,
 		Recording:       u.Recording,
 		HasCertificate:  u.Hash != "",
+		Texture:         u.Texture,
+		TexturePending:  len(u.Texture) == 0 && len(u.TextureHash) > 0,
 	}
 	if u.Channel != nil {
 		info.Channel = u.Channel.ID

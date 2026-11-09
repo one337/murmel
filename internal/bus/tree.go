@@ -138,6 +138,12 @@ type ChannelPermissionRequested struct {
 	ChannelID uint32
 }
 
+// UserTextureRequested asks the controller to fetch a user's avatar (the
+// server sent only its hash).
+type UserTextureRequested struct {
+	Session uint32
+}
+
 // ChannelDescriptionRequested asks the controller to fetch a channel's
 // long description (the server sent only its hash).
 type ChannelDescriptionRequested struct {
@@ -182,6 +188,7 @@ func (ACLSaveRequested) isBusEvent()            {}
 func (BanListRequested) isBusEvent()            {}
 func (DisconnectRequested) isBusEvent()         {}
 func (ChannelDescriptionRequested) isBusEvent() {}
+func (UserTextureRequested) isBusEvent()        {}
 func (ChannelPermissionRequested) isBusEvent()  {}
 func (UserListRequested) isBusEvent()           {}
 func (BanListWriteRequested) isBusEvent()       {}
