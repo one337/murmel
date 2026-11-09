@@ -69,13 +69,27 @@ func setUnread(b *gtk.Label, n int) {
 	}
 }
 
+func newChevron() *gtk.Button {
+	b := gtk.NewButtonFromIconName(iconExpanderExpanded)
+	b.AddCSSClass("flat")
+	b.SetHasFrame(false)
+	return b
+}
+
+// chevronSpacer takes exactly a chevron's room without showing or reacting.
+func chevronSpacer() *gtk.Button {
+	b := newChevron()
+	b.SetOpacity(0)
+	b.SetCanTarget(false)
+	b.SetCanFocus(false)
+	return b
+}
+
 func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float64)) *channelRowWidgets {
 	n := m.channels[id]
 	r := &channelRowWidgets{}
 
-	r.chevron = gtk.NewButtonFromIconName(iconExpanderExpanded)
-	r.chevron.AddCSSClass("flat")
-	r.chevron.SetHasFrame(false)
+	r.chevron = newChevron()
 	r.chevron.SetTooltipText(tr("Expand or collapse"))
 	r.chevron.ConnectClicked(toggle)
 
@@ -150,6 +164,9 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 
 	r.badge = newBadge()
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
+	// An invisible twin of the channel chevron: the avatar starts where
+	// the channel's name does.
+	box.Append(chevronSpacer())
 	box.Append(r.avatar)
 	box.Append(r.name)
 	box.Append(r.badge)
@@ -157,7 +174,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	for _, k := range []string{iconSpeaking, iconPrioritySpeaker, iconRecording, iconMuted, iconDeafened} {
 		box.Append(r.icons[k])
 	}
-	applyIndent(box, depthOf(m, u.Channel)+1)
+	applyIndent(box, depthOf(m, u.Channel))
 
 	r.root = gtk.NewListBoxRow()
 	r.root.SetChild(box)
@@ -241,7 +258,7 @@ func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
 	r.icons[iconPrioritySpeaker].SetVisible(u.PrioritySpeaker)
 	r.icons[iconRecording].SetVisible(u.Recording)
 	// Speech while muted (the own microphone's voice detection) is not
-	// transmitted: the crossed-out microphone lights up red instead of a
+	// transmitted: the crossed-out microphone lights up yellow instead of a
 	// second, misleading microphone icon, and the name stays regular.
 	r.icons[iconSpeaking].SetVisible(speaking && !muted)
 	if speaking && muted {
