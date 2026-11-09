@@ -51,6 +51,12 @@ type channelEditor struct {
 	acl       *bus.ACLFetched
 	aclDenied bool
 	origPW    string
+
+	// Groups and Permissions pages work on one copy of the ACL.
+	work       *aclWork
+	groupsBox  *gtk.Box
+	permsBox   *gtk.Box
+	registered []bus.RegisteredUserInfo
 }
 
 // ShowChannelEditor opens the editor for info's channel on page (one of the
@@ -62,6 +68,12 @@ func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, p
 	e.addPage(PageGeneral, tr("General"), "document-properties-symbolic", e.generalPage(), formWidth)
 	e.descPage = gtk.NewBox(gtk.OrientationVertical, 0)
 	e.stack.AddTitledWithIcon(e.descPage, PageDescription, tr("Description"), "format-justify-left-symbolic")
+	e.groupsBox = pageBox()
+	e.groupsBox.Append(loadingLabel())
+	e.addPage(PageGroups, tr("Groups"), "system-users-symbolic", e.groupsBox, formWidth)
+	e.permsBox = pageBox()
+	e.permsBox.Append(loadingLabel())
+	e.addPage(PagePermissions, tr("Permissions"), "security-high-symbolic", e.permsBox, formWidth)
 
 	e.saveBtn = gtk.NewButtonWithLabel(tr("Save"))
 	e.saveBtn.AddCSSClass("suggested-action")
@@ -125,7 +137,20 @@ func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, p
 		e.loadDescription(info.Description)
 	}
 
+	// The server's user list (if permitted) offers more users to add.
+	subscribeWhileOpen(e.dialog, b, func(ev bus.UserListFetched) {
+		e.registered = ev.Users
+		if e.work != nil {
+			for _, u := range ev.Users {
+				if u.UserID != 0 && u.Name != "" {
+					e.work.users[u.UserID] = u.Name
+				}
+			}
+		}
+	})
+
 	b.Emit(bus.ACLRequested{ChannelID: info.ID})
+	b.Emit(bus.UserListRequested{})
 	e.dialog.Present(parent)
 	e.name.GrabFocus()
 }
@@ -206,10 +231,21 @@ func (e *channelEditor) generalPage() gtk.Widgetter {
 
 // aclLoaded enables what depends on the ACL (or explains why not).
 func (e *channelEditor) aclLoaded() {
+	clearBox(e.groupsBox)
+	clearBox(e.permsBox)
 	if e.acl == nil {
 		e.accessGroup.SetDescription(tr("You may not view this channel's permissions, so its password cannot be changed here."))
+		for _, box := range []*gtk.Box{e.groupsBox, e.permsBox} {
+			msg := gtk.NewLabel(tr("You do not have permission to view this channel's groups and permissions."))
+			msg.AddCSSClass("dim-label")
+			msg.SetWrap(true)
+			box.Append(msg)
+		}
 		return
 	}
+	e.work = newACLWork(e.acl, userCatalog(e.acl, e.b.State().Users, e.registered))
+	newGroupsPage(e.work, e.groupsBox)
+	newPermsPage(e.work, e.permsBox, e.info.ID == 0)
 	e.origPW = channelPassword(e.acl.Rules)
 	e.password.SetText(e.origPW)
 	e.password.SetSensitive(true)
@@ -249,13 +285,13 @@ func (e *channelEditor) save() {
 		e.b.Emit(edit)
 	}
 
-	if e.acl != nil {
-		if pw := e.password.Text(); pw != e.origPW {
+	if w := e.work; w != nil {
+		if pw := e.password.Text(); w.dirty || pw != e.origPW {
 			e.b.Emit(bus.ACLSaveRequested{
 				ChannelID: e.info.ID,
-				Inherits:  e.acl.Inherits,
-				Groups:    ownGroups(e.acl.Groups),
-				Rules:     withPassword(e.acl.Rules, pw),
+				Inherits:  w.inherits,
+				Groups:    ownGroups(w.groups),
+				Rules:     withPassword(w.ownRules, pw),
 			})
 		}
 	}
@@ -273,4 +309,12 @@ func ownGroups(groups []bus.ACLGroupInfo) []bus.ACLGroupInfo {
 		}
 	}
 	return out
+}
+
+func loadingLabel() *adw.Spinner {
+	s := adw.NewSpinner()
+	s.SetSizeRequest(32, 32)
+	s.SetHAlign(gtk.AlignCenter)
+	s.SetMarginTop(48)
+	return s
 }

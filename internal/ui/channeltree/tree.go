@@ -232,7 +232,9 @@ func (t *Tree) showChannelMenu(id uint32, x, y float64) {
 			admin.ShowDelete(t.parent, t.b, chID, name)
 		},
 		EditACL: func(chID uint32) {
-			admin.ShowACLEditor(t.parent, t.b, chID, name)
+			if n, ok := t.model.channels[chID]; ok {
+				admin.ShowChannelEditor(t.parent, t.b, n.info, admin.PagePermissions)
+			}
 		},
 	}
 	menu, refresh := buildChannelMenu(t.model, id, a)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 12:08+0100\n"
+"POT-Creation-Date: 2026-11-09 12:15+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,74 +17,231 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: internal/ui/admin/acl.go:54
-msgid "Inherit parent ACLs"
+#: internal/ui/admin/aclmodel.go:23
+msgid "Write ACL"
 msgstr ""
 
-#: internal/ui/admin/acl.go:95 internal/ui/admin/banlist.go:41
-#: internal/ui/admin/channeledit.go:66
-msgid "Save"
+#: internal/ui/admin/aclmodel.go:24
+msgid "Traverse"
 msgstr ""
 
-#: internal/ui/admin/acl.go:98 internal/ui/admin/ban.go:28
-#: internal/ui/admin/channel.go:30 internal/ui/admin/channel.go:59
-#: internal/ui/admin/channeledit.go:68 internal/ui/admin/kick.go:28
-#: internal/ui/connection/controller.go:329
-#: internal/ui/connection/controller.go:743
-#: internal/ui/connection/controller.go:1118
-#: internal/ui/connection/controller.go:1376 internal/ui/window.go:248
-msgid "Cancel"
+#: internal/ui/admin/aclmodel.go:25
+msgid "Enter"
 msgstr ""
 
-#: internal/ui/admin/acl.go:105 internal/ui/admin/acl.go:112
-msgid "Channel ACL"
+#: internal/ui/admin/aclmodel.go:26
+msgid "Speak"
 msgstr ""
 
-#: internal/ui/admin/acl.go:134
-msgid "No rules"
+#: internal/ui/admin/aclmodel.go:27
+msgid "Whisper"
 msgstr ""
 
-#: internal/ui/admin/acl.go:191
-msgid "Inherited"
+#: internal/ui/admin/aclmodel.go:28
+msgid "Mute/Deafen"
 msgstr ""
 
-#: internal/ui/admin/acl.go:196
-msgid "Apply to this channel"
+#: internal/ui/admin/aclmodel.go:29
+msgid "Move"
 msgstr ""
 
-#: internal/ui/admin/acl.go:201
-msgid "Apply to sub-channels"
+#: internal/ui/admin/aclmodel.go:30
+msgid "Make Channel"
 msgstr ""
 
-#: internal/ui/admin/acl.go:213 internal/ui/admin/acl.go:234
+#: internal/ui/admin/aclmodel.go:31
+msgid "Make Temporary Channel"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:32
+msgid "Link Channel"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:33
+msgid "Text Message"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:34 internal/ui/admin/kick.go:29
+msgid "Kick"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:35 internal/ui/admin/ban.go:29
+msgid "Ban"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:36
+msgid "Register User"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:37
+msgid "Register Self"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:101
+msgid "Allows"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:104
+msgid "Denies"
+msgstr ""
+
+#: internal/ui/admin/aclmodel.go:107
+msgid "Changes nothing"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:91
+msgid ""
+"No matching registered users. Users must be registered on the server; online "
+"ones and those from the user list are shown."
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:159 internal/ui/admin/channeledit.go:73
+msgid "Groups"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:160
+msgid ""
+"Groups collect registered users. Rules on the Permissions page can refer to "
+"them as @name."
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:163
+msgid "No groups in this channel"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:173
+msgid "New group name"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:205
+#, go-format
+msgid "%d members"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:207 internal/ui/admin/aclpages.go:266
+msgid "Inherited from the parent channel"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:215
+msgid "Delete group"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:223
+msgid "Inherit members"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:224
+msgid "Members of the same group in the parent channel belong to it too"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:234
+msgid "Inheritable"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:235
+msgid "Sub-channels can use this group"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:248
+msgid "Remove from group"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:263
+msgid "Inherited, excluded here"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:271
+msgid "Member in this channel"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:287
+msgid "Add member…"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:288
+msgid "Add member"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:330
+msgid "Inherit permissions from the parent channel"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:343
+msgid "Inherited Rules"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:344
+msgid "Defined in parent channels; they apply before the rules below."
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:357
+msgid "Rules of This Channel"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:358
+msgid ""
+"Applied from top to bottom: a later rule overrides an earlier one. The "
+"password on the General page adds its own rules, which are not listed here."
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:370
+msgid "No rules in this channel"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:407
+msgid "Move Up"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:410
+msgid "Move Down"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:418
+msgid "Delete"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:428
+msgid "Order"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:429
+msgid "Later rules override earlier ones"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:435
+msgid "Applies to this channel"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:439
+msgid "Applies to sub-channels"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:473
+msgid "Inherit"
+msgstr ""
+
+#: internal/ui/admin/aclpages.go:474
 msgid "Allow"
 msgstr ""
 
-#: internal/ui/admin/acl.go:217 internal/ui/admin/acl.go:236
+#: internal/ui/admin/aclpages.go:475
 msgid "Deny"
 msgstr ""
 
-#: internal/ui/admin/acl.go:258
-msgid "Remove rule"
+#: internal/ui/admin/aclpages.go:509
+msgid "Add"
 msgstr ""
 
-#: internal/ui/admin/acl.go:272
-#, go-format
-msgid "Group: %s"
+#: internal/ui/admin/aclpages.go:514
+msgid "Rule for a group"
 msgstr ""
 
-#: internal/ui/admin/acl.go:275 internal/ui/statusbar.go:330
-#, go-format
-msgid "User: %s"
+#: internal/ui/admin/aclpages.go:523
+msgid "Add Group Rule"
 msgstr ""
 
-#: internal/ui/admin/acl.go:278
-#, go-format
-msgid "User #%d"
-msgstr ""
-
-#: internal/ui/admin/acl.go:280
-msgid "(unknown)"
+#: internal/ui/admin/aclpages.go:540
+msgid "Add a rule for a registered user"
 msgstr ""
 
 #: internal/ui/admin/ban.go:16 internal/ui/admin/kick.go:16
@@ -100,8 +257,17 @@ msgstr ""
 msgid "The user will be permanently banned from the server."
 msgstr ""
 
-#: internal/ui/admin/ban.go:29
-msgid "Ban"
+#: internal/ui/admin/ban.go:28 internal/ui/admin/channel.go:30
+#: internal/ui/admin/channel.go:59 internal/ui/admin/channeledit.go:80
+#: internal/ui/admin/kick.go:28 internal/ui/connection/controller.go:329
+#: internal/ui/connection/controller.go:743
+#: internal/ui/connection/controller.go:1118
+#: internal/ui/connection/controller.go:1376 internal/ui/window.go:248
+msgid "Cancel"
+msgstr ""
+
+#: internal/ui/admin/banlist.go:41 internal/ui/admin/channeledit.go:78
+msgid "Save"
 msgstr ""
 
 #: internal/ui/admin/banlist.go:44 internal/ui/admin/userlist.go:39
@@ -148,11 +314,11 @@ msgstr ""
 msgid "Channel name"
 msgstr ""
 
-#: internal/ui/admin/channel.go:19 internal/ui/admin/channeledit.go:186
+#: internal/ui/admin/channel.go:19 internal/ui/admin/channeledit.go:211
 msgid "Temporary"
 msgstr ""
 
-#: internal/ui/admin/channel.go:20 internal/ui/admin/channeledit.go:187
+#: internal/ui/admin/channel.go:20 internal/ui/admin/channeledit.go:212
 msgid "Removed automatically when the last user leaves"
 msgstr ""
 
@@ -177,60 +343,69 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:62
+#: internal/ui/admin/channeledit.go:68
 msgid "General"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:64
+#: internal/ui/admin/channeledit.go:70
 msgid "Description"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:86
+#: internal/ui/admin/channeledit.go:76
+msgid "Permissions"
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:98
 #, go-format
 msgid "Edit Channel %s"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:166
+#: internal/ui/admin/channeledit.go:191
 msgid "Name"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:171
+#: internal/ui/admin/channeledit.go:196
 msgid "Position"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:172
+#: internal/ui/admin/channeledit.go:197
 msgid "Order among sibling channels: lower numbers come first"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:176
+#: internal/ui/admin/channeledit.go:201
 msgid "Maximum Users"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:177
+#: internal/ui/admin/channeledit.go:202
 msgid "0 = no limit beyond the server's own"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:192
+#: internal/ui/admin/channeledit.go:217
 #: internal/ui/connection/controller.go:732
 #: internal/ui/connection/controller.go:1111
 msgid "Password"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:196
+#: internal/ui/admin/channeledit.go:221
 msgid "Access"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:197
+#: internal/ui/admin/channeledit.go:222
 msgid "Loading the channel's permissions…"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:210
+#: internal/ui/admin/channeledit.go:237
 msgid ""
 "You may not view this channel's permissions, so its password cannot be "
 "changed here."
 msgstr ""
 
-#: internal/ui/admin/channeledit.go:216
+#: internal/ui/admin/channeledit.go:239
+msgid ""
+"You do not have permission to view this channel's groups and permissions."
+msgstr ""
+
+#: internal/ui/admin/channeledit.go:252
 msgid ""
 "Users need this password to enter the channel. Leave it empty for an open "
 "channel."
@@ -318,10 +493,6 @@ msgstr ""
 
 #: internal/ui/admin/kick.go:25
 msgid "The user will be disconnected and may reconnect immediately."
-msgstr ""
-
-#: internal/ui/admin/kick.go:29
-msgid "Kick"
 msgstr ""
 
 #: internal/ui/admin/reply.go:40 internal/ui/admin/stats.go:66
@@ -1534,6 +1705,11 @@ msgstr ""
 #: internal/ui/statusbar.go:328
 #, go-format
 msgid "Connected to %s"
+msgstr ""
+
+#: internal/ui/statusbar.go:330
+#, go-format
+msgid "User: %s"
 msgstr ""
 
 #: internal/ui/statusbar.go:333
