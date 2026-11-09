@@ -242,3 +242,11 @@ image.muted-speaking {
   color: #e5a50a;
   -gtk-icon-shadow: 0 0 4px alpha(#e5a50a, 0.6);
 }
+
+/* Connect dialog: the saved connections fade out at the bottom edge while
+   the list continues below. */
+.saved-connections-fade {
+  min-height: 36px;
+  border-radius: 0 0 12px 12px;
+  background-image: linear-gradient(to bottom, alpha(@card_bg_color, 0), @card_bg_color);
+}

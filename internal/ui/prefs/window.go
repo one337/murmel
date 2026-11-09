@@ -7,6 +7,7 @@ package prefs
 import (
 	"fmt"
 	"log/slog"
+	"path/filepath"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
@@ -19,6 +20,7 @@ import (
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/certs"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/chat"
 	"io.github/murmel/internal/ui/levelmeter"
 )
@@ -109,6 +111,21 @@ func identityPage(st settings.Settings, m *certs.Manager) *adw.PreferencesPage {
 
 	group.Add(importRow)
 	group.Add(exportRow)
+
+	// Default avatar: sent on every connection that has no own avatar.
+	avatars := avatarpick.NewStore(filepath.Join(m.DataDir(), "avatars"))
+	avatarRow := avatarpick.NewRow(tr("Default avatar"), "", tr("Optional — sent to servers for connections without their own avatar"),
+		func(data []byte) {
+			if err := avatars.Save(avatarpick.DefaultKey, data); err != nil {
+				slog.Info("prefs: default avatar not saved", "err", err)
+			}
+		})
+	avatarRow.SetData(avatars.Load(avatarpick.DefaultKey))
+	avatarGroup := adw.NewPreferencesGroup()
+	avatarGroup.SetTitle(tr("Avatar"))
+	avatarGroup.Add(avatarRow)
+
+	page.Add(avatarGroup)
 	page.Add(group)
 	return page
 }

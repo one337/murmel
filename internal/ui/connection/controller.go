@@ -22,6 +22,7 @@ import (
 	"io.github/murmel/internal/protocol/gumble"
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui"
+	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/secrets"
 )
 
@@ -67,6 +68,13 @@ type dialParams struct {
 	// rememberPassword saves password to the keyring (and the connection
 	// to the saved list) once the server accepted it.
 	rememberPassword bool
+	// texture is the avatar image sent after connecting (nil = none).
+	texture []byte
+}
+
+// avatarStore holds the user's own avatars next to the certificates.
+func (c *Controller) avatarStore() *avatarpick.Store {
+	return avatarpick.NewStore(filepath.Join(c.certs.DataDir(), "avatars"))
 }
 
 // NewController creates a Controller. win is the application window used as
@@ -125,9 +133,18 @@ func (c *Controller) OnConnectRequest(req ui.ConnectRequest) {
 // follows the natural height of the form so every field is visible at once.
 const connectDialogWidth = 440
 
-// savedListMaxHeightPx shows about four saved connections before the list
-// scrolls, so the form below stays visible.
-const savedListMaxHeightPx = 240
+// savedListMaxHeightPx shows five and a half saved connections before the
+// list scrolls: the cut-off row (plus a fade and a permanent scrollbar)
+// tells that there is more.
+const savedListMaxHeightPx = 320
+
+// savedRowPx is the height of one saved-connection row (title and
+// subtitle); savedListMinRows of them stay visible even when the dialog has
+// to shrink to a small window (the whole form scrolls then).
+const (
+	savedRowPx       = 57
+	savedListMinRows = 3.5
+)
 
 func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	port := req.Port
@@ -223,9 +240,26 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	userEntry.ConnectChanged(updateSaveName)
 	updateSaveName()
 
+	// Optional avatar for this account; without one the default avatar
+	// (Preferences) is sent.
+	avatars := c.avatarStore()
+	defaultAvatar := avatars.Load(avatarpick.DefaultKey)
+	unset := tr("Optional")
+	if defaultAvatar != nil {
+		unset = tr("Optional — otherwise your default avatar is used")
+	}
+	avatarChanged := false
+	avatarRow := avatarpick.NewRow(tr("Avatar"), req.Username, unset, func([]byte) { avatarChanged = true })
+	avatarRow.SetFallback(defaultAvatar)
+	if req.Host != "" {
+		avatarRow.SetData(avatars.Load(avatarpick.AccountKey(req.Host, port, req.Username)))
+	}
+	userEntry.ConnectChanged(func() { avatarRow.SetName(userEntry.Text()) })
+
 	userGroup := adw.NewPreferencesGroup()
 	userGroup.SetTitle(tr("Account"))
 	userGroup.Add(userEntry)
+	userGroup.Add(avatarRow)
 	userGroup.Add(identityRow)
 	userGroup.Add(saveRow)
 
@@ -238,6 +272,8 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 		selectIdentity(e.IdentityID)
 		passwordEntry.SetText("")
 		saveRow.SetActive(true)
+		avatarRow.SetData(avatars.Load(avatarpick.AccountKey(e.Host, e.Port, e.Username)))
+		avatarChanged = false
 		key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
 		go func() {
 			pw, err := secrets.Lookup(key)
@@ -318,6 +354,15 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 		}
 		c.settings.SetLastIdentity(identityID)
 
+		texture := avatarRow.Data()
+		if saveRow.Active() && (avatarChanged || texture != nil) {
+			if err := avatars.Save(avatarpick.AccountKey(h, p, user), texture); err != nil {
+				slog.Info("avatar not saved", "err", err)
+			}
+		}
+		if texture == nil {
+			texture = defaultAvatar
+		}
 		if saveRow.Active() {
 			c.saveServer(settings.ServerEntry{
 				Name:       savedName(user, h, p),
@@ -334,6 +379,7 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 			username: user,
 			password: password,
 			identity: identity,
+			texture:  texture,
 		}
 		// A link's channel applies only to the server the link named.
 		if strings.EqualFold(h, req.Host) && p == port {
@@ -364,9 +410,26 @@ func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *adw.Pre
 	scroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
 	scroll.SetPropagateNaturalHeight(true)
 	scroll.SetMaxContentHeight(savedListMaxHeightPx)
+	scroll.SetMinContentHeight(int(min(float64(len(servers)), savedListMinRows) * savedRowPx))
 	scroll.AddCSSClass("saved-connections")
 	scroll.SetOverflow(gtk.OverflowHidden) // clip rows to the rounded card
-	group.Add(scroll)
+	// A permanent scrollbar and a fade over the last visible row show that
+	// the list continues.
+	scroll.SetOverlayScrolling(false)
+	fade := gtk.NewBox(gtk.OrientationVertical, 0)
+	fade.AddCSSClass("saved-connections-fade")
+	fade.SetVAlign(gtk.AlignEnd)
+	fade.SetCanTarget(false)
+	adj := scroll.VAdjustment()
+	updateFade := func() {
+		fade.SetVisible(adj.Value()+adj.PageSize() < adj.Upper()-1)
+	}
+	adj.ConnectValueChanged(updateFade)
+	adj.ConnectChanged(updateFade)
+	overlay := gtk.NewOverlay()
+	overlay.SetChild(scroll)
+	overlay.AddOverlay(fade)
+	group.Add(overlay)
 	for _, e := range servers {
 		e := e
 		row := adw.NewActionRow()
@@ -383,6 +446,9 @@ func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *adw.Pre
 		del.SetTooltipText(tr("Forget connection"))
 		del.ConnectClicked(func() {
 			c.settings.SetServers(removeServer(c.settings.Servers(), e.Host, e.Port, e.Username))
+			if err := c.avatarStore().Save(avatarpick.AccountKey(e.Host, e.Port, e.Username), nil); err != nil {
+				slog.Info("avatar not removed", "err", err)
+			}
 			list.Remove(row)
 			if list.FirstChild() == nil {
 				group.SetVisible(false)
@@ -566,11 +632,18 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 	// Join the channel a mumble:// link pointed to; read the session for
 	// the voice engine. gumble's read loop is already running (withClient).
 	var selfSession uint32
+	var texture []byte
+	if c.lastDial != nil {
+		texture = c.lastDial.texture
+	}
 	client.Do(func() {
 		if client.Self == nil {
 			return
 		}
 		selfSession = client.Self.Session
+		if len(texture) > 0 {
+			client.Self.SetTexture(texture)
+		}
 		if p := c.lastDial; p != nil && len(p.channelPath) > 0 {
 			if ch := client.Channels.Find(p.channelPath...); ch != nil {
 				client.Self.Move(ch)
