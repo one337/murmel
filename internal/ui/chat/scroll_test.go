@@ -4,9 +4,9 @@ import "testing"
 
 func TestAnchored(t *testing.T) {
 	cases := []struct {
-		name                 string
-		value, upper, page   float64
-		want                 bool
+		name               string
+		value, upper, page float64
+		want               bool
 	}{
 		{"exact bottom", 900, 1000, 100, true},
 		{"empty list", 0, 100, 100, true},

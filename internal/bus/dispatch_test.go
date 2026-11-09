@@ -20,7 +20,7 @@ func init() {
 }
 
 const (
-	floodGoroutines = 10
+	floodGoroutines   = 10
 	floodPerGoroutine = 1000
 	floodTotal        = floodGoroutines * floodPerGoroutine
 	p99Limit          = time.Millisecond
@@ -127,7 +127,6 @@ func TestDispatchFlood(t *testing.T) {
 		t.Fatal("handler did not run while the iterating thread owned the default main context — dispatch is not main-loop bound")
 	}
 }
-
 
 func TestUnsubscribe(t *testing.T) {
 	b := New(nil)

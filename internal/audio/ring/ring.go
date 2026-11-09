@@ -24,12 +24,12 @@ import (
 // Ring is a fixed-frame-size SPSC ring. Construct with New. A Ring must
 // not be copied after construction.
 type Ring struct {
-	slots [][]byte        // pre-allocated frame storage, len == n
-	seq   []atomic.Int64  // per-slot state machine (see below)
-	head  atomic.Uint64   // next frame generation to read
-	tail  atomic.Uint64   // next frame generation to write
-	drop  atomic.Uint64   // frames lost (stolen oldest + rejected newest)
-	n     uint64          // number of slots (generations wrap mod n)
+	slots [][]byte       // pre-allocated frame storage, len == n
+	seq   []atomic.Int64 // per-slot state machine (see below)
+	head  atomic.Uint64  // next frame generation to read
+	tail  atomic.Uint64  // next frame generation to write
+	drop  atomic.Uint64  // frames lost (stolen oldest + rejected newest)
+	n     uint64         // number of slots (generations wrap mod n)
 }
 
 // Per-slot state, keyed by generation g (a slot j serves generations

@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -302,7 +303,7 @@ func TestConcurrentCaptureConservation(t *testing.T) {
 func TestConcurrentPlaybackConservation(t *testing.T) {
 	const produced = 3000
 	d := newRingDevice()
-	var producerDone bool
+	var producerDone atomic.Bool
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -315,7 +316,7 @@ func TestConcurrentPlaybackConservation(t *testing.T) {
 				return
 			}
 		}
-		producerDone = true
+		producerDone.Store(true)
 	}()
 
 	consumed := 0
@@ -332,7 +333,7 @@ func TestConcurrentPlaybackConservation(t *testing.T) {
 			last = v
 			consumed++
 		}
-		if producerDone && d.playRing.Len() == 0 {
+		if producerDone.Load() && d.playRing.Len() == 0 {
 			break
 		}
 		runtime.Gosched()

@@ -18,33 +18,60 @@ fail() {
   failures=$((failures + 1))
 }
 
-step "gofmt -l ."
-if gofmt_output="$(gofmt -l . 2>&1)" && [ -z "$gofmt_output" ]; then
+# The repository's own packages: not vendor/, not the untracked target/
+# scratch programs that may exist in a working copy.
+mapfile -t PKGS < <(go list ./... | grep -v '/target/')
+mapfile -t BUILD_PKGS < <(go list -f '{{if .GoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v '/target/')
+mapfile -t GOFILES < <(git ls-files '*.go' ':!:vendor/**')
+# Packages without GTK widgets: fast enough for the race detector (the UI
+# packages compile gotk4 with -race, which takes many minutes).
+mapfile -t RACE_PKGS < <(printf '%s\n' "${PKGS[@]}" | grep -v '/internal/ui')
+
+step "gofmt (tracked files)"
+if gofmt_output="$(gofmt -l "${GOFILES[@]}" 2>&1)" && [ -z "$gofmt_output" ]; then
   pass "gofmt (no unformatted files)"
 else
   printf '%s\n' "$gofmt_output"
   fail "gofmt (files above need formatting)"
 fi
 
-step "go vet ./..."
-if go vet ./... 2>&1; then
+step "go vet"
+if go vet "${PKGS[@]}" 2>&1; then
   pass "go vet"
 else
   fail "go vet"
 fi
 
-step "go build ./..."
-if go build ./... 2>&1; then
+step "go build"
+if go build "${BUILD_PKGS[@]}" 2>&1; then
   pass "go build"
 else
   fail "go build"
 fi
 
-step "go test ./..."
-if go test ./... 2>&1; then
+step "go test"
+if go test "${PKGS[@]}" 2>&1; then
   pass "go test"
 else
   fail "go test"
+fi
+
+step "go test -race (packages without GTK widgets)"
+if go test -race "${RACE_PKGS[@]}" 2>&1; then
+  pass "race detector"
+else
+  fail "race detector"
+fi
+
+step "govulncheck"
+GOVULNCHECK=(govulncheck)
+if ! command -v govulncheck >/dev/null 2>&1; then
+  GOVULNCHECK=(env GOFLAGS= go run golang.org/x/vuln/cmd/govulncheck@v1.9.0)
+fi
+if "${GOVULNCHECK[@]}" "${PKGS[@]}" 2>&1; then
+  pass "govulncheck (no known vulnerabilities reached)"
+else
+  fail "govulncheck"
 fi
 
 step "glib-compile-schemas data/"

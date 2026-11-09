@@ -320,15 +320,15 @@ func cmdVoiceIn(c *commonFlags, _ []string) error {
 
 	stats := client.UDPVoiceStats()
 	emit(map[string]any{
-		"spoke":            true,
-		"seconds":          c.seconds,
-		"buffers_sent":     sent,
-		"transport":        client.VoiceTransport(),
-		"udp_requested":    c.udp,
-		"udp_voice_sent":   stats.VoiceSent,
-		"udp_fallbacks":    stats.Fallbacks,
-		"opus_negotiated":  client.AudioEncoder != nil,
-		"audio_dropped":    client.AudioDropped(),
+		"spoke":           true,
+		"seconds":         c.seconds,
+		"buffers_sent":    sent,
+		"transport":       client.VoiceTransport(),
+		"udp_requested":   c.udp,
+		"udp_voice_sent":  stats.VoiceSent,
+		"udp_fallbacks":   stats.Fallbacks,
+		"opus_negotiated": client.AudioEncoder != nil,
+		"audio_dropped":   client.AudioDropped(),
 	})
 	return nil
 }
@@ -395,17 +395,17 @@ func cmdListen(c *commonFlags, _ []string) error {
 	snap := col.snapshot()
 	ustats := client.UDPVoiceStats()
 	emit(map[string]any{
-		"listened_seconds":  seconds,
-		"channel":           c.channel,
-		"transport":         client.VoiceTransport(),
-		"udp_requested":     c.udp,
-		"udp_voice_recv":    ustats.VoiceReceived,
-		"udp_pings_recv":    ustats.PingsReceived,
-		"udp_fallbacks":     ustats.Fallbacks,
-		"decoded_packets":   snap.packets,
-		"decoded_samples":   snap.samples,
-		"decoded_by_user":   snap.byUser,
-		"texts_received":    snap.texts,
+		"listened_seconds": seconds,
+		"channel":          c.channel,
+		"transport":        client.VoiceTransport(),
+		"udp_requested":    c.udp,
+		"udp_voice_recv":   ustats.VoiceReceived,
+		"udp_pings_recv":   ustats.PingsReceived,
+		"udp_fallbacks":    ustats.Fallbacks,
+		"decoded_packets":  snap.packets,
+		"decoded_samples":  snap.samples,
+		"decoded_by_user":  snap.byUser,
+		"texts_received":   snap.texts,
 	})
 	return nil
 }

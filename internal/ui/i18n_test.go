@@ -96,7 +96,7 @@ func TestNoHardcodedStrings(t *testing.T) {
 				return true // already wrapped or not a literal
 			}
 			// Unwrap surrounding quotes.
-			val := strings.Trim(lit.Value, `"` + "`")
+			val := strings.Trim(lit.Value, `"`+"`")
 			if isTechnical(val) {
 				return true
 			}

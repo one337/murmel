@@ -13,12 +13,13 @@ import (
 
 // Main aids in the creation of a basic command line gumble bot. It accepts the
 // following flag arguments:
-//  --server
-//  --username
-//  --password
-//  --insecure
-//  --certificate
-//  --key
+//
+//	--server
+//	--username
+//	--password
+//	--insecure
+//	--certificate
+//	--key
 func Main(listeners ...gumble.EventListener) {
 	server := flag.String("server", "localhost:64738", "Mumble server address")
 	username := flag.String("username", "gumble-bot", "client username")

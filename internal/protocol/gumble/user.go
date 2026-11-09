@@ -222,7 +222,7 @@ func (u *User) Send(message string) {
 // positional audio information from other users if their plugin context is the
 // same. The official Mumble client sets the context to:
 //
-//  PluginShortName + "\x00" + AdditionalContextInformation
+//	PluginShortName + "\x00" + AdditionalContextInformation
 func (u *User) SetPlugin(context []byte, identity string) {
 	packet := MumbleProto.UserState{
 		Session:        &u.Session,

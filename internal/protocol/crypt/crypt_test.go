@@ -322,7 +322,7 @@ func TestLossAndReorderStats(t *testing.T) {
 	// plaintexts trip the XEX* countermeasure, which flips one bit of the
 	// first block in the encrypted domain (official behavior).
 	payload := func(n int) []byte {
-		return bytes.Repeat([]byte{byte(n)+1}, 20)
+		return bytes.Repeat([]byte{byte(n) + 1}, 20)
 	}
 	packets := make([][]byte, 14)
 	for i := range packets {

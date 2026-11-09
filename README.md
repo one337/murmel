@@ -82,7 +82,8 @@ Flathub.
 ## Development
 
 ```sh
-tools/verify.sh          # gofmt, vet, build, tests, schema and i18n checks
+tools/verify.sh          # gofmt, vet, build, tests, race detector,
+                         # govulncheck, schema and i18n checks
 go test -mod=vendor ./...
 ```
 
