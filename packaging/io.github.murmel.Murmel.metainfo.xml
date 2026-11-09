@@ -75,6 +75,19 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.4" date="2026-11-09">
+      <description>
+        <ul>
+          <li>New chat layout: private messages open in their own view when you click a user, with unread badges next to names in the channel list</li>
+          <li>Event lines in the channel chat (users joining or leaving, moves, mutes), configurable on the new Chat page in Preferences</li>
+          <li>Formatted messages and images: bold and italic buttons (Ctrl+B / Ctrl+I) and an image button that fits pictures to the server limit; received formatting, links and images are shown</li>
+          <li>The channel description appears at the top of the channel chat, collapsed with a "Show more" button; a description starting with a wide image shows it as a banner behind the header</li>
+          <li>Microphone, headphones and level meter moved to the bottom of the channel list; the connection dot sits in the top corner and the server name is the title</li>
+          <li>Collapsing a channel also hides its users</li>
+          <li>Fixed image messages being silently dropped by the server</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.3" date="2026-11-08">
       <description>
         <ul>
