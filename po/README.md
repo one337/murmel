@@ -15,15 +15,7 @@ No `.po` translation files ship yet; English is the only locale for now.
 Run from the repository root:
 
 ```sh
-xgettext \
-  --language=Go \
-  --keyword=tr \
-  --package-name="Murmel" \
-  --package-version="0.1" \
-  --copyright-holder="Murmel Contributors" \
-  --msgid-bugs-address="https://github.com/one337/murmel/issues" \
-  -o po/murmel.pot \
-  $(find internal/ui -name '*.go' ! -name '*_test.go')
+tools/update-pot.sh
 ```
 
 Or run `tools/verify.sh`, which includes a freshness check.

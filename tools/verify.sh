@@ -101,21 +101,13 @@ fi
 
 step "i18n: POT file up-to-date"
 TMPOT=$(mktemp /tmp/murmel-XXXXXX.pot)
-xgettext \
-  --language=Go \
-  --keyword=tr \
-  --package-name="Murmel" \
-  --package-version="0.1" \
-  --copyright-holder="Murmel Contributors" \
-  --msgid-bugs-address="https://github.com/one337/murmel/issues" \
-  -o "$TMPOT" \
-  $(find internal/ui -name '*.go' ! -name '*_test.go' | LC_ALL=C sort) 2>/dev/null
+tools/update-pot.sh "$TMPOT"
 # Strip volatile header lines before diffing
 strip_header() { grep -v "^\"POT-Creation-Date\|^\"PO-Revision-Date\|^# FIRST AUTHOR" "$1"; }
 if diff <(strip_header po/murmel.pot) <(strip_header "$TMPOT") >/dev/null 2>&1; then
   pass "po/murmel.pot is current"
 else
-  printf 'Run: xgettext --language=Go --keyword=tr -o po/murmel.pot $(find internal/ui -name '"'"'*.go'"'"' ! -name '"'"'*_test.go'"'"' | LC_ALL=C sort)\n'
+  printf 'Run: tools/update-pot.sh\n'
   fail "po/murmel.pot is out of date"
 fi
 rm -f "$TMPOT"
