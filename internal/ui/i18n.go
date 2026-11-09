@@ -12,10 +12,15 @@ import (
 const i18nDomain = "murmel"
 
 func init() {
-	// Probe standard locale directories in priority order:
+	// Probe locale directories in priority order:
+	//   0. $MURMEL_LOCALEDIR — development (tools/install-translations.sh <dir>)
 	//   1. /app/share/locale — Flatpak runtime
 	//   2. /usr/share/locale — system-wide install
-	for _, dir := range []string{"/app/share/locale", "/usr/share/locale"} {
+	dirs := []string{"/app/share/locale", "/usr/share/locale"}
+	if d := os.Getenv("MURMEL_LOCALEDIR"); d != "" {
+		dirs = append([]string{d}, dirs...)
+	}
+	for _, dir := range dirs {
 		if lang := pickLanguage(os.Getenv, func(l string) bool { return hasTranslation(dir, l) }); lang != "" {
 			gotext.Configure(dir, lang, i18nDomain)
 			return

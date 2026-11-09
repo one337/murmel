@@ -1,2 +1,3 @@
 # Languages with a translation: one code per line (e.g. de, pt_BR),
 # matching po/<code>.po. tools/install-translations.sh installs them.
+de
