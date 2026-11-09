@@ -48,6 +48,10 @@ type View struct {
 	htmlAllowed bool
 	// windowActive is read from the toplevel once the view is mapped.
 	windowActive func() bool
+	// resuming: an automatic reconnect is under way, the session's chat
+	// continues; lastWelcome then suppresses the repeated welcome text.
+	resuming    bool
+	lastWelcome string
 }
 
 // NewView assembles the view and subscribes to the bus. sender may be nil
@@ -193,9 +197,24 @@ func (v *View) subscribe(ctx context.Context) {
 				content: errorRowText(denyText(ev))}, false)
 		}
 	})
+	// A new connection or leaving the server starts a fresh chat; an
+	// automatic reconnect keeps it.
+	bus.SubscribeCtx(ctx, v.bus, func(ev bus.ConnectionStarting) {
+		v.resuming = ev.Reconnect
+		if !ev.Reconnect {
+			v.reset()
+		}
+	})
+	bus.SubscribeCtx(ctx, v.bus, func(bus.DisconnectRequested) {
+		v.resuming = false
+		v.reset()
+	})
 	bus.SubscribeCtx(ctx, v.bus, func(ev bus.Connected) {
 		v.refreshTitles()
-		if len(richtext.Parse(ev.Welcome)) > 0 {
+		repeated := v.resuming && ev.Welcome == v.lastWelcome
+		v.resuming = false
+		v.lastWelcome = ev.Welcome
+		if !repeated && len(richtext.Parse(ev.Welcome)) > 0 {
 			v.channel.append(rowStyle{kind: rowServer, sender: tr("Welcome message"),
 				at: time.Now(), content: PlainText(ev.Welcome), html: ev.Welcome}, true)
 		}
@@ -257,6 +276,17 @@ func isPrivate(ev bus.TextMessage, self uint32) bool {
 		}
 	}
 	return false
+}
+
+// reset empties the channel chat and drops the private conversations.
+func (v *View) reset() {
+	v.nav.PopToTag(channelTag)
+	v.channel.clear()
+	v.dms = map[convKey]*conversation{}
+	v.unread = map[convKey]int{}
+	v.channelUnread = 0
+	v.lastWelcome = ""
+	v.bus.Emit(bus.UnreadChanged{Session: 0, Count: 0})
 }
 
 // dm returns (creating it if needed) the conversation for key.

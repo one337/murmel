@@ -580,6 +580,7 @@ func (c *Controller) startDial(p *dialParams) {
 	c.lastDial = p
 	c.mu.Unlock()
 
+	c.appBus.Emit(bus.ConnectionStarting{Reconnect: false})
 	go c.dial(p)
 }
 
@@ -903,6 +904,7 @@ func (c *Controller) scheduleReconnect(p *dialParams) {
 		}
 		glib.IdleAdd(func() bool {
 			c.appBus.Emit(bus.ConnectError{Text: tr("Reconnecting…")})
+			c.appBus.Emit(bus.ConnectionStarting{Reconnect: true})
 			go c.dial(p)
 			return false
 		})

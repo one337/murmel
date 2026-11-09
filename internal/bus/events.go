@@ -32,6 +32,14 @@ type Event interface {
 	isBusEvent()
 }
 
+// ConnectionStarting is emitted on the application bus when the controller
+// starts to connect: Reconnect is true for an automatic reconnect after the
+// connection dropped (the session continues), false for a new connection
+// the user asked for.
+type ConnectionStarting struct {
+	Reconnect bool
+}
+
 // Connected is emitted once the server connection is established and the
 // initial state sync has completed (gumble OnConnect). The fork does not
 // deliver channel/user events for the initial sync, so the bridge snapshots
@@ -439,6 +447,7 @@ type UserListFetched struct {
 }
 
 func (Connected) isBusEvent()           {}
+func (ConnectionStarting) isBusEvent()  {}
 func (Disconnected) isBusEvent()        {}
 func (ConnectError) isBusEvent()        {}
 func (ChannelAdded) isBusEvent()        {}

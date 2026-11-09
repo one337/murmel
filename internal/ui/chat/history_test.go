@@ -69,3 +69,18 @@ func TestNewHistoryRejectsBadLimit(t *testing.T) {
 	}()
 	newHistory[int](0)
 }
+
+func TestHistoryClear(t *testing.T) {
+	h := newHistory[int](3)
+	for i := 1; i <= 4; i++ {
+		h.push(i)
+	}
+	got := h.clear()
+	if len(got) != 3 || got[0] != 2 || h.len() != 0 {
+		t.Fatalf("clear returned %v, len %d", got, h.len())
+	}
+	h.push(9)
+	if last, ok := h.last(); !ok || last != 9 || h.len() != 1 {
+		t.Fatalf("after clear: last %d %v len %d", last, ok, h.len())
+	}
+}

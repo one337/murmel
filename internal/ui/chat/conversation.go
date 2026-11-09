@@ -149,6 +149,15 @@ func (c *conversation) append(st rowStyle, fromOthers bool) {
 	}
 }
 
+// clear removes every message.
+func (c *conversation) clear() {
+	for _, row := range c.hist.clear() {
+		c.list.Remove(row)
+	}
+	c.jump.SetRevealChild(false)
+	c.pin = true
+}
+
 func (c *conversation) atBottom() bool {
 	adj := c.scroll.VAdjustment()
 	return anchored(adj.Value(), adj.Upper(), adj.PageSize())
