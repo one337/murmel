@@ -1,4 +1,4 @@
-package prefs
+package identities
 
 import (
 	"context"
@@ -28,9 +28,9 @@ func pemFilters() (*gio.ListStore, *gtk.FileFilter) {
 	return filters, pem
 }
 
-// importIdentity lets the user pick a PEM file (certificate and private
-// key) and adds it to the identity store.
-func importIdentity(parent *gtk.Window, m *certs.Manager, done func(certs.IdentityMeta), failed func(error)) {
+// Import lets the user pick a PEM file (certificate and private key) and
+// adds it to the identity store.
+func Import(parent *gtk.Window, m *certs.Manager, done func(certs.IdentityMeta), failed func(error)) {
 	filters, pem := pemFilters()
 	fd := gtk.NewFileDialog()
 	fd.SetTitle(tr("Import Identity"))
@@ -53,9 +53,9 @@ func importIdentity(parent *gtk.Window, m *certs.Manager, done func(certs.Identi
 	})
 }
 
-// exportIdentity saves the identity's certificate and private key as one
-// PEM file, readable only by the user.
-func exportIdentity(parent *gtk.Window, m *certs.Manager, meta certs.IdentityMeta, done func(error)) {
+// Export saves the identity's certificate and private key as one PEM
+// file, readable only by the user.
+func Export(parent *gtk.Window, m *certs.Manager, meta certs.IdentityMeta, done func(error)) {
 	filters, pem := pemFilters()
 	fd := gtk.NewFileDialog()
 	fd.SetTitle(tr("Export Identity"))

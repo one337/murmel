@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
@@ -22,6 +24,7 @@ import (
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/chat"
+	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/levelmeter"
 )
 
@@ -54,84 +57,6 @@ func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesWin
 	page.SetName("identity")
 	page.SetIconName("system-users-symbolic")
 
-	identities, _ := m.List()
-	names := make([]string, 0, len(identities)+1)
-	names = append(names, tr("Anonymous"))
-	for _, id := range identities {
-		names = append(names, id.Name)
-	}
-
-	store := gtk.NewStringList(names)
-	row := adw.NewComboRow()
-	row.SetTitle(tr("Default identity"))
-	row.SetModel(store)
-	if lastID := st.LastIdentity(); lastID != "" {
-		for i, id := range identities {
-			if id.ID == lastID {
-				row.SetSelected(uint(i + 1))
-				break
-			}
-		}
-	}
-	coreglib.InternObject(row).NotifyProperty("selected", func() {
-		sel := int(row.Selected())
-		if sel == 0 {
-			st.SetLastIdentity("")
-			return
-		}
-		if sel-1 < len(identities) {
-			st.SetLastIdentity(identities[sel-1].ID)
-		}
-	})
-
-	group := adw.NewPreferencesGroup()
-	group.SetTitle(tr("Client Certificate"))
-	group.Add(row)
-
-	importRow := adw.NewActionRow()
-	importRow.SetTitle(tr("Import identity…"))
-	importRow.SetSubtitle(tr("Load a PEM file with certificate and private key"))
-	importRow.SetActivatable(true)
-	importRow.AddSuffix(gtk.NewImageFromIconName("document-open-symbolic"))
-
-	exportRow := adw.NewActionRow()
-	exportRow.SetTitle(tr("Export identity…"))
-	exportRow.SetSubtitle(tr("Save the selected identity as PEM, including its private key — keep the file safe"))
-	exportRow.SetActivatable(true)
-	exportRow.AddSuffix(gtk.NewImageFromIconName("document-save-symbolic"))
-	updateExport := func() { exportRow.SetSensitive(row.Selected() > 0) }
-	coreglib.InternObject(row).NotifyProperty("selected", updateExport)
-	updateExport()
-
-	parent := &pw.Window.Window
-	importRow.ConnectActivated(func() {
-		importIdentity(parent, m, func(meta certs.IdentityMeta) {
-			identities = append(identities, meta)
-			store.Append(meta.Name)
-			row.SetSelected(uint(len(identities))) // also makes it the default
-			pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
-		}, func(err error) {
-			pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Import failed: %v"), err)))
-		})
-	})
-	exportRow.ConnectActivated(func() {
-		sel := int(row.Selected())
-		if sel == 0 || sel-1 >= len(identities) {
-			return
-		}
-		meta := identities[sel-1]
-		exportIdentity(parent, m, meta, func(err error) {
-			if err != nil {
-				pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Export failed: %v"), err)))
-				return
-			}
-			pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Exported identity %s"), meta.Name)))
-		})
-	})
-
-	group.Add(importRow)
-	group.Add(exportRow)
-
 	// Default avatar: sent on every connection that has no own avatar.
 	avatars := avatarpick.NewStore(filepath.Join(m.DataDir(), "avatars"))
 	avatarRow := avatarpick.NewRow(tr("Default avatar"), "", tr("Optional — sent to servers for connections without their own avatar"),
@@ -144,10 +69,194 @@ func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesWin
 	avatarGroup := adw.NewPreferencesGroup()
 	avatarGroup.SetTitle(tr("Avatar"))
 	avatarGroup.Add(avatarRow)
-
 	page.Add(avatarGroup)
-	page.Add(group)
+
+	c := &certList{st: st, m: m, pw: pw}
+	page.Add(c.defaultGroup())
+	page.Add(c.listGroup())
+	c.refresh()
 	return page
+}
+
+// certList is the Identity page's certificate section: the default
+// identity and the list of all identities with export and delete.
+type certList struct {
+	st settings.Settings
+	m  *certs.Manager
+	pw *adw.PreferencesWindow
+
+	identities []certs.IdentityMeta
+	combo      *adw.ComboRow
+	group      *adw.PreferencesGroup
+	rows       []gtk.Widgetter
+	syncing    bool
+}
+
+func (c *certList) defaultGroup() *adw.PreferencesGroup {
+	c.combo = adw.NewComboRow()
+	c.combo.SetTitle(tr("Default identity"))
+	c.combo.SetSubtitle(tr("Used for new connections"))
+	coreglib.InternObject(c.combo).NotifyProperty("selected", func() {
+		if c.syncing {
+			return
+		}
+		sel := int(c.combo.Selected())
+		if sel == 0 || sel-1 >= len(c.identities) {
+			c.st.SetLastIdentity("")
+			return
+		}
+		c.st.SetLastIdentity(c.identities[sel-1].ID)
+	})
+	g := adw.NewPreferencesGroup()
+	g.SetTitle(tr("Client Certificate"))
+	g.Add(c.combo)
+	return g
+}
+
+func (c *certList) listGroup() *adw.PreferencesGroup {
+	c.group = adw.NewPreferencesGroup()
+	c.group.SetTitle(tr("Certificates"))
+	c.group.SetDescription(tr("Servers recognize registered accounts by their certificate. Keep a backup of the ones you use."))
+
+	create := gtk.NewButtonWithLabel(tr("Create…"))
+	create.SetTooltipText(tr("Create a new certificate"))
+	create.ConnectClicked(func() {
+		identities.ShowCreate(c.pw, c.m, "", func(meta certs.IdentityMeta) {
+			c.st.SetLastIdentity(meta.ID)
+			c.refresh()
+		})
+	})
+	imp := gtk.NewButtonWithLabel(tr("Import…"))
+	imp.SetTooltipText(tr("Load a PEM file with certificate and private key"))
+	imp.ConnectClicked(func() {
+		identities.Import(&c.pw.Window.Window, c.m, func(meta certs.IdentityMeta) {
+			c.st.SetLastIdentity(meta.ID)
+			c.refresh()
+			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
+		}, func(err error) {
+			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Import failed: %v"), err)))
+		})
+	})
+	buttons := gtk.NewBox(gtk.OrientationHorizontal, 6)
+	buttons.SetVAlign(gtk.AlignCenter)
+	buttons.Append(create)
+	buttons.Append(imp)
+	c.group.SetHeaderSuffix(buttons)
+	return c.group
+}
+
+// refresh re-reads the identity store into the combo and the list.
+func (c *certList) refresh() {
+	list, err := c.m.List()
+	if err != nil {
+		slog.Info("prefs: identities not listed", "err", err)
+	}
+	sort.Slice(list, func(i, j int) bool { return list[i].Created.Before(list[j].Created) })
+	c.identities = list
+
+	c.syncing = true
+	names := []string{tr("Anonymous")}
+	selected := uint(0)
+	for i, meta := range list {
+		names = append(names, meta.Name)
+		if meta.ID == c.st.LastIdentity() {
+			selected = uint(i + 1)
+		}
+	}
+	c.combo.SetModel(gtk.NewStringList(names))
+	c.combo.SetSelected(selected)
+	c.syncing = false
+
+	for _, r := range c.rows {
+		c.group.Remove(r)
+	}
+	c.rows = nil
+	if len(list) == 0 {
+		empty := adw.NewActionRow()
+		empty.SetTitle(tr("No certificates yet"))
+		empty.SetSubtitle(tr("Without one you connect anonymously and cannot register on servers."))
+		c.add(empty)
+		return
+	}
+	for _, meta := range list {
+		c.add(c.certRow(meta))
+	}
+}
+
+func (c *certList) add(w gtk.Widgetter) {
+	c.group.Add(w)
+	c.rows = append(c.rows, w)
+}
+
+func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
+	row := adw.NewActionRow()
+	row.SetTitle(meta.Name)
+	sub := fmt.Sprintf(tr("Created %s"), meta.Created.Local().Format("2006-01-02"))
+	if ident, err := c.m.Load(meta.ID); err == nil && ident.Certificate != nil {
+		sub += " · " + shortFingerprint(certs.Fingerprint(ident.Certificate))
+	}
+	if meta.Email != "" {
+		sub += " · " + meta.Email
+	}
+	row.SetSubtitle(sub)
+	row.AddPrefix(gtk.NewImageFromIconName("application-certificate-symbolic"))
+
+	export := gtk.NewButtonFromIconName("document-save-symbolic")
+	export.AddCSSClass("flat")
+	export.SetVAlign(gtk.AlignCenter)
+	export.SetTooltipText(tr("Export (back up) as PEM, including the private key"))
+	export.ConnectClicked(func() {
+		identities.Export(&c.pw.Window.Window, c.m, meta, func(err error) {
+			if err != nil {
+				c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Export failed: %v"), err)))
+				return
+			}
+			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Exported identity %s"), meta.Name)))
+		})
+	})
+	del := gtk.NewButtonFromIconName("user-trash-symbolic")
+	del.AddCSSClass("flat")
+	del.SetVAlign(gtk.AlignCenter)
+	del.SetTooltipText(tr("Delete certificate"))
+	del.ConnectClicked(func() { c.confirmDelete(meta) })
+	row.AddSuffix(export)
+	row.AddSuffix(del)
+	return row
+}
+
+func (c *certList) confirmDelete(meta certs.IdentityMeta) {
+	alert := adw.NewAlertDialog(fmt.Sprintf(tr("Delete “%s”?"), meta.Name),
+		tr("Servers on which you registered with this certificate will no longer recognize you. Export it first if you might need it again. This cannot be undone."))
+	alert.AddResponse("cancel", tr("Cancel"))
+	alert.AddResponse("delete", tr("Delete"))
+	alert.SetResponseAppearance("delete", adw.ResponseDestructive)
+	alert.SetDefaultResponse("cancel")
+	alert.SetCloseResponse("cancel")
+	alert.ConnectResponse(func(r string) {
+		if r != "delete" {
+			return
+		}
+		if err := c.m.Delete(meta.ID); err != nil {
+			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Delete failed: %v"), err)))
+			return
+		}
+		if c.st.LastIdentity() == meta.ID {
+			c.st.SetLastIdentity("")
+		}
+		c.refresh()
+		c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Deleted identity %s"), meta.Name)))
+	})
+	alert.Present(c.pw)
+}
+
+// shortFingerprint shows the first bytes of a grouped-hex fingerprint.
+func shortFingerprint(fp string) string {
+	const shown = 8 // bytes
+	parts := strings.FieldsFunc(fp, func(r rune) bool { return r == ':' || r == ' ' })
+	if len(parts) > shown {
+		parts = parts[:shown]
+	}
+	return strings.ToUpper(strings.Join(parts, ":")) + "…"
 }
 
 // --- Audio Input page ------------------------------------------------------

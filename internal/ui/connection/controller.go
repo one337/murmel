@@ -24,6 +24,7 @@ import (
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui"
 	"io.github/murmel/internal/ui/avatarpick"
+	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/secrets"
 )
 
@@ -52,6 +53,8 @@ type Controller struct {
 	retryStop context.CancelFunc
 	lastDial  *dialParams // saved for auto-reconnect
 	lastJoin  joinAttempt // for the channel password prompt
+
+	certPromptOpen bool // the missing-certificate prompt is showing
 
 	voiceEngine *engine.Engine
 	voiceCancel context.CancelFunc
@@ -194,11 +197,11 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	userEntry.SetTitle(tr("Username"))
 	userEntry.SetText(req.Username)
 
-	// Certificate picker: "None" + stored identities. The import row below
+	// Certificate picker: "None" + stored idList. The import row below
 	// adds a certificate file to the store and selects it.
-	identities, _ := c.certs.List()
+	idList, _ := c.certs.List()
 	identityStore := gtk.NewStringList([]string{tr("None (anonymous)")})
-	for _, id := range identities {
+	for _, id := range idList {
 		identityStore.Append(id.Name)
 	}
 	identityRow := adw.NewComboRow()
@@ -206,7 +209,7 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	identityRow.SetModel(identityStore)
 	selectIdentity := func(id string) {
 		identityRow.SetSelected(0)
-		for i, m := range identities {
+		for i, m := range idList {
 			if m.ID == id {
 				identityRow.SetSelected(uint(i + 1))
 				return
@@ -222,12 +225,25 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	importBtn.SetTooltipText(tr("Import certificate (PEM file with certificate and private key)"))
 	importBtn.ConnectClicked(func() {
 		c.pickCertificateFile(dialog, func(meta certs.IdentityMeta) {
-			identities = append(identities, meta)
+			idList = append(idList, meta)
 			identityStore.Append(meta.Name)
-			identityRow.SetSelected(uint(len(identities)))
+			identityRow.SetSelected(uint(len(idList)))
 		})
 	})
 	identityRow.AddSuffix(importBtn)
+
+	createBtn := gtk.NewButtonFromIconName("list-add-symbolic")
+	createBtn.AddCSSClass("flat")
+	createBtn.SetVAlign(gtk.AlignCenter)
+	createBtn.SetTooltipText(tr("Create a new certificate"))
+	createBtn.ConnectClicked(func() {
+		identities.ShowCreate(dialog, c.certs, strings.TrimSpace(userEntry.Text()), func(meta certs.IdentityMeta) {
+			idList = append(idList, meta)
+			identityStore.Append(meta.Name)
+			identityRow.SetSelected(uint(len(idList)))
+		})
+	})
+	identityRow.AddSuffix(createBtn)
 
 	// --- Save switch: the name preview follows the form.
 	saveRow := adw.NewSwitchRow()
@@ -359,10 +375,10 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 		var identity *certs.Identity
 		identityID := ""
 		sel := int(identityRow.Selected())
-		if sel > 0 && sel-1 < len(identities) {
-			if id, lerr := c.certs.Load(identities[sel-1].ID); lerr == nil {
+		if sel > 0 && sel-1 < len(idList) {
+			if id, lerr := c.certs.Load(idList[sel-1].ID); lerr == nil {
 				identity = id
-				identityID = identities[sel-1].ID
+				identityID = idList[sel-1].ID
 			}
 		}
 		c.settings.SetLastIdentity(identityID)
@@ -1090,6 +1106,10 @@ const joinPromptWindow = 10 * time.Second
 // the user's own join request (password channels deny Enter to everyone
 // without the password as an access token).
 func (c *Controller) onPermissionDenied(ev bus.PermissionDenied) {
+	if ev.Reason == bus.DenyMissingCertificate {
+		c.promptMissingCertificate()
+		return
+	}
 	if ev.Reason != bus.DenyPermission || ev.Permission&int(gumble.PermissionEnter) == 0 || ev.ChannelID == 0 {
 		return
 	}
@@ -1100,6 +1120,69 @@ func (c *Controller) onPermissionDenied(ev bus.PermissionDenied) {
 	if recent {
 		c.promptChannelPassword(ev.ChannelID)
 	}
+}
+
+// promptMissingCertificate offers to create a certificate when the server
+// refused something (e.g. self-registration) because the user has none;
+// the new certificate is attached to the connection, which reconnects.
+func (c *Controller) promptMissingCertificate() {
+	c.mu.Lock()
+	p := c.lastDial
+	busy := c.certPromptOpen
+	if p != nil && p.identity == nil && !busy {
+		c.certPromptOpen = true
+	}
+	c.mu.Unlock()
+	if p == nil || p.identity != nil || busy {
+		return
+	}
+	done := func() {
+		c.mu.Lock()
+		c.certPromptOpen = false
+		c.mu.Unlock()
+	}
+	alert := adw.NewAlertDialog(tr("Certificate Required"),
+		tr("The server needs a certificate for this, for example to register your account. Create one now? Murmel then reconnects with it."))
+	alert.AddResponse("cancel", tr("Cancel"))
+	alert.AddResponse("create", tr("Create Certificate…"))
+	alert.SetResponseAppearance("create", adw.ResponseSuggested)
+	alert.SetDefaultResponse("create")
+	alert.SetCloseResponse("cancel")
+	alert.ConnectResponse(func(r string) {
+		done()
+		if r != "create" {
+			return
+		}
+		identities.ShowCreate(c.win, c.certs, p.username, func(meta certs.IdentityMeta) {
+			c.useNewIdentity(p, meta)
+		})
+	})
+	alert.Present(c.win)
+}
+
+// useNewIdentity makes meta the identity of p's connection (default for
+// new connections, attached to the saved connection) and reconnects.
+func (c *Controller) useNewIdentity(p *dialParams, meta certs.IdentityMeta) {
+	ident, err := c.certs.Load(meta.ID)
+	if err != nil {
+		slog.Info("new identity not loadable", "err", err)
+		return
+	}
+	c.settings.SetLastIdentity(meta.ID)
+	if host, portStr, err := net.SplitHostPort(p.addr); err == nil {
+		port, _ := strconv.Atoi(portStr)
+		servers := c.settings.Servers()
+		for i, e := range servers {
+			if sameAccount(e, host, port, p.username) {
+				servers[i].IdentityID = meta.ID
+			}
+		}
+		c.settings.SetServers(servers)
+	}
+	retry := *p
+	retry.identity = ident
+	retry.rememberPassword = false
+	c.startDial(&retry)
 }
 
 func (c *Controller) promptChannelPassword(channelID uint32) {

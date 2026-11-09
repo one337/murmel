@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 14:35+0100\n"
+"POT-Creation-Date: 2026-11-09 14:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -196,7 +196,7 @@ msgstr ""
 msgid "Move Down"
 msgstr ""
 
-#: internal/ui/admin/aclpages.go
+#: internal/ui/admin/aclpages.go internal/ui/prefs/window.go
 msgid "Delete"
 msgstr ""
 
@@ -259,7 +259,8 @@ msgstr ""
 
 #: internal/ui/admin/ban.go internal/ui/admin/channel.go
 #: internal/ui/admin/channeledit.go internal/ui/admin/kick.go
-#: internal/ui/connection/controller.go internal/ui/window.go
+#: internal/ui/connection/controller.go internal/ui/identities/create.go
+#: internal/ui/prefs/window.go internal/ui/window.go
 msgid "Cancel"
 msgstr ""
 
@@ -322,7 +323,7 @@ msgstr ""
 msgid "Create Sub-channel"
 msgstr ""
 
-#: internal/ui/admin/channel.go
+#: internal/ui/admin/channel.go internal/ui/identities/create.go
 msgid "Create"
 msgstr ""
 
@@ -356,7 +357,7 @@ msgstr ""
 msgid "Edit Channel %s"
 msgstr ""
 
-#: internal/ui/admin/channeledit.go
+#: internal/ui/admin/channeledit.go internal/ui/identities/create.go
 msgid "Name"
 msgstr ""
 
@@ -1014,6 +1015,10 @@ msgstr ""
 msgid "Import certificate (PEM file with certificate and private key)"
 msgstr ""
 
+#: internal/ui/connection/controller.go internal/ui/prefs/window.go
+msgid "Create a new certificate"
+msgstr ""
+
 #: internal/ui/connection/controller.go
 msgid "Save Connection"
 msgstr ""
@@ -1055,11 +1060,11 @@ msgstr ""
 msgid "Forget connection"
 msgstr ""
 
-#: internal/ui/connection/controller.go internal/ui/prefs/identityfiles.go
+#: internal/ui/connection/controller.go internal/ui/identities/files.go
 msgid "PEM Certificates"
 msgstr ""
 
-#: internal/ui/connection/controller.go internal/ui/prefs/identityfiles.go
+#: internal/ui/connection/controller.go internal/ui/identities/files.go
 msgid "All Files"
 msgstr ""
 
@@ -1076,7 +1081,7 @@ msgstr ""
 msgid "The file could not be imported: %v"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/controller.go internal/ui/identities/create.go
 msgid "OK"
 msgstr ""
 
@@ -1111,6 +1116,20 @@ msgstr ""
 
 #: internal/ui/connection/controller.go
 msgid "Reconnecting…"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "Certificate Required"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid ""
+"The server needs a certificate for this, for example to register your "
+"account. Create one now? Murmel then reconnects with it."
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "Create Certificate…"
 msgstr ""
 
 #: internal/ui/connection/controller.go
@@ -1206,6 +1225,61 @@ msgstr ""
 msgid "Connection Failed"
 msgstr ""
 
+#: internal/ui/identities/create.go
+msgid "E-mail (optional)"
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid ""
+"A certificate is your identity on Mumble servers: registered accounts are "
+"recognized by it. Keep a backup — if it is lost, so is the registration. The "
+"e-mail address is only stored in the certificate."
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid "New Certificate"
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid "Creating the certificate…"
+msgstr ""
+
+#: internal/ui/identities/create.go
+#, go-format
+msgid "The certificate could not be created: %v"
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid "Certificate Created"
+msgstr ""
+
+#: internal/ui/identities/create.go
+#, go-format
+msgid ""
+"Save a backup of “%s” now? Without it you cannot use your registered "
+"accounts on another computer or after reinstalling."
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid "Later"
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid "Back Up…"
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid "Backup Failed"
+msgstr ""
+
+#: internal/ui/identities/files.go
+msgid "Import Identity"
+msgstr ""
+
+#: internal/ui/identities/files.go
+msgid "Export Identity"
+msgstr ""
+
 #: internal/ui/levelmeter/levelmeter.go
 msgid ""
 "Drag the handle to set the activation threshold: speech louder than the "
@@ -1279,14 +1353,6 @@ msgstr ""
 #: internal/ui/notifications.go
 #, go-format
 msgid "Moved to %s"
-msgstr ""
-
-#: internal/ui/prefs/identityfiles.go
-msgid "Import Identity"
-msgstr ""
-
-#: internal/ui/prefs/identityfiles.go
-msgid "Export Identity"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go
@@ -1399,7 +1465,11 @@ msgid "Identity"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Anonymous"
+msgid "Default avatar"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Optional — sent to servers for connections without their own avatar"
 msgstr ""
 
 #: internal/ui/prefs/window.go
@@ -1407,25 +1477,33 @@ msgid "Default identity"
 msgstr ""
 
 #: internal/ui/prefs/window.go
+msgid "Used for new connections"
+msgstr ""
+
+#: internal/ui/prefs/window.go
 msgid "Client Certificate"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Import identity…"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "Load a PEM file with certificate and private key"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "Export identity…"
+msgid "Certificates"
 msgstr ""
 
 #: internal/ui/prefs/window.go
 msgid ""
-"Save the selected identity as PEM, including its private key — keep the file "
-"safe"
+"Servers recognize registered accounts by their certificate. Keep a backup of "
+"the ones you use."
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Create…"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Import…"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Load a PEM file with certificate and private key"
 msgstr ""
 
 #: internal/ui/prefs/window.go
@@ -1439,6 +1517,27 @@ msgid "Import failed: %v"
 msgstr ""
 
 #: internal/ui/prefs/window.go
+msgid "Anonymous"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "No certificates yet"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Without one you connect anonymously and cannot register on servers."
+msgstr ""
+
+#: internal/ui/prefs/window.go
+#, go-format
+msgid "Created %s"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Export (back up) as PEM, including the private key"
+msgstr ""
+
+#: internal/ui/prefs/window.go
 #, go-format
 msgid "Export failed: %v"
 msgstr ""
@@ -1449,11 +1548,29 @@ msgid "Exported identity %s"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Default avatar"
+msgid "Delete certificate"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Optional — sent to servers for connections without their own avatar"
+#, go-format
+msgid "Delete “%s”?"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid ""
+"Servers on which you registered with this certificate will no longer "
+"recognize you. Export it first if you might need it again. This cannot be "
+"undone."
+msgstr ""
+
+#: internal/ui/prefs/window.go
+#, go-format
+msgid "Delete failed: %v"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+#, go-format
+msgid "Deleted identity %s"
 msgstr ""
 
 #: internal/ui/prefs/window.go
