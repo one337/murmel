@@ -213,8 +213,12 @@ func depthOf(m *treeModel, channelID uint32) int {
 
 func (r *channelRowWidgets) update(n *channelNode) {
 	r.name.SetText(n.info.Name)
+	// Without children the chevron keeps its place (invisible, not
+	// clickable), so sibling channel names line up.
 	hasKids := len(n.children) > 0 || len(n.users) > 0
-	r.chevron.SetVisible(hasKids)
+	r.chevron.SetOpacity(boolOpacity(hasKids))
+	r.chevron.SetCanTarget(hasKids)
+	r.chevron.SetCanFocus(hasKids)
 	if n.expanded {
 		r.chevron.SetIconName(iconExpanderExpanded)
 	} else {
@@ -231,12 +235,28 @@ func (r *channelRowWidgets) update(n *channelNode) {
 func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
 	r.name.SetText(u.Name)
 	r.avatar.SetText(u.Name)
-	r.icons[iconMuted].SetVisible(u.Muted || u.SelfMuted || u.Suppressed)
+	muted := u.Muted || u.SelfMuted || u.Suppressed
+	r.icons[iconMuted].SetVisible(muted)
 	r.icons[iconDeafened].SetVisible(u.Deafened || u.SelfDeafened)
 	r.icons[iconPrioritySpeaker].SetVisible(u.PrioritySpeaker)
 	r.icons[iconRecording].SetVisible(u.Recording)
-	r.icons[iconSpeaking].SetVisible(speaking)
-	setBold(r.name, speaking)
+	// Speech while muted (the own microphone's voice detection) is not
+	// transmitted: the crossed-out microphone lights up red instead of a
+	// second, misleading microphone icon, and the name stays regular.
+	r.icons[iconSpeaking].SetVisible(speaking && !muted)
+	if speaking && muted {
+		r.icons[iconMuted].AddCSSClass("muted-speaking")
+	} else {
+		r.icons[iconMuted].RemoveCSSClass("muted-speaking")
+	}
+	setBold(r.name, speaking && !muted)
+}
+
+func boolOpacity(on bool) float64 {
+	if on {
+		return 1
+	}
+	return 0
 }
 
 func setBold(lbl *gtk.Label, bold bool) {

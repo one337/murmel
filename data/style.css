@@ -231,3 +231,10 @@ navigation-split-view.split-wide > .content-pane:dir(ltr) {
 navigation-split-view.split-wide > .content-pane:dir(rtl) {
   border-right: 1px solid var(--border-color);
 }
+
+/* Channel tree: the own voice is detected while muted — the crossed-out
+   microphone lights up red (nothing is transmitted). */
+image.muted-speaking {
+  color: @error_color;
+  -gtk-icon-shadow: 0 0 4px alpha(@error_color, 0.6);
+}
