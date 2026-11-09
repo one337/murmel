@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 15:11+0100\n"
+"POT-Creation-Date: 2026-11-09 15:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -738,6 +738,10 @@ msgstr ""
 
 #: internal/ui/chat/composer.go
 msgid "Attach an image"
+msgstr ""
+
+#: internal/ui/chat/composer.go
+msgid "Insert emoji (Ctrl+.)"
 msgstr ""
 
 #: internal/ui/chat/composer.go

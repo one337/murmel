@@ -139,6 +139,19 @@ func newComposer() *composer {
 	c.imageBtn.SetTooltipText(tr("Attach an image"))
 	c.imageBtn.ConnectClicked(c.pickImage)
 
+	// Emoji: GTK's chooser (also on Ctrl+. in the text) in a popover.
+	emoji := gtk.NewEmojiChooser()
+	emoji.ConnectEmojiPicked(func(text string) {
+		c.buffer.InsertAtCursor(text)
+		c.view.GrabFocus()
+	})
+	emojiBtn := gtk.NewMenuButton()
+	emojiBtn.SetIconName("face-smile-symbolic")
+	emojiBtn.AddCSSClass("flat")
+	emojiBtn.SetTooltipText(tr("Insert emoji (Ctrl+.)"))
+	emojiBtn.SetPopover(&emoji.Popover)
+	emojiBtn.SetDirection(gtk.ArrowUp)
+
 	// Attachment preview: thumbnail and a remove button above the text.
 	c.thumb = gtk.NewPicture()
 	c.thumb.SetContentFit(gtk.ContentFitCover)
@@ -178,6 +191,7 @@ func newComposer() *composer {
 	c.toolbar.AddCSSClass("composer-toolbar")
 	c.toolbar.Append(c.boldBtn)
 	c.toolbar.Append(c.italicBtn)
+	c.toolbar.Append(emojiBtn)
 	c.toolbar.Append(c.imageBtn)
 	c.toolbar.Append(spacer)
 	c.toolbar.Append(c.counter)
