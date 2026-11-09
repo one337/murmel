@@ -12,22 +12,29 @@ written in Go with GTK 4 and Libadwaita.
 ## Features
 
 - Adaptive GNOME interface: channel tree in a sidebar, chat in the content
-  pane, works on narrow windows
+  pane, works on narrow windows; light, dark or the system's style
 - Voice over encrypted UDP with automatic TCP fallback, Opus codec
-- Voice activity detection with an absolute threshold set on a live level
-  meter
+- Voice activity detection with an absolute threshold; a live voice meter
+  shows when you are heard, and when your voice is detected but not sent
+  (muted or not connected)
 - Noise suppression and echo cancellation (WebRTC)
 - Adjustable voice quality (32–192 kb/s), limited to the server's bandwidth
 - Input and output device selection right from the status bar
 - Adjustable jitter buffer and audio per packet
 - Saved connections; server passwords are stored securely in the desktop
   keyring
-- Client certificates (PEM import; generating new ones is not supported
-  yet), trust-on-first-use server certificates
-- Text chat with channel messages and private conversations, formatting
-  and images, channel descriptions, unread markers
-- User avatars
-- Server administration: kick, ban, ban list, registered users, channels
+- Client certificates: create, import, export and manage them in the app;
+  trust-on-first-use server certificates
+- Avatars: see other users' pictures and set your own, per connection or
+  as a default
+- Text chat with channel messages and private conversations, formatting,
+  emoji and images, unread markers
+- Channel descriptions shown above the chat, with a banner for a leading
+  wide image
+- Channel editor: name, position, user limit, password, the description
+  (with a formatting toolbar and live preview), groups and permissions
+- Password-protected channels ask for the password when you join
+- Server administration: kick, ban, ban list, registered users
 - Desktop notifications for messages and events (configurable)
 - Event sounds with per-event choice (built-in or your own audio files)
 - `mumble://` links
