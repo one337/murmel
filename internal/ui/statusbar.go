@@ -25,6 +25,7 @@ const (
 	popoverWidthPx        = 300
 	deviceListMaxHeightPx = 260
 	deviceNameMaxChars    = 34
+	composerInsetPx       = 8 // .composer-frame margin in style.css
 )
 
 // statusBar is the voice strip pinned below the main content: self-mute
@@ -89,11 +90,13 @@ func newStatusBar(st settings.Settings, b *bus.Bus) *statusBar {
 
 	// The voice controls sit at the bottom of the channel sidebar; the
 	// connection dot lives in the sidebar header (Window places dotHolder).
+	// The same inset as the chat's composer frame (style.css
+	// .composer-frame), so both bottom edges line up across the panes.
 	s.root = gtk.NewBox(gtk.OrientationHorizontal, 6)
 	s.root.SetMarginTop(6)
-	s.root.SetMarginBottom(6)
-	s.root.SetMarginStart(6)
-	s.root.SetMarginEnd(6)
+	s.root.SetMarginBottom(composerInsetPx)
+	s.root.SetMarginStart(composerInsetPx)
+	s.root.SetMarginEnd(composerInsetPx)
 	s.root.Append(linked(s.selfMute, micMenu))
 	s.root.Append(linked(s.selfDeafen, outMenu))
 	meterBtn.SetHExpand(true)
