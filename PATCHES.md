@@ -14,9 +14,10 @@ Skipped: `gumbleopenal`, `gumbleffmpeg`, `opus` (gopus), `cmd/`, `_examples/`,
 `misc/`. Upstream `LICENSE` (MPL-2.0) kept at `internal/protocol/gumble/LICENSE`
 and `internal/protocol/gumbleutil/LICENSE`.
 
-Every deviation from upstream lives in exactly one commit documented below
-(`git log --oneline internal/protocol/` maps 1:1 to the `## P<n>` sections;
-`P0` is the verbatim vendoring itself, `P1`–`P6` are the patches).
+Every deviation from upstream is documented below as a `## P<n>` section:
+`P0` is the verbatim vendoring itself, `P1` onwards are the patches. The
+public history starts after most of them, so the sections, not the git
+log, are the record.
 
 ---
 

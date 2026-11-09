@@ -21,7 +21,7 @@ xgettext \
   --package-name="Murmel" \
   --package-version="0.1" \
   --copyright-holder="Murmel Contributors" \
-  --msgid-bugs-address="https://github.com/murmel/murmel/issues" \
+  --msgid-bugs-address="https://github.com/one337/murmel/issues" \
   -o po/murmel.pot \
   $(find internal/ui -name '*.go' ! -name '*_test.go')
 ```
