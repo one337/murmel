@@ -99,8 +99,8 @@ go test -mod=vendor ./...
   documented in [PATCHES.md](PATCHES.md).
 - `tools/harness` contains a local Mumble server setup and test bots for
   end-to-end voice tests, see its README.
-- UI strings go through `tr()`; regenerate `po/murmel.pot` with the
-  command `tools/verify.sh` prints when it is out of date.
+- UI strings go through `tr()`; regenerate `po/murmel.pot` with
+  `tools/update-pot.sh`.
 - `tools/sounds/gen.py` synthesizes the built-in event sounds.
 
 ### Releases
@@ -111,6 +111,11 @@ commit, builds a signed Flatpak repository into `web/` (with
 uploads it to the website (`--upload` repeats only the upload). Settings
 are in `tools/release.conf` and an untracked `tools/release.local.conf`
 (upload target); the signing key is kept outside the repository.
+
+## Translations
+
+Murmel is available in English and German; how to add or improve a
+translation is described in [po/README.md](po/README.md).
 
 ## License
 

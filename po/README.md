@@ -30,6 +30,19 @@ needed.
    `msgfmt --check`, as CI does).
 5. Open a pull request with `po/de.po` and `po/LINGUAS`.
 
+## Testing a translation
+
+See your changes in the app without building the Flatpak: compile the
+translations into a scratch directory and point Murmel at it.
+
+```sh
+tools/install-translations.sh /tmp/murmel-locale
+MURMEL_LOCALEDIR=/tmp/murmel-locale LANG=de_DE.UTF-8 go run -mod=vendor ./cmd/murmel
+```
+
+`MURMEL_LOCALEDIR` is checked before the installed translations; without
+it Murmel uses only those.
+
 ## Updating a translation
 
 `tools/update-pot.sh` regenerates the template and merges it into every
