@@ -534,6 +534,7 @@ var colorSchemes = []string{"system", "light", "dark"}
 // appearanceGroup chooses the light or dark style (or the system's).
 func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
 	row := adw.NewComboRow()
+	// TRANSLATORS: Appearance setting: light, dark or the system's color scheme.
 	row.SetTitle(tr("Style"))
 	row.SetSubtitle(tr("Light or dark; Follow System uses the desktop's setting"))
 	row.SetModel(gtk.NewStringList([]string{tr("Follow System"), tr("Light"), tr("Dark")}))

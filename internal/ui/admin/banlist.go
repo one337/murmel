@@ -159,12 +159,14 @@ func formatIP(ip net.IP) string {
 func formatDuration(d time.Duration) string {
 	switch {
 	case d == 0:
+		// TRANSLATORS: Ban duration: the ban never expires.
 		return tr("Permanent")
 	case d < time.Hour:
 		return fmt.Sprintf(tr("%d min"), int(d.Minutes()))
 	case d < 24*time.Hour:
 		return fmt.Sprintf(tr("%d h"), int(d.Hours()))
 	default:
-		return fmt.Sprintf(tr("%d days"), int(d.Hours()/24))
+		days := int(d.Hours() / 24)
+		return fmt.Sprintf(trn("%d day", "%d days", days), days)
 	}
 }

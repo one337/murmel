@@ -155,11 +155,12 @@ func (r *statRows) show(ev bus.UserStatsFetched) {
 	}
 	cert := ""
 	if ev.CertificateSubject != "" {
-		cert = ev.CertificateSubject
 		if ev.StrongCertificate {
-			cert += " " + tr("(trusted)")
+			// TRANSLATORS: %s is the certificate's subject (a user name).
+			cert = fmt.Sprintf(tr("%s (trusted)"), ev.CertificateSubject)
 		} else {
-			cert += " " + tr("(self-signed)")
+			// TRANSLATORS: %s is the certificate's subject (a user name).
+			cert = fmt.Sprintf(tr("%s (self-signed)"), ev.CertificateSubject)
 		}
 	}
 	r.set("cert", cert)

@@ -111,6 +111,7 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 func offerBackup(parent gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta) {
 	alert := adw.NewAlertDialog(tr("Certificate Created"),
 		fmt.Sprintf(tr("Save a backup of “%s” now? Without it you cannot use your registered accounts on another computer or after reinstalling."), meta.Name))
+	// TRANSLATORS: Button: back up the new certificate later.
 	alert.AddResponse("later", tr("Later"))
 	alert.AddResponse("backup", tr("Back Up…"))
 	alert.SetResponseAppearance("backup", adw.ResponseSuggested)

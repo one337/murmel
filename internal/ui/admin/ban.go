@@ -26,6 +26,7 @@ func ShowBan(parent gtk.Widgetter, b *bus.Bus, session uint32, name string) {
 	)
 	alert.SetExtraChild(list)
 	alert.AddResponse("cancel", tr("Cancel"))
+	// TRANSLATORS: Button: ban the user from the server.
 	alert.AddResponse("ban", tr("Ban"))
 	alert.SetResponseAppearance("ban", adw.ResponseDestructive)
 	alert.SetDefaultResponse("cancel")

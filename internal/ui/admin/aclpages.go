@@ -202,7 +202,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 			}
 		}
 	}
-	sub := fmt.Sprintf(tr("%d members"), members)
+	sub := fmt.Sprintf(trn("%d member", "%d members", members), members)
 	if g.Inherited {
 		sub = tr("Inherited from the parent channel") + " · " + sub
 	}
@@ -425,6 +425,7 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 		p.render()
 	})
 	manage := adw.NewActionRow()
+	// TRANSLATORS: Position of an ACL rule in the rule list (rules are applied in order).
 	manage.SetTitle(tr("Order"))
 	manage.SetSubtitle(tr("Later rules override earlier ones"))
 	manage.AddSuffix(order)
@@ -470,6 +471,7 @@ func stateSwitch(st permState, set func(permState)) *gtk.Box {
 		label string
 		class string
 	}{
+		// TRANSLATORS: Inherit, Allow, Deny: the three states of one permission in an ACL rule.
 		{permInherit, tr("Inherit"), ""},
 		{permAllow, tr("Allow"), "success"},
 		{permDeny, tr("Deny"), "error"},

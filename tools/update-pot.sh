@@ -12,6 +12,8 @@ out=${1:-po/murmel.pot}
 xgettext \
   --language=Go \
   --keyword=tr \
+  --keyword=trn:1,2 \
+  --add-comments=TRANSLATORS: \
   --add-location=file \
   --package-name="Murmel" \
   --package-version="0.1" \

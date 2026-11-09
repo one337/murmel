@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 15:44+0100\n"
+"POT-Creation-Date: 2026-11-09 16:25+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,19 +16,24 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
+#. TRANSLATORS: Permission: edit the channel's groups and permissions.
 #: internal/ui/admin/aclmodel.go
 msgid "Write ACL"
 msgstr ""
 
+#. TRANSLATORS: Permission: pass through the channel to its sub-channels.
 #: internal/ui/admin/aclmodel.go
 msgid "Traverse"
 msgstr ""
 
+#. TRANSLATORS: Permission: enter (join) the channel.
 #: internal/ui/admin/aclmodel.go
 msgid "Enter"
 msgstr ""
 
+#. TRANSLATORS: Permission: talk in the channel.
 #: internal/ui/admin/aclmodel.go
 msgid "Speak"
 msgstr ""
@@ -41,6 +46,7 @@ msgstr ""
 msgid "Mute/Deafen"
 msgstr ""
 
+#. TRANSLATORS: Permission: move other users between channels.
 #: internal/ui/admin/aclmodel.go
 msgid "Move"
 msgstr ""
@@ -61,10 +67,12 @@ msgstr ""
 msgid "Text Message"
 msgstr ""
 
+#. TRANSLATORS: Button: kick (remove) the user from the server.
 #: internal/ui/admin/aclmodel.go internal/ui/admin/kick.go
 msgid "Kick"
 msgstr ""
 
+#. TRANSLATORS: Button: ban the user from the server.
 #: internal/ui/admin/aclmodel.go internal/ui/admin/ban.go
 msgid "Ban"
 msgstr ""
@@ -77,12 +85,16 @@ msgstr ""
 msgid "Register Self"
 msgstr ""
 
+#. TRANSLATORS: %s is a comma-separated list of permission names.
 #: internal/ui/admin/aclmodel.go
-msgid "Allows"
+#, go-format
+msgid "Allows %s"
 msgstr ""
 
+#. TRANSLATORS: %s is a comma-separated list of permission names.
 #: internal/ui/admin/aclmodel.go
-msgid "Denies"
+#, go-format
+msgid "Denies %s"
 msgstr ""
 
 #: internal/ui/admin/aclmodel.go
@@ -115,8 +127,10 @@ msgstr ""
 
 #: internal/ui/admin/aclpages.go
 #, go-format
-msgid "%d members"
-msgstr ""
+msgid "%d member"
+msgid_plural "%d members"
+msgstr[0] ""
+msgstr[1] ""
 
 #: internal/ui/admin/aclpages.go
 msgid "Inherited from the parent channel"
@@ -200,6 +214,7 @@ msgstr ""
 msgid "Delete"
 msgstr ""
 
+#. TRANSLATORS: Position of an ACL rule in the rule list (rules are applied in order).
 #: internal/ui/admin/aclpages.go
 msgid "Order"
 msgstr ""
@@ -216,6 +231,7 @@ msgstr ""
 msgid "Applies to sub-channels"
 msgstr ""
 
+#. TRANSLATORS: Inherit, Allow, Deny: the three states of one permission in an ACL rule.
 #: internal/ui/admin/aclpages.go
 msgid "Inherit"
 msgstr ""
@@ -288,6 +304,7 @@ msgstr ""
 msgid "No reason given"
 msgstr ""
 
+#. TRANSLATORS: Ban duration: the ban never expires.
 #: internal/ui/admin/banlist.go
 msgid "Permanent"
 msgstr ""
@@ -304,8 +321,10 @@ msgstr ""
 
 #: internal/ui/admin/banlist.go
 #, go-format
-msgid "%d days"
-msgstr ""
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
 
 #: internal/ui/admin/channel.go
 msgid "Channel name"
@@ -558,12 +577,16 @@ msgstr ""
 msgid "Received"
 msgstr ""
 
+#. TRANSLATORS: %s is the certificate's subject (a user name).
 #: internal/ui/admin/stats.go
-msgid "(trusted)"
+#, go-format
+msgid "%s (trusted)"
 msgstr ""
 
+#. TRANSLATORS: %s is the certificate's subject (a user name).
 #: internal/ui/admin/stats.go
-msgid "(self-signed)"
+#, go-format
+msgid "%s (self-signed)"
 msgstr ""
 
 #: internal/ui/admin/stats.go
@@ -659,6 +682,8 @@ msgstr ""
 msgid "Double-click to join"
 msgstr ""
 
+#. TRANSLATORS: Context menu entry: move yourself into this channel.
+#. TRANSLATORS: Button: join the channel with the password entered.
 #: internal/ui/channeltree/rows.go internal/ui/connection/controller.go
 msgid "Join"
 msgstr ""
@@ -1296,6 +1321,7 @@ msgid ""
 "accounts on another computer or after reinstalling."
 msgstr ""
 
+#. TRANSLATORS: Button: back up the new certificate later.
 #: internal/ui/identities/create.go
 msgid "Later"
 msgstr ""
@@ -1777,6 +1803,7 @@ msgstr ""
 msgid "System default"
 msgstr ""
 
+#. TRANSLATORS: Appearance setting: light, dark or the system's color scheme.
 #: internal/ui/prefs/window.go
 msgid "Style"
 msgstr ""

@@ -26,6 +26,7 @@ func ShowKick(parent gtk.Widgetter, b *bus.Bus, session uint32, name string) {
 	)
 	alert.SetExtraChild(list)
 	alert.AddResponse("cancel", tr("Cancel"))
+	// TRANSLATORS: Button: kick (remove) the user from the server.
 	alert.AddResponse("kick", tr("Kick"))
 	alert.SetResponseAppearance("kick", adw.ResponseDestructive)
 	alert.SetDefaultResponse("cancel")

@@ -323,6 +323,7 @@ func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) (*gtk.Popov
 	refresh()
 
 	menu := gio.NewMenu()
+	// TRANSLATORS: Context menu entry: move yourself into this channel.
 	menu.Append(tr("Join"), "ctx.join")
 	menu.Append(tr("Create sub-channel…"), "ctx.create-sub")
 	menu.Append(tr("Edit…"), "ctx.edit")

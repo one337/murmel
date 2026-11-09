@@ -1276,6 +1276,7 @@ func (c *Controller) promptChannelPassword(channelID uint32) {
 		fmt.Sprintf(tr("The channel %s is protected by a password."), name))
 	alert.SetExtraChild(group)
 	alert.AddResponse("cancel", tr("Cancel"))
+	// TRANSLATORS: Button: join the channel with the password entered.
 	alert.AddResponse("join", tr("Join"))
 	alert.SetResponseAppearance("join", adw.ResponseSuggested)
 	alert.SetDefaultResponse("join")
