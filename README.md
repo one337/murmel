@@ -120,6 +120,6 @@ translation is described in [po/README.md](po/README.md).
 
 ## License
 
-The source code is licensed under GPL-3.0-or-later, see [LICENSE](LICENSE).
+Murmel, including its app icon, is licensed under GPL-3.0-or-later, see
+[LICENSE](LICENSE).
 Murmel is not affiliated with the Mumble project.
-

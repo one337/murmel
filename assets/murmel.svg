@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <radialGradient id="glass" cx="34%" cy="27%" r="76%">
+      <stop offset="0" stop-color="#f5ce70"/>
+      <stop offset=".46" stop-color="#eaa025"/>
+      <stop offset=".8" stop-color="#d68110"/>
+      <stop offset="1" stop-color="#a85108"/>
+    </radialGradient>
+
+    <linearGradient id="ribbon" x1="20%" y1="85%"
+                    x2="80%" y2="15%">
+      <stop offset="0" stop-color="#b94408"/>
+      <stop offset=".5" stop-color="#e9740e"/>
+      <stop offset="1" stop-color="#cd4e07"/>
+    </linearGradient>
+
+    <linearGradient id="innerRibbon" x1="25%" y1="80%"
+                    x2="75%" y2="20%">
+      <stop offset="0" stop-color="#ce4e0e"/>
+      <stop offset=".5" stop-color="#b82c08"/>
+      <stop offset="1" stop-color="#922005"/>
+    </linearGradient>
+
+    <radialGradient id="shade" cx="38%" cy="30%" r="73%">
+      <stop offset=".55" stop-color="#703000" stop-opacity="0"/>
+      <stop offset=".85" stop-color="#703000" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#582300" stop-opacity=".35"/>
+    </radialGradient>
+
+    <linearGradient id="shine" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".8"/>
+      <stop offset="1" stop-color="#fff0c0" stop-opacity=".1"/>
+    </linearGradient>
+
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eac27c"/>
+      <stop offset=".5" stop-color="#c67a13"/>
+      <stop offset="1" stop-color="#8f4b0b"/>
+    </linearGradient>
+
+    <clipPath id="marble">
+      <circle cx="128" cy="128" r="116"/>
+    </clipPath>
+  </defs>
+
+  <circle cx="128" cy="128" r="116" fill="url(#glass)"/>
+
+  <g clip-path="url(#marble)">
+    <path
+      d="M6 165
+         C75 191 105 35 223 43
+         C171 76 188 187 111 218
+         C65 236 24 209 6 165Z"
+      fill="url(#ribbon)"/>
+
+    <path
+      d="M15 177
+         C90 197 122 70 211 49
+         C153 95 161 166 107 191
+         C70 209 34 199 15 177Z"
+      fill="url(#innerRibbon)"/>
+
+    <circle cx="128" cy="128" r="116" fill="url(#shade)"/>
+
+    <path
+      d="M40 87
+         C40 57 66 32 95 32
+         C105 32 115 35 122 40
+         C85 47 61 73 53 109
+         C45 104 40 96 40 87Z"
+      fill="url(#shine)"/>
+
+    <ellipse cx="88" cy="76" rx="9" ry="18"
+             transform="rotate(38 88 76)"
+             fill="#fff0cb" opacity=".5"/>
+
+    <path
+      d="M57 216 C115 249 197 218 224 164"
+      fill="none" stroke="#efb94d"
+      stroke-width="5" stroke-linecap="round" opacity=".4"/>
+  </g>
+
+  <circle cx="128" cy="128" r="116"
+          fill="none" stroke="url(#rim)" stroke-width="4"/>
+
+  <path d="M26 92 C40 42 88 15 139 19"
+        fill="none" stroke="#ffe6ab"
+        stroke-width="3" stroke-linecap="round" opacity=".55"/>
+</svg>
