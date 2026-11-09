@@ -675,10 +675,6 @@ msgid "Remove…"
 msgstr ""
 
 #: internal/ui/channeltree/rows.go
-msgid "Edit ACL…"
-msgstr ""
-
-#: internal/ui/channeltree/rows.go
 msgid "Mute on server"
 msgstr ""
 

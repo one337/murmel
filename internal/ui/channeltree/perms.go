@@ -55,7 +55,7 @@ func (m *treeModel) allowed(id uint32, perms ...gumble.Permission) bool {
 
 // channelMenuState is which channel menu entries are enabled.
 type channelMenuState struct {
-	join, createSub, edit, remove, acl bool
+	join, createSub, edit, remove bool
 }
 
 func channelMenuPerms(m *treeModel, id uint32) channelMenuState {
@@ -69,7 +69,6 @@ func channelMenuPerms(m *treeModel, id uint32) channelMenuState {
 		createSub: m.allowed(id, gumble.PermissionMakeChannel, gumble.PermissionMakeTemporaryChannel),
 		edit:      write,
 		remove:    write && id != 0, // the root channel cannot be removed
-		acl:       write,
 	}
 }
 

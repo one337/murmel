@@ -48,7 +48,7 @@ func TestRegularUserPermissions(t *testing.T) {
 	m := permModel(p(gumble.PermissionEnter, gumble.PermissionTraverse, gumble.PermissionRegisterSelf),
 		p(gumble.PermissionEnter, gumble.PermissionTraverse))
 	c := channelMenuPerms(m, 5)
-	if !c.join || c.edit || c.remove || c.acl || c.createSub {
+	if !c.join || c.edit || c.remove || c.createSub {
 		t.Fatalf("regular user channel menu = %+v, want only join", c)
 	}
 	if channelMenuPerms(m, 0).join {
@@ -80,7 +80,7 @@ func TestAdminPermissions(t *testing.T) {
 		gumble.PermissionBan, gumble.PermissionRegister)
 	m := permModel(all, all)
 	c := channelMenuPerms(m, 5)
-	if !c.edit || !c.remove || !c.acl || !c.createSub || !c.join {
+	if !c.edit || !c.remove || !c.createSub || !c.join {
 		t.Fatalf("admin channel menu = %+v", c)
 	}
 	if channelMenuPerms(m, 0).remove {
@@ -120,7 +120,7 @@ func TestSuperUserHasAllPermissions(t *testing.T) {
 	m := permModel(all, nil) // sub-channel permissions never arrive
 	m.users[1] = bus.UserInfo{Session: 1, Name: "SuperUser", Channel: 0}
 	c := channelMenuPerms(m, 5)
-	if !c.edit || !c.remove || !c.acl || !c.createSub || !c.join {
+	if !c.edit || !c.remove || !c.createSub || !c.join {
 		t.Fatalf("SuperUser channel menu = %+v, want everything", c)
 	}
 	if u := userMenuPerms(m, 7); !u.mute || !u.move || !u.kick {

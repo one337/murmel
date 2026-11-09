@@ -290,7 +290,6 @@ type ChannelMenuActions struct {
 	CreateSub func(uint32)
 	Edit      func(uint32)
 	Delete    func(uint32)
-	EditACL   func(uint32)
 }
 
 // buildChannelMenu assembles the channel context menu. Entries are enabled
@@ -313,7 +312,6 @@ func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) (*gtk.Popov
 	add("create-sub", a.CreateSub)
 	add("edit", a.Edit)
 	add("remove", a.Delete)
-	add("edit-acl", a.EditACL)
 
 	refresh := func() {
 		st := channelMenuPerms(m, id)
@@ -321,7 +319,6 @@ func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) (*gtk.Popov
 		acts["create-sub"].SetEnabled(a.CreateSub != nil && st.createSub)
 		acts["edit"].SetEnabled(a.Edit != nil && st.edit)
 		acts["remove"].SetEnabled(a.Delete != nil && st.remove)
-		acts["edit-acl"].SetEnabled(a.EditACL != nil && st.acl)
 	}
 	refresh()
 
@@ -330,7 +327,6 @@ func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) (*gtk.Popov
 	menu.Append(tr("Create sub-channel…"), "ctx.create-sub")
 	menu.Append(tr("Edit…"), "ctx.edit")
 	menu.Append(tr("Remove…"), "ctx.remove")
-	menu.Append(tr("Edit ACL…"), "ctx.edit-acl")
 
 	pm := gtk.NewPopoverMenuFromModel(menu)
 	pm.InsertActionGroup("ctx", group)
