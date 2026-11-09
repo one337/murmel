@@ -167,6 +167,8 @@ func (g *GSettings) SetNoiseSuppression(v int) { g.gs.SetInt("noise-suppression"
 
 func (g *GSettings) EchoCancellation() bool     { return g.gs.Boolean("echo-cancellation") }
 func (g *GSettings) SetEchoCancellation(v bool) { g.gs.SetBoolean("echo-cancellation", v) }
+func (g *GSettings) ColorScheme() string        { return g.gs.String("color-scheme") }
+func (g *GSettings) SetColorScheme(v string)    { g.gs.SetString("color-scheme", v) }
 
 func (g *GSettings) ChatLogEvents() map[string]bool {
 	v := g.gs.Value("chat-log")

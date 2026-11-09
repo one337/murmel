@@ -81,7 +81,10 @@ func NewApp(st settings.Settings, b *bus.Bus) *App {
 	// The embedded GResource bundle carries the app icon; GtkApplication
 	// adds <base-path>/icons to the icon theme on startup.
 	resources.Register()
-	app.ConnectStartup(func() { gtk.WindowSetDefaultIconName(settings.SchemaID) })
+	app.ConnectStartup(func() {
+		gtk.WindowSetDefaultIconName(settings.SchemaID)
+		applyColorScheme(st)
+	})
 
 	app.ConnectActivate(func() { app.ensureWindow() })
 	app.ConnectOpen(func(files []gio.Filer, _ string) {

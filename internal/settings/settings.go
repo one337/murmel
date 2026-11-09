@@ -56,6 +56,10 @@ type Settings interface {
 	EchoCancellation() bool
 	SetEchoCancellation(v bool)
 
+	// ColorScheme is "system", "light" or "dark".
+	ColorScheme() string
+	SetColorScheme(v string)
+
 	// AudioQuality is the outgoing Opus bitrate in kbit/s.
 	AudioQuality() int
 	SetAudioQuality(v int)

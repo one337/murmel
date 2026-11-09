@@ -25,6 +25,11 @@ func sampleServer() ServerEntry {
 }
 
 var keySpecs = map[string]keySpec{
+	"color-scheme": {
+		key: "color-scheme", gtype: "s", def: "system", sample: "dark",
+		get: func(s Settings) any { return s.ColorScheme() },
+		set: func(s Settings, v any) { s.SetColorScheme(v.(string)) },
+	},
 	"first-run": {
 		key: "first-run", gtype: "b", def: true, sample: false,
 		get: func(s Settings) any { return s.FirstRun() },

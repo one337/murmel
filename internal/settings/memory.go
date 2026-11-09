@@ -21,6 +21,7 @@ func memoryDefaults() map[string]any {
 		"audio-quality":           40,
 		"noise-suppression":       2,
 		"echo-cancellation":       false,
+		"color-scheme":            "system",
 		"notification-enabled":    true,
 		"notify-channel-presence": false,
 		"notify-server-presence":  false,
@@ -186,6 +187,8 @@ func (m *Memory) SetNoiseSuppression(v int) { m.set("noise-suppression", v) }
 
 func (m *Memory) EchoCancellation() bool     { return m.get("echo-cancellation").(bool) }
 func (m *Memory) SetEchoCancellation(v bool) { m.set("echo-cancellation", v) }
+func (m *Memory) ColorScheme() string        { return m.get("color-scheme").(string) }
+func (m *Memory) SetColorScheme(v string)    { m.set("color-scheme", v) }
 
 func (m *Memory) ChatLogEvents() map[string]bool {
 	return maps.Clone(m.get("chat-log").(map[string]bool))

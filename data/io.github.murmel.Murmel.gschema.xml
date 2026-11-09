@@ -50,6 +50,16 @@
       <summary>Noise suppression</summary>
       <description>Strength of the microphone noise suppression: 0 off, 1 low, 2 moderate, 3 high, 4 very high.</description>
     </key>
+    <key name="color-scheme" type="s">
+      <choices>
+        <choice value="system"/>
+        <choice value="light"/>
+        <choice value="dark"/>
+      </choices>
+      <default>'system'</default>
+      <summary>Color scheme</summary>
+      <description>Follow the system's light or dark style ("system"), or always use the light or the dark style.</description>
+    </key>
     <key name="echo-cancellation" type="b">
       <default>false</default>
       <summary>Echo cancellation</summary>

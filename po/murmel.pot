@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 12:23+0100\n"
+"POT-Creation-Date: 2026-11-09 14:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1622,6 +1622,30 @@ msgstr ""
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go
 msgid "System default"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Style"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Light or dark; Follow System uses the desktop's setting"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Follow System"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Light"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Dark"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Appearance"
 msgstr ""
 
 #: internal/ui/presence/presence.go

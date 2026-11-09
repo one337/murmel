@@ -318,6 +318,8 @@ func behaviorPage(st settings.Settings, player *effects.Player, parent func() *g
 	page.SetName("behavior")
 	page.SetIconName("preferences-other-symbolic")
 
+	page.Add(appearanceGroup(st))
+
 	group := adw.NewPreferencesGroup()
 	group.SetTitle(tr("Connection"))
 
@@ -415,4 +417,29 @@ func deviceComboRow(title string, capture bool,
 	})
 
 	return row
+}
+
+// colorSchemes are the color-scheme setting's values, in the combo's order.
+var colorSchemes = []string{"system", "light", "dark"}
+
+// appearanceGroup chooses the light or dark style (or the system's).
+func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
+	row := adw.NewComboRow()
+	row.SetTitle(tr("Style"))
+	row.SetSubtitle(tr("Light or dark; Follow System uses the desktop's setting"))
+	row.SetModel(gtk.NewStringList([]string{tr("Follow System"), tr("Light"), tr("Dark")}))
+	for i, v := range colorSchemes {
+		if v == st.ColorScheme() {
+			row.SetSelected(uint(i))
+		}
+	}
+	coreglib.InternObject(row).NotifyProperty("selected", func() {
+		if i := int(row.Selected()); i < len(colorSchemes) {
+			st.SetColorScheme(colorSchemes[i])
+		}
+	})
+	group := adw.NewPreferencesGroup()
+	group.SetTitle(tr("Appearance"))
+	group.Add(row)
+	return group
 }
