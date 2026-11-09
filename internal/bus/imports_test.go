@@ -9,9 +9,10 @@ import (
 	"testing"
 )
 
-// TestGtkLightImports enforces the plan's gtk-light rule: package bus may
-// import exactly glib/v2 from the gotk4 module tree — never gtk, adw, or gio.
-func TestGtkLightImports(t *testing.T) {
+// TestNoGotk4Imports: package bus imports nothing from gotk4. The audio
+// layer depends on the bus, and TestLayerBoundary keeps that layer GTK-free;
+// the UI hands the bus its main loop with SetMainLoop instead.
+func TestNoGotk4Imports(t *testing.T) {
 	dir, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -20,9 +21,6 @@ func TestGtkLightImports(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	const allowed = "github.com/diamondburned/gotk4/pkg/glib/v2"
-	sawAllowed := false
 	fset := token.NewFileSet()
 	for _, e := range entries {
 		name := e.Name()
@@ -34,18 +32,9 @@ func TestGtkLightImports(t *testing.T) {
 			t.Fatalf("parse %s: %v", name, err)
 		}
 		for _, imp := range f.Imports {
-			path := strings.Trim(imp.Path.Value, `"`)
-			if !strings.HasPrefix(path, "github.com/diamondburned/gotk4") {
-				continue
-			}
-			if path != allowed {
-				t.Errorf("%s imports %q; the only permitted gotk4 import is %q", name, path, allowed)
-			} else {
-				sawAllowed = true
+			if path := strings.Trim(imp.Path.Value, `"`); strings.HasPrefix(path, "github.com/diamondburned/gotk4") {
+				t.Errorf("%s imports %q; package bus must not import gotk4", name, path)
 			}
 		}
-	}
-	if !sawAllowed {
-		t.Errorf("package no longer imports %q; if dispatch moved off glib.IdleAdd, update this test and the plan", allowed)
 	}
 }

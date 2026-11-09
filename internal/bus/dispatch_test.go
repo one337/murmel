@@ -10,10 +10,14 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 )
 
-// These tests drive the real glib.IdleAdd path (New constructs the bus with
-// glib.IdleAdd as the idleAdd hook). They iterate the default main context
-// from the test goroutine, which is what makes idle sources — and therefore
+// These tests drive the real glib.IdleAdd path, installed with SetMainLoop
+// exactly as package ui does. They iterate the default main context from
+// the test goroutine, which is what makes idle sources — and therefore
 // handlers — run on "the main loop" here.
+
+func init() {
+	SetMainLoop(func(f func() bool) { glib.IdleAdd(f) })
+}
 
 const (
 	floodGoroutines = 10

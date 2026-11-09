@@ -8,16 +8,17 @@
 // implementations copy immutable event data (IDs, names, snapshots) into
 // value-typed event structs and perform a single non-blocking send into a
 // buffered channel. One pump goroutine drains that channel, applies the event
-// to the state store, and re-dispatches it to subscriber handlers via
-// glib.IdleAdd, so handlers always run on the GLib main loop.
+// to the state store, and re-dispatches it to subscriber handlers on the
+// main loop the UI installs with SetMainLoop (glib.IdleAdd), so handlers
+// always run on the GLib main loop.
 //
 // Backpressure policy: if the channel is full the event is dropped and a
 // dropped-event counter is incremented — the network loop is never blocked.
 // The counter is surfaced in the debug log and via Bus.Dropped.
 //
-// The package is gtk-light by rule: it may import glib (main-loop dispatch)
-// from the gotk4 module tree, but no widget packages. TestGtkLightImports
-// enforces this.
+// The package imports nothing from gotk4, so the audio and protocol layers
+// can use it and stay GTK-free; TestNoGotk4Imports and the repository's
+// TestLayerBoundary enforce this.
 package bus
 
 import (

@@ -8,8 +8,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/diamondburned/gotk4/pkg/glib/v2"
-
 	"io.github/murmel/internal/protocol/gumble"
 )
 
@@ -19,9 +17,9 @@ import (
 const bufferSize = 256
 
 // Bus ferries events from gumble's blocking listener callbacks to handlers
-// running on the GLib main loop. Create one per connection with New; events
+// running on the main loop (see SetMainLoop). Create one per connection with New; events
 // flow: gumble listener → copy → non-blocking send → pump goroutine → state
-// store + glib.IdleAdd → subscribed handlers.
+// store + main-loop dispatch → subscribed handlers.
 //
 // Handlers must not be registered or invoked on the network loop; Emit is the
 // only method safe to call from any goroutine at any rate.
@@ -34,7 +32,7 @@ type Bus struct {
 
 	dropped atomic.Uint64
 
-	// idleAdd schedules a callback on the main loop. glib.IdleAdd in
+	// idleAdd schedules a callback on the main loop: dispatchMainLoop in
 	// production; injectable in tests.
 	idleAdd func(f func() bool)
 	logger  *slog.Logger
@@ -50,7 +48,7 @@ type Bus struct {
 // yields a working bus with no gumble bridge — tests and pre-connection UI
 // drive it via Emit.
 func New(client *gumble.Client) *Bus {
-	b := newBus(func(f func() bool) { glib.IdleAdd(f) }, slog.Default())
+	b := newBus(dispatchMainLoop, slog.Default())
 	if client != nil && client.Config != nil {
 		b.detachGumble = attachGumbleBridge(b, client)
 	}
@@ -63,7 +61,7 @@ func New(client *gumble.Client) *Bus {
 // DialWithDialer when ServerSync arrives, so a bridge attached after Dial
 // returns would miss the Connected event.
 func NewForConfig(cfg *gumble.Config) *Bus {
-	b := newBus(func(f func() bool) { glib.IdleAdd(f) }, slog.Default())
+	b := newBus(dispatchMainLoop, slog.Default())
 	if cfg != nil {
 		detacher := cfg.Attach(&gumbleBridge{bus: b})
 		b.detachGumble = detacher.Detach

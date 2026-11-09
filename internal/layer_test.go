@@ -23,7 +23,8 @@ func TestLayerBoundary(t *testing.T) {
 	cmd.Dir = repoRoot
 	out, err := cmd.Output()
 	if err != nil {
-		t.Skipf("protocol/audio packages not resolvable yet: %v", err)
+		// A guard that cannot run must fail, not pass silently.
+		t.Fatalf("go list -deps protocol/audio: %v", err)
 	}
 
 	var deps []string
@@ -39,7 +40,7 @@ func TestLayerBoundary(t *testing.T) {
 	}
 
 	if len(deps) == 0 {
-		t.Skip("protocol/audio packages have no dependencies beyond stdlib yet")
+		t.Fatal("go list -deps returned no dependencies: the check would pass vacuously")
 	}
 
 	for _, dep := range deps {
