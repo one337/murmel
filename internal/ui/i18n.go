@@ -39,7 +39,14 @@ func init() {
 // ApplyLanguage switches to the language the user chose in Preferences
 // (a code such as "de"; "en" = English; "" keeps the system language).
 // Call it before building any UI: texts are translated when created.
+//
+// It also sets LANGUAGE, which the C gettext of GTK and Libadwaita reads:
+// their own texts (the About dialog, file chooser, emoji chooser) would
+// otherwise stay in the system language.
 func ApplyLanguage(code string) {
+	if code != "" {
+		_ = os.Setenv("LANGUAGE", code)
+	}
 	switch code {
 	case "":
 		return

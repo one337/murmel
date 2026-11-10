@@ -81,3 +81,15 @@ msgstr[1] "%d Mitglieder"
 		}
 	}
 }
+
+func TestApplyLanguageSetsLANGUAGE(t *testing.T) {
+	t.Setenv("LANGUAGE", "de")
+	ApplyLanguage("")
+	if got := os.Getenv("LANGUAGE"); got != "de" {
+		t.Fatalf("system language: LANGUAGE = %q, want it unchanged", got)
+	}
+	ApplyLanguage("en")
+	if got := os.Getenv("LANGUAGE"); got != "en" {
+		t.Fatalf("English: LANGUAGE = %q, want en", got)
+	}
+}
