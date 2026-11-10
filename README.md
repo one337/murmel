@@ -17,7 +17,7 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="License: GPL-3.0-or-later"></a>
 </p>
 
-<img src="assets/screenshots/0.3.7/light-dark-mode.png" width="88%" alt="Murmel connected to a server: channel tree with users and avatars, chat with an image, shown half in the light and half in the dark style">
+<img src="assets/screenshots/0.3.7/light-dark-mode.webp" width="88%" alt="Murmel connected to a server: channel tree with users and avatars, chat with an image, switching between the light and the dark style">
 
 </div>
 
