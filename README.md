@@ -72,8 +72,9 @@ the channel's cover image.
 
 ## Install
 
-Murmel is distributed as a Flatpak from its own repository. With Flatpak
-and Flathub set up (see https://flathub.org/setup):
+Murmel is distributed as a Flatpak from its own repository. Only Flatpak
+itself is needed; the GNOME runtime comes from Flathub, which Flatpak offers
+to add during the installation if it is not set up yet:
 
 ```sh
 flatpak install --user https://simon-tschoep.de/software/murmel/io.github.murmel.Murmel.flatpakref
