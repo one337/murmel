@@ -89,6 +89,11 @@ flatpak run io.github.murmel.Murmel
 
 Updates then arrive through GNOME Software or `flatpak update`.
 
+If Flatpak was only just installed, restart the computer once before the
+first start (logging out is not enough): until then the desktop may list
+Murmel but not start it from the app grid, as with every app that is
+started over D-Bus.
+
 On Fedora, Murmel is also available as an RPM from
 [Copr](https://copr.fedorainfracloud.org/coprs/one337/murmel/):
 
