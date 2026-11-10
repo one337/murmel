@@ -424,82 +424,8 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	dialog.Present(c.win)
 }
 
-// savedServersGroup lists the saved connections (nil when there are none).
-// Activating a row calls fill; the trash button forgets the connection and
-// its keyring password.
-func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *adw.PreferencesGroup {
-	servers := c.settings.Servers()
-	if len(servers) == 0 {
-		return nil
-	}
-	group := adw.NewPreferencesGroup()
-	group.SetTitle(tr("Saved Connections"))
-	list := gtk.NewListBox()
-	list.AddCSSClass("boxed-list")
-	list.SetSelectionMode(gtk.SelectionNone)
-	scroll := gtk.NewScrolledWindow()
-	scroll.SetChild(list)
-	scroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
-	scroll.SetPropagateNaturalHeight(true)
-	scroll.SetMaxContentHeight(savedListMaxHeightPx)
-	scroll.SetMinContentHeight(int(min(float64(len(servers)), savedListMinRows) * savedRowPx))
-	scroll.AddCSSClass("saved-connections")
-	scroll.SetOverflow(gtk.OverflowHidden) // clip rows to the rounded card
-	// A permanent scrollbar and a fade over the last visible row show that
-	// the list continues.
-	scroll.SetOverlayScrolling(false)
-	fade := gtk.NewBox(gtk.OrientationVertical, 0)
-	fade.AddCSSClass("saved-connections-fade")
-	fade.SetVAlign(gtk.AlignEnd)
-	fade.SetCanTarget(false)
-	adj := scroll.VAdjustment()
-	updateFade := func() {
-		fade.SetVisible(adj.Value()+adj.PageSize() < adj.Upper()-1)
-	}
-	adj.ConnectValueChanged(updateFade)
-	adj.ConnectChanged(updateFade)
-	overlay := gtk.NewOverlay()
-	overlay.SetChild(scroll)
-	overlay.AddOverlay(fade)
-	group.Add(overlay)
-	for _, e := range servers {
-		e := e
-		row := adw.NewActionRow()
-		row.SetTitle(e.Name)
-		row.SetTitleLines(1)
-		row.SetSubtitle(net.JoinHostPort(e.Host, strconv.Itoa(e.Port)))
-		row.AddPrefix(gtk.NewImageFromIconName("network-server-symbolic"))
-		row.SetActivatable(true)
-		row.ConnectActivated(func() { fill(e) })
-
-		del := gtk.NewButtonFromIconName("user-trash-symbolic")
-		del.AddCSSClass("flat")
-		del.SetVAlign(gtk.AlignCenter)
-		del.SetTooltipText(tr("Forget connection"))
-		del.ConnectClicked(func() {
-			c.settings.SetServers(removeServer(c.settings.Servers(), e.Host, e.Port, e.Username))
-			if err := c.avatarStore().Save(avatarpick.AccountKey(e.Host, e.Port, e.Username), nil); err != nil {
-				slog.Info("avatar not removed", "err", err)
-			}
-			list.Remove(row)
-			if list.FirstChild() == nil {
-				group.SetVisible(false)
-			}
-			key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
-			go func() {
-				if err := secrets.Delete(key); err != nil {
-					slog.Info("keyring delete failed", "err", err)
-				}
-			}()
-		})
-		row.AddSuffix(del)
-		list.Append(row)
-	}
-	return group
-}
-
-// saveServer stores the connection (most recent first) and its password in
-// the keyring; an empty password removes a previously stored one.
+// saveServer stores the connection (in place, or at the end when it is
+// new) and its password in the keyring; an empty password removes a previously stored one.
 func (c *Controller) saveServer(e settings.ServerEntry, password string) {
 	c.settings.SetServers(upsertServer(c.settings.Servers(), e))
 	key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-09 17:58+0100\n"
+"POT-Creation-Date: 2026-11-10 12:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -202,11 +202,11 @@ msgstr ""
 msgid "No rules in this channel"
 msgstr ""
 
-#: internal/ui/admin/aclpages.go
+#: internal/ui/admin/aclpages.go internal/ui/connection/savedlist.go
 msgid "Move Up"
 msgstr ""
 
-#: internal/ui/admin/aclpages.go
+#: internal/ui/admin/aclpages.go internal/ui/connection/savedlist.go
 msgid "Move Down"
 msgstr ""
 
@@ -1081,14 +1081,6 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
-#: internal/ui/connection/controller.go
-msgid "Saved Connections"
-msgstr ""
-
-#: internal/ui/connection/controller.go
-msgid "Forget connection"
-msgstr ""
-
 #: internal/ui/connection/controller.go internal/ui/identities/files.go
 msgid "PEM Certificates"
 msgstr ""
@@ -1284,6 +1276,22 @@ msgstr ""
 
 #: internal/ui/connection/controller.go
 msgid "Connection Failed"
+msgstr ""
+
+#: internal/ui/connection/savedlist.go
+msgid "Saved Connections"
+msgstr ""
+
+#: internal/ui/connection/savedlist.go
+msgid "Drag to reorder"
+msgstr ""
+
+#: internal/ui/connection/savedlist.go
+msgid "Forget Connection"
+msgstr ""
+
+#: internal/ui/connection/savedlist.go
+msgid "More"
 msgstr ""
 
 #: internal/ui/identities/create.go

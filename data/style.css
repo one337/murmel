@@ -250,3 +250,19 @@ image.muted-speaking {
   border-radius: 0 0 12px 12px;
   background-image: linear-gradient(to bottom, alpha(@card_bg_color, 0), @card_bg_color);
 }
+
+/* Saved connections in the connect dialog: rows are reordered by dragging
+   their handle; a line in the accent colour shows where a row will land,
+   and the dragged row stays dimmed in place. */
+.saved-connections .drag-handle {
+  opacity: 0.55;
+}
+.saved-connections row.drop-above {
+  box-shadow: inset 0 2px 0 @accent_color;
+}
+.saved-connections row.drop-below {
+  box-shadow: inset 0 -2px 0 @accent_color;
+}
+.saved-connections row.dragged {
+  opacity: 0.4;
+}
