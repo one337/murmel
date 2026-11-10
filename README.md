@@ -55,17 +55,20 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/screenshots/0.3.7/light-mode.png" alt="Channel chat in the light style"></td>
-    <td width="50%"><img src="assets/screenshots/0.3.7/dark-mode.png" alt="Channel chat in the dark style"></td>
+    <td width="33%"><img src="assets/screenshots/0.3.7/light-mode.png" alt="Channel chat in the light style"></td>
+    <td width="33%"><img src="assets/screenshots/0.3.7/dark-mode.png" alt="Channel chat in the dark style"></td>
+    <td width="33%"><img src="assets/screenshots/0.3.7/channel-coverimage.png" alt="A chess channel whose description starts with a wide image, shown as a banner behind the header"></td>
   </tr>
   <tr>
     <td align="center"><sub>Light style</sub></td>
     <td align="center"><sub>Dark style</sub></td>
+    <td align="center"><sub>Channel with a cover image</sub></td>
   </tr>
 </table>
 
 Murmel follows the desktop's light or dark style, or keeps the one you pick
-in Preferences.
+in Preferences. A channel description that starts with a wide image becomes
+the channel's cover image.
 
 ## Install
 
