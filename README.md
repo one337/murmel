@@ -55,14 +55,20 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
 
 <table>
   <tr>
-    <td width="33%"><img src="assets/screenshots/0.3.7/light-mode.png" alt="Channel chat in the light style"></td>
-    <td width="33%"><img src="assets/screenshots/0.3.7/dark-mode.png" alt="Channel chat in the dark style"></td>
-    <td width="33%"><img src="assets/screenshots/0.3.7/channel-coverimage.png" alt="A chess channel whose description starts with a wide image, shown as a banner behind the header"></td>
+    <td width="50%"><img src="assets/screenshots/0.3.7/light-mode.png" alt="Channel chat in the light style"></td>
+    <td width="50%"><img src="assets/screenshots/0.3.7/dark-mode.png" alt="Channel chat in the dark style"></td>
   </tr>
   <tr>
     <td align="center"><sub>Light style</sub></td>
     <td align="center"><sub>Dark style</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/0.3.7/channel-coverimage.png" alt="A chess channel whose description starts with a wide image, shown as a banner behind the header"></td>
+    <td width="50%"><img src="assets/screenshots/0.3.7/settings.png" alt="Preferences: language and appearance, channel log events, and audio input with noise suppression, echo cancellation and the voice activation threshold"></td>
+  </tr>
+  <tr>
     <td align="center"><sub>Channel with a cover image</sub></td>
+    <td align="center"><sub>Preferences</sub></td>
   </tr>
 </table>
 
@@ -90,11 +96,6 @@ On Fedora, Murmel is also available as an RPM from
 sudo dnf copr enable one337/murmel
 sudo dnf install murmel
 ```
-
-<p align="center">
-  <img src="assets/screenshots/0.3.7/settings.png" width="80%" alt="Preferences: language and appearance, channel log events, and audio input with noise suppression, echo cancellation and the voice activation threshold"><br>
-  <sub>Preferences for identity, audio, chat and general behavior</sub>
-</p>
 
 ## Building from source
 
