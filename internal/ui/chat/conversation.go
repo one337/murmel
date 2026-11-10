@@ -84,7 +84,7 @@ func newConversation(tag, title, emptyText string) *conversation {
 	toolbar := adw.NewToolbarView()
 	toolbar.AddTopBar(c.header)
 	if tag != channelTag {
-		toolbar.SetContent(overlay)
+		toolbar.SetContent(withComposerBar(overlay, c.composer.root))
 	} else {
 		// The description sits right under the header in the header's
 		// colour (no separator line). A banner image instead starts at the
@@ -96,7 +96,7 @@ func newConversation(tag, title, emptyText string) *conversation {
 		content := gtk.NewBox(gtk.OrientationVertical, 0)
 		content.Append(c.info.heroRoot)
 		content.Append(overlay)
-		toolbar.SetContent(content)
+		toolbar.SetContent(withComposerBar(content, c.composer.root))
 		c.info.onMode = func(m infoMode) {
 			toolbar.SetExtendContentToTopEdge(m == infoHero)
 			if m == infoHero {
@@ -111,13 +111,6 @@ func newConversation(tag, title, emptyText string) *conversation {
 			}
 		}
 	}
-	// The composer's surroundings (its margin) in the chat's colour.
-	bar := gtk.NewBox(gtk.OrientationVertical, 0)
-	bar.AddCSSClass("composer-bar")
-	bar.Append(c.composer.root)
-	toolbar.AddBottomBar(bar)
-	// No raised bar behind the composer: the field itself is the frame.
-	toolbar.SetBottomBarStyle(adw.ToolbarFlat)
 
 	c.page = adw.NewNavigationPage(toolbar, title)
 	c.page.SetTag(tag)
@@ -166,4 +159,27 @@ func (c *conversation) atBottom() bool {
 func (c *conversation) scrollToBottom() {
 	adj := c.scroll.VAdjustment()
 	adj.SetValue(adj.Upper() - adj.PageSize())
+}
+
+// withComposerBar puts the composer under content. The margin around the
+// field moves the window when dragged and maximizes it on a double click,
+// like a title bar; the field itself does not. An AdwToolbarView bottom bar
+// would make the whole bar, field included, a window handle, and the text
+// view claims a press only once a drag changes the selection: selecting
+// text moved the window and a double click on an empty line maximized it.
+// So the handle fills the bar behind the field, and the field lies on top
+// of it in an overlay instead of inside it.
+func withComposerBar(content, field gtk.Widgetter) *gtk.Box {
+	handle := gtk.NewWindowHandle()
+	bar := gtk.NewOverlay()
+	bar.AddCSSClass("composer-bar") // the margin in the chat's colour
+	bar.SetChild(handle)
+	bar.AddOverlay(field)
+	bar.SetMeasureOverlay(field, true)
+
+	box := gtk.NewBox(gtk.OrientationVertical, 0)
+	gtk.BaseWidget(content).SetVExpand(true)
+	box.Append(content)
+	box.Append(bar)
+	return box
 }
