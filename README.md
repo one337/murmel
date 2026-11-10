@@ -122,9 +122,14 @@ tools/install.sh --prefix ~/.local     # or: sudo tools/install.sh
 Install the development files of GTK 4, Libadwaita, GObject
 Introspection, Opus and WebRTC audio processing 2.x
 (`webrtc-audio-processing-2` in pkg-config), plus Go, a C++20 compiler and
-gettext. Debian and Ubuntu ship only WebRTC audio processing 1.x so far;
-build 2.x from [its source](https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing)
-or use the Flatpak. Then:
+gettext.
+
+> [!NOTE]
+> Debian and Ubuntu ship only WebRTC audio processing 1.x so far; build 2.x
+> from [its source](https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing)
+> or use the [Flatpak](#install).
+
+Then:
 
 ```sh
 tools/install.sh --prefix ~/.local     # or: sudo tools/install.sh
