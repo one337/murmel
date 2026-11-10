@@ -11,7 +11,7 @@ Categories=Network;InstantMessaging;
 # org.freedesktop.Application Open (xdg-open) both prefill the connect dialog.
 MimeType=x-scheme-handler/mumble;
 # Activated over the session bus under the application id; xdg-mime default
-# registration ships with the packaging (T28).
+# registration ships with the packaging.
 DBusActivatable=true
 StartupWMClass=io.github.murmel.Murmel
 X-Purism=formFactor=workstation;mobile;
