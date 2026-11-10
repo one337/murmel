@@ -1,16 +1,25 @@
-# Murmel
+<div align="center">
 
-Murmel is a [Mumble](https://www.mumble.info/) voice chat client for GNOME,
-written in Go with GTK 4 and Libadwaita.
+<h1><img src="assets/murmel.svg" alt="" width="40" height="40" align="top">&nbsp;Murmel</h1>
 
-**Website and downloads:** https://simon-tschoep.de/software/murmel/
-
-![Murmel start screen](assets/screenshots/0.3.6/murmel-start.png)
+<p><strong>A <a href="https://www.mumble.info/">Mumble</a> voice chat client for GNOME</strong><br>
+written in Go with GTK&nbsp;4 and Libadwaita</p>
 
 <p>
-  <img src="assets/screenshots/0.3.6/murmel-channel-dark.png" width="49%" alt="Channel with chat in the dark style">
-  <img src="assets/screenshots/0.3.6/murmel-channel-light.png" width="49%" alt="Channel with chat in the light style">
+  <a href="https://simon-tschoep.de/software/murmel/">Website</a>&nbsp;·
+  <a href="#install">Install</a>&nbsp;·
+  <a href="#building-from-source">Build</a>&nbsp;·
+  <a href="CONTRIBUTING.md">Contribute</a>
 </p>
+
+<p>
+  <a href="https://github.com/one337/murmel/actions/workflows/verify.yml"><img src="https://github.com/one337/murmel/actions/workflows/verify.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="License: GPL-3.0-or-later"></a>
+</p>
+
+<img src="assets/screenshots/0.3.7/light-dark-mode.png" width="88%" alt="Murmel connected to a server: channel tree with users and avatars, chat with an image, shown half in the light and half in the dark style">
+
+</div>
 
 ## Features
 
@@ -42,6 +51,22 @@ written in Go with GTK 4 and Libadwaita.
 - Event sounds with per-event choice (built-in or your own audio files)
 - `mumble://` links
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/screenshots/0.3.7/light-mode.png" alt="Channel chat in the light style"></td>
+    <td width="50%"><img src="assets/screenshots/0.3.7/dark-mode.png" alt="Channel chat in the dark style"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Light style</sub></td>
+    <td align="center"><sub>Dark style</sub></td>
+  </tr>
+</table>
+
+Murmel follows the desktop's light or dark style, or keeps the one you pick
+in Preferences.
+
 ## Install
 
 Murmel is distributed as a Flatpak from its own repository. With Flatpak
@@ -61,6 +86,11 @@ On Fedora, Murmel is also available as an RPM from
 sudo dnf copr enable one337/murmel
 sudo dnf install murmel
 ```
+
+<p align="center">
+  <img src="assets/screenshots/0.3.7/settings.png" width="80%" alt="Preferences: language and appearance, channel log events, and audio input with noise suppression, echo cancellation and the voice activation threshold"><br>
+  <sub>Preferences for identity, audio, chat and general behavior</sub>
+</p>
 
 ## Building from source
 
