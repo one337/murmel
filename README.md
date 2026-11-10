@@ -98,38 +98,80 @@ sudo dnf install murmel
 
 ## Building from source
 
-Requirements:
+Murmel needs a current GNOME stack (GTK 4 and Libadwaita 1.10, as in
+Fedora 45 or GNOME 51), Go 1.27 or newer and WebRTC audio processing 2.x.
+Where the distribution is older, the [Flatpak](#flatpak) build is the
+easier way. At runtime it uses PulseAudio or PipeWire (with
+`pipewire-pulse`).
 
-- Go 1.27 or newer
-- GTK 4 and Libadwaita development files (GNOME 47+ recommended)
-- libopus development files (`opus-devel` on Fedora, `libopus-dev` on
-  Debian/Ubuntu)
-- WebRTC audio processing 2.x development files, for noise suppression
-  (`webrtc-audio-processing-devel` on Fedora,
-  `libwebrtc-audio-processing-dev` on Debian/Ubuntu); a C++20 compiler
-- PulseAudio or PipeWire (with `pipewire-pulse`) at runtime
-
-Dependencies are vendored, so the build works offline:
+### Fedora
 
 ```sh
-go build -mod=vendor -o murmel ./cmd/murmel
+sudo dnf install golang gcc-c++ gettext gtk4-devel libadwaita-devel \
+    gobject-introspection-devel opus-devel webrtc-audio-processing-devel
+tools/install.sh --prefix ~/.local     # or: sudo tools/install.sh
 ```
 
-The settings schema must be installed (or `GSETTINGS_SCHEMA_DIR` pointed at
-a directory compiled with `glib-compile-schemas data/`); without it Murmel
-falls back to in-memory settings.
+### Other distributions
 
-The first build compiles the GTK bindings and takes several minutes; later
-builds are fast.
+Install the development files of GTK 4, Libadwaita, GObject
+Introspection, Opus and WebRTC audio processing 2.x
+(`webrtc-audio-processing-2` in pkg-config), plus Go, a C++20 compiler and
+gettext. Debian and Ubuntu ship only WebRTC audio processing 1.x so far;
+build 2.x from [its source](https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing)
+or use the Flatpak. Then:
+
+```sh
+tools/install.sh --prefix ~/.local     # or: sudo tools/install.sh
+```
+
+`tools/install.sh` builds Murmel and installs it with the settings schema,
+desktop file, icons, D-Bus service and translations, to `/usr/local` by
+default or the given `--prefix` (`~/.local` needs no root, but
+`~/.local/bin` must be in `PATH`). `tools/install.sh --uninstall` with the
+same prefix removes it again. Dependencies are vendored, so the build works
+offline; the first one compiles the GTK bindings and takes several minutes.
+
+To only build the binary:
+
+```sh
+go build -mod=vendor -ldflags "-X io.github/murmel/internal/ui.Version=$(tools/version.sh)" -o murmel ./cmd/murmel
+```
+
+Without the installed settings schema (or `GSETTINGS_SCHEMA_DIR` pointed at
+a directory compiled with `glib-compile-schemas data/`) Murmel falls back to
+in-memory settings.
+
+### RPM
+
+To build the RPM that Copr builds, on Fedora:
+
+```sh
+sudo dnf install rpm-build
+make -f .copr/Makefile srpm outdir=build-srpm
+sudo dnf builddep build-srpm/murmel-*.src.rpm
+rpmbuild --rebuild build-srpm/murmel-*.src.rpm   # result in ~/rpmbuild/RPMS/
+```
 
 ### Flatpak
 
 ```sh
-flatpak-builder --user --install --force-clean build-flatpak packaging/io.github.murmel.Murmel.json
+tools/testbuild.sh
 ```
 
+builds the current tree with `flatpak-builder` and installs it for the
+current user as the branch `master`, next to a release install (`stable`),
+and makes it the one that starts;
+`flatpak make-current --user io.github.murmel.Murmel stable` switches back.
 The manifest uses the GNOME 51 runtime and the Go SDK extension from
 Flathub.
+
+### Versions
+
+The About dialog shows the version from `tools/version.sh`: `0.3.7` for a
+build of the release tag, `0.3.7-dev+5.g0782834` for one 5 commits after
+it (at commit `0782834`, `.dirty` with uncommitted changes), and
+`0.3.7-dev` where git is not available.
 
 ## Development
 
