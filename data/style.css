@@ -266,3 +266,36 @@ image.muted-speaking {
 .saved-connections row.dragged {
   opacity: 0.4;
 }
+
+/* Moving users by drag and drop in the channel tree: the handle left of
+   the avatar shows on hover (and on the selected row, for touch) when the
+   user can be moved; the target channel lights up, faintly where only the
+   server can tell whether the move is allowed. */
+.user-drag-handle {
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+row.user-row:hover .user-drag-handle.movable,
+row.user-row:selected .user-drag-handle.movable {
+  opacity: 0.55;
+}
+row.user-row .user-drag-handle.movable:hover {
+  opacity: 1;
+}
+row.dragged {
+  opacity: 0.4;
+}
+row.drop-target {
+  background-color: alpha(@accent_bg_color, 0.22);
+  box-shadow: inset 0 0 0 2px @accent_color;
+}
+row.drop-target-maybe {
+  box-shadow: inset 0 0 0 1px alpha(@accent_color, 0.5);
+}
+.user-drag-icon {
+  padding: 6px 12px 6px 6px;
+  border-radius: 999px;
+  background-color: @card_bg_color;
+  color: @card_fg_color;
+  box-shadow: 0 1px 4px alpha(black, 0.25);
+}

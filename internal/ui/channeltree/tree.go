@@ -41,6 +41,12 @@ type Tree struct {
 	// the server (both reset on disconnect).
 	avatars          map[uint32]avatarEntry
 	textureRequested map[uint32]bool
+
+	// drag is the user being dragged into another channel (nil otherwise);
+	// permAsked lists the channels whose permissions were asked for since
+	// connecting.
+	drag      *treeDrag
+	permAsked map[uint32]bool
 }
 
 // NewTree builds the tree widget and subscribes to the bus. parent is the
@@ -73,6 +79,7 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 	t.root.SetChild(t.list)
 	t.root.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
 	t.root.SetVExpand(true)
+	t.autoScrollOnDrag()
 
 	t.subscribe(ctx)
 	return t
@@ -91,7 +98,9 @@ func (t *Tree) subscribe(ctx context.Context) {
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserRemoved) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserUpdated) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.VoiceActivity) { t.handle(ev) })
+	bus.SubscribeCtx(ctx, t.b, func(bus.Connected) { t.permAsked = nil })
 	bus.SubscribeCtx(ctx, t.b, func(bus.Disconnected) {
+		t.permAsked = nil
 		t.unread, t.channelUnread = nil, 0
 		t.avatars, t.textureRequested = nil, nil
 	})
@@ -133,7 +142,13 @@ func (t *Tree) applyUnread() {
 // directly affected row widget is refreshed.
 func (t *Tree) handle(ev bus.Event) {
 	if t.model.apply(ev) {
-		t.rebuild()
+		// A rebuild would destroy the row being dragged and end the drag:
+		// it waits until the drop.
+		if t.drag != nil {
+			t.drag.pendingRebuild = true
+		} else {
+			t.rebuild()
+		}
 	} else {
 		t.updateInPlace(ev)
 	}
@@ -154,25 +169,37 @@ func (t *Tree) rebuild() {
 	t.userRows = map[uint32]*userRowWidgets{}
 
 	for _, e := range t.model.walk() {
-		switch e.kind {
-		case entryChannel:
-			id := e.id
-			r := newChannelRow(t.model, id,
-				func() { t.toggleExpand(id) },
-				func(x, y float64) { t.showChannelMenu(id, x, y) })
-			t.channelRows[id] = r
-			t.list.Append(r.root)
-		case entryUser:
-			session := e.id
-			r := newUserRow(t.model, session,
-				func(x, y float64) { t.showUserMenu(session, x, y) },
-				func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) })
-			t.userRows[session] = r
-			t.applyAvatar(r, t.model.users[session])
-			t.list.Append(r.root)
-		}
+		t.list.Append(t.newRowFor(e))
 	}
+	t.refreshDragHandles()
 	t.applyUnread()
+}
+
+// newRowFor builds the row for one walk entry and registers it.
+func (t *Tree) newRowFor(e entry) gtk.Widgetter {
+	switch e.kind {
+	case entryChannel:
+		id := e.id
+		r := newChannelRow(t.model, id,
+			func() { t.toggleExpand(id) },
+			func(x, y float64) { t.showChannelMenu(id, x, y) })
+		t.channelRows[id] = r
+		t.acceptDrops(r.root, func() (uint32, bool) { return id, true }, id)
+		return r.root
+	default:
+		session := e.id
+		r := newUserRow(t.model, session,
+			func(x, y float64) { t.showUserMenu(session, x, y) },
+			func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) })
+		t.userRows[session] = r
+		t.applyAvatar(r, t.model.users[session])
+		t.dragUser(r, session)
+		t.acceptDrops(r.root, func() (uint32, bool) {
+			u, ok := t.model.users[session]
+			return u.Channel, ok
+		}, noExpand)
+		return r.root
+	}
 }
 
 // updateInPlace refreshes a single row without changing list structure.
@@ -195,6 +222,9 @@ func (t *Tree) updateInPlace(ev bus.Event) {
 				r.update(n)
 			}
 		}
+		// Permission answers arrive as channel updates.
+		t.refreshDragHandles()
+		t.refreshDropHover()
 	}
 }
 

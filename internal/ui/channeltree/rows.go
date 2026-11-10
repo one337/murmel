@@ -23,6 +23,7 @@ const (
 	iconPrioritySpeaker   = "starred-symbolic"
 	iconRecording         = "media-record-symbolic"
 	iconCurrentChannel    = "mark-location-symbolic"
+	iconDragHandle        = "list-drag-handle-symbolic"
 
 	avatarSizePx     = 32
 	indentPerDepthPx = 16
@@ -39,6 +40,7 @@ type channelRowWidgets struct {
 
 type userRowWidgets struct {
 	root   *gtk.ListBoxRow
+	handle *gtk.Image // drag handle, shown on hover when the user can be moved
 	avatar *adw.Avatar
 	name   *gtk.Label
 	badge  *gtk.Label
@@ -165,8 +167,14 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	r.badge = newBadge()
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	// An invisible twin of the channel chevron: the avatar starts where
-	// the channel's name does.
-	box.Append(chevronSpacer())
+	// the channel's name does. The drag handle lies on top of it.
+	slot := gtk.NewOverlay()
+	slot.SetChild(chevronSpacer())
+	r.handle = gtk.NewImageFromIconName(iconDragHandle)
+	r.handle.AddCSSClass("user-drag-handle")
+	r.handle.SetTooltipText(tr("Drag into another channel"))
+	slot.AddOverlay(r.handle)
+	box.Append(slot)
 	box.Append(r.avatar)
 	box.Append(r.name)
 	box.Append(r.badge)
@@ -180,6 +188,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	r.root.SetChild(box)
 	r.root.SetActivatable(true)
 	r.root.SetSelectable(true)
+	r.root.AddCSSClass("user-row")
 	if u.Session == m.self {
 		r.root.AddCSSClass("self-user")
 	}

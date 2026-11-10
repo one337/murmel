@@ -43,10 +43,13 @@ type SelfDeafenToggle struct {
 	Deafened bool
 }
 
-// UserMoveRequested asks the controller to move Session into the local user's
-// current channel.
+// UserMoveRequested asks the controller to move Session into ChannelID
+// when ToChannel is set (the root channel is ID 0), otherwise into the
+// local user's current channel.
 type UserMoveRequested struct {
-	Session uint32
+	Session   uint32
+	ChannelID uint32
+	ToChannel bool
 }
 
 // UserMuteRequested asks the controller to server-mute or un-mute a user.

@@ -140,3 +140,72 @@ func TestSuperUserHasAllPermissions(t *testing.T) {
 		t.Fatal("name alone must not grant permissions")
 	}
 }
+
+func TestDragAndDropPermissions(t *testing.T) {
+	// Channels: root 0 (me), 5 (peer 7), 6 (optionally with a user limit).
+	build := func(root, five, six *int, maxSix uint32, sixUsers int) *treeModel {
+		m := permModel(root, five)
+		c := ch(6, 0, "Talk", 1)
+		c.Permissions = six
+		c.MaxUsers = maxSix
+		m.addChannel(c)
+		for i := 0; i < sixUsers; i++ {
+			s := uint32(100 + i)
+			m.addUser(bus.UserInfo{Session: s, Name: "x", Channel: 6})
+		}
+		return m
+	}
+
+	// Unknown permissions: only oneself can be dragged, targets are maybes.
+	m := build(nil, nil, nil, 0, 0)
+	if canDragUser(m, 7) {
+		t.Fatal("peer draggable without known Move in its channel")
+	}
+	if !canDragUser(m, 1) {
+		t.Fatal("oneself must be draggable (joins the channel)")
+	}
+	if got := dropTarget(m, 1, 6); got != dropMaybe {
+		t.Fatalf("self to unknown channel = %d, want maybe", got)
+	}
+	if got := dropTarget(m, 1, 0); got != dropNo {
+		t.Fatalf("self to own channel = %d, want no", got)
+	}
+
+	// Move in the peer's channel and in the target: a sure move.
+	mv := p(gumble.PermissionMove, gumble.PermissionEnter)
+	m = build(mv, mv, mv, 0, 0)
+	if !canDragUser(m, 7) {
+		t.Fatal("peer not draggable with Move in its channel")
+	}
+	if got := dropTarget(m, 7, 6); got != dropYes {
+		t.Fatalf("peer to channel with Move = %d, want yes", got)
+	}
+	if got := dropTarget(m, 7, 5); got != dropNo {
+		t.Fatalf("peer to its own channel = %d, want no", got)
+	}
+
+	// No Move in the target: the peer's own Enter decides on the server.
+	m = build(mv, mv, p(gumble.PermissionEnter), 0, 0)
+	if got := dropTarget(m, 7, 6); got != dropMaybe {
+		t.Fatalf("peer to channel without Move = %d, want maybe", got)
+	}
+	if got := dropTarget(m, 1, 6); got != dropYes {
+		t.Fatalf("self to channel with Enter = %d, want yes", got)
+	}
+
+	// No Move in the peer's channel: not draggable, no target.
+	m = build(mv, p(gumble.PermissionEnter), mv, 0, 0)
+	if canDragUser(m, 7) || dropTarget(m, 7, 6) != dropNo {
+		t.Fatal("peer movable without Move in its channel")
+	}
+
+	// A full channel: refused without Write, allowed with it.
+	m = build(mv, mv, mv, 1, 1)
+	if got := dropTarget(m, 7, 6); got != dropNo {
+		t.Fatalf("full channel without Write = %d, want no", got)
+	}
+	m = build(mv, mv, p(gumble.PermissionMove, gumble.PermissionWrite), 1, 1)
+	if got := dropTarget(m, 7, 6); got != dropYes {
+		t.Fatalf("full channel with Write = %d, want yes", got)
+	}
+}

@@ -998,7 +998,14 @@ func (c *Controller) onUserMoveRequested(ev bus.UserMoveRequested) {
 		if target == nil || target.Channel == nil {
 			return
 		}
-		target.Move(client.Self.Channel)
+		to := client.Self.Channel
+		if ev.ToChannel {
+			to = client.Channels[ev.ChannelID]
+		}
+		if to == nil || to == target.Channel {
+			return
+		}
+		target.Move(to)
 	})
 }
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-10 12:31+0100\n"
+"POT-Creation-Date: 2026-11-10 12:34+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -699,6 +699,10 @@ msgstr "Du bist in diesem Kanal"
 #: internal/ui/channeltree/rows.go
 msgid "Double-click to join"
 msgstr "Doppelklicken zum Betreten"
+
+#: internal/ui/channeltree/rows.go
+msgid "Drag into another channel"
+msgstr "In einen anderen Kanal ziehen"
 
 #. TRANSLATORS: Context menu entry: move yourself into this channel.
 #. TRANSLATORS: Button: join the channel with the password entered.

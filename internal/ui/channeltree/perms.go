@@ -123,3 +123,66 @@ func permissionChannels(m *treeModel, channel uint32, session uint32) []uint32 {
 	}
 	return ids
 }
+
+// Dragging users into channels follows the server's checks for a move
+// (murmur's UserState handler):
+//
+//  1. moving someone else needs Move in that user's current channel;
+//  2. in the target channel, Move for the one who moves, or Enter for the
+//     one who is moved;
+//  3. the target channel must not be full, unless the mover has Write
+//     there.
+//
+// The Enter permission of another user is only known to the server, so a
+// target without Move is a "maybe": the drop is allowed and the server
+// decides (a refusal shows up in the chat). Dragging oneself joins the
+// target channel, which needs no Move at all.
+
+// dropVerdict is how a drop of a user on a channel will likely end.
+type dropVerdict uint8
+
+const (
+	dropNo    dropVerdict = iota // the server will refuse, or nothing would change
+	dropMaybe                    // depends on what the server knows
+	dropYes                      // the local permissions allow it
+)
+
+// canDragUser reports whether session's drag handle is offered: always for
+// oneself (to join a channel), for others with Move in their channel.
+func canDragUser(m *treeModel, session uint32) bool {
+	u, ok := m.users[session]
+	if !ok {
+		return false
+	}
+	return session == m.self || m.allowed(u.Channel, gumble.PermissionMove)
+}
+
+// dropTarget judges dropping session on channel.
+func dropTarget(m *treeModel, session, channel uint32) dropVerdict {
+	u, ok := m.users[session]
+	n, ok2 := m.channels[channel]
+	if !ok || !ok2 || u.Channel == channel || !canDragUser(m, session) {
+		return dropNo
+	}
+	p, known := m.channelPerm(channel)
+	if n.info.MaxUsers > 0 && len(n.users) >= int(n.info.MaxUsers) {
+		if known && !p.Has(gumble.PermissionWrite) {
+			return dropNo // full, and no Write to override the limit
+		}
+		if !known {
+			return dropMaybe
+		}
+	}
+	switch {
+	case !known:
+		return dropMaybe
+	case p.Has(gumble.PermissionMove):
+		return dropYes
+	case session == m.self && p.Has(gumble.PermissionEnter):
+		return dropYes
+	default:
+		// Someone else may still have Enter there; for oneself, a
+		// password channel asks for the password after the refusal.
+		return dropMaybe
+	}
+}
