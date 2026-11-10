@@ -1,5 +1,6 @@
 # Template: .copr/Makefile (packaging/rpm/make-srpm.sh) fills in the version,
-# the release and the changelog (from VERSION, the git tag and the metainfo).
+# the release and the changelog (from VERSION, the git tag and the metainfo),
+# and the version shown in the About dialog (tools/version.sh).
 
 # Go binaries carry no useful separate debuginfo here; the vendored
 # dependencies are built from source in this package.
@@ -8,6 +9,7 @@
 %global _lto_cflags %{nil}
 
 %global app_id io.github.murmel.Murmel
+%global display_version @DISPLAY_VERSION@
 
 Name:           murmel
 Version:        @VERSION@
@@ -72,24 +74,11 @@ export CGO_CFLAGS="%{optflags}"
 export CGO_CXXFLAGS="%{optflags}"
 export CGO_LDFLAGS="%{build_ldflags}"
 go build -buildmode=pie \
-    -ldflags "-linkmode=external -B gobuildid -X io.github/murmel/internal/ui.Version=%{version}" \
+    -ldflags "-linkmode=external -B gobuildid -X io.github/murmel/internal/ui.Version=%{display_version}" \
     -o %{name} ./cmd/murmel
 
 %install
-install -Dpm 0755 %{name} %{buildroot}%{_bindir}/%{name}
-install -Dpm 0644 data/%{app_id}.desktop %{buildroot}%{_datadir}/applications/%{app_id}.desktop
-install -Dpm 0644 packaging/%{app_id}.metainfo.xml %{buildroot}%{_metainfodir}/%{app_id}.metainfo.xml
-install -Dpm 0644 data/%{app_id}.gschema.xml %{buildroot}%{_datadir}/glib-2.0/schemas/%{app_id}.gschema.xml
-install -dm 0755 %{buildroot}%{_datadir}/dbus-1/services
-sed 's|^Exec=.*/murmel |Exec=%{_bindir}/murmel |' data/%{app_id}.service \
-    > %{buildroot}%{_datadir}/dbus-1/services/%{app_id}.service
-install -Dpm 0644 data/icons/hicolor/scalable/apps/%{app_id}.svg \
-    %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
-for size in 48 64 128 256; do
-    install -Dpm 0644 data/icons/hicolor/${size}x${size}/apps/%{app_id}.png \
-        %{buildroot}%{_datadir}/icons/hicolor/${size}x${size}/apps/%{app_id}.png
-done
-tools/install-translations.sh %{buildroot}%{_datadir}/locale
+tools/install.sh --no-build --prefix %{_prefix} --destdir %{buildroot}
 %find_lang %{name}
 
 %check

@@ -29,6 +29,9 @@ go.work.sum
 # build artifacts (local QA binaries)
 /target/
 
+# Version for Flatpak builds (tools/testbuild.sh, tools/release.sh)
+/build-version
+
 # Release output (upload web/ to the server) and local release settings
 web/
 build-release/

@@ -191,6 +191,10 @@ upload() {
 # metainfo's remote screenshot URLs from the repository's AppStream data.
 build_and_publish() {
 	mkdir -p "$WEB"
+	# The Flatpak build does not see .git: tell it the release version, so
+	# the About dialog shows "0.3.7" and not "0.3.7-dev".
+	echo "$version" >build-version
+	trap 'rm -f build-version' EXIT
 	flatpak-builder --force-clean --default-branch="$BRANCH" "${GPG_ARGS[@]}" \
 		--mirror-screenshots-url="${WEB_URL}media/" --compose-url-policy=full \
 		--repo="$REPO" build-release "$MANIFEST"

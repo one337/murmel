@@ -36,18 +36,7 @@
       "name": "murmel",
       "buildsystem": "simple",
       "build-commands": [
-        "go build -v -ldflags \"-X io.github/murmel/internal/ui.Version=$(cat VERSION)\" -o /app/bin/murmel ./cmd/murmel",
-        "install -Dm644 data/io.github.murmel.Murmel.desktop /app/share/applications/io.github.murmel.Murmel.desktop",
-        "install -Dm644 packaging/io.github.murmel.Murmel.metainfo.xml /app/share/metainfo/io.github.murmel.Murmel.metainfo.xml",
-        "install -Dm644 data/icons/hicolor/scalable/apps/io.github.murmel.Murmel.svg /app/share/icons/hicolor/scalable/apps/io.github.murmel.Murmel.svg",
-        "install -Dm644 data/icons/hicolor/256x256/apps/io.github.murmel.Murmel.png /app/share/icons/hicolor/256x256/apps/io.github.murmel.Murmel.png",
-        "install -Dm644 data/icons/hicolor/128x128/apps/io.github.murmel.Murmel.png /app/share/icons/hicolor/128x128/apps/io.github.murmel.Murmel.png",
-        "install -Dm644 data/icons/hicolor/64x64/apps/io.github.murmel.Murmel.png /app/share/icons/hicolor/64x64/apps/io.github.murmel.Murmel.png",
-        "install -Dm644 data/icons/hicolor/48x48/apps/io.github.murmel.Murmel.png /app/share/icons/hicolor/48x48/apps/io.github.murmel.Murmel.png",
-        "install -Dm644 data/io.github.murmel.Murmel.gschema.xml /app/share/glib-2.0/schemas/io.github.murmel.Murmel.gschema.xml",
-        "install -Dm644 data/io.github.murmel.Murmel.service /app/share/dbus-1/services/io.github.murmel.Murmel.service",
-        "glib-compile-schemas /app/share/glib-2.0/schemas/",
-        "tools/install-translations.sh /app/share/locale"
+        "tools/install.sh --prefix /app"
       ],
       "sources": [
         {
