@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,36 +21,36 @@
 <body>
 <main>
   <h1>Murmel</h1>
-  <p class="muted">Mumble-Sprachchat für GNOME · Version @VERSION@</p>
+  <p class="muted">Mumble voice chat for GNOME · Version @VERSION@</p>
 
   <section>
-    <h2>Installieren (empfohlen, mit Updates)</h2>
-    <p>Voraussetzung: Flatpak mit Flathub (<a href="https://flathub.org/setup">Anleitung</a>).</p>
-    <p><a class="btn" href="@APP_ID@.flatpakref">Murmel installieren</a></p>
-    <p>Oder im Terminal:</p>
+    <h2>Install (recommended, with updates)</h2>
+    <p>Requires Flatpak with Flathub (<a href="https://flathub.org/setup">setup guide</a>).</p>
+    <p><a class="btn" href="@APP_ID@.flatpakref">Install Murmel</a></p>
+    <p>Or in a terminal:</p>
     <pre>flatpak install --user @URL@@APP_ID@.flatpakref</pre>
-    <p>Updates kommen danach automatisch über die Software-App oder mit <code>flatpak update</code>.</p>
+    <p>Updates then arrive automatically through the Software app or with <code>flatpak update</code>.</p>
   </section>
 
   <section>
-    <h2>Starten</h2>
+    <h2>Run</h2>
     <pre>flatpak run @APP_ID@</pre>
   </section>
 
   <section>
-    <h2>Alternativ: einzelne Datei</h2>
-    <p><a href="downloads/murmel-@VERSION@.flatpak">murmel-@VERSION@.flatpak</a> herunterladen und installieren:</p>
+    <h2>Alternative: single file</h2>
+    <p>Download <a href="downloads/murmel-@VERSION@.flatpak">murmel-@VERSION@.flatpak</a> and install it:</p>
     <pre>flatpak install --user murmel-@VERSION@.flatpak</pre>
-    <p class="muted">Auch so installiert bezieht Murmel spätere Updates aus diesem Repository.</p>
+    <p class="muted">Installed this way, Murmel still gets later updates from this repository.</p>
   </section>
 
   <section>
-    <h2>Nur das Repository hinzufügen</h2>
+    <h2>Add the repository only</h2>
     <pre>flatpak remote-add --user --if-not-exists murmel @URL@murmel.flatpakrepo</pre>
-    <p class="muted">Signaturschlüssel: <a href="murmel.gpg">murmel.gpg</a></p>
+    <p class="muted">Signing key: <a href="murmel.gpg">murmel.gpg</a></p>
   </section>
 
-  <p class="muted">Quellcode: <a href="https://github.com/one337/murmel">github.com/one337/murmel</a> (GPL-3.0-or-later).</p>
+  <p class="muted">Source code: <a href="https://github.com/one337/murmel">github.com/one337/murmel</a> (GPL-3.0-or-later).</p>
 </main>
 </body>
 </html>
