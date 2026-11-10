@@ -75,6 +75,16 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.8" date="2026-11-10">
+      <description>
+        <ul>
+          <li>Move users into other channels by drag and drop: a handle appears next to users you may move; drag yourself to join a channel</li>
+          <li>Saved connections: reorder them by dragging or with the new row menu; the order is kept</li>
+          <li>Selecting text in the message field no longer moves or maximizes the window</li>
+          <li>The chosen interface language also applies to built-in dialogs such as About</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.7" date="2026-11-10">
       <description>
         <ul>
