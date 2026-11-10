@@ -7,6 +7,8 @@ name: copr
 on:
   push:
     tags: ['v*']
+  # Manual start, e.g. to rebuild after a failed trigger.
+  workflow_dispatch:
 
 jobs:
   copr:
@@ -16,8 +18,10 @@ jobs:
         env:
           COPR_WEBHOOK_URL: ${{ secrets.COPR_WEBHOOK_URL }}
         run: |
-          if [ -z "$COPR_WEBHOOK_URL" ]; then
+          # Whitespace pasted along with the secret breaks the URL.
+          url=$(printf '%s' "$COPR_WEBHOOK_URL" | tr -d '[:space:]')
+          if [ -z "$url" ]; then
             echo "::warning::COPR_WEBHOOK_URL is not set; no Copr build triggered"
             exit 0
           fi
-          curl -fsS -X POST "$COPR_WEBHOOK_URL"
+          curl -fsS -X POST "$url"
