@@ -75,6 +75,17 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.7" date="2026-11-10">
+      <description>
+        <ul>
+          <li>Messages: emoji button in the composer</li>
+          <li>German translation</li>
+          <li>Choose the interface language in Preferences → General (default: the system language)</li>
+          <li>New app icon</li>
+          <li>Fedora: RPM packages from Copr (dnf copr enable one337/murmel)</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.6" date="2026-11-09">
       <description>
         <ul>
