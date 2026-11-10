@@ -61,6 +61,7 @@
             "web",
             "dist",
             "build-release",
+            "build-srpm",
             "target",
             "assets/screenshots",
             "murmel",

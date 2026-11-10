@@ -1,0 +1,111 @@
+# Template: .copr/Makefile (packaging/rpm/make-srpm.sh) fills in the version,
+# the release and the changelog (from VERSION, the git tag and the metainfo).
+
+# Go binaries carry no useful separate debuginfo here; the vendored
+# dependencies are built from source in this package.
+%global debug_package %{nil}
+# Go links with the external linker; LTO objects from the C parts break it.
+%global _lto_cflags %{nil}
+
+%global app_id io.github.murmel.Murmel
+
+Name:           murmel
+Version:        @VERSION@
+Release:        @RELEASE@%{?dist}
+Summary:        Mumble voice chat client for GNOME
+
+# Murmel itself: GPL-3.0-or-later. Vendored Go modules:
+#   gotk4, gotk4-adwaita, gumble (fork in internal/protocol/gumble): MPL-2.0
+#   golang/protobuf, golang.org/x/sync: BSD-3-Clause
+#   hraban/opus: MIT; jfreymuth/oggvorbis, jfreymuth/vorbis: MIT
+#   leonelquinteros/gotext: MIT; gen2brain/malgo (miniaudio): Unlicense
+License:        GPL-3.0-or-later AND MPL-2.0 AND BSD-3-Clause AND MIT AND Unlicense
+URL:            https://github.com/one337/murmel
+Source0:        %{name}-%{version}.tar.gz
+
+ExclusiveArch:  %{golang_arches}
+
+BuildRequires:  golang >= 1.27
+BuildRequires:  go-rpm-macros
+BuildRequires:  gcc
+BuildRequires:  gcc-c++
+BuildRequires:  pkgconfig(gtk4)
+BuildRequires:  pkgconfig(libadwaita-1)
+BuildRequires:  pkgconfig(gobject-introspection-1.0)
+BuildRequires:  pkgconfig(graphene-gobject-1.0)
+BuildRequires:  pkgconfig(opus)
+BuildRequires:  pkgconfig(webrtc-audio-processing-2)
+BuildRequires:  gettext
+BuildRequires:  desktop-file-utils
+BuildRequires:  appstream
+
+# miniaudio opens the sound server's client library at runtime (dlopen),
+# so it is not picked up as an automatic dependency.
+Requires:       pulseaudio-libs
+Requires:       hicolor-icon-theme
+
+Provides:       bundled(golang(github.com/diamondburned/gotk4))
+Provides:       bundled(golang(github.com/diamondburned/gotk4-adwaita))
+Provides:       bundled(golang(github.com/gen2brain/malgo))
+Provides:       bundled(golang(github.com/golang/protobuf))
+Provides:       bundled(golang(github.com/jfreymuth/oggvorbis))
+Provides:       bundled(golang(github.com/jfreymuth/vorbis))
+Provides:       bundled(golang(github.com/leonelquinteros/gotext))
+Provides:       bundled(golang(golang.org/x/sync))
+Provides:       bundled(golang(gopkg.in/hraban/opus.v2))
+Provides:       bundled(golang(layeh.com/gumble))
+
+%description
+Murmel is a voice chat client for Mumble servers, written for GNOME with
+GTK 4 and Libadwaita. It has an adaptive interface with the channel tree
+in a sidebar and the chat next to it, voice over encrypted UDP with TCP
+fallback, noise suppression and echo cancellation, desktop notifications,
+channel editing and certificate management.
+
+%prep
+%autosetup
+
+%build
+export GOFLAGS="-mod=vendor -trimpath"
+export GOTOOLCHAIN=local GOPROXY=off
+export CGO_CFLAGS="%{optflags}"
+export CGO_CXXFLAGS="%{optflags}"
+export CGO_LDFLAGS="%{build_ldflags}"
+go build -buildmode=pie \
+    -ldflags "-linkmode=external -B gobuildid -X io.github/murmel/internal/ui.Version=%{version}" \
+    -o %{name} ./cmd/murmel
+
+%install
+install -Dpm 0755 %{name} %{buildroot}%{_bindir}/%{name}
+install -Dpm 0644 data/%{app_id}.desktop %{buildroot}%{_datadir}/applications/%{app_id}.desktop
+install -Dpm 0644 packaging/%{app_id}.metainfo.xml %{buildroot}%{_metainfodir}/%{app_id}.metainfo.xml
+install -Dpm 0644 data/%{app_id}.gschema.xml %{buildroot}%{_datadir}/glib-2.0/schemas/%{app_id}.gschema.xml
+install -dm 0755 %{buildroot}%{_datadir}/dbus-1/services
+sed 's|^Exec=.*/murmel |Exec=%{_bindir}/murmel |' data/%{app_id}.service \
+    > %{buildroot}%{_datadir}/dbus-1/services/%{app_id}.service
+install -Dpm 0644 data/icons/hicolor/scalable/apps/%{app_id}.svg \
+    %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{app_id}.svg
+for size in 48 64 128 256; do
+    install -Dpm 0644 data/icons/hicolor/${size}x${size}/apps/%{app_id}.png \
+        %{buildroot}%{_datadir}/icons/hicolor/${size}x${size}/apps/%{app_id}.png
+done
+tools/install-translations.sh %{buildroot}%{_datadir}/locale
+%find_lang %{name}
+
+%check
+desktop-file-validate %{buildroot}%{_datadir}/applications/%{app_id}.desktop
+appstreamcli validate --no-net %{buildroot}%{_metainfodir}/%{app_id}.metainfo.xml
+grep -q '^Exec=%{_bindir}/murmel ' %{buildroot}%{_datadir}/dbus-1/services/%{app_id}.service
+
+%files -f %{name}.lang
+%license LICENSE
+%doc README.md
+%{_bindir}/%{name}
+%{_datadir}/applications/%{app_id}.desktop
+%{_metainfodir}/%{app_id}.metainfo.xml
+%{_datadir}/glib-2.0/schemas/%{app_id}.gschema.xml
+%{_datadir}/dbus-1/services/%{app_id}.service
+%{_datadir}/icons/hicolor/*/apps/%{app_id}.*
+
+%changelog
+@CHANGELOG@

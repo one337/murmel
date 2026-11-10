@@ -1,0 +1,23 @@
+# Builds the RPMs in Fedora Copr (one337/murmel) when a release tag is
+# pushed. Copr's custom webhook builds the package's SCM source; the URL
+# contains a secret token and is stored as the repository secret
+# COPR_WEBHOOK_URL.
+name: copr
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  copr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger the Copr build
+        env:
+          COPR_WEBHOOK_URL: ${{ secrets.COPR_WEBHOOK_URL }}
+        run: |
+          if [ -z "$COPR_WEBHOOK_URL" ]; then
+            echo "::warning::COPR_WEBHOOK_URL is not set; no Copr build triggered"
+            exit 0
+          fi
+          curl -fsS -X POST "$COPR_WEBHOOK_URL"

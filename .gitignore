@@ -16,6 +16,7 @@ build-flatpak/
 repo/
 build/
 dist/
+build-srpm/
 .toolchain-cache/
 
 # Compiled GSettings schema

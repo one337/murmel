@@ -54,6 +54,14 @@ flatpak run io.github.murmel.Murmel
 
 Updates then arrive through GNOME Software or `flatpak update`.
 
+On Fedora, Murmel is also available as an RPM from
+[Copr](https://copr.fedorainfracloud.org/coprs/one337/murmel/):
+
+```sh
+sudo dnf copr enable one337/murmel
+sudo dnf install murmel
+```
+
 ## Building from source
 
 Requirements:
