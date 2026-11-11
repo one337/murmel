@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 09:47+0100\n"
+"POT-Creation-Date: 2026-11-11 09:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1334,6 +1334,26 @@ msgstr ""
 msgid "More"
 msgstr ""
 
+#: internal/ui/globalshortcuts.go
+msgid "Push-to-talk"
+msgstr ""
+
+#: internal/ui/globalshortcuts.go
+msgid "Mute or unmute the microphone"
+msgstr ""
+
+#: internal/ui/globalshortcuts.go
+msgid "Turn the sound off or on"
+msgstr ""
+
+#: internal/ui/globalshortcuts.go
+msgid "Join the previous channel"
+msgstr ""
+
+#: internal/ui/globalshortcuts.go
+msgid "Join the next channel"
+msgstr ""
+
 #: internal/ui/identities/create.go
 msgid "E-mail (optional)"
 msgstr ""
@@ -1499,6 +1519,14 @@ msgstr ""
 
 #: internal/ui/prefs/sounds.go
 msgid "Channel message"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go
+msgid "Push-to-talk pressed"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go
+msgid "Push-to-talk released"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go
@@ -1731,6 +1759,38 @@ msgid ""
 msgstr ""
 
 #: internal/ui/prefs/window.go
+msgid "Transmit"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "On Voice Activity"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Push-to-Talk"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Continuously"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "While the push-to-talk shortcut is held"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "All the time, whatever the level"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "When your voice is louder than the activation threshold"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Sending"
+msgstr ""
+
+#: internal/ui/prefs/window.go
 msgid "Voice Detection"
 msgstr ""
 
@@ -1766,6 +1826,32 @@ msgstr ""
 
 #: internal/ui/prefs/window.go
 msgid "Transmission"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Global Shortcuts"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid ""
+"Work while another window has the focus. The keys are assigned in your "
+"desktop's dialog."
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Your desktop offers no global shortcuts (Global Shortcuts portal)."
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Change…"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Set Up…"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Not assigned"
 msgstr ""
 
 #: internal/ui/prefs/window.go

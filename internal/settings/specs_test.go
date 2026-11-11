@@ -134,6 +134,16 @@ var keySpecs = map[string]keySpec{
 		get:    func(s Settings) any { return s.SoundEvents() },
 		set:    func(s Settings, v any) { s.SetSoundEvents(v.(map[string]string)) },
 	},
+	"transmission-mode": {
+		key: "transmission-mode", gtype: "s", def: "voice-activation", sample: "push-to-talk",
+		get: func(s Settings) any { return s.TransmissionMode() },
+		set: func(s Settings, v any) { s.SetTransmissionMode(v.(string)) },
+	},
+	"global-shortcuts": {
+		key: "global-shortcuts", gtype: "b", def: false, sample: true,
+		get: func(s Settings) any { return s.GlobalShortcuts() },
+		set: func(s Settings, v any) { s.SetGlobalShortcuts(v.(bool)) },
+	},
 	"auto-reconnect": {
 		key: "auto-reconnect", gtype: "b", def: true, sample: false,
 		get: func(s Settings) any { return s.AutoReconnect() },

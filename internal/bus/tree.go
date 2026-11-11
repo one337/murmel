@@ -88,6 +88,13 @@ type UserVolumeChanged struct {
 	Volume  float64
 }
 
+// ChannelStepRequested asks to join the channel Delta places away from
+// the local user's in the channel tree's order (-1 previous, +1 next),
+// skipping channels the user may not enter.
+type ChannelStepRequested struct {
+	Delta int
+}
+
 // UserLocalAudioRequested asks to set the local volume (0..2, 1 = 100 %)
 // and the local mute of one remote user, for oneself only; the setting is
 // remembered for that user on this server.
@@ -226,4 +233,5 @@ func (UserListRequested) isBusEvent()           {}
 func (BanListWriteRequested) isBusEvent()       {}
 func (UserUnregisterRequested) isBusEvent()     {}
 func (UserLocalAudioRequested) isBusEvent()     {}
+func (ChannelStepRequested) isBusEvent()        {}
 func (UserLocalAudioChanged) isBusEvent()       {}

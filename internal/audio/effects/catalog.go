@@ -23,6 +23,8 @@ const (
 	UserDisconnected  Event = "user-disconnected"
 	PrivateMessage    Event = "private-message"
 	ChannelMessage    Event = "channel-message"
+	PushToTalkPressed Event = "push-to-talk-pressed"
+	PushToTalkRelease Event = "push-to-talk-released"
 )
 
 // Events lists every event in display order.
@@ -31,6 +33,7 @@ var Events = []Event{
 	UserJoinedChannel, UserLeftChannel,
 	UserConnected, UserDisconnected,
 	PrivateMessage, ChannelMessage,
+	PushToTalkPressed, PushToTalkRelease,
 }
 
 // Builtins lists the built-in sound IDs in display order.
@@ -74,6 +77,8 @@ var defaults = map[Event]string{
 	UserDisconnected:  Off,
 	PrivateMessage:    BuiltinChoice("message"),
 	ChannelMessage:    Off,
+	PushToTalkPressed: Off,
+	PushToTalkRelease: Off,
 }
 
 // DefaultBuiltin is the built-in sound offered first for an event whose
@@ -82,6 +87,10 @@ var defaultBuiltin = map[Event]string{
 	UserConnected:    "blip-up",
 	UserDisconnected: "blip-down",
 	ChannelMessage:   "tick",
+	// The push-to-talk clicks: a short rise when sending starts, a fall
+	// when it ends.
+	PushToTalkPressed: "blip-up",
+	PushToTalkRelease: "blip-down",
 }
 
 // Default returns the default choice for ev.

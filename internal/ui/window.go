@@ -88,6 +88,7 @@ type Window struct {
 	status  *statusBar
 
 	connected bool
+	shortcuts *globalShortcuts
 	// adminMenu holds the server-admin entries; filled while connected.
 	adminMenu *gio.Menu
 	// quitConfirmed skips the quit confirmation once the user agreed.
@@ -107,6 +108,7 @@ func newWindow(app *App) *Window {
 	w.SetSizeRequest(minWindowWidth, minWindowHeight)
 
 	w.status = newStatusBar(app.settings, app.bus)
+	w.shortcuts = newGlobalShortcuts(w)
 	w.sidebar = newSlot()
 	w.chat = newSlot()
 
@@ -454,3 +456,6 @@ func (w *Window) saveGeometry() {
 	w.app.settings.SetWindowHeight(w.Height())
 	w.app.settings.SetWindowMaximized(false)
 }
+
+// GlobalShortcuts is the window's global shortcuts, for the preferences.
+func (w *Window) GlobalShortcuts() *globalShortcuts { return w.shortcuts }

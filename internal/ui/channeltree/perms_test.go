@@ -209,3 +209,40 @@ func TestDragAndDropPermissions(t *testing.T) {
 		t.Fatalf("full channel with Write = %d, want yes", got)
 	}
 }
+
+func TestChannelStep(t *testing.T) {
+	enter := p(gumble.PermissionEnter, gumble.PermissionTraverse)
+	m := newTreeModel()
+	root := ch(0, 0, "Root", 0)
+	root.Permissions = enter
+	m.addChannel(root)
+	a := ch(1, 0, "A", 1)
+	a.Permissions = enter
+	m.addChannel(a)
+	locked := ch(2, 0, "Locked", 2)
+	locked.Permissions = p(gumble.PermissionTraverse)
+	m.addChannel(locked)
+	unknown := ch(3, 0, "Unknown", 3)
+	m.addChannel(unknown)
+	sub := ch(4, 1, "A/Sub", 0)
+	sub.Permissions = enter
+	m.addChannel(sub)
+	m.self = 1
+	m.addUser(bus.UserInfo{Session: 1, Name: "me", Channel: 1})
+
+	// Order: Root, A, A/Sub, Locked, Unknown.
+	if id, ok := channelStep(m, 1); !ok || id != 4 {
+		t.Fatalf("next from A = %d %v, want A/Sub", id, ok)
+	}
+	if id, ok := channelStep(m, -1); !ok || id != 0 {
+		t.Fatalf("previous from A = %d %v, want Root", id, ok)
+	}
+	m.users[1] = bus.UserInfo{Session: 1, Name: "me", Channel: 4}
+	if id, ok := channelStep(m, 1); !ok || id != 3 {
+		t.Fatalf("next from A/Sub = %d %v, want Unknown (Locked skipped)", id, ok)
+	}
+	m.users[1] = bus.UserInfo{Session: 1, Name: "me", Channel: 3}
+	if _, ok := channelStep(m, 1); ok {
+		t.Fatal("next from the last channel must not wrap")
+	}
+}

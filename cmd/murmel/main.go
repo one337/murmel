@@ -55,7 +55,7 @@ func main() {
 		app.OnOpenChat(chatView.OpenConversation)
 
 		app.OnPreferences(func() {
-			pw := prefs.New(st, certsManager, app.SoundPlayer(), b)
+			pw := prefs.New(st, certsManager, app.SoundPlayer(), b, win.GlobalShortcuts())
 			pw.SetTransientFor(&win.ApplicationWindow.ApplicationWindow.Window)
 			pw.Present()
 		})

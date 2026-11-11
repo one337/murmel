@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 09:47+0100\n"
+"POT-Creation-Date: 2026-11-11 09:49+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1384,6 +1384,26 @@ msgstr "Verbindung vergessen"
 msgid "More"
 msgstr "Mehr"
 
+#: internal/ui/globalshortcuts.go
+msgid "Push-to-talk"
+msgstr "Push-to-Talk"
+
+#: internal/ui/globalshortcuts.go
+msgid "Mute or unmute the microphone"
+msgstr "Mikrofon stumm- oder lautschalten"
+
+#: internal/ui/globalshortcuts.go
+msgid "Turn the sound off or on"
+msgstr "Ton aus- oder einschalten"
+
+#: internal/ui/globalshortcuts.go
+msgid "Join the previous channel"
+msgstr "Vorherigen Kanal betreten"
+
+#: internal/ui/globalshortcuts.go
+msgid "Join the next channel"
+msgstr "Nächsten Kanal betreten"
+
 #: internal/ui/identities/create.go
 msgid "E-mail (optional)"
 msgstr "E-Mail (optional)"
@@ -1560,6 +1580,14 @@ msgstr "Private Nachricht"
 #: internal/ui/prefs/sounds.go
 msgid "Channel message"
 msgstr "Kanalnachricht"
+
+#: internal/ui/prefs/sounds.go
+msgid "Push-to-talk pressed"
+msgstr "Push-to-Talk gedrückt"
+
+#: internal/ui/prefs/sounds.go
+msgid "Push-to-talk released"
+msgstr "Push-to-Talk losgelassen"
 
 #: internal/ui/prefs/sounds.go
 msgid "Rising chime"
@@ -1804,6 +1832,38 @@ msgstr ""
 "dein Mikrofon"
 
 #: internal/ui/prefs/window.go
+msgid "Transmit"
+msgstr "Senden"
+
+#: internal/ui/prefs/window.go
+msgid "On Voice Activity"
+msgstr "Bei Sprachaktivität"
+
+#: internal/ui/prefs/window.go
+msgid "Push-to-Talk"
+msgstr "Push-to-Talk"
+
+#: internal/ui/prefs/window.go
+msgid "Continuously"
+msgstr "Dauerhaft"
+
+#: internal/ui/prefs/window.go
+msgid "While the push-to-talk shortcut is held"
+msgstr "Solange die Push-to-Talk-Taste gedrückt ist"
+
+#: internal/ui/prefs/window.go
+msgid "All the time, whatever the level"
+msgstr "Immer, unabhängig vom Pegel"
+
+#: internal/ui/prefs/window.go
+msgid "When your voice is louder than the activation threshold"
+msgstr "Wenn deine Stimme lauter als die Aktivierungsschwelle ist"
+
+#: internal/ui/prefs/window.go
+msgid "Sending"
+msgstr "Senden"
+
+#: internal/ui/prefs/window.go
 msgid "Voice Detection"
 msgstr "Spracherkennung"
 
@@ -1847,6 +1907,32 @@ msgstr ""
 #: internal/ui/prefs/window.go
 msgid "Transmission"
 msgstr "Übertragung"
+
+#: internal/ui/prefs/window.go
+msgid "Global Shortcuts"
+msgstr "Globale Tastenkürzel"
+
+#: internal/ui/prefs/window.go
+msgid ""
+"Work while another window has the focus. The keys are assigned in your "
+"desktop's dialog."
+msgstr "Funktionieren auch, wenn ein anderes Fenster im Vordergrund ist. Die Tasten legst du im Dialog deiner Arbeitsumgebung fest."
+
+#: internal/ui/prefs/window.go
+msgid "Your desktop offers no global shortcuts (Global Shortcuts portal)."
+msgstr "Deine Arbeitsumgebung bietet keine globalen Tastenkürzel an (Global-Shortcuts-Portal)."
+
+#: internal/ui/prefs/window.go
+msgid "Change…"
+msgstr "Ändern …"
+
+#: internal/ui/prefs/window.go
+msgid "Set Up…"
+msgstr "Einrichten …"
+
+#: internal/ui/prefs/window.go
+msgid "Not assigned"
+msgstr "Nicht belegt"
 
 #: internal/ui/prefs/window.go
 msgid "Audio Output"

@@ -20,6 +20,8 @@ type eventSounds struct {
 	settings    settings.Settings
 	bus         *bus.Bus
 	connectedAt time.Time
+	connected   bool
+	pttHeld     bool
 	// play is the output seam: production plays through the effects
 	// player on the configured output device.
 	play func(choice string)
@@ -32,6 +34,7 @@ func newEventSounds(app *App) *eventSounds {
 	}
 	app.presence.Listen(s.onPresence)
 	bus.SubscribeCtx(app.ctx, app.bus, s.onTextMessage)
+	bus.SubscribeCtx(app.ctx, app.bus, s.onPushToTalk)
 	return s
 }
 
@@ -52,8 +55,10 @@ func (s *eventSounds) onPresence(ev presence.Event) {
 	switch ev.Kind {
 	case presence.SelfConnected:
 		s.connectedAt = time.Now()
+		s.connected = true
 		s.trigger(effects.SelfConnected)
 	case presence.SelfDisconnected:
+		s.connected = false
 		s.trigger(effects.SelfDisconnected)
 	case presence.SelfMoved:
 		if time.Since(s.connectedAt) > connectMoveQuiet {
@@ -89,5 +94,22 @@ func (s *eventSounds) onTextMessage(ev bus.TextMessage) {
 		s.trigger(effects.PrivateMessage)
 	} else {
 		s.trigger(effects.ChannelMessage)
+	}
+}
+
+// onPushToTalk clicks when push-to-talk starts and stops sending (only in
+// push-to-talk mode and while connected; key repeat is ignored).
+func (s *eventSounds) onPushToTalk(ev bus.PushToTalk) {
+	if ev.Pressed == s.pttHeld {
+		return
+	}
+	s.pttHeld = ev.Pressed
+	if !s.connected || s.settings.TransmissionMode() != "push-to-talk" {
+		return
+	}
+	if ev.Pressed {
+		s.trigger(effects.PushToTalkPressed)
+	} else {
+		s.trigger(effects.PushToTalkRelease)
 	}
 }

@@ -56,6 +56,16 @@ type Settings interface {
 	EchoCancellation() bool
 	SetEchoCancellation(v bool)
 
+	// TransmissionMode is "voice-activation", "push-to-talk" or
+	// "continuous".
+	TransmissionMode() string
+	SetTransmissionMode(v string)
+
+	// GlobalShortcuts reports that the global shortcuts were registered
+	// with the desktop once.
+	GlobalShortcuts() bool
+	SetGlobalShortcuts(v bool)
+
 	// Language is the interface language code ("" = the system's).
 	Language() string
 	SetLanguage(v string)

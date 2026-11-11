@@ -30,6 +30,8 @@ func memoryDefaults() map[string]any {
 		"sound-events":            map[string]string{},
 		"chat-log":                map[string]bool{},
 		"user-volumes":            map[string]float64{},
+		"transmission-mode":       "voice-activation",
+		"global-shortcuts":        false,
 		"user-local-mutes":        map[string]bool{},
 		"auto-reconnect":          true,
 		"window-width":            900,
@@ -188,12 +190,16 @@ func (m *Memory) SetAudioQuality(v int) { m.set("audio-quality", v) }
 func (m *Memory) NoiseSuppression() int     { return m.get("noise-suppression").(int) }
 func (m *Memory) SetNoiseSuppression(v int) { m.set("noise-suppression", v) }
 
-func (m *Memory) EchoCancellation() bool     { return m.get("echo-cancellation").(bool) }
-func (m *Memory) SetEchoCancellation(v bool) { m.set("echo-cancellation", v) }
-func (m *Memory) Language() string           { return m.get("language").(string) }
-func (m *Memory) SetLanguage(v string)       { m.set("language", v) }
-func (m *Memory) ColorScheme() string        { return m.get("color-scheme").(string) }
-func (m *Memory) SetColorScheme(v string)    { m.set("color-scheme", v) }
+func (m *Memory) EchoCancellation() bool       { return m.get("echo-cancellation").(bool) }
+func (m *Memory) SetEchoCancellation(v bool)   { m.set("echo-cancellation", v) }
+func (m *Memory) Language() string             { return m.get("language").(string) }
+func (m *Memory) SetLanguage(v string)         { m.set("language", v) }
+func (m *Memory) TransmissionMode() string     { return m.get("transmission-mode").(string) }
+func (m *Memory) SetTransmissionMode(v string) { m.set("transmission-mode", v) }
+func (m *Memory) GlobalShortcuts() bool        { return m.get("global-shortcuts").(bool) }
+func (m *Memory) SetGlobalShortcuts(v bool)    { m.set("global-shortcuts", v) }
+func (m *Memory) ColorScheme() string          { return m.get("color-scheme").(string) }
+func (m *Memory) SetColorScheme(v string)      { m.set("color-scheme", v) }
 
 func (m *Memory) ChatLogEvents() map[string]bool {
 	return maps.Clone(m.get("chat-log").(map[string]bool))

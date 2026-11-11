@@ -628,6 +628,7 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 		Bitrate:          c.settings.AudioQuality() * 1000,
 		NoiseSuppression: c.settings.NoiseSuppression(),
 		EchoCancellation: c.settings.EchoCancellation(),
+		Mode:             transmitMode(c.settings.TransmissionMode()),
 	}
 	go c.reportConnectionInfo(voiceCtx, client, addr)
 	if eng, err := engine.New(client, c.appBus, selfSession, opts); err != nil {
@@ -861,6 +862,8 @@ func (c *Controller) onSettingChanged(key string) {
 		eng.SetNoiseSuppression(c.settings.NoiseSuppression())
 	case "echo-cancellation":
 		eng.SetEchoCancellation(c.settings.EchoCancellation())
+	case "transmission-mode":
+		eng.SetTransmitMode(transmitMode(c.settings.TransmissionMode()))
 	case "audio-quality":
 		eng.SetBitrate(c.settings.AudioQuality() * 1000)
 	case "audio-input-device", "audio-output-device":
@@ -1537,4 +1540,15 @@ func groupedHex(fp string) string {
 		out = append(out, b)
 	}
 	return string(out)
+}
+
+// transmitMode maps the transmission-mode setting to the engine's mode.
+func transmitMode(v string) engine.TransmitMode {
+	switch v {
+	case "push-to-talk":
+		return engine.TransmitPushToTalk
+	case "continuous":
+		return engine.TransmitContinuous
+	}
+	return engine.TransmitVoiceActivation
 }

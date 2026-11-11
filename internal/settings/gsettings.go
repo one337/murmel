@@ -165,12 +165,16 @@ func (g *GSettings) SetAudioQuality(v int) { g.gs.SetInt("audio-quality", v) }
 func (g *GSettings) NoiseSuppression() int     { return g.gs.Int("noise-suppression") }
 func (g *GSettings) SetNoiseSuppression(v int) { g.gs.SetInt("noise-suppression", v) }
 
-func (g *GSettings) EchoCancellation() bool     { return g.gs.Boolean("echo-cancellation") }
-func (g *GSettings) SetEchoCancellation(v bool) { g.gs.SetBoolean("echo-cancellation", v) }
-func (g *GSettings) Language() string           { return g.gs.String("language") }
-func (g *GSettings) SetLanguage(v string)       { g.gs.SetString("language", v) }
-func (g *GSettings) ColorScheme() string        { return g.gs.String("color-scheme") }
-func (g *GSettings) SetColorScheme(v string)    { g.gs.SetString("color-scheme", v) }
+func (g *GSettings) EchoCancellation() bool       { return g.gs.Boolean("echo-cancellation") }
+func (g *GSettings) SetEchoCancellation(v bool)   { g.gs.SetBoolean("echo-cancellation", v) }
+func (g *GSettings) Language() string             { return g.gs.String("language") }
+func (g *GSettings) SetLanguage(v string)         { g.gs.SetString("language", v) }
+func (g *GSettings) TransmissionMode() string     { return g.gs.String("transmission-mode") }
+func (g *GSettings) SetTransmissionMode(v string) { g.gs.SetString("transmission-mode", v) }
+func (g *GSettings) GlobalShortcuts() bool        { return g.gs.Boolean("global-shortcuts") }
+func (g *GSettings) SetGlobalShortcuts(v bool)    { g.gs.SetBoolean("global-shortcuts", v) }
+func (g *GSettings) ColorScheme() string          { return g.gs.String("color-scheme") }
+func (g *GSettings) SetColorScheme(v string)      { g.gs.SetString("color-scheme", v) }
 
 func (g *GSettings) ChatLogEvents() map[string]bool {
 	v := g.gs.Value("chat-log")

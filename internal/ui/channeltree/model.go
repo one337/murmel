@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/protocol/gumble"
 )
 
 // channelNode is one channel with its ordered child channels and users.
@@ -310,6 +311,55 @@ func (m *treeModel) walk() []entry {
 		rec(m.root, 0)
 	}
 	return out
+}
+
+// channelOrder lists all channels depth-first, as the tree shows them
+// when everything is expanded.
+func (m *treeModel) channelOrder() []uint32 {
+	var out []uint32
+	var rec func(id uint32, depth int)
+	rec = func(id uint32, depth int) {
+		n, ok := m.channels[id]
+		if !ok || depth > 64 { // guards against a parent cycle
+			return
+		}
+		out = append(out, id)
+		for _, c := range n.children {
+			rec(c, depth+1)
+		}
+	}
+	if m.hasRoot {
+		rec(m.root, 0)
+	}
+	return out
+}
+
+// channelStep returns the channel delta places from the local user's in
+// channelOrder, skipping channels known to deny Enter (unknown ones count
+// as enterable: the server decides); false at either end.
+func channelStep(m *treeModel, delta int) (uint32, bool) {
+	order := m.channelOrder()
+	here := -1
+	for i, id := range order {
+		if id == m.selfChannel() {
+			here = i
+		}
+	}
+	if here < 0 || delta == 0 {
+		return 0, false
+	}
+	step := 1
+	if delta < 0 {
+		step = -1
+	}
+	for i := here + step; i >= 0 && i < len(order); i += step {
+		id := order[i]
+		if p, known := m.channelPerm(id); known && !p.Has(gumble.PermissionEnter) {
+			continue
+		}
+		return id, true
+	}
+	return 0, false
 }
 
 func insertOrdered(list *[]uint32, id uint32, less func(a, b uint32) bool) {

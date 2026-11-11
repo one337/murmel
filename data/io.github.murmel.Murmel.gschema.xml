@@ -65,6 +65,21 @@
       <summary>Color scheme</summary>
       <description>Follow the system's light or dark style ("system"), or always use the light or the dark style.</description>
     </key>
+    <key name="transmission-mode" type="s">
+      <choices>
+        <choice value="voice-activation"/>
+        <choice value="push-to-talk"/>
+        <choice value="continuous"/>
+      </choices>
+      <default>'voice-activation'</default>
+      <summary>Transmission mode</summary>
+      <description>When the microphone is sent: while speech is detected ("voice-activation"), while the push-to-talk shortcut is held ("push-to-talk"), or always ("continuous").</description>
+    </key>
+    <key name="global-shortcuts" type="b">
+      <default>false</default>
+      <summary>Global shortcuts set up</summary>
+      <description>Murmel has registered its global shortcuts with the desktop (Global Shortcuts portal); it then registers them again at every start, without asking.</description>
+    </key>
     <key name="echo-cancellation" type="b">
       <default>false</default>
       <summary>Echo cancellation</summary>

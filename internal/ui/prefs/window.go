@@ -27,6 +27,7 @@ import (
 	"io.github/murmel/internal/ui/chat"
 	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/levelmeter"
+	"io.github/murmel/internal/ui/shortcuts"
 )
 
 // Window is the preferences dialog. It is not reused: create a new one each
@@ -35,14 +36,26 @@ type Window struct {
 	*adw.PreferencesWindow
 }
 
+// Shortcuts is the global shortcuts as the preferences show them (the
+// main window owns them); nil hides the group.
+type Shortcuts interface {
+	Available() (available, known bool)
+	Shortcuts() []shortcuts.Shortcut
+	Bindings() []shortcuts.Binding
+	IsSetUp() bool
+	Busy() bool
+	SetUp()
+	OnChange(f func()) (remove func())
+}
+
 // New constructs the preferences window. It does not present itself.
-func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus) *Window {
+func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
 	pw := adw.NewPreferencesWindow()
 	pw.SetTitle(tr("Preferences"))
 	pw.SetSearchEnabled(false)
 
 	pw.Add(identityPage(st, m, pw))
-	pw.Add(audioInputPage(st, b))
+	pw.Add(audioInputPage(st, b, sc, pw))
 	pw.Add(audioOutputPage(st))
 	pw.Add(chatPage(st))
 	pw.Add(generalPage(st, player, pw))
@@ -262,7 +275,7 @@ func shortFingerprint(fp string) string {
 
 // --- Audio Input page ------------------------------------------------------
 
-func audioInputPage(st settings.Settings, b *bus.Bus) *adw.PreferencesPage {
+func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.PreferencesWindow) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("Audio Input"))
 	page.SetName("audio-input")
@@ -292,8 +305,42 @@ func audioInputPage(st settings.Settings, b *bus.Bus) *adw.PreferencesPage {
 	})
 	devGroup.Add(echo)
 
+	// When the microphone is sent.
+	modes := []string{"voice-activation", "push-to-talk", "continuous"}
+	modeRow := adw.NewComboRow()
+	modeRow.SetTitle(tr("Transmit"))
+	modeRow.SetModel(gtk.NewStringList([]string{tr("On Voice Activity"), tr("Push-to-Talk"), tr("Continuously")}))
+	for i, m := range modes {
+		if m == st.TransmissionMode() {
+			modeRow.SetSelected(uint(i))
+		}
+	}
+	modeHint := func() {
+		switch st.TransmissionMode() {
+		case "push-to-talk":
+			modeRow.SetSubtitle(tr("While the push-to-talk shortcut is held"))
+		case "continuous":
+			modeRow.SetSubtitle(tr("All the time, whatever the level"))
+		default:
+			modeRow.SetSubtitle(tr("When your voice is louder than the activation threshold"))
+		}
+	}
+	modeHint()
+	modeGroup := adw.NewPreferencesGroup()
+	modeGroup.SetTitle(tr("Sending"))
+	modeGroup.Add(modeRow)
+
 	vadGroup := adw.NewPreferencesGroup()
 	vadGroup.SetTitle(tr("Voice Detection"))
+	// The threshold only matters for voice activation.
+	vadGroup.SetVisible(st.TransmissionMode() == "voice-activation")
+	coreglib.InternObject(modeRow).NotifyProperty("selected", func() {
+		if sel := int(modeRow.Selected()); sel < len(modes) {
+			st.SetTransmissionMode(modes[sel])
+			modeHint()
+			vadGroup.SetVisible(modes[sel] == "voice-activation")
+		}
+	})
 
 	vadGroup.SetDescription(tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Without a connection the meter tests the selected microphone."))
 	meterBox := gtk.NewBox(gtk.OrientationVertical, 6)
@@ -352,9 +399,65 @@ func audioInputPage(st settings.Settings, b *bus.Bus) *adw.PreferencesPage {
 	txGroup.Add(packetRow)
 
 	page.Add(devGroup)
+	page.Add(modeGroup)
+	if sc != nil {
+		page.Add(shortcutsGroup(sc, pw))
+	}
 	page.Add(vadGroup)
 	page.Add(txGroup)
 	return page
+}
+
+// shortcutsGroup lists the global shortcuts with the keys the desktop
+// assigned, and a button that opens the desktop's dialog to set them.
+func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesWindow) *adw.PreferencesGroup {
+	group := adw.NewPreferencesGroup()
+	group.SetTitle(tr("Global Shortcuts"))
+	group.SetDescription(tr("Work while another window has the focus. The keys are assigned in your desktop's dialog."))
+	button := gtk.NewButton()
+	button.AddCSSClass("flat")
+	button.SetVAlign(gtk.AlignCenter)
+	button.ConnectClicked(sc.SetUp)
+	group.SetHeaderSuffix(button)
+
+	rows := map[string]*gtk.Label{}
+	for _, s := range sc.Shortcuts() {
+		row := adw.NewActionRow()
+		row.SetTitle(s.Description)
+		key := gtk.NewLabel("")
+		key.AddCSSClass("dim-label")
+		row.AddSuffix(key)
+		rows[s.ID] = key
+		group.Add(row)
+	}
+	update := func() {
+		available, known := sc.Available()
+		switch {
+		case known && !available:
+			group.SetDescription(tr("Your desktop offers no global shortcuts (Global Shortcuts portal)."))
+			button.SetVisible(false)
+		case sc.IsSetUp():
+			button.SetLabel(tr("Change…"))
+		default:
+			button.SetLabel(tr("Set Up…"))
+		}
+		button.SetSensitive(available && !sc.Busy())
+		keys := map[string]string{}
+		for _, b := range sc.Bindings() {
+			keys[b.ID] = b.Trigger
+		}
+		for id, l := range rows {
+			if k := keys[id]; k != "" {
+				l.SetText(k)
+			} else {
+				l.SetText(tr("Not assigned"))
+			}
+		}
+	}
+	update()
+	remove := sc.OnChange(update)
+	pw.ConnectDestroy(remove)
+	return group
 }
 
 // --- Audio Output page -----------------------------------------------------

@@ -34,6 +34,10 @@ func eventLabel(ev effects.Event) string {
 		return tr("Private message")
 	case effects.ChannelMessage:
 		return tr("Channel message")
+	case effects.PushToTalkPressed:
+		return tr("Push-to-talk pressed")
+	case effects.PushToTalkRelease:
+		return tr("Push-to-talk released")
 	}
 	return string(ev)
 }

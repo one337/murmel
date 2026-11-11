@@ -66,6 +66,9 @@ type Options struct {
 	// EchoCancellation removes the played-back voices from the
 	// microphone (speakers instead of a headset).
 	EchoCancellation bool
+	// Mode decides when the microphone is sent (voice activation by
+	// default).
+	Mode TransmitMode
 	// Bitrate is the wanted Opus bitrate in bit/s (0 = opus.BitrateDefault).
 	// The server's bandwidth limit may lower it, see EffectiveBitrate.
 	Bitrate int
@@ -117,6 +120,8 @@ type Engine struct {
 	bitrate      atomic.Int64  // wanted Opus bitrate in bit/s
 	noise        atomic.Int32  // noise-suppression setting
 	echo         atomic.Bool   // echo cancellation on
+	mode         atomic.Int32  // TransmitMode
+	ptt          atomic.Bool   // push-to-talk held
 	// echoDelayMs is the playback-to-microphone delay hint for the echo
 	// canceller, derived from the current playback buffer.
 	echoDelayMs atomic.Int32
@@ -171,6 +176,7 @@ func New(client *gumble.Client, b *bus.Bus, self uint32, opts Options) (*Engine,
 	e.SetBitrate(opts.Bitrate)
 	e.SetNoiseSuppression(opts.NoiseSuppression)
 	e.SetEchoCancellation(opts.EchoCancellation)
+	e.SetTransmitMode(opts.Mode)
 	if proc, err := apm.New(apm.Config{}); err != nil {
 		// Without the WebRTC module voice still works, just unprocessed.
 		slog.Warn("voice: input processing unavailable", "err", err)
@@ -196,6 +202,7 @@ func (e *Engine) Start(ctx context.Context) {
 	e.openLocked()
 	e.devMu.Unlock()
 	go e.mixLoop(ctx)
+	bus.SubscribeCtx(ctx, e.b, func(ev bus.PushToTalk) { e.ptt.Store(ev.Pressed) })
 	bus.SubscribeCtx(ctx, e.b, func(ev bus.UserVolumeChanged) {
 		e.gainMu.Lock()
 		e.gains[ev.Session] = ev.Volume
@@ -269,6 +276,10 @@ func (e *Engine) escalatePlayback() {
 	slog.Info("voice engine: output stalled, reopened with a larger buffer",
 		"device", e.outputName(), "buffer", period)
 }
+
+// SetTransmitMode switches between voice activation, push-to-talk and
+// continuous sending; the capture loop picks it up with the next frame.
+func (e *Engine) SetTransmitMode(m TransmitMode) { e.mode.Store(int32(m)) }
 
 // SetThreshold updates the activation threshold (meter position in [0,1],
 // see Options.Threshold); the capture loop picks it up with the next
@@ -355,6 +366,7 @@ func (e *Engine) Stop() {
 func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 	vad := pipeline.NewVAD(pipeline.VADConfig{})
 	appliedThreshold := math.NaN()
+	var g gate
 
 	// Input processing configuration last applied (forced on the first
 	// frame).
@@ -418,17 +430,26 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 			appliedThreshold = t
 		}
 
-		dec := vad.Sample(frame)
+		heard := vad.Sample(frame)
+		mode := TransmitMode(e.mode.Load())
+		dec := g.next(mode, heard, e.ptt.Load())
+		if dec == pipeline.Start && outCh != nil {
+			dec = pipeline.Continue // the mode changed while sending
+		}
 		switch dec {
 		case pipeline.Start:
-			// Pre-roll: open channel and flush buffered pre-speech frames.
+			// Voice activation: open the channel and flush the buffered
+			// pre-speech frames; push-to-talk and continuous sending
+			// start with this frame.
 			pack.reset(int(e.packetFrames.Load()))
 			bitrate = e.applyBitrate(bitrate, pack.frames)
 			outCh = e.client.AudioOutgoing()
 			slog.Info("voice: transmitting", "transport", e.client.VoiceTransport(),
 				"packet_ms", pack.frames*10, "bitrate", bitrate)
-			for _, pre := range vad.PreRoll() {
-				send(pre)
+			if mode == TransmitVoiceActivation {
+				for _, pre := range vad.PreRoll() {
+					send(pre)
+				}
 			}
 			send(frame)
 			e.b.Emit(bus.VoiceActivity{Session: e.self, Active: true})
@@ -460,6 +481,7 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 				LevelDB:      maxLevel,
 				ThresholdDB:  openDB,
 				Transmitting: outCh != nil,
+				Detected:     heard.Voice(),
 				Clipping:     clipping,
 			})
 			frames, maxLevel, clipping = 0, -120, false

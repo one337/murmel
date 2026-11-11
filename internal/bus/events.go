@@ -327,10 +327,18 @@ type InputLevel struct {
 	LevelDB float64
 	// ThresholdDB is the VAD open threshold currently in effect (dBFS).
 	ThresholdDB float64
-	// Transmitting is true while the VAD has the voice stream open.
+	// Transmitting is true while the voice stream is open (sending).
 	Transmitting bool
+	// Detected is true while the voice detection hears speech above the
+	// threshold, sent or not (push-to-talk not held).
+	Detected bool
 	// Clipping is true when a sample in this window hit full scale.
 	Clipping bool
+}
+
+// PushToTalk reports the push-to-talk key being pressed or released.
+type PushToTalk struct {
+	Pressed bool
 }
 
 // ConnectionInfo describes the live connection for the status indicator.
@@ -464,6 +472,7 @@ func (PermissionDenied) isBusEvent()    {}
 func (ServerConfigUpdated) isBusEvent() {}
 func (VoiceActivity) isBusEvent()       {}
 func (InputLevel) isBusEvent()          {}
+func (PushToTalk) isBusEvent()          {}
 func (AudioDeviceProblem) isBusEvent()  {}
 func (ConnectionInfo) isBusEvent()      {}
 func (LatencyStats) isBusEvent()        {}

@@ -115,6 +115,11 @@ func (t *Tree) subscribe(ctx context.Context) {
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserUpdated) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.VoiceActivity) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(bus.Connected) { t.permAsked = nil })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.ChannelStepRequested) {
+		if id, ok := channelStep(t.model, ev.Delta); ok {
+			t.b.Emit(bus.ChannelJoinRequested{ChannelID: id})
+		}
+	})
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserLocalAudioChanged) {
 		if t.localAudio == nil {
 			t.localAudio = map[uint32]localAudio{}

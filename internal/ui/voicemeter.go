@@ -94,6 +94,9 @@ func levelState(ev bus.InputLevel, muted bool) meterState {
 		return meterDetected
 	case ev.Transmitting:
 		return meterTalking
+	case ev.Detected:
+		// Heard but not sent: push-to-talk not held.
+		return meterDetected
 	}
 	return meterQuiet
 }
