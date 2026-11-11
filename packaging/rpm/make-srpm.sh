@@ -25,7 +25,7 @@ trap 'rm -rf "$work"' EXIT
 git archive --format=tar.gz --prefix="murmel-$version/" -o "$work/murmel-$version.tar.gz" HEAD
 
 python3 - "$version" "$release" "$display_version" packaging/rpm/murmel.spec.in \
-	packaging/io.github.murmel.Murmel.metainfo.xml "$work/murmel.spec" <<'PY'
+	packaging/io.github.one337.murmel.metainfo.xml "$work/murmel.spec" <<'PY'
 import sys, datetime, xml.etree.ElementTree as ET
 version, release, display_version, template, metainfo, out = sys.argv[1:]
 packager = "Simon Tschöp <13205365+one337@users.noreply.github.com>"

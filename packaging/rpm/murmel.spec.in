@@ -8,7 +8,7 @@
 # Go links with the external linker; LTO objects from the C parts break it.
 %global _lto_cflags %{nil}
 
-%global app_id io.github.murmel.Murmel
+%global app_id io.github.one337.murmel
 %global display_version @DISPLAY_VERSION@
 
 Name:           murmel

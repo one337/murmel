@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.murmel.Murmel</id>
+  <id>io.github.one337.murmel</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
 
@@ -26,7 +26,7 @@
     </ul>
   </description>
 
-  <developer id="io.github.murmel">
+  <developer id="io.github.one337">
     <name>Murmel Contributors</name>
   </developer>
 
@@ -34,7 +34,12 @@
   <url type="bugtracker">https://github.com/one337/murmel/issues</url>
   <url type="vcs-browser">https://github.com/one337/murmel</url>
 
-  <launchable type="desktop-id">io.github.murmel.Murmel.desktop</launchable>
+  <launchable type="desktop-id">io.github.one337.murmel.desktop</launchable>
+
+  <!-- The app ID until 0.3.9. -->
+  <replaces>
+    <id>io.github.murmel.Murmel</id>
+  </replaces>
 
   <!-- Served from the website (tools/release.sh uploads assets/screenshots
        next to the Flatpak repository). -->

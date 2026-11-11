@@ -21,7 +21,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-APP_ID=io.github.murmel.Murmel
+APP_ID=io.github.one337.murmel
 prefix=/usr/local
 destdir=
 build=1

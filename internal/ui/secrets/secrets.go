@@ -21,7 +21,7 @@ package secrets
 // Secret Service before it used libsecret (the port as a string).
 static const SecretSchema *murmel_schema(void) {
 	static const SecretSchema schema = {
-		"io.github.murmel.Murmel.ServerPassword", SECRET_SCHEMA_NONE,
+		"io.github.one337.murmel.ServerPassword", SECRET_SCHEMA_NONE,
 		{
 			{ "host", SECRET_SCHEMA_ATTRIBUTE_STRING },
 			{ "port", SECRET_SCHEMA_ATTRIBUTE_STRING },

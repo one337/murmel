@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
-  <gresource prefix="/io/github/murmel/Murmel/icons/256x256/apps">
-    <file alias="io.github.murmel.Murmel.png">icons/hicolor/256x256/apps/io.github.murmel.Murmel.png</file>
+  <gresource prefix="/io/github/one337/murmel/icons/256x256/apps">
+    <file alias="io.github.one337.murmel.png">icons/hicolor/256x256/apps/io.github.one337.murmel.png</file>
   </gresource>
   <!-- Symbolic icons Murmel ships itself (looked up by name like theme
        icons). -->
-  <gresource prefix="/io/github/murmel/Murmel/icons/scalable/actions">
+  <gresource prefix="/io/github/one337/murmel/icons/scalable/actions">
     <file alias="user-volume-symbolic.svg">icons/symbolic/user-volume-symbolic.svg</file>
     <file alias="user-local-muted-symbolic.svg">icons/symbolic/user-local-muted-symbolic.svg</file>
   </gresource>
-  <gresource prefix="/io/github/murmel/Murmel">
+  <gresource prefix="/io/github/one337/murmel">
     <file>style.css</file>
   </gresource>
 </gresources>

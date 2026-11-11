@@ -4,7 +4,7 @@
 //
 // Regenerate murmel.gresource after changing data/icons:
 //
-//go:generate glib-compile-resources --sourcedir=../../../data --target=murmel.gresource ../../../data/io.github.murmel.Murmel.gresource.xml
+//go:generate glib-compile-resources --sourcedir=../../../data --target=murmel.gresource ../../../data/io.github.one337.murmel.gresource.xml
 package resources
 
 import (
@@ -20,7 +20,7 @@ var bundle []byte
 
 // Register loads the embedded bundle into the global GResource namespace.
 // GtkApplication adds "<resource-base-path>/icons" to the icon theme, so the
-// app icon under /io/github/murmel/Murmel/icons is picked up automatically.
+// app icon under /io/github/one337/murmel/icons is picked up automatically.
 // Call once before the application starts.
 func Register() {
 	res, err := gio.NewResourceFromData(glib.NewBytesWithGo(bundle))

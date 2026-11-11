@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="io.github.murmel.Murmel" path="/io/github/murmel/">
+  <schema id="io.github.one337.murmel" path="/io/github/one337/murmel/">
     <key name="first-run" type="b">
       <default>true</default>
       <summary>First run</summary>

@@ -1,8 +1,8 @@
 package settings
 
 // SchemaID is the GSettings schema id of the application. It must match the
-// id in data/io.github.murmel.Murmel.gschema.xml.
-const SchemaID = "io.github.murmel.Murmel"
+// id in data/io.github.one337.murmel.gschema.xml.
+const SchemaID = "io.github.one337.murmel"
 
 // ServerEntry is one favorite server stored in the server-list key. Each
 // entry is serialized as a compact JSON object string (fields "name",

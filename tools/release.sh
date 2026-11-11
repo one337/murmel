@@ -16,7 +16,7 @@
 # web/ afterwards holds everything to upload (rsync it as a whole):
 #   repo/                              signed OSTree Flatpak repository
 #   murmel.flatpakrepo                 "add the repository" file
-#   io.github.murmel.Murmel.flatpakref one-click install file
+#   io.github.one337.murmel.flatpakref one-click install file
 #   murmel.gpg                         public signing key
 #   downloads/murmel-<version>.flatpak single-file bundles
 #   index.html                         install instructions
@@ -37,7 +37,7 @@ if [ -f tools/release.local.conf ]; then
 	source tools/release.local.conf
 fi
 
-APP_ID=io.github.murmel.Murmel
+APP_ID=io.github.one337.murmel
 MANIFEST=packaging/$APP_ID.json
 METAINFO=packaging/$APP_ID.metainfo.xml
 WEB=web
@@ -184,6 +184,25 @@ upload() {
 	echo "release: uploaded web/ to $WEB_URL"
 }
 
+# The app ID until 0.3.9. Its last build stays in the repository, marked
+# end-of-life with a pointer to the new ID (no data migration): flatpak
+# update and the software centers show the message. Runs once; later
+# releases find the refs marked already.
+OLD_APP_ID=io.github.murmel.Murmel
+retire_old_app() {
+	local ref msg
+	msg="Murmel has a new app ID, $APP_ID. Install it from ${WEB_URL} and remove this app; saved passwords and settings have to be set up again."
+	for ref in "app/$OLD_APP_ID/x86_64/$BRANCH" "runtime/$OLD_APP_ID.Debug/x86_64/$BRANCH"; do
+		ostree --repo="$REPO" rev-parse "$ref" >/dev/null 2>&1 || continue
+		if [ -n "$(ostree --repo="$REPO" show --print-metadata-key=ostree.endoflife "$ref" 2>/dev/null)" ]; then
+			continue
+		fi
+		flatpak build-commit-from "${GPG_ARGS[@]}" --end-of-life="$msg" --src-ref="$ref" "$REPO" "$ref"
+		echo "release: marked $ref end-of-life"
+	done
+	rm -f "$WEB/$OLD_APP_ID.flatpakref"
+}
+
 # build_and_publish builds the current tree into the signed repository,
 # refreshes summary and deltas, writes the descriptors and uploads.
 # Screenshots are mirrored to ${WEB_URL}media/: appstream compose runs
@@ -206,6 +225,7 @@ build_and_publish() {
 		mkdir -p "$WEB/media"
 		cp -r "$media/." "$WEB/media/"
 	fi
+	retire_old_app
 	flatpak build-update-repo "${GPG_ARGS[@]}" --title="Murmel" \
 		--default-branch="$BRANCH" --generate-static-deltas --prune --prune-depth=5 "$REPO"
 	write_descriptors

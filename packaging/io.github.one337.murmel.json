@@ -1,5 +1,5 @@
 {
-  "id": "io.github.murmel.Murmel",
+  "id": "io.github.one337.murmel",
   "runtime": "org.gnome.Platform",
   "runtime-version": "51",
   "sdk": "org.gnome.Sdk",

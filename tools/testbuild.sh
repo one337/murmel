@@ -5,10 +5,10 @@
 #
 # The About dialog shows the development version (tools/version.sh, e.g.
 # 0.3.7-dev+5.g0782834). Back to the release:
-#   flatpak make-current --user io.github.murmel.Murmel stable
+#   flatpak make-current --user io.github.one337.murmel stable
 set -euo pipefail
 cd "$(dirname "$0")/.."
-APP_ID=io.github.murmel.Murmel
+APP_ID=io.github.one337.murmel
 rm -f build-version
 version=$(tools/version.sh)
 echo "$version" >build-version

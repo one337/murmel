@@ -39,5 +39,5 @@ body:
     id: log
     attributes:
       label: Log output
-      description: Run `flatpak run io.github.murmel.Murmel` in a terminal and paste what it prints around the problem. Remove server addresses or names you do not want to share.
+      description: Run `flatpak run io.github.one337.murmel` in a terminal and paste what it prints around the problem. Remove server addresses or names you do not want to share.
       render: text

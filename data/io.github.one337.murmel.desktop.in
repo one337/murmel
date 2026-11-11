@@ -4,7 +4,7 @@ Name=Murmel
 Comment=Voice chat on Mumble servers
 Comment[de]=Sprachchat auf Mumble-Servern
 Exec=murmel
-Icon=io.github.murmel.Murmel
+Icon=io.github.one337.murmel
 Terminal=false
 Categories=Network;InstantMessaging;
 # mumble:// URL activation: GApplication remote-open (second instance) and
@@ -13,5 +13,5 @@ MimeType=x-scheme-handler/mumble;
 # Activated over the session bus under the application id; xdg-mime default
 # registration ships with the packaging.
 DBusActivatable=true
-StartupWMClass=io.github.murmel.Murmel
+StartupWMClass=io.github.one337.murmel
 X-Purism=formFactor=workstation;mobile;

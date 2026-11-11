@@ -30,7 +30,7 @@ func schemaFilePath(t *testing.T) string {
 	if !ok {
 		t.Fatal("cannot determine test file location")
 	}
-	return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(thisFile))), "data", "io.github.murmel.Murmel.gschema.xml")
+	return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(thisFile))), "data", "io.github.one337.murmel.gschema.xml")
 }
 
 func parseSchema(t *testing.T) map[string]struct {

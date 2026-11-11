@@ -72,8 +72,8 @@ itself is needed; the GNOME runtime comes from Flathub, which Flatpak offers
 to add during the installation if it is not set up yet:
 
 ```sh
-flatpak install --user https://simon-tschoep.de/software/murmel/io.github.murmel.Murmel.flatpakref
-flatpak run io.github.murmel.Murmel
+flatpak install --user https://simon-tschoep.de/software/murmel/io.github.one337.murmel.flatpakref
+flatpak run io.github.one337.murmel
 ```
 
 Updates then arrive through GNOME Software or `flatpak update`.
@@ -167,7 +167,7 @@ tools/testbuild.sh
 builds the current tree with `flatpak-builder` and installs it for the
 current user as the branch `master`, next to a release install (`stable`),
 and makes it the one that starts;
-`flatpak make-current --user io.github.murmel.Murmel stable` switches back.
+`flatpak make-current --user io.github.one337.murmel stable` switches back.
 The manifest uses the GNOME 51 runtime and the Go SDK extension from
 Flathub.
 
@@ -224,7 +224,7 @@ Murmel, including its app icon, is licensed under GPL-3.0-or-later, see
 These components are built into Murmel. Their source code is in this
 repository (`vendor/`, `third_party/` and `internal/protocol/`), and their
 license texts are installed with Murmel, to `share/licenses/murmel` (in the
-Flatpak `share/licenses/io.github.murmel.Murmel`); the list is
+Flatpak `share/licenses/io.github.one337.murmel`); the list is
 [tools/licenses.txt](tools/licenses.txt).
 
 | Component | License |

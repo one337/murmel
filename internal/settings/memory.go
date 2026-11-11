@@ -6,7 +6,7 @@ import (
 )
 
 // memoryDefaults mirrors the <default> of every key in
-// data/io.github.murmel.Murmel.gschema.xml. coverage_test.go fails when
+// data/io.github.one337.murmel.gschema.xml. coverage_test.go fails when
 // this map drifts from the schema file.
 func memoryDefaults() map[string]any {
 	return map[string]any{
