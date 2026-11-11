@@ -1,9 +1,12 @@
 package connection
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
@@ -13,6 +16,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/graphene"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"io.github/murmel/internal/protocol/gumble"
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/secrets"
@@ -43,11 +47,22 @@ type savedList struct {
 }
 
 type savedRow struct {
-	entry settings.ServerEntry
-	row   *adw.ActionRow
-	up    *gio.SimpleAction
-	down  *gio.SimpleAction
+	entry  settings.ServerEntry
+	row    *adw.ActionRow
+	up     *gio.SimpleAction
+	down   *gio.SimpleAction
+	users  *gtk.Label // "5/100" from the server's ping answer
+	ping   *gtk.Label // "12 ms", or "No answer"
+	status *gtk.Box
 }
+
+// Servers are pinged (Mumble's UDP ping, which also reports the user
+// count) while the dialog shows the list.
+const (
+	savedPingEvery    = 15 * time.Second
+	savedPingTimeout  = 2 * time.Second
+	savedPingInterval = 500 * time.Millisecond // resend within the timeout
+)
 
 // savedServersGroup lists the saved connections (nil when there are none).
 // Activating a row calls fill.
@@ -100,7 +115,76 @@ func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *adw.Pre
 		s.list.Append(r.row)
 	}
 	s.updateActions()
+
+	// Ping while the list is on screen.
+	var stop context.CancelFunc
+	s.group.ConnectMap(func() {
+		var ctx context.Context
+		ctx, stop = context.WithCancel(context.Background())
+		go s.pingLoop(ctx)
+	})
+	s.group.ConnectUnmap(func() {
+		if stop != nil {
+			stop()
+		}
+	})
 	return s.group
+}
+
+// pingLoop pings every listed server now and then every savedPingEvery
+// until ctx ends.
+func (s *savedList) pingLoop(ctx context.Context) {
+	for {
+		rows := make(chan []*savedRow, 1)
+		glib.IdleAdd(func() bool {
+			rows <- append([]*savedRow(nil), s.rows...)
+			return false
+		})
+		var list []*savedRow
+		select {
+		case list = <-rows:
+		case <-ctx.Done():
+			return
+		}
+		for _, r := range list {
+			go s.pingRow(ctx, r)
+		}
+		select {
+		case <-time.After(savedPingEvery):
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+
+func (s *savedList) pingRow(ctx context.Context, r *savedRow) {
+	addr := net.JoinHostPort(r.entry.Host, strconv.Itoa(r.entry.Port))
+	resp, err := gumble.Ping(addr, savedPingInterval, savedPingTimeout)
+	glib.IdleAdd(func() bool {
+		if ctx.Err() == nil {
+			r.showPing(resp, err)
+		}
+		return false
+	})
+}
+
+// showPing shows a ping answer: users and round trip, or that the server
+// did not answer.
+func (r *savedRow) showPing(resp *gumble.PingResponse, err error) {
+	r.status.SetVisible(true)
+	if err != nil || resp == nil {
+		r.users.SetVisible(false)
+		r.ping.SetText(tr("No answer"))
+		r.status.SetTooltipText(tr("The server did not answer. It may be offline, or it does not answer pings."))
+		return
+	}
+	ms := max(int(resp.Ping.Round(time.Millisecond)/time.Millisecond), 1)
+	r.users.SetVisible(true)
+	r.users.SetText(fmt.Sprintf("%d/%d", resp.ConnectedUsers, resp.MaximumUsers))
+	r.ping.SetText(fmt.Sprintf(tr("%d ms"), ms))
+	major, minor, _ := resp.Version.SemanticVersion()
+	r.status.SetTooltipText(fmt.Sprintf(tr("Mumble %d.%d · %d of %d users · %d ms"),
+		major, minor, resp.ConnectedUsers, resp.MaximumUsers, ms))
 }
 
 func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
@@ -118,6 +202,21 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 	r.row.AddPrefix(handle)
 	s.dragSource(r, handle)
 	s.dropTarget(r)
+
+	r.users = gtk.NewLabel("")
+	r.ping = gtk.NewLabel("")
+	r.status = gtk.NewBox(gtk.OrientationVertical, 0)
+	r.status.AddCSSClass("server-status")
+	r.status.SetVAlign(gtk.AlignCenter)
+	for _, l := range []*gtk.Label{r.users, r.ping} {
+		l.AddCSSClass("caption")
+		l.AddCSSClass("numeric")
+		l.AddCSSClass("dim-label")
+		l.SetXAlign(1)
+		r.status.Append(l)
+	}
+	r.status.SetVisible(false) // until the first answer
+	r.row.AddSuffix(r.status)
 
 	actions := gio.NewSimpleActionGroup()
 	r.up = gio.NewSimpleAction("up", nil)

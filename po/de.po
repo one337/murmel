@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 09:08+0100\n"
+"POT-Creation-Date: 2026-11-11 09:47+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1352,6 +1352,27 @@ msgid "Saved Connections"
 msgstr "Gespeicherte Verbindungen"
 
 #: internal/ui/connection/savedlist.go
+msgid "No answer"
+msgstr "Keine Antwort"
+
+#: internal/ui/connection/savedlist.go
+msgid ""
+"The server did not answer. It may be offline, or it does not answer pings."
+msgstr ""
+"Der Server hat nicht geantwortet. Er ist vielleicht offline oder beantwortet "
+"keine Pings."
+
+#: internal/ui/connection/savedlist.go internal/ui/prefs/window.go
+#, go-format
+msgid "%d ms"
+msgstr "%d ms"
+
+#: internal/ui/connection/savedlist.go
+#, go-format
+msgid "Mumble %d.%d · %d of %d users · %d ms"
+msgstr "Mumble %d.%d · %d von %d Benutzern · %d ms"
+
+#: internal/ui/connection/savedlist.go
 msgid "Drag to reorder"
 msgstr "Zum Sortieren ziehen"
 
@@ -1809,11 +1830,6 @@ msgid "Longer packets need less bandwidth but add delay. Default: 20 ms"
 msgstr ""
 "Längere Pakete brauchen weniger Bandbreite, erhöhen aber die Verzögerung. "
 "Standard: 20 ms"
-
-#: internal/ui/prefs/window.go
-#, go-format
-msgid "%d ms"
-msgstr "%d ms"
 
 #: internal/ui/prefs/window.go
 msgid "Quality (kb/s)"
