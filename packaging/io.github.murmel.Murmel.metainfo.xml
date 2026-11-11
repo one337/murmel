@@ -75,6 +75,20 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.9" date="2026-11-11">
+      <description>
+        <ul>
+          <li>Flatpak: saved server passwords have to be entered once more, they are now kept in Murmel's own encrypted storage</li>
+          <li>Push-to-talk, with a global shortcut that also works while Murmel is in the background; the voice meter turns yellow while you speak without sending</li>
+          <li>More global shortcuts for mute, deafen and moving one channel up or down, assigned in your desktop's dialog (Preferences → General)</li>
+          <li>Keyboard shortcuts overview in the main menu (Ctrl+?)</li>
+          <li>Volume and mute per user, just for you, remembered per server</li>
+          <li>Saved servers show whether they are online, how many users are there and the ping</li>
+          <li>Notifications: settings sorted by event for a clearer overview, sounds in their own group</li>
+          <li>Better privacy: the Flatpak no longer accesses the desktop keyring or the notification service directly</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.8" date="2026-11-10">
       <description>
         <ul>
