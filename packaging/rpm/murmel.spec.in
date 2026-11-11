@@ -37,6 +37,7 @@ BuildRequires:  pkgconfig(gobject-introspection-1.0)
 BuildRequires:  pkgconfig(graphene-gobject-1.0)
 BuildRequires:  pkgconfig(opus)
 BuildRequires:  pkgconfig(webrtc-audio-processing-2)
+BuildRequires:  pkgconfig(libsecret-1)
 BuildRequires:  gettext
 BuildRequires:  desktop-file-utils
 BuildRequires:  appstream

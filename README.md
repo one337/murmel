@@ -113,14 +113,15 @@ easier way. At runtime it uses PulseAudio or PipeWire (with
 
 ```sh
 sudo dnf install golang gcc-c++ gettext gtk4-devel libadwaita-devel \
-    gobject-introspection-devel opus-devel webrtc-audio-processing-devel
+    gobject-introspection-devel opus-devel webrtc-audio-processing-devel \
+    libsecret-devel
 tools/install.sh --prefix ~/.local     # or: sudo tools/install.sh
 ```
 
 ### Other distributions
 
 Install the development files of GTK 4, Libadwaita, GObject
-Introspection, Opus and WebRTC audio processing 2.x
+Introspection, Opus, libsecret and WebRTC audio processing 2.x
 (`webrtc-audio-processing-2` in pkg-config), plus Go, a C++20 compiler and
 gettext.
 

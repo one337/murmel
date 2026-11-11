@@ -30,7 +30,7 @@ jobs:
           dnf -y install --setopt=install_weak_deps=False
           git golang gcc gcc-c++ pkgconf-pkg-config
           gtk4-devel libadwaita-devel gobject-introspection-devel graphene-devel
-          opus-devel webrtc-audio-processing-devel
+          opus-devel webrtc-audio-processing-devel libsecret-devel
           glib2-devel gettext xorg-x11-server-Xvfb
 
       - uses: actions/checkout@v5

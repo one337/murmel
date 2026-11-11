@@ -1,41 +1,91 @@
-// Package secrets stores server passwords in the desktop keyring through the
-// freedesktop Secret Service D-Bus API (GNOME Keyring, KWallet), using gio's
-// D-Bus client — no libsecret build dependency.
+// Package secrets stores server passwords with libsecret.
 //
-// Every call blocks on D-Bus: run it off the GTK main loop. Errors are
-// returned, never fatal; a missing or locked keyring simply means the
-// password is not remembered.
+// Inside the Flatpak sandbox libsecret keeps them in an encrypted file in
+// the app's own data directory, with a key from the Secret portal: Murmel
+// sees only its own secrets, not the desktop keyring. Elsewhere (RPM,
+// builds from source) libsecret uses the desktop keyring through the
+// Secret Service (GNOME Keyring, KWallet), with the same schema and
+// attributes Murmel always used, so stored passwords stay found.
+//
+// Every call blocks (D-Bus, and possibly an unlock prompt): run it off the
+// GTK main loop. Errors are returned, never fatal; a missing keyring or
+// portal simply means the password is not remembered.
 package secrets
 
+/*
+#cgo pkg-config: libsecret-1
+#include <stdlib.h>
+#include <libsecret/secret.h>
+
+// The attribute names and types match what Murmel stored through the
+// Secret Service before it used libsecret (the port as a string).
+static const SecretSchema *murmel_schema(void) {
+	static const SecretSchema schema = {
+		"io.github.murmel.Murmel.ServerPassword", SECRET_SCHEMA_NONE,
+		{
+			{ "host", SECRET_SCHEMA_ATTRIBUTE_STRING },
+			{ "port", SECRET_SCHEMA_ATTRIBUTE_STRING },
+			{ "username", SECRET_SCHEMA_ATTRIBUTE_STRING },
+			{ NULL, 0 },
+		}
+	};
+	return &schema;
+}
+
+static GHashTable *murmel_attributes(const char *host, const char *port, const char *username) {
+	GHashTable *a = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, g_free);
+	g_hash_table_insert(a, "host", g_strdup(host));
+	g_hash_table_insert(a, "port", g_strdup(port));
+	g_hash_table_insert(a, "username", g_strdup(username));
+	return a;
+}
+
+// Each function returns NULL on success, or an error message to free.
+static char *murmel_take_error(GError *error) {
+	char *msg = g_strdup(error->message);
+	g_error_free(error);
+	return msg;
+}
+
+static char *murmel_store(const char *host, const char *port, const char *username,
+                          const char *label, const char *password) {
+	GError *error = NULL;
+	GHashTable *a = murmel_attributes(host, port, username);
+	secret_password_storev_sync(murmel_schema(), a, SECRET_COLLECTION_DEFAULT,
+	                            label, password, NULL, &error);
+	g_hash_table_unref(a);
+	return error ? murmel_take_error(error) : NULL;
+}
+
+static char *murmel_lookup(const char *host, const char *port, const char *username,
+                           char **password) {
+	GError *error = NULL;
+	GHashTable *a = murmel_attributes(host, port, username);
+	gchar *pw = secret_password_lookupv_sync(murmel_schema(), a, NULL, &error);
+	g_hash_table_unref(a);
+	if (error)
+		return murmel_take_error(error);
+	*password = pw ? strdup(pw) : NULL;
+	secret_password_free(pw);
+	return NULL;
+}
+
+static char *murmel_clear(const char *host, const char *port, const char *username) {
+	GError *error = NULL;
+	GHashTable *a = murmel_attributes(host, port, username);
+	secret_password_clearv_sync(murmel_schema(), a, NULL, &error);
+	g_hash_table_unref(a);
+	return error ? murmel_take_error(error) : NULL;
+}
+*/
+import "C"
+
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
-
-	"github.com/diamondburned/gotk4/pkg/gio/v2"
-	"github.com/diamondburned/gotk4/pkg/glib/v2"
+	"unsafe"
 )
-
-const (
-	service    = "org.freedesktop.secrets"
-	servicePth = "/org/freedesktop/secrets"
-	ifService  = "org.freedesktop.Secret.Service"
-	ifItem     = "org.freedesktop.Secret.Item"
-	ifColl     = "org.freedesktop.Secret.Collection"
-	defaultCol = "/org/freedesktop/secrets/aliases/default"
-
-	// schema tags every item Murmel writes, so lookups never match foreign
-	// entries.
-	schema = "io.github.murmel.Murmel.ServerPassword"
-
-	callTimeout = 5 * time.Second
-)
-
-// ErrLocked is returned when the keyring is locked and would need an
-// interactive unlock prompt, which this client does not drive.
-var ErrLocked = errors.New("secrets: keyring is locked")
 
 // Key identifies one server account.
 type Key struct {
@@ -44,155 +94,72 @@ type Key struct {
 	Username string
 }
 
-func (k Key) attributes() *glib.Variant {
-	return stringDict(map[string]string{
-		"xdg:schema": schema,
-		"host":       k.Host,
-		"port":       strconv.Itoa(k.Port),
-		"username":   k.Username,
-	})
-}
-
 func (k Key) label() string {
 	return fmt.Sprintf("Murmel: %s@%s:%d", k.Username, k.Host, k.Port)
 }
 
+// cstrings holds C copies of k's attributes; free releases them.
+type cstrings struct{ host, port, username *C.char }
+
+func (k Key) c() cstrings {
+	return cstrings{
+		host:     C.CString(k.Host),
+		port:     C.CString(strconv.Itoa(k.Port)),
+		username: C.CString(k.Username),
+	}
+}
+
+func (s cstrings) free() {
+	C.free(unsafe.Pointer(s.host))
+	C.free(unsafe.Pointer(s.port))
+	C.free(unsafe.Pointer(s.username))
+}
+
+func takeError(msg *C.char) error {
+	if msg == nil {
+		return nil
+	}
+	defer C.g_free(C.gpointer(msg))
+	return errors.New("secrets: " + C.GoString(msg))
+}
+
 // Store saves (or replaces) the password for k.
 func Store(k Key, password string) error {
-	conn, session, err := open()
-	if err != nil {
-		return err
-	}
-	props := glib.NewVariantArray(glib.NewVariantType("{sv}"), []*glib.Variant{
-		glib.NewVariantDictEntry(glib.NewVariantString(ifItem+".Label"),
-			glib.NewVariantVariant(glib.NewVariantString(k.label()))),
-		glib.NewVariantDictEntry(glib.NewVariantString(ifItem+".Attributes"),
-			glib.NewVariantVariant(k.attributes())),
-	})
-	secret := glib.NewVariantTuple([]*glib.Variant{
-		glib.NewVariantObjectPath(session),
-		bytes(nil),
-		bytes([]byte(password)),
-		glib.NewVariantString("text/plain"),
-	})
-	reply, err := call(conn, defaultCol, ifColl, "CreateItem",
-		glib.NewVariantTuple([]*glib.Variant{props, secret, glib.NewVariantBoolean(true)}), "(oo)")
-	if err != nil {
-		return err
-	}
-	if prompt := reply.ChildValue(1).String(); prompt != "/" {
-		return ErrLocked
-	}
-	return nil
+	a := k.c()
+	defer a.free()
+	label := C.CString(k.label())
+	defer C.free(unsafe.Pointer(label))
+	pw := C.CString(password)
+	defer func() {
+		// Overwrite the C copy of the password before freeing it.
+		C.memset(unsafe.Pointer(pw), 0, C.size_t(len(password)))
+		C.free(unsafe.Pointer(pw))
+	}()
+	return takeError(C.murmel_store(a.host, a.port, a.username, label, pw))
 }
 
 // Lookup returns the stored password for k ("" and no error when none is
 // stored).
 func Lookup(k Key) (string, error) {
-	conn, session, err := open()
-	if err != nil {
+	a := k.c()
+	defer a.free()
+	var pw *C.char
+	if err := takeError(C.murmel_lookup(a.host, a.port, a.username, &pw)); err != nil {
 		return "", err
 	}
-	items, err := search(conn, k)
-	if err != nil || len(items) == 0 {
-		return "", err
+	if pw == nil {
+		return "", nil
 	}
-	reply, err := call(conn, items[0], ifItem, "GetSecret",
-		glib.NewVariantTuple([]*glib.Variant{glib.NewVariantObjectPath(session)}), "((oayays))")
-	if err != nil {
-		return "", err
-	}
-	value := reply.ChildValue(0).ChildValue(2)
-	out := make([]byte, value.NChildren())
-	for i := range out {
-		out[i] = value.ChildValue(uint(i)).Byte()
-	}
-	return string(out), nil
+	defer func() {
+		C.memset(unsafe.Pointer(pw), 0, C.strlen(pw))
+		C.free(unsafe.Pointer(pw))
+	}()
+	return C.GoString(pw), nil
 }
 
 // Delete removes the stored password for k (no error when none exists).
 func Delete(k Key) error {
-	conn, _, err := open()
-	if err != nil {
-		return err
-	}
-	items, err := search(conn, k)
-	if err != nil {
-		return err
-	}
-	for _, item := range items {
-		if _, err := call(conn, item, ifItem, "Delete", nil, "(o)"); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// open connects to the session bus and opens a "plain" Secret Service
-// session (the secret travels over the local bus unencrypted, like
-// libsecret's default for the session bus).
-func open() (*gio.DBusConnection, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), callTimeout)
-	defer cancel()
-	conn, err := gio.BusGetSync(ctx, gio.BusTypeSession)
-	if err != nil {
-		return nil, "", fmt.Errorf("secrets: session bus: %w", err)
-	}
-	reply, err := call(conn, servicePth, ifService, "OpenSession",
-		glib.NewVariantTuple([]*glib.Variant{
-			glib.NewVariantString("plain"),
-			glib.NewVariantVariant(glib.NewVariantString("")),
-		}), "(vo)")
-	if err != nil {
-		return nil, "", fmt.Errorf("secrets: open session: %w", err)
-	}
-	return conn, reply.ChildValue(1).String(), nil
-}
-
-// search returns the unlocked items matching k. Locked matches are
-// reported as ErrLocked.
-func search(conn *gio.DBusConnection, k Key) ([]string, error) {
-	reply, err := call(conn, servicePth, ifService, "SearchItems",
-		glib.NewVariantTuple([]*glib.Variant{k.attributes()}), "(aoao)")
-	if err != nil {
-		return nil, err
-	}
-	unlocked := objectPaths(reply.ChildValue(0))
-	if len(unlocked) == 0 && reply.ChildValue(1).NChildren() > 0 {
-		return nil, ErrLocked
-	}
-	return unlocked, nil
-}
-
-func call(conn *gio.DBusConnection, path, iface, method string, params *glib.Variant, replyType string) (*glib.Variant, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), callTimeout)
-	defer cancel()
-	return conn.CallSync(ctx, service, path, iface, method, params,
-		glib.NewVariantType(replyType), gio.DBusCallFlagsNone, int(callTimeout/time.Millisecond))
-}
-
-func stringDict(m map[string]string) *glib.Variant {
-	entries := make([]*glib.Variant, 0, len(m))
-	for k, v := range m {
-		entries = append(entries, glib.NewVariantDictEntry(glib.NewVariantString(k), glib.NewVariantString(v)))
-	}
-	return glib.NewVariantArray(glib.NewVariantType("{ss}"), entries)
-}
-
-// bytes builds an "ay" with exactly these bytes (NewVariantBytestring
-// would append a NUL terminator).
-func bytes(b []byte) *glib.Variant {
-	children := make([]*glib.Variant, len(b))
-	for i, c := range b {
-		children[i] = glib.NewVariantByte(c)
-	}
-	return glib.NewVariantArray(glib.NewVariantType("y"), children)
-}
-
-func objectPaths(v *glib.Variant) []string {
-	out := make([]string, v.NChildren())
-	for i := range out {
-		out[i] = v.ChildValue(uint(i)).String()
-	}
-	return out
+	a := k.c()
+	defer a.free()
+	return takeError(C.murmel_clear(a.host, a.port, a.username))
 }
