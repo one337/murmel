@@ -23,33 +23,22 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
 
 ## Features
 
-- Adaptive GNOME interface: channel tree in a sidebar, chat in the content
-  pane, works on narrow windows; light, dark or the system's style
-- Voice over encrypted UDP with automatic TCP fallback, Opus codec
-- Voice activity detection with an absolute threshold; a live voice meter
-  shows when you are heard, and when your voice is detected but not sent
-  (muted or not connected)
-- Noise suppression and echo cancellation (WebRTC)
-- Adjustable voice quality (32–192 kb/s), limited to the server's bandwidth
-- Input and output device selection right from the status bar
-- Adjustable jitter buffer and audio per packet
-- Saved connections; server passwords are stored securely in the desktop
-  keyring
-- Client certificates: create, import, export and manage them in the app;
-  trust-on-first-use server certificates
-- Avatars: see other users' pictures and set your own, per connection or
-  as a default
-- Text chat with channel messages and private conversations, formatting,
-  emoji and images, unread markers
-- Channel descriptions shown above the chat, with a banner for a leading
-  wide image
-- Channel editor: name, position, user limit, password, the description
-  (with a formatting toolbar and live preview), groups and permissions
-- Password-protected channels ask for the password when you join
-- Server administration: kick, ban, ban list, registered users
-- Desktop notifications for messages and events (configurable)
-- Event sounds with per-event choice (built-in or your own audio files)
-- `mumble://` links
+- **Native GNOME app** – modern GTK 4 and Libadwaita, adaptive from phone
+  to desktop, light and dark style; available in English and German, with
+  more languages to come ([contributions welcome](po/README.md))
+- **Clear voice** – Opus over encrypted UDP with TCP fallback, noise
+  suppression and echo cancellation, voice activation with a live level
+  meter that shows when you are actually heard
+- **Chat** – channel and private messages with formatting, emoji and
+  images; unread markers, notifications and event sounds
+- **Channels at a glance** – channel tree with avatars and speaking
+  indicators, descriptions with cover images; drag users into other
+  channels
+- **Connections made easy** – saved servers in your own order, passwords
+  kept securely, `mumble://` links, client certificates created and managed
+  in the app
+- **Server administration** – edit channels with groups and permissions,
+  kick, ban and manage registered users
 
 ## Screenshots
 
