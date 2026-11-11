@@ -113,7 +113,9 @@ for s in $sizes; do
 		"$share/icons/hicolor/${s}x${s}/apps/$APP_ID.png"
 done
 tools/install-translations.sh "$share/locale"
-install -Dm644 LICENSE "$licenses/LICENSE"
+# Murmel's own license; in a Flatpak build flatpak-builder installs it
+# already (share/licenses/<app id>/murmel/LICENSE, the module's name).
+[ -n "${FLATPAK_ID:-}" ] || install -Dm644 LICENSE "$licenses/LICENSE"
 while read -r name _ paths; do
 	case "$name" in "" | \#*) continue ;; esac
 	for f in $paths; do
