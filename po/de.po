@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 11:11+0100\n"
+"POT-Creation-Date: 2026-11-11 11:58+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -17,6 +17,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: internal/ui/about.go
+msgid "gumble (Murmel's fork)"
+msgstr "gumble (Murmels Fork)"
+
+#: internal/ui/about.go
+msgid "Mumble protocol and voice encryption"
+msgstr "Mumble-Protokoll und Sprachverschlüsselung"
+
+#: internal/ui/about.go
+msgid "Unlicense (public domain)."
+msgstr "Unlicense (gemeinfrei)."
+
+#: internal/ui/about.go
+msgid "CC0 1.0 (public domain), for two user icons."
+msgstr "CC0 1.0 (gemeinfrei), für zwei Benutzer-Symbole."
 
 #. TRANSLATORS: Permission: edit the channel's groups and permissions.
 #: internal/ui/admin/aclmodel.go

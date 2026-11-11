@@ -216,7 +216,24 @@ translation is described in [po/README.md](po/README.md).
 ## License
 
 Murmel, including its app icon, is licensed under GPL-3.0-or-later, see
-[LICENSE](LICENSE). The two user icons in `data/icons/symbolic` are built
-from the [GNOME Icon Development Kit](https://gitlab.gnome.org/Teams/Design/icon-development-kit)
-(CC0-1.0).
-Murmel is not affiliated with the Mumble project.
+[LICENSE](LICENSE). Murmel is not affiliated with the Mumble project.
+
+### Bundled components
+
+These components are built into Murmel. Their source code is in this
+repository (`vendor/`, `third_party/` and `internal/protocol/`), and their
+license texts are installed with Murmel, to `share/licenses/murmel` (in the
+Flatpak `share/licenses/io.github.murmel.Murmel`); the list is
+[tools/licenses.txt](tools/licenses.txt).
+
+| Component | License |
+|---|---|
+| [gotk4](https://github.com/diamondburned/gotk4) and [gotk4-adwaita](https://github.com/diamondburned/gotk4-adwaita) | MPL-2.0 |
+| A fork of [gumble](https://github.com/layeh/gumble) in `internal/protocol`, changes in [PATCHES.md](PATCHES.md) | MPL-2.0 |
+| [Mumble](https://www.mumble.info/)'s protocol definitions (`MumbleProto`) and voice encryption (`internal/protocol/crypt`, after Mumble's `CryptStateOCB2`) | BSD-3-Clause |
+| [malgo](https://github.com/gen2brain/malgo) with [miniaudio](https://miniaud.io/) | Unlicense |
+| [golang/protobuf](https://github.com/golang/protobuf) and [golang.org/x/sync](https://pkg.go.dev/golang.org/x/sync) | BSD-3-Clause |
+| [hraban/opus](https://github.com/hraban/opus) Go bindings, in `third_party/hraban-opus` | MIT |
+| [oggvorbis](https://github.com/jfreymuth/oggvorbis) and [vorbis](https://github.com/jfreymuth/vorbis) | MIT |
+| [gotext](https://github.com/leonelquinteros/gotext) | MIT |
+| The two user icons in `data/icons/symbolic`, from the [GNOME Icon Development Kit](https://gitlab.gnome.org/Teams/Design/icon-development-kit) | CC0-1.0 |
