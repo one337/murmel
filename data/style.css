@@ -299,3 +299,15 @@ row.drop-target-maybe {
   color: @card_fg_color;
   box-shadow: 0 1px 4px alpha(black, 0.25);
 }
+
+/* Volume set for oneself, in the channel tree and the user menu. */
+.local-audio {
+  opacity: 0.7;
+}
+.local-audio.local-muted {
+  color: @error_color;
+  opacity: 1;
+}
+.local-volume {
+  padding: 6px 12px 2px 12px;
+}

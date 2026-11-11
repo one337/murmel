@@ -90,6 +90,16 @@ type Settings interface {
 	SoundEvents() map[string]string
 	SetSoundEvents(v map[string]string)
 
+	// UserVolumes returns the local volume per user (user key, see
+	// UserAudioKey → 0..2, 1 = 100 %); the map is a copy.
+	UserVolumes() map[string]float64
+	SetUserVolumes(v map[string]float64)
+
+	// UserLocalMutes returns the users muted for oneself (user key →
+	// true); the map is a copy.
+	UserLocalMutes() map[string]bool
+	SetUserLocalMutes(v map[string]bool)
+
 	AutoReconnect() bool
 	SetAutoReconnect(v bool)
 

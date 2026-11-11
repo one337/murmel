@@ -24,6 +24,9 @@ const (
 	iconRecording         = "media-record-symbolic"
 	iconCurrentChannel    = "mark-location-symbolic"
 	iconDragHandle        = "list-drag-handle-symbolic"
+	iconLocalMuted        = "audio-volume-muted-symbolic"
+	iconLocalQuieter      = "audio-volume-low-symbolic"
+	iconLocalLouder       = "audio-volume-overamplified-symbolic"
 
 	avatarSizePx     = 32
 	indentPerDepthPx = 16
@@ -45,6 +48,8 @@ type userRowWidgets struct {
 	name   *gtk.Label
 	badge  *gtk.Label
 	icons  map[string]*gtk.Image
+	// localAudio shows a volume changed or muted for oneself.
+	localAudio *gtk.Image
 }
 
 // newBadge builds the unread-messages pill shown next to a name.
@@ -165,6 +170,9 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	r.icons[iconSpeaking] = speak
 
 	r.badge = newBadge()
+	r.localAudio = gtk.NewImageFromIconName(iconLocalMuted)
+	r.localAudio.AddCSSClass("local-audio")
+	r.localAudio.SetVisible(false)
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	// An invisible twin of the channel chevron: the avatar starts where
 	// the channel's name does. The drag handle lies on top of it.
@@ -179,6 +187,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	box.Append(r.name)
 	box.Append(r.badge)
 	box.Append(expander())
+	box.Append(r.localAudio)
 	for _, k := range []string{iconSpeaking, iconPrioritySpeaker, iconRecording, iconMuted, iconDeafened} {
 		box.Append(r.icons[k])
 	}
@@ -278,6 +287,28 @@ func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
 	setBold(r.name, speaking && !muted)
 }
 
+// setLocalAudio shows the volume set for oneself: nothing at 100 %, a
+// quieter or louder speaker otherwise, a crossed-out one in the error
+// colour when muted for oneself.
+func (r *userRowWidgets) setLocalAudio(a localAudio) {
+	r.localAudio.RemoveCSSClass("local-muted")
+	switch {
+	case a.muted:
+		r.localAudio.SetFromIconName(iconLocalMuted)
+		r.localAudio.AddCSSClass("local-muted")
+		r.localAudio.SetTooltipText(tr("Muted for you"))
+	case a.volume < 1:
+		r.localAudio.SetFromIconName(iconLocalQuieter)
+		r.localAudio.SetTooltipText(fmt.Sprintf(tr("Volume for you: %d %%"), percent(a.volume)))
+	case a.volume > 1:
+		r.localAudio.SetFromIconName(iconLocalLouder)
+		r.localAudio.SetTooltipText(fmt.Sprintf(tr("Volume for you: %d %%"), percent(a.volume)))
+	}
+	r.localAudio.SetVisible(a.muted || a.volume != 1)
+}
+
+func percent(v float64) int { return int(v*100 + 0.5) }
+
 func boolOpacity(on bool) float64 {
 	if on {
 		return 1
@@ -348,6 +379,11 @@ type UserMenuActions struct {
 	IsMuted    bool // current server-mute state for the toggle label
 	IsDeafened bool // current server-deafen state
 
+	// Local audio (for oneself only; nil SetLocalAudio hides the section,
+	// e.g. on one's own row).
+	LocalAudio    localAudio
+	SetLocalAudio func(localAudio)
+
 	Message  func()
 	Move     func()
 	Mute     func()
@@ -408,7 +444,32 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 	}
 
 	menu := gio.NewMenu()
+	root := menu
 	menu.Append(tr("Send message…"), "ctx.message")
+	var volume gtk.Widgetter
+	if a.SetLocalAudio != nil {
+		state := a.LocalAudio
+		mute := gio.NewSimpleActionStateful("local-mute", nil, glib.NewVariantBoolean(state.muted))
+		mute.ConnectActivate(func(*glib.Variant) {
+			state.muted = !state.muted
+			mute.SetState(glib.NewVariantBoolean(state.muted))
+			a.SetLocalAudio(state)
+		})
+		group.AddAction(mute)
+		volume = localVolumeSlider(state.volume, func(v float64) {
+			state.volume = v
+			a.SetLocalAudio(state)
+		})
+		local := gio.NewMenu()
+		slider := gio.NewMenuItem("", "")
+		slider.SetAttributeValue("custom", glib.NewVariantString("local-volume"))
+		local.AppendItem(slider)
+		local.Append(tr("Mute for me"), "ctx.local-mute")
+		menu.AppendSection("", local)
+	}
+	admin := gio.NewMenu()
+	menu.AppendSection("", admin)
+	menu = admin
 	menu.Append(tr("Move to my channel"), "ctx.move")
 	menu.Append(muteLabel, "ctx.mute")
 	menu.Append(deafenLabel, "ctx.deafen")
@@ -417,9 +478,35 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 	menu.Append(tr("Ban…"), "ctx.ban")
 	menu.Append(tr("Register"), "ctx.register")
 	menu.Append(tr("View stats"), "ctx.stats")
-	pm := gtk.NewPopoverMenuFromModel(menu)
+	pm := gtk.NewPopoverMenuFromModel(root)
 	pm.InsertActionGroup("ctx", group)
+	if volume != nil {
+		pm.AddChild(volume, "local-volume")
+	}
 	return pm, refresh
+}
+
+// localVolumeSlider is the "Volume for me" slider of the user menu,
+// 0–200 % with a mark at 100 %; set gets the new volume (0..2).
+func localVolumeSlider(volume float64, set func(float64)) gtk.Widgetter {
+	box := gtk.NewBox(gtk.OrientationVertical, 2)
+	box.AddCSSClass("local-volume")
+	title := gtk.NewLabel(tr("Volume for me"))
+	title.SetXAlign(0)
+	title.AddCSSClass("caption-heading")
+	scale := gtk.NewScaleWithRange(gtk.OrientationHorizontal, 0, 200, 5)
+	scale.SetValue(volume * 100)
+	scale.AddMark(100, gtk.PosBottom, "")
+	scale.SetDrawValue(true)
+	scale.SetValuePos(gtk.PosRight)
+	scale.SetFormatValueFunc(func(_ *gtk.Scale, v float64) string {
+		return fmt.Sprintf("%d %%", int(v+0.5))
+	})
+	scale.SetSizeRequest(200, -1)
+	scale.ConnectValueChanged(func() { set(scale.Value() / 100) })
+	box.Append(title)
+	box.Append(scale)
+	return box
 }
 
 func popupAt(row gtk.Widgetter, menu *gtk.PopoverMenu, x, y float64) {

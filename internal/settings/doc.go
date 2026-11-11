@@ -60,6 +60,8 @@
 //	chat-log             ChatLogEvents / SetChatLogEvents           chat log switches
 //	sounds-enabled       SoundsEnabled / SetSoundsEnabled           sounds expander switch
 //	sound-events         SoundEvents / SetSoundEvents               per-event sound combos
+//	user-volumes         UserVolumes / SetUserVolumes               volume slider in the user menu
+//	user-local-mutes     UserLocalMutes / SetUserLocalMutes         "Mute for me" in the user menu
 //	auto-reconnect       AutoReconnect / SetAutoReconnect           reconnect switch
 //	window-width         WindowWidth / SetWindowWidth              (none: saved on close)
 //	window-height        WindowHeight / SetWindowHeight            (none: saved on close)

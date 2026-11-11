@@ -182,6 +182,49 @@ func (g *GSettings) ChatLogEvents() map[string]bool {
 	return out
 }
 
+func (g *GSettings) UserVolumes() map[string]float64 {
+	v := g.gs.Value("user-volumes")
+	out := make(map[string]float64, v.NChildren())
+	for i := uint(0); i < v.NChildren(); i++ {
+		entry := v.ChildValue(i)
+		out[entry.ChildValue(0).String()] = entry.ChildValue(1).Double()
+	}
+	return out
+}
+
+func (g *GSettings) SetUserVolumes(v map[string]float64) {
+	keys := slices.Sorted(maps.Keys(v))
+	entries := make([]*glib.Variant, 0, len(keys))
+	for _, k := range keys {
+		entries = append(entries, glib.NewVariantDictEntry(glib.NewVariantString(k), glib.NewVariantDouble(v[k])))
+	}
+	g.gs.SetValue("user-volumes", glib.NewVariantArray(glib.NewVariantType("{sd}"), entries))
+}
+
+func (g *GSettings) UserLocalMutes() map[string]bool { return g.boolMap("user-local-mutes") }
+func (g *GSettings) SetUserLocalMutes(v map[string]bool) {
+	g.setBoolMap("user-local-mutes", v)
+}
+
+func (g *GSettings) boolMap(key string) map[string]bool {
+	v := g.gs.Value(key)
+	out := make(map[string]bool, v.NChildren())
+	for i := uint(0); i < v.NChildren(); i++ {
+		entry := v.ChildValue(i)
+		out[entry.ChildValue(0).String()] = entry.ChildValue(1).Boolean()
+	}
+	return out
+}
+
+func (g *GSettings) setBoolMap(key string, v map[string]bool) {
+	keys := slices.Sorted(maps.Keys(v))
+	entries := make([]*glib.Variant, 0, len(keys))
+	for _, k := range keys {
+		entries = append(entries, glib.NewVariantDictEntry(glib.NewVariantString(k), glib.NewVariantBoolean(v[k])))
+	}
+	g.gs.SetValue(key, glib.NewVariantArray(glib.NewVariantType("{sb}"), entries))
+}
+
 func (g *GSettings) SetChatLogEvents(v map[string]bool) {
 	keys := slices.Sorted(maps.Keys(v))
 	entries := make([]*glib.Variant, 0, len(keys))

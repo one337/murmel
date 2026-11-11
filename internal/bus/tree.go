@@ -88,6 +88,23 @@ type UserVolumeChanged struct {
 	Volume  float64
 }
 
+// UserLocalAudioRequested asks to set the local volume (0..2, 1 = 100 %)
+// and the local mute of one remote user, for oneself only; the setting is
+// remembered for that user on this server.
+type UserLocalAudioRequested struct {
+	Session uint32
+	Volume  float64
+	Muted   bool
+}
+
+// UserLocalAudioChanged reports a user's local volume and mute, after a
+// request or when a remembered setting is applied to a user who appeared.
+type UserLocalAudioChanged struct {
+	Session uint32
+	Volume  float64
+	Muted   bool
+}
+
 // UserKickRequested asks the controller to kick a user from the server.
 type UserKickRequested struct {
 	Session uint32
@@ -208,3 +225,5 @@ func (ChannelPermissionRequested) isBusEvent()  {}
 func (UserListRequested) isBusEvent()           {}
 func (BanListWriteRequested) isBusEvent()       {}
 func (UserUnregisterRequested) isBusEvent()     {}
+func (UserLocalAudioRequested) isBusEvent()     {}
+func (UserLocalAudioChanged) isBusEvent()       {}

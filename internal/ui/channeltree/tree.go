@@ -47,6 +47,22 @@ type Tree struct {
 	// connecting.
 	drag      *treeDrag
 	permAsked map[uint32]bool
+
+	// localAudio is the volume and mute set for oneself, by session.
+	localAudio map[uint32]localAudio
+}
+
+// localAudio is one user's volume (0..2, 1 = 100 %) and mute for oneself.
+type localAudio struct {
+	volume float64
+	muted  bool
+}
+
+func (t *Tree) localAudioOf(session uint32) localAudio {
+	if a, ok := t.localAudio[session]; ok {
+		return a
+	}
+	return localAudio{volume: 1}
 }
 
 // NewTree builds the tree widget and subscribes to the bus. parent is the
@@ -99,8 +115,19 @@ func (t *Tree) subscribe(ctx context.Context) {
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserUpdated) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(ev bus.VoiceActivity) { t.handle(ev) })
 	bus.SubscribeCtx(ctx, t.b, func(bus.Connected) { t.permAsked = nil })
+	bus.SubscribeCtx(ctx, t.b, func(ev bus.UserLocalAudioChanged) {
+		if t.localAudio == nil {
+			t.localAudio = map[uint32]localAudio{}
+		}
+		a := localAudio{volume: ev.Volume, muted: ev.Muted}
+		t.localAudio[ev.Session] = a
+		if r, ok := t.userRows[ev.Session]; ok {
+			r.setLocalAudio(a)
+		}
+	})
 	bus.SubscribeCtx(ctx, t.b, func(bus.Disconnected) {
 		t.permAsked = nil
+		t.localAudio = nil
 		t.unread, t.channelUnread = nil, 0
 		t.avatars, t.textureRequested = nil, nil
 	})
@@ -193,6 +220,7 @@ func (t *Tree) newRowFor(e entry) gtk.Widgetter {
 			func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) })
 		t.userRows[session] = r
 		t.applyAvatar(r, t.model.users[session])
+		r.setLocalAudio(t.localAudioOf(session))
 		t.dragUser(r, session)
 		t.acceptDrops(r.root, func() (uint32, bool) {
 			u, ok := t.model.users[session]
@@ -289,6 +317,8 @@ func (t *Tree) showUserMenu(session uint32, x, y float64) {
 		IsMuted:    isMuted,
 		IsDeafened: isDeafened,
 
+		LocalAudio: t.localAudioOf(session),
+
 		Message: func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) },
 		Move:    func() { t.b.Emit(bus.UserMoveRequested{Session: session}) },
 		Mute:    func() { t.b.Emit(bus.UserMuteRequested{Session: session, Muted: !isMuted}) },
@@ -304,6 +334,11 @@ func (t *Tree) showUserMenu(session uint32, x, y float64) {
 		Ban:      func() { admin.ShowBan(t.parent, t.b, session, userName) },
 		Register: func() { t.b.Emit(bus.UserRegisterRequested{Session: session}) },
 		Stats:    func() { admin.ShowUserStats(t.parent, t.b, session, userName) },
+	}
+	if session != t.model.self {
+		a.SetLocalAudio = func(la localAudio) {
+			t.b.Emit(bus.UserLocalAudioRequested{Session: session, Volume: la.volume, Muted: la.muted})
+		}
 	}
 	menu, refresh := buildUserMenu(t.model, session, a)
 	t.openMenu(menu, refresh, permissionChannels(t.model, 0, session))

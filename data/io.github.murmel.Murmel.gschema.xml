@@ -106,6 +106,16 @@
       <summary>Events logged in the channel chat</summary>
       <description>Overrides which events appear as log lines in the channel chat (e.g. "channel-join": true). Events without an entry use their default.</description>
     </key>
+    <key name="user-volumes" type="a{sd}">
+      <default>{}</default>
+      <summary>Volume per user</summary>
+      <description>Local volume of other users (1.0 = 100 %, up to 2.0), by "host:port|cert:hash" or "host:port|name:name" (users without a certificate). Users without an entry play at 100 %.</description>
+    </key>
+    <key name="user-local-mutes" type="a{sb}">
+      <default>{}</default>
+      <summary>Users muted for you</summary>
+      <description>Users you muted locally, keyed like user-volumes.</description>
+    </key>
     <key name="auto-reconnect" type="b">
       <default>true</default>
       <summary>Reconnect automatically</summary>

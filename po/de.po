@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-10 12:34+0100\n"
+"POT-Creation-Date: 2026-11-11 09:08+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -704,6 +704,15 @@ msgstr "Doppelklicken zum Betreten"
 msgid "Drag into another channel"
 msgstr "In einen anderen Kanal ziehen"
 
+#: internal/ui/channeltree/rows.go
+msgid "Muted for you"
+msgstr "Für dich stummgeschaltet"
+
+#: internal/ui/channeltree/rows.go
+#, go-format
+msgid "Volume for you: %d %%"
+msgstr "Lautstärke für dich: %d %%"
+
 #. TRANSLATORS: Context menu entry: move yourself into this channel.
 #. TRANSLATORS: Button: join the channel with the password entered.
 #: internal/ui/channeltree/rows.go internal/ui/connection/controller.go
@@ -743,6 +752,10 @@ msgid "Send message…"
 msgstr "Nachricht senden …"
 
 #: internal/ui/channeltree/rows.go
+msgid "Mute for me"
+msgstr "Für mich stummschalten"
+
+#: internal/ui/channeltree/rows.go
 msgid "Move to my channel"
 msgstr "In meinen Kanal holen"
 
@@ -765,6 +778,10 @@ msgstr "Registrieren"
 #: internal/ui/channeltree/rows.go
 msgid "View stats"
 msgstr "Statistik anzeigen"
+
+#: internal/ui/channeltree/rows.go
+msgid "Volume for me"
+msgstr "Lautstärke für mich"
 
 #: internal/ui/channeltree/tree.go internal/ui/statusbar.go
 #: internal/ui/window.go

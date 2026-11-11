@@ -113,6 +113,10 @@ func valuesEqual(a, b any) bool {
 		}
 		return true
 	}
+	if am, ok := a.(map[string]float64); ok {
+		bm, ok := b.(map[string]float64)
+		return ok && maps.Equal(am, bm)
+	}
 	if am, ok := a.(map[string]bool); ok {
 		bm, ok := b.(map[string]bool)
 		return ok && maps.Equal(am, bm)

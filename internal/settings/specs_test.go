@@ -111,6 +111,18 @@ var keySpecs = map[string]keySpec{
 		get:    func(s Settings) any { return s.ChatLogEvents() },
 		set:    func(s Settings, v any) { s.SetChatLogEvents(v.(map[string]bool)) },
 	},
+	"user-volumes": {
+		key: "user-volumes", gtype: "a{sd}", def: map[string]float64{},
+		sample: map[string]float64{"example.org:64738|name:frank": 0.5},
+		get:    func(s Settings) any { return s.UserVolumes() },
+		set:    func(s Settings, v any) { s.SetUserVolumes(v.(map[string]float64)) },
+	},
+	"user-local-mutes": {
+		key: "user-local-mutes", gtype: "a{sb}", def: map[string]bool{},
+		sample: map[string]bool{"example.org:64738|cert:abc": true},
+		get:    func(s Settings) any { return s.UserLocalMutes() },
+		set:    func(s Settings, v any) { s.SetUserLocalMutes(v.(map[string]bool)) },
+	},
 	"sounds-enabled": {
 		key: "sounds-enabled", gtype: "b", def: true, sample: false,
 		get: func(s Settings) any { return s.SoundsEnabled() },

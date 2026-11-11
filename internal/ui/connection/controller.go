@@ -58,6 +58,8 @@ type Controller struct {
 
 	voiceEngine *engine.Engine
 	voiceCancel context.CancelFunc
+
+	audio localAudio // remembered local volumes (main loop only)
 }
 
 // dialParams are the parameters for one dial attempt, saved so a reconnect
@@ -107,6 +109,7 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 	}
 	// Channel-join and user actions flow through the app bus.
 	bus.SubscribeCtx(ctx, appBus, c.onJoinRequested)
+	c.subscribeLocalAudio()
 	bus.SubscribeCtx(ctx, appBus, c.onSelfMuteToggle)
 	bus.SubscribeCtx(ctx, appBus, c.onSelfDeafenToggle)
 	bus.SubscribeCtx(ctx, appBus, c.onUserMoveRequested)
@@ -633,6 +636,7 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 		c.voiceEngine = eng
 		eng.Start(voiceCtx)
 	}
+	c.startLocalAudio(addr)
 }
 
 func (c *Controller) onDialError(err error, p *dialParams) {

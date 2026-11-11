@@ -195,6 +195,9 @@ type UserInfo struct {
 	// HasCertificate reports whether the user connected with a client
 	// certificate (the server announced its hash); registering needs one.
 	HasCertificate bool
+	// CertHash is the SHA-1 hash of the user's certificate as the server
+	// announced it ("" without one); it identifies a user across names.
+	CertHash string
 	// Texture is the user's avatar image as uploaded (PNG/JPEG; very old
 	// clients sent raw pixels, which are not shown). nil if none or not
 	// fetched yet.

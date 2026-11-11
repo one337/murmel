@@ -29,6 +29,8 @@ func memoryDefaults() map[string]any {
 		"sounds-enabled":          true,
 		"sound-events":            map[string]string{},
 		"chat-log":                map[string]bool{},
+		"user-volumes":            map[string]float64{},
+		"user-local-mutes":        map[string]bool{},
 		"auto-reconnect":          true,
 		"window-width":            900,
 		"window-height":           700,
@@ -195,6 +197,30 @@ func (m *Memory) SetColorScheme(v string)    { m.set("color-scheme", v) }
 
 func (m *Memory) ChatLogEvents() map[string]bool {
 	return maps.Clone(m.get("chat-log").(map[string]bool))
+}
+
+func (m *Memory) UserVolumes() map[string]float64 {
+	return maps.Clone(m.get("user-volumes").(map[string]float64))
+}
+
+func (m *Memory) SetUserVolumes(v map[string]float64) {
+	c := maps.Clone(v)
+	if c == nil {
+		c = map[string]float64{}
+	}
+	m.set("user-volumes", c)
+}
+
+func (m *Memory) UserLocalMutes() map[string]bool {
+	return maps.Clone(m.get("user-local-mutes").(map[string]bool))
+}
+
+func (m *Memory) SetUserLocalMutes(v map[string]bool) {
+	c := maps.Clone(v)
+	if c == nil {
+		c = map[string]bool{}
+	}
+	m.set("user-local-mutes", c)
 }
 
 func (m *Memory) SetChatLogEvents(v map[string]bool) {
