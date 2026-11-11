@@ -426,12 +426,6 @@ func (w *Window) registerActions() {
 		}
 	})
 	w.AddAction(fullscreen)
-
-	// Quick switcher: the action and accelerator exist so the
-	// shortcut is reserved; the handler is filled in later.
-	quickSwitcher := gio.NewSimpleAction("quick-switcher", nil)
-	quickSwitcher.ConnectActivate(func(*glib.Variant) {})
-	w.AddAction(quickSwitcher)
 }
 
 func (w *Window) restoreGeometry() {
