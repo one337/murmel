@@ -1,0 +1,20 @@
+# Third-party components built into the murmel binary, with the license
+# files that ship with it. tools/install.sh installs each line's files to
+# share/licenses/<package>/<name>/; tools/verify.sh checks that every Go
+# module linked into ./cmd/murmel has a line here.
+#
+# name           Go module ("-": part of this repository)   license files
+gotk4            github.com/diamondburned/gotk4/pkg          vendor/github.com/diamondburned/gotk4/pkg/LICENSE
+gotk4-adwaita    github.com/diamondburned/gotk4-adwaita/pkg  vendor/github.com/diamondburned/gotk4-adwaita/pkg/LICENSE
+malgo            github.com/gen2brain/malgo                  vendor/github.com/gen2brain/malgo/LICENSE
+golang-protobuf  github.com/golang/protobuf                  vendor/github.com/golang/protobuf/LICENSE
+x-sync           golang.org/x/sync                           vendor/golang.org/x/sync/LICENSE vendor/golang.org/x/sync/PATENTS
+oggvorbis        github.com/jfreymuth/oggvorbis              vendor/github.com/jfreymuth/oggvorbis/LICENSE
+vorbis           github.com/jfreymuth/vorbis                 vendor/github.com/jfreymuth/vorbis/LICENSE
+gotext           github.com/leonelquinteros/gotext           vendor/github.com/leonelquinteros/gotext/LICENSE
+opus             gopkg.in/hraban/opus.v2                     third_party/hraban-opus/LICENSE third_party/hraban-opus/AUTHORS
+# The gumble fork (internal/protocol), and the Mumble project's protocol
+# definitions (MumbleProto) and voice encryption (internal/protocol/crypt
+# follows Mumble's CryptStateOCB2).
+gumble           -                                           internal/protocol/gumble/LICENSE
+mumble           -                                           internal/protocol/gumble/MumbleProto/LICENSE

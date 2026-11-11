@@ -49,6 +49,24 @@ else
   fail "go build"
 fi
 
+# Every module linked into the binary needs its license shipped (see
+# tools/licenses.txt), and every listed license file must exist.
+step "licenses: tools/licenses.txt covers the linked modules"
+lic_problems=()
+while read -r mod; do
+  awk -v m="$mod" '!/^#/ && $2 == m { found = 1 } END { exit !found }' tools/licenses.txt ||
+    lic_problems+=("module $mod has no line in tools/licenses.txt")
+done < <(go list -deps -f '{{with .Module}}{{.Path}}{{end}}' ./cmd/murmel | sort -u | grep -vx 'io.github/murmel')
+while read -r f; do
+  [ -f "$f" ] || lic_problems+=("missing license file $f")
+done < <(awk '!/^#/ && NF >= 3 { for (i = 3; i <= NF; i++) print $i }' tools/licenses.txt)
+if [ ${#lic_problems[@]} -eq 0 ]; then
+  pass "licenses"
+else
+  printf '  %s\n' "${lic_problems[@]}"
+  fail "licenses"
+fi
+
 step "go test"
 if go test "${PKGS[@]}" 2>&1; then
   pass "go test"

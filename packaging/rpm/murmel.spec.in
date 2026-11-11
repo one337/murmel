@@ -89,7 +89,9 @@ appstreamcli validate --no-net %{buildroot}%{_metainfodir}/%{app_id}.metainfo.xm
 grep -q '^Exec=%{_bindir}/murmel ' %{buildroot}%{_datadir}/dbus-1/services/%{app_id}.service
 
 %files -f %{name}.lang
-%license LICENSE
+# Murmel's license and those of the components built into it, installed
+# by tools/install.sh (see tools/licenses.txt).
+%license %{_defaultlicensedir}/%{name}
 %doc README.md
 %{_bindir}/%{name}
 %{_datadir}/applications/%{app_id}.desktop

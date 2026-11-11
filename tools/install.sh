@@ -13,8 +13,9 @@
 #   --uninstall    remove what an earlier installation to the prefix added
 #
 # Installs the binary, the settings schema, the desktop file, the
-# metainfo, the icons, the D-Bus service (Murmel is D-Bus activated) and
-# the translations. Without --destdir it also compiles the schemas and
+# metainfo, the icons, the D-Bus service (Murmel is D-Bus activated), the
+# translations, and the licenses of Murmel and of the components built
+# into it (tools/licenses.txt). Without --destdir it also compiles the schemas and
 # refreshes the icon and desktop caches. The Flatpak manifest and the RPM
 # spec use this script too.
 set -euo pipefail
@@ -41,6 +42,9 @@ prefix=${prefix%/}
 root=$destdir$prefix
 share=$root/share
 sizes="48 64 128 256"
+# Licenses go to share/licenses/<app id> in a Flatpak (Flathub's layout),
+# to share/licenses/murmel elsewhere (as rpm's %license does).
+licenses=$share/licenses/${FLATPAK_ID:-murmel}
 
 files=(
 	"bin/murmel"
@@ -78,6 +82,7 @@ if [ -n "$uninstall" ]; then
 	for f in "${files[@]}"; do
 		rm -f "$root/$f"
 	done
+	rm -rf "$licenses"
 	refresh
 	echo "install.sh: removed Murmel from $prefix"
 	exit 0
@@ -108,5 +113,12 @@ for s in $sizes; do
 		"$share/icons/hicolor/${s}x${s}/apps/$APP_ID.png"
 done
 tools/install-translations.sh "$share/locale"
+install -Dm644 LICENSE "$licenses/LICENSE"
+while read -r name _ paths; do
+	case "$name" in "" | \#*) continue ;; esac
+	for f in $paths; do
+		install -Dm644 "$f" "$licenses/$name/$(basename "$f")"
+	done
+done <tools/licenses.txt
 refresh
 echo "install.sh: installed Murmel to $root"
