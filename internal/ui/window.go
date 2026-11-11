@@ -211,6 +211,7 @@ func newPrimaryMenuButton() (*gtk.MenuButton, *gio.Menu) {
 
 	general := gio.NewMenu()
 	general.Append(tr("Preferences"), "app.preferences")
+	general.Append(tr("Keyboard Shortcuts"), "app.shortcuts")
 	general.Append(tr("About Murmel"), "app.about")
 	disconnect := gio.NewMenuItem(tr("Disconnect"), "app.disconnect")
 	disconnect.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))

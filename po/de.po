@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 10:08+0100\n"
+"POT-Creation-Date: 2026-11-11 10:30+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -368,6 +368,7 @@ msgid "Remove"
 msgstr "Entfernen"
 
 #: internal/ui/admin/channeledit.go internal/ui/prefs/window.go
+#: internal/ui/shortcutsdialog.go
 msgid "General"
 msgstr "Allgemein"
 
@@ -1650,7 +1651,8 @@ msgstr "Klänge (WAV, Ogg Vorbis)"
 msgid "Choose Sound"
 msgstr "Klang auswählen"
 
-#: internal/ui/prefs/window.go internal/ui/window.go
+#: internal/ui/prefs/window.go internal/ui/shortcutsdialog.go
+#: internal/ui/window.go
 msgid "Preferences"
 msgstr "Einstellungen"
 
@@ -1843,10 +1845,6 @@ msgid "Continuously"
 msgstr "Dauerhaft"
 
 #: internal/ui/prefs/window.go
-msgid "While the push-to-talk shortcut is held"
-msgstr "Solange die Push-to-Talk-Taste gedrückt ist"
-
-#: internal/ui/prefs/window.go
 msgid "All the time, whatever the level"
 msgstr "Immer, unabhängig vom Pegel"
 
@@ -1909,6 +1907,21 @@ msgid "Transmission"
 msgstr "Übertragung"
 
 #: internal/ui/prefs/window.go
+#, go-format
+msgid "While %s is held"
+msgstr "Solange %s gedrückt ist"
+
+#: internal/ui/prefs/window.go
+msgid "Your desktop offers no global shortcuts, so push-to-talk has no key"
+msgstr "Deine Arbeitsumgebung bietet keine globalen Tastenkürzel, Push-to-Talk hat daher keine Taste"
+"Deine Arbeitsumgebung bietet keine globalen Tastenkürzel an (Global-"
+"Shortcuts-Portal)."
+
+#: internal/ui/prefs/window.go
+msgid "No key yet: set it up under General → Global Shortcuts"
+msgstr "Noch keine Taste: unter Allgemein → Globale Tastenkürzel einrichten"
+
+#: internal/ui/prefs/window.go internal/ui/shortcutsdialog.go
 msgid "Global Shortcuts"
 msgstr "Globale Tastenkürzel"
 
@@ -2066,6 +2079,50 @@ msgstr "Vom Server gebannt"
 msgid "Kicked from the server"
 msgstr "Vom Server geworfen"
 
+#: internal/ui/shortcutsdialog.go
+msgid "Show keyboard shortcuts"
+msgstr "Tastenkürzel anzeigen"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Open the main menu"
+msgstr "Hauptmenü öffnen"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Fullscreen"
+msgstr "Vollbild"
+
+#: internal/ui/shortcutsdialog.go internal/ui/window.go
+msgid "Quit"
+msgstr "Beenden"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Messages"
+msgstr "Nachrichten"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Send the message"
+msgstr "Nachricht senden"
+
+#: internal/ui/shortcutsdialog.go
+msgid "New line"
+msgstr "Neue Zeile"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Bold"
+msgstr "Fett"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Italic"
+msgstr "Kursiv"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Insert emoji"
+msgstr "Emoji einfügen"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Not assigned – set up in Preferences → General"
+msgstr "Nicht belegt – in den Einstellungen unter Allgemein einrichten"
+
 #: internal/ui/statusbar.go internal/ui/window.go
 msgid "Mute microphone"
 msgstr "Mikrofon stummschalten"
@@ -2187,16 +2244,16 @@ msgid "Show chat"
 msgstr "Chat anzeigen"
 
 #: internal/ui/window.go
+msgid "Keyboard Shortcuts"
+msgstr "Tastenkürzel"
+
+#: internal/ui/window.go
 msgid "About Murmel"
 msgstr "Über Murmel"
 
 #: internal/ui/window.go
 msgid "Disconnect"
 msgstr "Trennen"
-
-#: internal/ui/window.go
-msgid "Quit"
-msgstr "Beenden"
 
 #: internal/ui/window.go
 msgid "Main Menu"
@@ -2235,6 +2292,9 @@ msgstr "Das Mikrofon liefert keinen Ton mehr. Wähle ein anderes Eingabegerät."
 msgid "The output device is not playing audio. Choose another output device."
 msgstr ""
 "Das Ausgabegerät gibt keinen Ton wieder. Wähle ein anderes Ausgabegerät."
+
+#~ msgid "While the push-to-talk shortcut is held"
+#~ msgstr "Solange die Push-to-Talk-Taste gedrückt ist"
 
 #~ msgid "No answer"
 #~ msgstr "Keine Antwort"

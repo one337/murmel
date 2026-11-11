@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 10:08+0100\n"
+"POT-Creation-Date: 2026-11-11 10:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -360,6 +360,7 @@ msgid "Remove"
 msgstr ""
 
 #: internal/ui/admin/channeledit.go internal/ui/prefs/window.go
+#: internal/ui/shortcutsdialog.go
 msgid "General"
 msgstr ""
 
@@ -1589,7 +1590,8 @@ msgstr ""
 msgid "Choose Sound"
 msgstr ""
 
-#: internal/ui/prefs/window.go internal/ui/window.go
+#: internal/ui/prefs/window.go internal/ui/shortcutsdialog.go
+#: internal/ui/window.go
 msgid "Preferences"
 msgstr ""
 
@@ -1770,10 +1772,6 @@ msgid "Continuously"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "While the push-to-talk shortcut is held"
-msgstr ""
-
-#: internal/ui/prefs/window.go
 msgid "All the time, whatever the level"
 msgstr ""
 
@@ -1829,6 +1827,19 @@ msgid "Transmission"
 msgstr ""
 
 #: internal/ui/prefs/window.go
+#, go-format
+msgid "While %s is held"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Your desktop offers no global shortcuts, so push-to-talk has no key"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "No key yet: set it up under General → Global Shortcuts"
+msgstr ""
+
+#: internal/ui/prefs/window.go internal/ui/shortcutsdialog.go
 msgid "Global Shortcuts"
 msgstr ""
 
@@ -1975,6 +1986,50 @@ msgstr ""
 msgid "Kicked from the server"
 msgstr ""
 
+#: internal/ui/shortcutsdialog.go
+msgid "Show keyboard shortcuts"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Open the main menu"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Fullscreen"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go internal/ui/window.go
+msgid "Quit"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Messages"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Send the message"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "New line"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Bold"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Italic"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Insert emoji"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Not assigned – set up in Preferences → General"
+msgstr ""
+
 #: internal/ui/statusbar.go internal/ui/window.go
 msgid "Mute microphone"
 msgstr ""
@@ -2090,15 +2145,15 @@ msgid "Show chat"
 msgstr ""
 
 #: internal/ui/window.go
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: internal/ui/window.go
 msgid "About Murmel"
 msgstr ""
 
 #: internal/ui/window.go
 msgid "Disconnect"
-msgstr ""
-
-#: internal/ui/window.go
-msgid "Quit"
 msgstr ""
 
 #: internal/ui/window.go

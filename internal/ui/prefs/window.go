@@ -58,7 +58,7 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	pw.Add(audioInputPage(st, b, sc, pw))
 	pw.Add(audioOutputPage(st))
 	pw.Add(chatPage(st))
-	pw.Add(generalPage(st, player, pw))
+	pw.Add(generalPage(st, player, pw, sc))
 
 	return &Window{pw}
 }
@@ -318,7 +318,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	modeHint := func() {
 		switch st.TransmissionMode() {
 		case "push-to-talk":
-			modeRow.SetSubtitle(tr("While the push-to-talk shortcut is held"))
+			modeRow.SetSubtitle(pushToTalkHint(sc))
 		case "continuous":
 			modeRow.SetSubtitle(tr("All the time, whatever the level"))
 		default:
@@ -326,6 +326,9 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 		}
 	}
 	modeHint()
+	if sc != nil {
+		pw.ConnectDestroy(sc.OnChange(modeHint))
+	}
 	modeGroup := adw.NewPreferencesGroup()
 	modeGroup.SetTitle(tr("Sending"))
 	modeGroup.Add(modeRow)
@@ -400,12 +403,24 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 
 	page.Add(devGroup)
 	page.Add(modeGroup)
-	if sc != nil {
-		page.Add(shortcutsGroup(sc, pw))
-	}
 	page.Add(vadGroup)
 	page.Add(txGroup)
 	return page
+}
+
+// pushToTalkHint names the push-to-talk key, or where to set one.
+func pushToTalkHint(sc Shortcuts) string {
+	if sc != nil {
+		for _, b := range sc.Bindings() {
+			if b.ID == shortcuts.PushToTalk && b.Trigger != "" {
+				return fmt.Sprintf(tr("While %s is held"), b.Label())
+			}
+		}
+		if available, known := sc.Available(); known && !available {
+			return tr("Your desktop offers no global shortcuts, so push-to-talk has no key")
+		}
+	}
+	return tr("No key yet: set it up under General → Global Shortcuts")
 }
 
 // shortcutsGroup lists the global shortcuts with the keys the desktop
@@ -444,12 +459,14 @@ func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesWindow) *adw.PreferencesGro
 		button.SetSensitive(available && !sc.Busy())
 		keys := map[string]string{}
 		for _, b := range sc.Bindings() {
-			keys[b.ID] = b.Trigger
+			keys[b.ID] = b.Label()
 		}
 		for id, l := range rows {
 			if k := keys[id]; k != "" {
 				l.SetText(k)
+				l.RemoveCSSClass("dim-label")
 			} else {
+				l.AddCSSClass("dim-label")
 				l.SetText(tr("Not assigned"))
 			}
 		}
@@ -525,7 +542,7 @@ func chatPage(st settings.Settings) *adw.PreferencesPage {
 
 // --- Behavior page ---------------------------------------------------------
 
-func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesWindow) *adw.PreferencesPage {
+func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesWindow, sc Shortcuts) *adw.PreferencesPage {
 	parent := func() *gtk.Window { return &pw.Window.Window }
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("General"))
@@ -583,6 +600,9 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 
 	page.Add(group)
 	page.Add(notifGroup)
+	if sc != nil {
+		page.Add(shortcutsGroup(sc, pw))
+	}
 	return page
 }
 

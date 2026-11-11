@@ -224,6 +224,10 @@ func (a *App) registerActions() {
 	})
 	a.AddAction(banList)
 
+	keys := gio.NewSimpleAction("shortcuts", nil)
+	keys.ConnectActivate(func(*glib.Variant) { a.showShortcuts() })
+	a.AddAction(keys)
+
 	about := gio.NewSimpleAction("about", nil)
 	about.ConnectActivate(func(*glib.Variant) { a.showAbout() })
 	a.AddAction(about)
@@ -245,6 +249,7 @@ func (a *App) registerActions() {
 	// GNOME HIG accelerators; the win.* actions themselves live on Window.
 	a.SetAccelsForAction("app.quit", []string{"<Primary>q"})
 	a.SetAccelsForAction("app.preferences", []string{"<Primary>comma"})
+	a.SetAccelsForAction("app.shortcuts", []string{"<Primary>question"})
 	a.SetAccelsForAction("win.fullscreen", []string{"F11"})
 	a.SetAccelsForAction("win.quick-switcher", []string{"<Primary>k"})
 }
