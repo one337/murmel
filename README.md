@@ -24,11 +24,12 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
 ## Features
 
 - **Native GNOME app** – modern GTK 4 and Libadwaita, adaptive from phone
-  to desktop, light and dark style; available in English and German, with
-  more languages to come ([contributions welcome](po/README.md))
+  to desktop, light and dark style, global shortcuts; available in
+  English and German, with more languages to come
+  ([contributions welcome](po/README.md))
 - **Clear voice** – Opus over encrypted UDP with TCP fallback, noise
-  suppression and echo cancellation, voice activation with a live level
-  meter
+  suppression and echo cancellation, voice activation or push-to-talk
+  with a live level meter, volume and mute per user
 - **Chat** – channel and private messages with formatting, emoji and
   images; unread markers, notifications and configurable event sounds
 - **Channels at a glance** – channel tree with avatars and speaking
