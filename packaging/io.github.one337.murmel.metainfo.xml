@@ -80,6 +80,13 @@
   </content_rating>
 
   <releases>
+    <release version="0.3.10" date="2026-11-11">
+      <description>
+        <ul>
+          <li>New app ID io.github.one337.murmel, needed for Flathub: install Murmel again from the website and remove the old app; saved passwords, settings and shortcuts have to be set up again (certificates can be exported in the old app and imported in the new one)</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.9" date="2026-11-11">
       <description>
         <ul>
