@@ -81,6 +81,11 @@ Updates then arrive through GNOME Software or `flatpak update`.
 > If Flatpak was not installed before, you may have to restart the computer
 > before Murmel starts from the app grid.
 
+Server passwords: the Flatpak keeps them in its own encrypted storage,
+with a key from the desktop's Secret portal (shown as "Secret Portal
+Token" in the keyring); RPM and source installs keep them in the desktop
+keyring.
+
 On Fedora, Murmel is also available as an RPM from
 [Copr](https://copr.fedorainfracloud.org/coprs/one337/murmel/):
 

@@ -19,7 +19,7 @@
       <li>Responsive layout: works on mobile and desktop</li>
       <li>Voice activation with a live level meter, noise suppression and echo cancellation</li>
       <li>Adjustable voice quality and device selection</li>
-      <li>Saved connections with passwords in the keyring</li>
+      <li>Saved connections with securely stored passwords</li>
       <li>Client certificates and trust-on-first-use server certificates</li>
       <li>Notifications and sounds for messages and users joining or leaving</li>
       <li>mumble:// links</li>
