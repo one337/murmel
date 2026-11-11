@@ -28,15 +28,14 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
   more languages to come ([contributions welcome](po/README.md))
 - **Clear voice** – Opus over encrypted UDP with TCP fallback, noise
   suppression and echo cancellation, voice activation with a live level
-  meter that shows when you are actually heard
+  meter
 - **Chat** – channel and private messages with formatting, emoji and
-  images; unread markers, notifications and event sounds
+  images; unread markers, notifications and configurable event sounds
 - **Channels at a glance** – channel tree with avatars and speaking
-  indicators, descriptions with cover images; drag users into other
-  channels
-- **Connections made easy** – saved servers in your own order, passwords
-  kept securely, `mumble://` links, client certificates created and managed
-  in the app
+  indicators, descriptions with cover images, drag and drop support
+- **Connections and identities** – save servers and sort them as you like,
+  passwords stored securely, `mumble://` links; create, import and back up
+  your certificates right in the app
 - **Server administration** – edit channels with groups and permissions,
   kick, ban and manage registered users
 
