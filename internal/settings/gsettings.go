@@ -81,9 +81,13 @@ func (g *GSettings) AudioPacketFrames() int { return g.gs.Int("audio-packet-fram
 func (g *GSettings) SetAudioPacketFrames(v int) {
 	g.gs.SetInt("audio-packet-frames", v)
 }
-func (g *GSettings) NotificationsEnabled() bool { return g.gs.Boolean("notification-enabled") }
-func (g *GSettings) SetNotificationsEnabled(v bool) {
-	g.gs.SetBoolean("notification-enabled", v)
+func (g *GSettings) NotifyPrivateMessages() bool { return g.gs.Boolean("notify-private-messages") }
+func (g *GSettings) SetNotifyPrivateMessages(v bool) {
+	g.gs.SetBoolean("notify-private-messages", v)
+}
+func (g *GSettings) NotifyReconnect() bool { return g.gs.Boolean("notify-reconnect") }
+func (g *GSettings) SetNotifyReconnect(v bool) {
+	g.gs.SetBoolean("notify-reconnect", v)
 }
 func (g *GSettings) AutoReconnect() bool     { return g.gs.Boolean("auto-reconnect") }
 func (g *GSettings) SetAutoReconnect(v bool) { g.gs.SetBoolean("auto-reconnect", v) }

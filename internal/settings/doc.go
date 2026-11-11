@@ -56,7 +56,8 @@
 //	global-shortcuts     GlobalShortcuts / SetGlobalShortcuts       (none: set when shortcuts are set up)
 //	color-scheme         ColorScheme / SetColorScheme               system, light or dark style
 //	language             Language / SetLanguage                     interface language ("" = system)
-//	notification-enabled NotificationsEnabled / SetNotifications   notifications switch
+//	notify-private-messages NotifyPrivateMessages / SetNotifyPrivateMessages private messages switch
+//	notify-reconnect     NotifyReconnect / SetNotifyReconnect       reconnected switch
 //	notify-channel-presence NotifyChannelPresence / SetNotifyChannelPresence channel join/leave switch
 //	notify-server-presence  NotifyServerPresence / SetNotifyServerPresence   server join/leave switch
 //	chat-log             ChatLogEvents / SetChatLogEvents           chat log switches

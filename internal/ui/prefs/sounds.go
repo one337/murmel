@@ -70,13 +70,13 @@ func builtinLabel(id string) string {
 // chooseFile is the sentinel choice of the "Choose File…" item.
 const chooseFile = "\x00choose"
 
-// soundsRow builds the "Sounds" expander: its switch is the
+// soundsRow builds the "Event sounds" expander: its switch is the
 // sounds-enabled key, each child row picks the sound of one event (off,
 // built-in, or an audio file) and has a preview button.
 func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window) *adw.ExpanderRow {
 	exp := adw.NewExpanderRow()
-	exp.SetTitle(tr("Sounds"))
-	exp.SetSubtitle(tr("Play a sound for connection, channel and message events"))
+	exp.SetTitle(tr("Event sounds"))
+	exp.SetSubtitle(tr("For connections, users, messages and push-to-talk"))
 	exp.SetShowEnableSwitch(true)
 	exp.SetEnableExpansion(st.SoundsEnabled())
 	coreglib.InternObject(exp).NotifyProperty("enable-expansion", func() {

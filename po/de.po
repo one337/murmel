@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 10:30+0100\n"
+"POT-Creation-Date: 2026-11-11 11:11+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1498,7 +1498,7 @@ msgstr "Unter der Schwelle"
 msgid "Private message from %s"
 msgstr "Private Nachricht von %s"
 
-#: internal/ui/notifications.go
+#: internal/ui/notifications.go internal/ui/prefs/window.go
 msgid "Reconnected"
 msgstr "Wieder verbunden"
 
@@ -1622,13 +1622,12 @@ msgid "Tick"
 msgstr "Tick"
 
 #: internal/ui/prefs/sounds.go
-msgid "Sounds"
-msgstr "Klänge"
+msgid "Event sounds"
+msgstr "Ereignistöne"
 
 #: internal/ui/prefs/sounds.go
-msgid "Play a sound for connection, channel and message events"
-msgstr ""
-"Bei Verbindungs-, Kanal- und Nachrichtenereignissen einen Klang abspielen"
+msgid "For connections, users, messages and push-to-talk"
+msgstr "Für Verbindungen, Benutzer, Nachrichten und Push-to-Talk"
 
 #: internal/ui/prefs/sounds.go
 msgid "Play"
@@ -1913,9 +1912,10 @@ msgstr "Solange %s gedrückt ist"
 
 #: internal/ui/prefs/window.go
 msgid "Your desktop offers no global shortcuts, so push-to-talk has no key"
-msgstr "Deine Arbeitsumgebung bietet keine globalen Tastenkürzel, Push-to-Talk hat daher keine Taste"
-"Deine Arbeitsumgebung bietet keine globalen Tastenkürzel an (Global-"
-"Shortcuts-Portal)."
+msgstr ""
+"Deine Arbeitsumgebung bietet keine globalen Tastenkürzel, Push-to-Talk hat "
+"daher keine TasteDeine Arbeitsumgebung bietet keine globalen Tastenkürzel an "
+"(Global-Shortcuts-Portal)."
 
 #: internal/ui/prefs/window.go
 msgid "No key yet: set it up under General → Global Shortcuts"
@@ -1998,17 +1998,20 @@ msgid "Reconnect automatically after a connection drop"
 msgstr "Nach einem Verbindungsabbruch automatisch neu verbinden"
 
 #: internal/ui/prefs/window.go
-msgid "Notifications"
-msgstr "Benachrichtigungen"
-
-#: internal/ui/prefs/window.go
-msgid "Desktop notifications"
+msgid "Desktop Notifications"
 msgstr "Desktop-Benachrichtigungen"
 
 #: internal/ui/prefs/window.go
-msgid "Private messages and reconnects while Murmel is in the background"
-msgstr ""
-"Private Nachrichten und Neuverbindungen, während Murmel im Hintergrund ist"
+msgid "While Murmel is not in the foreground"
+msgstr "Während Murmel nicht im Vordergrund ist"
+
+#: internal/ui/prefs/window.go
+msgid "Private messages"
+msgstr "Private Nachrichten"
+
+#: internal/ui/prefs/window.go
+msgid "When someone writes to you directly"
+msgstr "Wenn dir jemand direkt schreibt"
 
 #: internal/ui/prefs/window.go
 msgid "Users in my channel"
@@ -2025,6 +2028,14 @@ msgstr "Benutzer auf dem Server"
 #: internal/ui/prefs/window.go
 msgid "When someone connects to or disconnects from the server"
 msgstr "Wenn sich jemand mit dem Server verbindet oder trennt"
+
+#: internal/ui/prefs/window.go
+msgid "When the connection is restored after a drop"
+msgstr "Wenn die Verbindung nach einem Abbruch wiederhergestellt ist"
+
+#: internal/ui/prefs/window.go
+msgid "Sounds"
+msgstr "Töne"
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go
 msgid "System default"
@@ -2292,6 +2303,17 @@ msgstr "Das Mikrofon liefert keinen Ton mehr. Wähle ein anderes Eingabegerät."
 msgid "The output device is not playing audio. Choose another output device."
 msgstr ""
 "Das Ausgabegerät gibt keinen Ton wieder. Wähle ein anderes Ausgabegerät."
+
+#~ msgid "Play a sound for connection, channel and message events"
+#~ msgstr ""
+#~ "Bei Verbindungs-, Kanal- und Nachrichtenereignissen einen Klang abspielen"
+
+#~ msgid "Notifications"
+#~ msgstr "Benachrichtigungen"
+
+#~ msgid "Private messages and reconnects while Murmel is in the background"
+#~ msgstr ""
+#~ "Private Nachrichten und Neuverbindungen, während Murmel im Hintergrund ist"
 
 #~ msgid "While the push-to-talk shortcut is held"
 #~ msgstr "Solange die Push-to-Talk-Taste gedrückt ist"

@@ -91,20 +91,25 @@
       <summary>Voice quality</summary>
       <description>Opus bitrate for outgoing voice in kbit/s (32–192). Servers with a lower bandwidth limit reduce it automatically.</description>
     </key>
-    <key name="notification-enabled" type="b">
+    <key name="notify-private-messages" type="b">
       <default>true</default>
-      <summary>Show notifications</summary>
-      <description>Whether to show desktop notifications for events such as incoming private messages or user joins while the window is unfocused.</description>
+      <summary>Notify about private messages</summary>
+      <description>Show a desktop notification for a private message while Murmel is not in the foreground.</description>
     </key>
     <key name="notify-channel-presence" type="b">
       <default>false</default>
       <summary>Notify when users enter or leave my channel</summary>
-      <description>Show a desktop notification when another user joins or leaves the channel you are in. Requires notification-enabled.</description>
+      <description>Show a desktop notification when another user joins or leaves the channel you are in, while Murmel is not in the foreground.</description>
     </key>
     <key name="notify-server-presence" type="b">
       <default>false</default>
       <summary>Notify when users connect to or disconnect from the server</summary>
-      <description>Show a desktop notification when another user connects to or disconnects from the server. Requires notification-enabled.</description>
+      <description>Show a desktop notification when another user connects to or disconnects from the server, while Murmel is not in the foreground.</description>
+    </key>
+    <key name="notify-reconnect" type="b">
+      <default>true</default>
+      <summary>Notify about a restored connection</summary>
+      <description>Show a desktop notification when the connection was restored after a drop, while Murmel is not in the foreground.</description>
     </key>
     <key name="sounds-enabled" type="b">
       <default>true</default>

@@ -564,42 +564,35 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 	})
 	group.Add(reconnectRow)
 
+	// Which events notify; whether notifications show at all is the
+	// desktop's setting (Settings → Notifications).
 	notifGroup := adw.NewPreferencesGroup()
-	notifGroup.SetTitle(tr("Notifications"))
-
-	notifRow := adw.NewSwitchRow()
-	notifRow.SetTitle(tr("Desktop notifications"))
-	notifRow.SetSubtitle(tr("Private messages and reconnects while Murmel is in the background"))
-	notifRow.SetActive(st.NotificationsEnabled())
-	coreglib.InternObject(notifRow).NotifyProperty("active", func() {
-		st.SetNotificationsEnabled(notifRow.Active())
-	})
-	notifGroup.Add(notifRow)
-
-	presence := func(title, subtitle string, get func() bool, set func(bool)) *adw.SwitchRow {
+	notifGroup.SetTitle(tr("Desktop Notifications"))
+	notifGroup.SetDescription(tr("While Murmel is not in the foreground"))
+	notify := func(title, subtitle string, get func() bool, set func(bool)) {
 		row := adw.NewSwitchRow()
 		row.SetTitle(title)
 		row.SetSubtitle(subtitle)
 		row.SetActive(get())
-		row.SetSensitive(st.NotificationsEnabled())
 		coreglib.InternObject(row).NotifyProperty("active", func() { set(row.Active()) })
 		notifGroup.Add(row)
-		return row
 	}
-	channelRow := presence(tr("Users in my channel"),
-		tr("When someone joins or leaves your channel"),
+	notify(tr("Private messages"), tr("When someone writes to you directly"),
+		st.NotifyPrivateMessages, st.SetNotifyPrivateMessages)
+	notify(tr("Users in my channel"), tr("When someone joins or leaves your channel"),
 		st.NotifyChannelPresence, st.SetNotifyChannelPresence)
-	serverRow := presence(tr("Users on the server"),
-		tr("When someone connects to or disconnects from the server"),
+	notify(tr("Users on the server"), tr("When someone connects to or disconnects from the server"),
 		st.NotifyServerPresence, st.SetNotifyServerPresence)
-	coreglib.InternObject(notifRow).NotifyProperty("active", func() {
-		channelRow.SetSensitive(notifRow.Active())
-		serverRow.SetSensitive(notifRow.Active())
-	})
-	notifGroup.Add(soundsRow(st, player, parent))
+	notify(tr("Reconnected"), tr("When the connection is restored after a drop"),
+		st.NotifyReconnect, st.SetNotifyReconnect)
+
+	soundGroup := adw.NewPreferencesGroup()
+	soundGroup.SetTitle(tr("Sounds"))
+	soundGroup.Add(soundsRow(st, player, parent))
 
 	page.Add(group)
 	page.Add(notifGroup)
+	page.Add(soundGroup)
 	if sc != nil {
 		page.Add(shortcutsGroup(sc, pw))
 	}

@@ -90,10 +90,15 @@ var keySpecs = map[string]keySpec{
 		get: func(s Settings) any { return s.AudioQuality() },
 		set: func(s Settings, v any) { s.SetAudioQuality(v.(int)) },
 	},
-	"notification-enabled": {
-		key: "notification-enabled", gtype: "b", def: true, sample: false,
-		get: func(s Settings) any { return s.NotificationsEnabled() },
-		set: func(s Settings, v any) { s.SetNotificationsEnabled(v.(bool)) },
+	"notify-private-messages": {
+		key: "notify-private-messages", gtype: "b", def: true, sample: false,
+		get: func(s Settings) any { return s.NotifyPrivateMessages() },
+		set: func(s Settings, v any) { s.SetNotifyPrivateMessages(v.(bool)) },
+	},
+	"notify-reconnect": {
+		key: "notify-reconnect", gtype: "b", def: true, sample: false,
+		get: func(s Settings) any { return s.NotifyReconnect() },
+		set: func(s Settings, v any) { s.SetNotifyReconnect(v.(bool)) },
 	},
 	"notify-channel-presence": {
 		key: "notify-channel-presence", gtype: "b", def: false, sample: true,

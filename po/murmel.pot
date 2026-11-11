@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 10:30+0100\n"
+"POT-Creation-Date: 2026-11-11 11:11+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1438,7 +1438,7 @@ msgstr ""
 msgid "Private message from %s"
 msgstr ""
 
-#: internal/ui/notifications.go
+#: internal/ui/notifications.go internal/ui/prefs/window.go
 msgid "Reconnected"
 msgstr ""
 
@@ -1562,11 +1562,11 @@ msgid "Tick"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go
-msgid "Sounds"
+msgid "Event sounds"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go
-msgid "Play a sound for connection, channel and message events"
+msgid "For connections, users, messages and push-to-talk"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go
@@ -1908,15 +1908,19 @@ msgid "Reconnect automatically after a connection drop"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Notifications"
+msgid "Desktop Notifications"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Desktop notifications"
+msgid "While Murmel is not in the foreground"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Private messages and reconnects while Murmel is in the background"
+msgid "Private messages"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "When someone writes to you directly"
 msgstr ""
 
 #: internal/ui/prefs/window.go
@@ -1933,6 +1937,14 @@ msgstr ""
 
 #: internal/ui/prefs/window.go
 msgid "When someone connects to or disconnects from the server"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "When the connection is restored after a drop"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Sounds"
 msgstr ""
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go

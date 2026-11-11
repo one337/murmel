@@ -35,10 +35,11 @@ const (
 // truncated at a rune boundary with an ellipsis.
 const previewMaxRunes = 120
 
-// notifier implements the desktop notifications: private-message
-// notifications while the window is unfocused, and a
-// reconnected-after-drop notification. Both are gated by the
-// notification-enabled GSettings key. Channel messages never notify.
+// notifier implements the desktop notifications, each with its own
+// setting: private messages, users joining or leaving (the channel or the
+// server), and a restored connection after a drop. All of them only while
+// the window is not in the foreground; whether notifications show at all
+// is the desktop's setting. Channel messages never notify.
 //
 // Everything GTK-touching is funnelled through the sendNotification /
 // windowActive seams so the decision logic is testable without a display.
@@ -86,7 +87,7 @@ func (n *notifier) subscribe() {
 
 // onTextMessage notifies on private messages received while unfocused.
 func (n *notifier) onTextMessage(ev bus.TextMessage) {
-	if !n.settings.NotificationsEnabled() {
+	if !n.settings.NotifyPrivateMessages() {
 		return
 	}
 	state := n.bus.State()
@@ -118,7 +119,7 @@ func (n *notifier) onTextMessage(ev bus.TextMessage) {
 func (n *notifier) onConnected(bus.Connected) {
 	dropped := n.wasDropped
 	n.wasDropped = false
-	if !dropped || !n.settings.NotificationsEnabled() || n.windowActive() {
+	if !dropped || !n.settings.NotifyReconnect() || n.windowActive() {
 		return
 	}
 	n.sendNotification(
@@ -142,6 +143,9 @@ func (n *notifier) onDisconnected(ev bus.Disconnected) {
 // connect/disconnect is announced as a server event when those are
 // enabled, otherwise as a channel event if it happened in our channel.
 func (n *notifier) onPresence(ev presence.Event) {
+	if n.windowActive() {
+		return // the channel tree shows it
+	}
 	u := ev.User
 	switch ev.Kind {
 	case presence.UserConnected:
@@ -170,11 +174,11 @@ func (n *notifier) onPresence(ev presence.Event) {
 }
 
 func (n *notifier) wantChannelPresence() bool {
-	return n.settings.NotificationsEnabled() && n.settings.NotifyChannelPresence()
+	return n.settings.NotifyChannelPresence()
 }
 
 func (n *notifier) wantServerPresence() bool {
-	return n.settings.NotificationsEnabled() && n.settings.NotifyServerPresence()
+	return n.settings.NotifyServerPresence()
 }
 
 func (n *notifier) sendPresence(u bus.UserInfo, title, body string) {

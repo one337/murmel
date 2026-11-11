@@ -23,7 +23,8 @@ func memoryDefaults() map[string]any {
 		"echo-cancellation":       false,
 		"color-scheme":            "system",
 		"language":                "",
-		"notification-enabled":    true,
+		"notify-private-messages": true,
+		"notify-reconnect":        true,
 		"notify-channel-presence": false,
 		"notify-server-presence":  false,
 		"sounds-enabled":          true,
@@ -106,9 +107,13 @@ func (m *Memory) AudioPacketFrames() int { return m.get("audio-packet-frames").(
 func (m *Memory) SetAudioPacketFrames(v int) {
 	m.set("audio-packet-frames", v)
 }
-func (m *Memory) NotificationsEnabled() bool { return m.get("notification-enabled").(bool) }
-func (m *Memory) SetNotificationsEnabled(v bool) {
-	m.set("notification-enabled", v)
+func (m *Memory) NotifyPrivateMessages() bool { return m.get("notify-private-messages").(bool) }
+func (m *Memory) SetNotifyPrivateMessages(v bool) {
+	m.set("notify-private-messages", v)
+}
+func (m *Memory) NotifyReconnect() bool { return m.get("notify-reconnect").(bool) }
+func (m *Memory) SetNotifyReconnect(v bool) {
+	m.set("notify-reconnect", v)
 }
 func (m *Memory) AutoReconnect() bool       { return m.get("auto-reconnect").(bool) }
 func (m *Memory) SetAutoReconnect(v bool)   { m.set("auto-reconnect", v) }

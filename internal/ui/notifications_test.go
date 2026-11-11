@@ -12,7 +12,6 @@ import (
 func newTestNotifier(t *testing.T) (*notifier, *[]string) {
 	t.Helper()
 	st := settings.NewMemory()
-	st.SetNotificationsEnabled(true)
 	b := bus.New(nil)
 	t.Cleanup(b.Close)
 
@@ -92,14 +91,25 @@ func TestNotifierFocusedSuppressesPM(t *testing.T) {
 func TestNotifierSettingGate(t *testing.T) {
 	n, sent := newTestNotifier(t)
 	seedState(n, 1, bus.UserInfo{Session: 7, Name: "peerbot"})
-	n.settings.SetNotificationsEnabled(false)
-
+	n.settings.SetNotifyPrivateMessages(false)
 	n.onTextMessage(bus.TextMessage{Sender: 7, UserSessions: []uint32{1}, Message: "hi"})
+	if len(*sent) != 0 {
+		t.Fatalf("private messages switched off, got %v", *sent)
+	}
+
+	n.settings.SetNotifyReconnect(false)
 	n.onDisconnected(bus.Disconnected{Reason: bus.DisconnectError})
 	n.onConnected(bus.Connected{})
-
 	if len(*sent) != 0 {
-		t.Fatalf("disabled setting must suppress all notifications, got %v", *sent)
+		t.Fatalf("reconnect switched off, got %v", *sent)
+	}
+
+	// Each switch only covers its own event.
+	n.settings.SetNotifyReconnect(true)
+	n.onDisconnected(bus.Disconnected{Reason: bus.DisconnectError})
+	n.onConnected(bus.Connected{})
+	if len(*sent) != 1 {
+		t.Fatalf("reconnect on, private messages off: want 1 notification, got %v", *sent)
 	}
 }
 
@@ -271,5 +281,15 @@ func TestPresenceIgnoresInitialSync(t *testing.T) {
 	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "early"}})
 	if len(*sent) != 0 {
 		t.Fatalf("sync users notified: %v", *sent)
+	}
+}
+
+func TestPresenceQuietWhileFocused(t *testing.T) {
+	n, sent, pt := presenceNotifier(t, true, true)
+	n.windowActive = func() bool { return true }
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "new", Channel: 5}})
+	pt.OnUserRemoved(bus.UserRemoved{Session: 7})
+	if len(*sent) != 0 {
+		t.Fatalf("notified while Murmel is in the foreground: %v", *sent)
 	}
 }

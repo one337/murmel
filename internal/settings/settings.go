@@ -78,8 +78,13 @@ type Settings interface {
 	AudioQuality() int
 	SetAudioQuality(v int)
 
-	NotificationsEnabled() bool
-	SetNotificationsEnabled(v bool)
+	// Desktop notifications per event (shown while Murmel is not in the
+	// foreground; the desktop decides whether notifications show at all).
+	NotifyPrivateMessages() bool
+	SetNotifyPrivateMessages(v bool)
+
+	NotifyReconnect() bool
+	SetNotifyReconnect(v bool)
 
 	NotifyChannelPresence() bool
 	SetNotifyChannelPresence(v bool)
