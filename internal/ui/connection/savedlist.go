@@ -52,7 +52,7 @@ type savedRow struct {
 	up     *gio.SimpleAction
 	down   *gio.SimpleAction
 	users  *gtk.Label // "5/100" from the server's ping answer
-	ping   *gtk.Label // "12 ms", or "No answer"
+	dot    *gtk.Box   // green: answers, red: no answer, grey: checking
 	status *gtk.Box
 }
 
@@ -171,17 +171,19 @@ func (s *savedList) pingRow(ctx context.Context, r *savedRow) {
 // showPing shows a ping answer: users and round trip, or that the server
 // did not answer.
 func (r *savedRow) showPing(resp *gumble.PingResponse, err error) {
-	r.status.SetVisible(true)
+	r.dot.RemoveCSSClass("checking")
 	if err != nil || resp == nil {
+		r.dot.RemoveCSSClass("connected")
+		r.dot.AddCSSClass("disconnected")
 		r.users.SetVisible(false)
-		r.ping.SetText(tr("No answer"))
 		r.status.SetTooltipText(tr("The server did not answer. It may be offline, or it does not answer pings."))
 		return
 	}
+	r.dot.RemoveCSSClass("disconnected")
+	r.dot.AddCSSClass("connected")
 	ms := max(int(resp.Ping.Round(time.Millisecond)/time.Millisecond), 1)
 	r.users.SetVisible(true)
 	r.users.SetText(fmt.Sprintf("%d/%d", resp.ConnectedUsers, resp.MaximumUsers))
-	r.ping.SetText(fmt.Sprintf(tr("%d ms"), ms))
 	major, minor, _ := resp.Version.SemanticVersion()
 	r.status.SetTooltipText(fmt.Sprintf(tr("Mumble %d.%d · %d of %d users · %d ms"),
 		major, minor, resp.ConnectedUsers, resp.MaximumUsers, ms))
@@ -203,19 +205,23 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 	s.dragSource(r, handle)
 	s.dropTarget(r)
 
+	// Users online and a status dot like the connection dot of the main
+	// window; ping and server version in the tooltip.
 	r.users = gtk.NewLabel("")
-	r.ping = gtk.NewLabel("")
-	r.status = gtk.NewBox(gtk.OrientationVertical, 0)
+	r.users.AddCSSClass("caption")
+	r.users.AddCSSClass("numeric")
+	r.users.AddCSSClass("dim-label")
+	r.users.SetVisible(false)
+	r.dot = gtk.NewBox(gtk.OrientationHorizontal, 0)
+	r.dot.AddCSSClass("status-dot")
+	r.dot.AddCSSClass("checking")
+	r.dot.SetVAlign(gtk.AlignCenter)
+	r.status = gtk.NewBox(gtk.OrientationHorizontal, 10)
 	r.status.AddCSSClass("server-status")
 	r.status.SetVAlign(gtk.AlignCenter)
-	for _, l := range []*gtk.Label{r.users, r.ping} {
-		l.AddCSSClass("caption")
-		l.AddCSSClass("numeric")
-		l.AddCSSClass("dim-label")
-		l.SetXAlign(1)
-		r.status.Append(l)
-	}
-	r.status.SetVisible(false) // until the first answer
+	r.status.Append(r.users)
+	r.status.Append(r.dot)
+	r.status.SetTooltipText(tr("Checking the server…"))
 	r.row.AddSuffix(r.status)
 
 	actions := gio.NewSimpleActionGroup()

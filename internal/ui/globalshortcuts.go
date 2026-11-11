@@ -33,8 +33,8 @@ func shortcutList() []shortcuts.Shortcut {
 		{ID: shortcuts.PushToTalk, Description: tr("Push-to-talk")},
 		{ID: shortcuts.ToggleMute, Description: tr("Mute or unmute the microphone")},
 		{ID: shortcuts.ToggleDeafen, Description: tr("Turn the sound off or on")},
-		{ID: shortcuts.PreviousChannel, Description: tr("Join the previous channel")},
-		{ID: shortcuts.NextChannel, Description: tr("Join the next channel")},
+		{ID: shortcuts.PreviousChannel, Description: tr("Move one channel up")},
+		{ID: shortcuts.NextChannel, Description: tr("Move one channel down")},
 	}
 }
 

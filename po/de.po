@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 09:49+0100\n"
+"POT-Creation-Date: 2026-11-11 10:08+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1352,20 +1352,11 @@ msgid "Saved Connections"
 msgstr "Gespeicherte Verbindungen"
 
 #: internal/ui/connection/savedlist.go
-msgid "No answer"
-msgstr "Keine Antwort"
-
-#: internal/ui/connection/savedlist.go
 msgid ""
 "The server did not answer. It may be offline, or it does not answer pings."
 msgstr ""
 "Der Server hat nicht geantwortet. Er ist vielleicht offline oder beantwortet "
 "keine Pings."
-
-#: internal/ui/connection/savedlist.go internal/ui/prefs/window.go
-#, go-format
-msgid "%d ms"
-msgstr "%d ms"
 
 #: internal/ui/connection/savedlist.go
 #, go-format
@@ -1375,6 +1366,10 @@ msgstr "Mumble %d.%d · %d von %d Benutzern · %d ms"
 #: internal/ui/connection/savedlist.go
 msgid "Drag to reorder"
 msgstr "Zum Sortieren ziehen"
+
+#: internal/ui/connection/savedlist.go
+msgid "Checking the server…"
+msgstr "Server wird geprüft …"
 
 #: internal/ui/connection/savedlist.go
 msgid "Forget Connection"
@@ -1397,12 +1392,12 @@ msgid "Turn the sound off or on"
 msgstr "Ton aus- oder einschalten"
 
 #: internal/ui/globalshortcuts.go
-msgid "Join the previous channel"
-msgstr "Vorherigen Kanal betreten"
+msgid "Move one channel up"
+msgstr "Einen Kanal nach oben wechseln"
 
 #: internal/ui/globalshortcuts.go
-msgid "Join the next channel"
-msgstr "Nächsten Kanal betreten"
+msgid "Move one channel down"
+msgstr "Einen Kanal nach unten wechseln"
 
 #: internal/ui/identities/create.go
 msgid "E-mail (optional)"
@@ -1892,6 +1887,11 @@ msgstr ""
 "Standard: 20 ms"
 
 #: internal/ui/prefs/window.go
+#, go-format
+msgid "%d ms"
+msgstr "%d ms"
+
+#: internal/ui/prefs/window.go
 msgid "Quality (kb/s)"
 msgstr "Qualität (kb/s)"
 
@@ -1916,11 +1916,15 @@ msgstr "Globale Tastenkürzel"
 msgid ""
 "Work while another window has the focus. The keys are assigned in your "
 "desktop's dialog."
-msgstr "Funktionieren auch, wenn ein anderes Fenster im Vordergrund ist. Die Tasten legst du im Dialog deiner Arbeitsumgebung fest."
+msgstr ""
+"Funktionieren auch, wenn ein anderes Fenster im Vordergrund ist. Die Tasten "
+"legst du im Dialog deiner Arbeitsumgebung fest."
 
 #: internal/ui/prefs/window.go
 msgid "Your desktop offers no global shortcuts (Global Shortcuts portal)."
-msgstr "Deine Arbeitsumgebung bietet keine globalen Tastenkürzel an (Global-Shortcuts-Portal)."
+msgstr ""
+"Deine Arbeitsumgebung bietet keine globalen Tastenkürzel an (Global-"
+"Shortcuts-Portal)."
 
 #: internal/ui/prefs/window.go
 msgid "Change…"
@@ -2231,3 +2235,12 @@ msgstr "Das Mikrofon liefert keinen Ton mehr. Wähle ein anderes Eingabegerät."
 msgid "The output device is not playing audio. Choose another output device."
 msgstr ""
 "Das Ausgabegerät gibt keinen Ton wieder. Wähle ein anderes Ausgabegerät."
+
+#~ msgid "No answer"
+#~ msgstr "Keine Antwort"
+
+#~ msgid "Join the previous channel"
+#~ msgstr "Vorherigen Kanal betreten"
+
+#~ msgid "Join the next channel"
+#~ msgstr "Nächsten Kanal betreten"

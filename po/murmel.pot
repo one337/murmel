@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 09:49+0100\n"
+"POT-Creation-Date: 2026-11-11 10:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1304,17 +1304,8 @@ msgid "Saved Connections"
 msgstr ""
 
 #: internal/ui/connection/savedlist.go
-msgid "No answer"
-msgstr ""
-
-#: internal/ui/connection/savedlist.go
 msgid ""
 "The server did not answer. It may be offline, or it does not answer pings."
-msgstr ""
-
-#: internal/ui/connection/savedlist.go internal/ui/prefs/window.go
-#, go-format
-msgid "%d ms"
 msgstr ""
 
 #: internal/ui/connection/savedlist.go
@@ -1324,6 +1315,10 @@ msgstr ""
 
 #: internal/ui/connection/savedlist.go
 msgid "Drag to reorder"
+msgstr ""
+
+#: internal/ui/connection/savedlist.go
+msgid "Checking the server…"
 msgstr ""
 
 #: internal/ui/connection/savedlist.go
@@ -1347,11 +1342,11 @@ msgid "Turn the sound off or on"
 msgstr ""
 
 #: internal/ui/globalshortcuts.go
-msgid "Join the previous channel"
+msgid "Move one channel up"
 msgstr ""
 
 #: internal/ui/globalshortcuts.go
-msgid "Join the next channel"
+msgid "Move one channel down"
 msgstr ""
 
 #: internal/ui/identities/create.go
@@ -1811,6 +1806,11 @@ msgstr ""
 
 #: internal/ui/prefs/window.go
 msgid "Longer packets need less bandwidth but add delay. Default: 20 ms"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+#, go-format
+msgid "%d ms"
 msgstr ""
 
 #: internal/ui/prefs/window.go

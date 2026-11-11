@@ -120,6 +120,13 @@ menubutton.dropdown-arrow > button {
   background-color: #e01b24;
   box-shadow: 0 0 0 3px alpha(#e01b24, 0.2);
 }
+/* A saved server not answered yet. */
+.status-dot.checking {
+  background-color: alpha(currentColor, 0.25);
+}
+.server-status {
+  margin: 0 4px;
+}
 
 /* Saved connections list in the connect dialog: keep the rounded card
  * corners when the list scrolls. */
