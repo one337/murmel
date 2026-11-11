@@ -216,5 +216,7 @@ translation is described in [po/README.md](po/README.md).
 ## License
 
 Murmel, including its app icon, is licensed under GPL-3.0-or-later, see
-[LICENSE](LICENSE).
+[LICENSE](LICENSE). The two user icons in `data/icons/symbolic` are built
+from the [GNOME Icon Development Kit](https://gitlab.gnome.org/Teams/Design/icon-development-kit)
+(CC0-1.0).
 Murmel is not affiliated with the Mumble project.

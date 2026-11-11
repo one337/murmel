@@ -24,9 +24,10 @@ const (
 	iconRecording         = "media-record-symbolic"
 	iconCurrentChannel    = "mark-location-symbolic"
 	iconDragHandle        = "list-drag-handle-symbolic"
-	iconLocalMuted        = "audio-volume-muted-symbolic"
-	iconLocalQuieter      = "audio-volume-low-symbolic"
-	iconLocalLouder       = "audio-volume-overamplified-symbolic"
+	// Volume set for oneself (shipped in the GResource, see
+	// data/icons/symbolic).
+	iconLocalVolume = "user-volume-symbolic"
+	iconLocalMuted  = "user-local-muted-symbolic"
 
 	avatarSizePx     = 32
 	indentPerDepthPx = 16
@@ -288,8 +289,8 @@ func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
 }
 
 // setLocalAudio shows the volume set for oneself: nothing at 100 %, a
-// quieter or louder speaker otherwise, a crossed-out one in the error
-// colour when muted for oneself.
+// person with a speaker otherwise (the level in the tooltip), a crossed-out
+// person in the error colour when muted for oneself.
 func (r *userRowWidgets) setLocalAudio(a localAudio) {
 	r.localAudio.RemoveCSSClass("local-muted")
 	switch {
@@ -297,11 +298,8 @@ func (r *userRowWidgets) setLocalAudio(a localAudio) {
 		r.localAudio.SetFromIconName(iconLocalMuted)
 		r.localAudio.AddCSSClass("local-muted")
 		r.localAudio.SetTooltipText(tr("Muted for you"))
-	case a.volume < 1:
-		r.localAudio.SetFromIconName(iconLocalQuieter)
-		r.localAudio.SetTooltipText(fmt.Sprintf(tr("Volume for you: %d %%"), percent(a.volume)))
-	case a.volume > 1:
-		r.localAudio.SetFromIconName(iconLocalLouder)
+	case a.volume != 1:
+		r.localAudio.SetFromIconName(iconLocalVolume)
 		r.localAudio.SetTooltipText(fmt.Sprintf(tr("Volume for you: %d %%"), percent(a.volume)))
 	}
 	r.localAudio.SetVisible(a.muted || a.volume != 1)
