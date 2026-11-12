@@ -21,10 +21,26 @@ jobs:
       # here, as tools/testbuild.sh does for Flatpak builds.
       - name: Version
         run: tools/version.sh > build-version && cat build-version
+      # The build installs LXD, Snapcraft and the build snaps from the Snap
+      # Store, which at times does not answer GitHub's runners; up to three
+      # attempts, a minute apart.
       - uses: snapcore/action-build@v1
-        id: build
+        id: build1
+        continue-on-error: true
+      - if: steps.build1.outcome == 'failure'
+        run: sleep 60
+      - uses: snapcore/action-build@v1
+        id: build2
+        if: steps.build1.outcome == 'failure'
+        continue-on-error: true
+      - if: steps.build2.outcome == 'failure'
+        run: sleep 60
+      - uses: snapcore/action-build@v1
+        id: build3
+        if: steps.build2.outcome == 'failure'
       - uses: actions/upload-artifact@v4
         with:
           name: murmel-snap
-          path: ${{ steps.build.outputs.snap }}
+          path: ${{ steps.build1.outputs.snap || steps.build2.outputs.snap || steps.build3.outputs.snap }}
           retention-days: 7
+          if-no-files-found: error
