@@ -69,10 +69,6 @@ parts:
     override-build: |
       export CGO_ENABLED=1 GOFLAGS=-mod=vendor
       tools/install.sh --prefix /usr --destdir "$CRAFT_PART_INSTALL"
-      # Snaps start from the desktop file's Exec line; the session bus
-      # cannot activate a snap's app by its ID.
-      sed -i '/^DBusActivatable=/d' "$CRAFT_PART_INSTALL/usr/share/applications/io.github.one337.murmel.desktop"
-      rm -r "$CRAFT_PART_INSTALL/usr/share/dbus-1"
       glib-compile-schemas "$CRAFT_PART_INSTALL/usr/share/glib-2.0/schemas"
       craftctl set version="$(tools/version.sh)"
     parse-info: [usr/share/metainfo/io.github.one337.murmel.metainfo.xml]
