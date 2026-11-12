@@ -36,10 +36,15 @@ slots:
     name: io.github.one337.murmel
 
 parts:
-  # The GNOME content snap has only version 1.x; Murmel needs 2.x.
+  # The GNOME content snap has only version 1.x; Murmel needs 2.x. The
+  # 2.1 release does not build with Ubuntu 26.04's abseil and GCC 15; the
+  # upstream fixes for both are in git after 2.1 (Fedora applies them as
+  # patches).
   webrtc-audio-processing:
     plugin: meson
-    source: https://freedesktop.org/software/pulseaudio/webrtc-audio-processing/webrtc-audio-processing-2.1.tar.xz
+    source: https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing.git
+    source-type: git
+    source-commit: d0569cfa50c1858ee279d77b3fc8870be6902441
     meson-parameters:
       - --prefix=/usr
       - --buildtype=release
