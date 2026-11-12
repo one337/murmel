@@ -1,0 +1,30 @@
+# Test builds of the snap (branch snap only; nothing is uploaded to the
+# store). The .snap is kept as a workflow artifact for a few days.
+name: snap
+
+on:
+  push:
+    branches: [snap]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      # Snapcraft builds from a copy without .git; the version is fixed
+      # here, as tools/testbuild.sh does for Flatpak builds.
+      - name: Version
+        run: tools/version.sh > build-version && cat build-version
+      - uses: snapcore/action-build@v1
+        id: build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: murmel-snap
+          path: ${{ steps.build.outputs.snap }}
+          retention-days: 7

@@ -1,0 +1,78 @@
+name: murmel
+title: Murmel
+summary: Mumble voice chat client for GNOME
+description: |
+  Murmel is a client for Mumble voice chat servers, made for the GNOME
+  desktop.
+base: core26
+grade: stable
+confinement: strict
+adopt-info: murmel
+license: GPL-3.0-or-later AND MPL-2.0 AND BSD-3-Clause AND MIT AND Unlicense AND CC0-1.0
+
+platforms:
+  amd64:
+
+apps:
+  murmel:
+    command: usr/bin/murmel
+    extensions: [gnome]
+    common-id: io.github.one337.murmel
+    desktop: usr/share/applications/io.github.one337.murmel.desktop
+    plugs:
+      - network
+      - audio-playback
+      - audio-record
+      - password-manager-service
+    slots:
+      - dbus-murmel
+
+slots:
+  # GApplication owns the app ID on the session bus (single instance,
+  # mumble:// links to the running window).
+  dbus-murmel:
+    interface: dbus
+    bus: session
+    name: io.github.one337.murmel
+
+parts:
+  # The GNOME content snap has only version 1.x; Murmel needs 2.x.
+  webrtc-audio-processing:
+    plugin: meson
+    source: https://freedesktop.org/software/pulseaudio/webrtc-audio-processing/webrtc-audio-processing-2.1.tar.xz
+    meson-parameters:
+      - --prefix=/usr
+      - --buildtype=release
+    build-packages:
+      - libabsl-dev
+    stage-packages:
+      - libabsl-dev
+    # The .pc file names /usr; Murmel's part finds it in the stage.
+    override-build: |
+      craftctl default
+      sed -i "s|^prefix=.*|prefix=$CRAFT_STAGE/usr|" \
+        "$CRAFT_PART_INSTALL"/usr/lib/*/pkgconfig/webrtc-audio-processing-2.pc
+    prime:
+      - usr/lib/*/libwebrtc-audio-processing-2.so.*
+      - usr/lib/*/libabsl_*.so.*
+
+  murmel:
+    after: [webrtc-audio-processing]
+    plugin: nil
+    source: .
+    build-snaps:
+      - go/1.27/stable
+    build-packages:
+      - libopus-dev
+      - libabsl-dev
+      - gettext
+    override-build: |
+      export CGO_ENABLED=1 GOFLAGS=-mod=vendor
+      tools/install.sh --prefix /usr --destdir "$CRAFT_PART_INSTALL"
+      # Snaps start from the desktop file's Exec line; the session bus
+      # cannot activate a snap's app by its ID.
+      sed -i '/^DBusActivatable=/d' "$CRAFT_PART_INSTALL/usr/share/applications/io.github.one337.murmel.desktop"
+      rm -r "$CRAFT_PART_INSTALL/usr/share/dbus-1"
+      glib-compile-schemas "$CRAFT_PART_INSTALL/usr/share/glib-2.0/schemas"
+      craftctl set version="$(tools/version.sh)"
+    parse-info: [usr/share/metainfo/io.github.one337.murmel.metainfo.xml]
