@@ -3,12 +3,13 @@ Type=Application
 Name=Murmel
 Comment=Voice chat on Mumble servers
 Comment[de]=Sprachchat auf Mumble-Servern
-Exec=murmel
+Exec=murmel %U
 Icon=io.github.one337.murmel
 Terminal=false
 Categories=Network;InstantMessaging;
 # mumble:// URL activation: GApplication remote-open (second instance) and
-# org.freedesktop.Application Open (xdg-open) both prefill the connect dialog.
+# org.freedesktop.Application Open (xdg-open) both prefill the connect dialog;
+# %U covers launchers without D-Bus activation (e.g. snaps).
 MimeType=x-scheme-handler/mumble;
 # Activated over the session bus under the application id; xdg-mime default
 # registration ships with the packaging.
