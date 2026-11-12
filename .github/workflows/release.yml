@@ -1,0 +1,74 @@
+# Creates the GitHub release for a pushed release tag. The release notes
+# are the same as in the app's metainfo (the Flatpak and software
+# centers show those), read from the tagged commit.
+name: release
+
+on:
+  push:
+    tags: ['v[0-9]*']
+  # Manual start for a tag that has no release yet; creates a draft to
+  # check and publish by hand.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag, e.g. v0.3.10'
+        required: true
+      draft:
+        description: 'Create as draft'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      DRAFT: ${{ github.event_name == 'workflow_dispatch' && inputs.draft }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+
+      - name: Release notes from the metainfo
+        run: |
+          set -euo pipefail
+          version=${TAG#v}
+          python3 - "$version" packaging/*.metainfo.xml > notes.md <<'PY'
+          import re, sys
+          import xml.etree.ElementTree as ET
+
+          version, paths = sys.argv[1], sys.argv[2:]
+          if len(paths) != 1:
+              sys.exit(f"expected one metainfo file, found {paths}")
+          rel = ET.parse(paths[0]).getroot().find(f"releases/release[@version='{version}']")
+          if rel is None:
+              sys.exit(f"no release {version} in {paths[0]}")
+          items = rel.findall("description/ul/li")
+          if not items:
+              sys.exit(f"release {version} has no notes")
+          for li in items:
+              text = " ".join("".join(li.itertext()).split())
+              # Escape Markdown so the text reads exactly as in the metainfo.
+              print("- " + re.sub(r"([\\`*_{}\[\]<>()#+!|~])", r"\\\1", text))
+          print()
+          print("Installation: see the [website](https://simon-tschoep.de/software/murmel/) "
+                "or the [README](https://github.com/one337/murmel#install).")
+          PY
+          cat notes.md
+
+      - name: Create the release
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::release $TAG exists already"
+            exit 1
+          fi
+          args=(--verify-tag --title "Murmel ${TAG#v}" --notes-file notes.md)
+          if [ "$DRAFT" = true ]; then
+            args+=(--draft)
+          fi
+          gh release create "$TAG" "${args[@]}"
