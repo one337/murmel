@@ -84,8 +84,8 @@ Updates then arrive through GNOME Software or `flatpak update`.
 
 Server passwords: the Flatpak keeps them in its own encrypted storage,
 with a key from the desktop's Secret portal (shown as "Secret Portal
-Token" in the keyring); RPM and source installs keep them in the desktop
-keyring.
+Token" in the keyring); RPM, Nix and source installs keep them in the
+desktop keyring.
 
 On Fedora, Murmel is also available as an RPM from
 [Copr](https://copr.fedorainfracloud.org/coprs/one337/murmel/):
@@ -95,10 +95,32 @@ sudo dnf copr enable one337/murmel
 sudo dnf install murmel
 ```
 
+On NixOS (26.05 or newer) and elsewhere with Nix, the repository is a
+flake. To try Murmel without installing it:
+
+```sh
+nix run github:one337/murmel
+```
+
+To install it into the user profile, and to update it later:
+
+```sh
+nix profile add github:one337/murmel
+nix profile upgrade murmel
+```
+
+Where flakes are not enabled yet, add
+`--extra-experimental-features 'nix-command flakes'` to these commands.
+
+> [!NOTE]
+> If the user profile did not exist before, Murmel appears in the app
+> launcher only after logging in again.
+
 ## Building from source
 
-Murmel needs a current GNOME stack (GTK 4 and Libadwaita 1.10, as in
-Fedora 45 or GNOME 51), Go 1.27 or newer and WebRTC audio processing 2.x.
+Murmel needs a current GNOME stack (GTK 4.22 and Libadwaita 1.9 or
+newer, as in Fedora 45 or NixOS 26.05), Go 1.27 or newer and WebRTC audio
+processing 2.x.
 Where the distribution is older, the [Flatpak](#flatpak) build is the
 easier way. At runtime it uses PulseAudio or PipeWire (with
 `pipewire-pulse`).
