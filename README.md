@@ -67,54 +67,31 @@ the channel's cover image.
 
 ## Install
 
-Murmel is distributed as a Flatpak from its own repository. Only Flatpak
-itself is needed; the GNOME runtime comes from Flathub, which Flatpak offers
-to add during the installation if it is not set up yet:
+**Flatpak** (any distribution, requires [Flatpak](https://flatpak.org/setup/)):
 
 ```sh
 flatpak install --user https://simon-tschoep.de/software/murmel/io.github.one337.murmel.flatpakref
-flatpak run io.github.one337.murmel
 ```
 
-Updates then arrive through GNOME Software or `flatpak update`.
-
-> [!NOTE]
-> If Flatpak was not installed before, you may have to restart the computer
-> before Murmel starts from the app grid.
-
-Server passwords: the Flatpak keeps them in its own encrypted storage,
-with a key from the desktop's Secret portal (shown as "Secret Portal
-Token" in the keyring); RPM, Nix and source installs keep them in the
-desktop keyring.
-
-On Fedora, Murmel is also available as an RPM from
-[Copr](https://copr.fedorainfracloud.org/coprs/one337/murmel/):
+**Fedora** (RPM from [Copr](https://copr.fedorainfracloud.org/coprs/one337/murmel/)):
 
 ```sh
 sudo dnf copr enable one337/murmel
 sudo dnf install murmel
 ```
 
-On NixOS (26.05 or newer) and elsewhere with Nix, the repository is a
-flake. To try Murmel without installing it:
-
-```sh
-nix run github:one337/murmel
-```
-
-To install it into the user profile, and to update it later:
+**NixOS** (requires [flakes](https://wiki.nixos.org/wiki/Flakes)):
 
 ```sh
 nix profile add github:one337/murmel
-nix profile upgrade murmel
 ```
 
-Where flakes are not enabled yet, add
-`--extra-experimental-features 'nix-command flakes'` to these commands.
+Updates arrive through the Software app, `flatpak update`, `dnf upgrade`
+or `nix profile upgrade murmel`.
 
 > [!NOTE]
-> If the user profile did not exist before, Murmel appears in the app
-> launcher only after logging in again.
+> After the first Flatpak or Nix installation on a system, Murmel may only
+> appear in the app grid after logging in again.
 
 ## Building from source
 
