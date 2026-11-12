@@ -202,6 +202,8 @@ commit, builds a signed Flatpak repository into `web/` (with
 uploads it to the website (`--upload` repeats only the upload). Settings
 are in `tools/release.conf` and an untracked `tools/release.local.conf`
 (upload target); the signing key is kept outside the repository.
+Pushing the tag then starts the Copr build and creates the GitHub release
+with the same notes.
 
 ## Contributing
 

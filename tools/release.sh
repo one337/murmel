@@ -12,6 +12,8 @@
 #
 # A release ends by uploading web/ to the server configured in
 # tools/release.conf (an SFTP location mounted via GVfs).
+# Pushing the tag (git push origin refs/tags/v<version>) then starts the
+# Copr build and creates the GitHub release (.github/workflows/).
 #
 # web/ afterwards holds everything to upload (rsync it as a whole):
 #   repo/                              signed OSTree Flatpak repository
