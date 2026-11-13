@@ -39,7 +39,8 @@ parts:
   # The GNOME content snap has only version 1.x; Murmel needs 2.x. The
   # 2.1 release does not build with Ubuntu 26.04's abseil and GCC 15; the
   # upstream fixes for both are in git after 2.1 (Fedora applies them as
-  # patches).
+  # patches). abseil is linked in statically, so no abseil libraries ship
+  # in the snap.
   webrtc-audio-processing:
     plugin: meson
     source: https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing.git
@@ -48,9 +49,8 @@ parts:
     meson-parameters:
       - --prefix=/usr
       - --buildtype=release
+      - -Dprefer_static=true
     build-packages:
-      - libabsl-dev
-    stage-packages:
       - libabsl-dev
     # The .pc file names /usr; Murmel's part finds it in the stage.
     override-build: |
@@ -59,7 +59,6 @@ parts:
         "$CRAFT_PART_INSTALL"/usr/lib/*/pkgconfig/webrtc-audio-processing-2.pc
     prime:
       - usr/lib/*/libwebrtc-audio-processing-2.so.*
-      - usr/lib/*/libabsl_*.so.*
 
   murmel:
     after: [webrtc-audio-processing]
