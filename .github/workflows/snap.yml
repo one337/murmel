@@ -1,11 +1,17 @@
-# Test builds of the snap (branch snap only; nothing is uploaded to the
-# store). The .snap is kept as a workflow artifact for a few days.
+# Builds the snap for a pushed release tag and publishes it to the stable
+# channel of the Snap Store, as Copr does for the RPM.
 name: snap
 
 on:
   push:
-    branches: [snap]
+    tags: ['v[0-9]*']
+  # Manual start for a tag whose snap is missing (e.g. the store did not
+  # answer during the release).
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag, e.g. v0.3.11'
+        required: true
 
 permissions:
   contents: read
@@ -16,9 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
           fetch-depth: 0
       # Snapcraft builds from a copy without .git; the version is fixed
-      # here, as tools/testbuild.sh does for Flatpak builds.
+      # here, as tools/release.sh does for Flatpak builds.
       - name: Version
         run: tools/version.sh > build-version && cat build-version
       # The build installs LXD, Snapcraft and the build snaps from the Snap
@@ -38,9 +45,9 @@ jobs:
       - uses: snapcore/action-build@v1
         id: build3
         if: steps.build2.outcome == 'failure'
-      - uses: actions/upload-artifact@v4
+      - uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
-          name: murmel-snap
-          path: ${{ steps.build1.outputs.snap || steps.build2.outputs.snap || steps.build3.outputs.snap }}
-          retention-days: 7
-          if-no-files-found: error
+          snap: ${{ steps.build1.outputs.snap || steps.build2.outputs.snap || steps.build3.outputs.snap }}
+          release: stable
