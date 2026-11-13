@@ -5,6 +5,7 @@ name: snap
 on:
   push:
     tags: ['v[0-9]*']
+    branches: [snap]
   # Manual start for a tag whose snap is missing (e.g. the store did not
   # answer during the release).
   workflow_dispatch:
@@ -22,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: ${{ github.ref }}
           fetch-depth: 0
       # Snapcraft builds from a copy without .git; the version is fixed
       # here, as tools/release.sh does for Flatpak builds.
@@ -50,4 +51,4 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
           snap: ${{ steps.build1.outputs.snap || steps.build2.outputs.snap || steps.build3.outputs.snap }}
-          release: stable
+          release: edge
