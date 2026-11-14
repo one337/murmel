@@ -1432,13 +1432,13 @@ func (c *Controller) makeVerifyCallback() certs.VerifyCallback {
 		case certs.VerifyMatch:
 			return nil // already pinned — proceed silently
 		case certs.VerifyNew:
-			trusted := c.blockForTOFUDialog(false, presented.Fingerprint)
+			trusted := c.blockForTOFUDialog(nil, presented)
 			if !trusted {
 				return errDeclinedTOFU
 			}
 			return nil
 		case certs.VerifyChanged:
-			trusted := c.blockForTOFUDialog(true, presented.Fingerprint)
+			trusted := c.blockForTOFUDialog(&stored, presented)
 			if !trusted {
 				return errDeclinedTOFU
 			}
@@ -1449,38 +1449,42 @@ func (c *Controller) makeVerifyCallback() certs.VerifyCallback {
 }
 
 // blockForTOFUDialog shows a TOFU dialog on the main loop and blocks the
-// caller (which runs on a goroutine) until the user responds.
-func (c *Controller) blockForTOFUDialog(changed bool, fingerprint string) bool {
+// caller (which runs on a goroutine) until the user responds. stored is the
+// previously trusted certificate when it changed, nil for a new server.
+func (c *Controller) blockForTOFUDialog(stored *certs.ServerEntry, presented certs.ServerEntry) bool {
 	ch := make(chan bool, 1)
 	glib.IdleAdd(func() bool {
-		c.showTOFUDialog(changed, fingerprint, ch)
+		c.showTOFUDialog(stored, presented, ch)
 		return false
 	})
 	return <-ch
 }
 
-func (c *Controller) showTOFUDialog(changed bool, fingerprint string, ch chan<- bool) {
+func (c *Controller) showTOFUDialog(stored *certs.ServerEntry, presented certs.ServerEntry, ch chan<- bool) {
+	changed := stored != nil
 	var heading, body string
 	if changed {
 		heading = tr("Server Certificate Changed")
 		body = fmt.Sprintf(
-			tr("The server's certificate has changed.\n\nNew fingerprint:\n%s\n\nOnly continue if you trust this certificate."),
-			groupedHex(fingerprint))
+			tr("The server's certificate has changed.\n\nPreviously trusted fingerprint (since %s):\n%s\n\nNew fingerprint:\n%s\n\nOnly continue if you trust this certificate."),
+			localDate(stored.FirstSeen), groupedHex(stored.Fingerprint), groupedHex(presented.Fingerprint))
 	} else {
 		heading = tr("New Server Certificate")
 		body = fmt.Sprintf(
 			tr("This server's certificate has not been seen before.\n\nFingerprint:\n%s\n\nTrust and connect?"),
-			groupedHex(fingerprint))
+			groupedHex(presented.Fingerprint))
 	}
 
 	alert := adw.NewAlertDialog(heading, body)
 	alert.AddResponse("abort", tr("Cancel"))
 	alert.AddResponse("trust", tr("Trust and Connect"))
-	alert.SetDefaultResponse("trust")
 	alert.SetCloseResponse("abort")
 	if changed {
+		// Enter must not accept a changed certificate.
+		alert.SetDefaultResponse("abort")
 		alert.SetResponseAppearance("trust", adw.ResponseDestructive)
 	} else {
+		alert.SetDefaultResponse("trust")
 		alert.SetResponseAppearance("trust", adw.ResponseSuggested)
 	}
 	alert.ConnectResponse(func(resp string) {
@@ -1528,6 +1532,11 @@ func (c *Controller) showErrorDialog(class errorClass, err error) {
 }
 
 // --- Helpers ---------------------------------------------------------------
+
+// localDate formats t as a date in the user's locale (e.g. 14.11.2026).
+func localDate(t time.Time) string {
+	return glib.NewDateTimeFromUnixLocal(t.Unix()).Format("%x")
+}
 
 // groupedHex inserts a space every 2 hex characters for readability.
 func groupedHex(fp string) string {
