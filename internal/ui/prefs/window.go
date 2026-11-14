@@ -146,9 +146,9 @@ func (c *certList) listGroup() *adw.PreferencesGroup {
 		identities.Import(&c.pw.Window.Window, c.m, func(meta certs.IdentityMeta) {
 			c.st.SetLastIdentity(meta.ID)
 			c.refresh()
-			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
+			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
 		}, func(err error) {
-			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Import failed: %v"), err)))
+			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Import failed: %v"), err)))
 		})
 	})
 	buttons := gtk.NewBox(gtk.OrientationHorizontal, 6)
@@ -202,8 +202,17 @@ func (c *certList) add(w gtk.Widgetter) {
 	c.rows = append(c.rows, w)
 }
 
+// plainToast is a toast whose text is shown as written: identity names
+// and error messages may contain & or <.
+func plainToast(text string) *adw.Toast {
+	t := adw.NewToast(text)
+	t.SetUseMarkup(false)
+	return t
+}
+
 func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	row := adw.NewActionRow()
+	row.SetUseMarkup(false) // name and e-mail may come from an imported certificate
 	row.SetTitle(meta.Name)
 	sub := fmt.Sprintf(tr("Created %s"), meta.Created.Local().Format("2006-01-02"))
 	if ident, err := c.m.Load(meta.ID); err == nil && ident.Certificate != nil {
@@ -222,10 +231,10 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	export.ConnectClicked(func() {
 		identities.Export(&c.pw.Window.Window, c.m, meta, func(err error) {
 			if err != nil {
-				c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Export failed: %v"), err)))
+				c.pw.AddToast(plainToast(fmt.Sprintf(tr("Export failed: %v"), err)))
 				return
 			}
-			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Exported identity %s"), meta.Name)))
+			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Exported identity %s"), meta.Name)))
 		})
 	})
 	del := gtk.NewButtonFromIconName("user-trash-symbolic")
@@ -251,14 +260,14 @@ func (c *certList) confirmDelete(meta certs.IdentityMeta) {
 			return
 		}
 		if err := c.m.Delete(meta.ID); err != nil {
-			c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Delete failed: %v"), err)))
+			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Delete failed: %v"), err)))
 			return
 		}
 		if c.st.LastIdentity() == meta.ID {
 			c.st.SetLastIdentity("")
 		}
 		c.refresh()
-		c.pw.AddToast(adw.NewToast(fmt.Sprintf(tr("Deleted identity %s"), meta.Name)))
+		c.pw.AddToast(plainToast(fmt.Sprintf(tr("Deleted identity %s"), meta.Name)))
 	})
 	alert.Present(c.pw)
 }

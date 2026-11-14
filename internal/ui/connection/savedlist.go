@@ -191,6 +191,7 @@ func (r *savedRow) showPing(resp *gumble.PingResponse, err error) {
 
 func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 	r := &savedRow{entry: e, row: adw.NewActionRow()}
+	r.row.SetUseMarkup(false) // the name and host are the user's text
 	r.row.SetTitle(e.Name)
 	r.row.SetTitleLines(1)
 	r.row.SetSubtitle(net.JoinHostPort(e.Host, strconv.Itoa(e.Port)))
@@ -274,6 +275,7 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 		copyList.AddCSSClass("boxed-list")
 		copyList.SetSizeRequest(r.row.Width(), r.row.Height())
 		copyRow := adw.NewActionRow()
+		copyRow.SetUseMarkup(false)
 		copyRow.SetTitle(r.row.Title())
 		copyRow.SetTitleLines(1)
 		copyRow.SetSubtitle(r.row.Subtitle())

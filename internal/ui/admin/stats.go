@@ -103,6 +103,7 @@ func newStatRows(page *adw.PreferencesPage) *statRows {
 			r.groups[g] = append(r.groups[g], k[0])
 			row := adw.NewActionRow()
 			row.AddCSSClass("property")
+			row.SetUseMarkup(false) // values come from the server and other clients
 			row.SetTitle(k[1])
 			row.SetSubtitleSelectable(true)
 			g.Add(row)

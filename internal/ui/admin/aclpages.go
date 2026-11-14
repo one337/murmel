@@ -93,6 +93,7 @@ func userPicker(icon, tooltip string, users func() map[uint32]string, skip func(
 		}
 		for _, u := range all {
 			row := adw.NewActionRow()
+			row.SetUseMarkup(false) // user and group names come from the server
 			row.SetTitle(u.name)
 			row.SetActivatable(true)
 			row.ConnectActivated(func() {
@@ -193,6 +194,7 @@ func (p *groupsPage) render() {
 func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	g := &p.w.groups[i]
 	exp := adw.NewExpanderRow()
+	exp.SetUseMarkup(false)
 	exp.SetTitle(g.Name)
 	members := len(g.UsersAdd)
 	if g.InheritUsers {
@@ -242,6 +244,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 
 	for _, u := range g.UsersAdd {
 		row := adw.NewActionRow()
+		row.SetUseMarkup(false)
 		row.SetTitle(p.userName(u))
 		row.AddPrefix(gtk.NewImageFromIconName("avatar-default-symbolic"))
 		id := u.UserID
@@ -255,6 +258,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	if g.InheritUsers {
 		for _, u := range g.UsersInherited {
 			row := adw.NewActionRow()
+			row.SetUseMarkup(false)
 			row.SetTitle(p.userName(u))
 			row.AddPrefix(gtk.NewImageFromIconName("avatar-default-symbolic"))
 			id := u.UserID
@@ -344,6 +348,7 @@ func (p *permsPage) render() {
 		inh.SetDescription(tr("Defined in parent channels; they apply before the rules below."))
 		for _, r := range p.w.inheritedRules {
 			row := adw.NewActionRow()
+			row.SetUseMarkup(false)
 			row.SetTitle(ruleTarget(r, p.w.users))
 			row.SetSubtitle(ruleSummary(r))
 			row.SetSubtitleLines(2)
@@ -388,6 +393,7 @@ func (p *permsPage) neighbour(i, dir int) int {
 func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	r := &p.w.ownRules[i]
 	exp := adw.NewExpanderRow()
+	exp.SetUseMarkup(false)
 	exp.SetTitle(ruleTarget(*r, p.w.users))
 	exp.SetSubtitle(ruleSummary(*r))
 	exp.SetSubtitleLines(2)

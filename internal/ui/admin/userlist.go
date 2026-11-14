@@ -81,6 +81,7 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 		for _, u := range ev.Users {
 			userID := u.UserID
 			row := adw.NewActionRow()
+			row.SetUseMarkup(false) // names come from the server
 			row.SetTitle(u.Name)
 			row.SetSubtitle(fmt.Sprintf(tr("ID: %d"), u.UserID))
 

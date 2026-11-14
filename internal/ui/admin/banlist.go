@@ -94,6 +94,7 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 		for i, e := range entries {
 			idx := i // capture for closure
 			row := adw.NewActionRow()
+			row.SetUseMarkup(false) // names and reasons come from the server
 			row.SetTitle(banEntryTitle(e))
 			row.SetSubtitle(banEntrySubtitle(e))
 
