@@ -20,6 +20,7 @@ import (
 //	known-servers.json
 type Manager struct {
 	dataDir string
+	roots   *x509.CertPool // authorities for server certificates; nil = system roots
 
 	mu sync.Mutex // serializes TOFU store and metadata read-modify-write cycles
 }
