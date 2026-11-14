@@ -228,3 +228,45 @@ func TestTLSConfigWithoutIdentity(t *testing.T) {
 		t.Fatalf("anonymous dial: %v", err)
 	}
 }
+
+func TestTLSConfigDeclinedServerIsNotPinned(t *testing.T) {
+	m := newTestManager(t)
+	client, _ := m.Generate("Client", "")
+	server, _ := m.Generate("Server", "")
+
+	addr, stop := startTLSServer(t, server, false)
+	defer stop()
+
+	var results []VerifyResult
+	accept := false
+	cfg := m.TLSConfig(client, addr, func(r VerifyResult, _, _ ServerEntry) error {
+		results = append(results, r)
+		if !accept {
+			return errors.New("declined")
+		}
+		return nil
+	})
+
+	if err := dialTLS(t, cfg, addr); err == nil {
+		t.Fatal("dial must fail when the callback declines")
+	}
+	if known, _ := m.KnownServers(); len(known) != 0 {
+		t.Fatalf("declined certificate was pinned: %v", known)
+	}
+
+	// The next attempt asks again instead of trusting silently.
+	accept = true
+	if err := dialTLS(t, cfg, addr); err != nil {
+		t.Fatalf("dial after accepting: %v", err)
+	}
+	if len(results) != 2 || results[0] != VerifyNew || results[1] != VerifyNew {
+		t.Fatalf("callback results = %v, want [new new]", results)
+	}
+	known, _ := m.KnownServers()
+	if known[addr].Fingerprint != Fingerprint(server.Certificate) {
+		t.Fatal("accepted certificate was not pinned")
+	}
+	if err := dialTLS(t, cfg, addr); err != nil || results[2] != VerifyMatch {
+		t.Fatalf("third dial: err=%v results=%v, want match", err, results)
+	}
+}

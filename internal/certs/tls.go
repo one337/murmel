@@ -19,9 +19,11 @@ type VerifyCallback func(result VerifyResult, stored, presented ServerEntry) err
 // against WebPKI — it skips standard verification and instead applies TOFU
 // verification to the presented server chain via VerifyPeerCertificate.
 //
-// By default a changed server certificate (VerifyChanged) fails the handshake
-// with an error wrapping ErrServerCertChanged; supply onVerify to override,
-// e.g. after user confirmation. When identity is nil the connection is
+// By default an unknown server is pinned on first sight and a changed server
+// certificate (VerifyChanged) fails the handshake with an error wrapping
+// ErrServerCertChanged. With onVerify, the callback decides both cases (e.g.
+// the user's trust dialog), and the certificate is pinned only once it
+// accepts. When identity is nil the connection is
 // anonymous (no client certificate) but still TOFU-verified.
 func (m *Manager) TLSConfig(identity *Identity, addr string, onVerify VerifyCallback) *tls.Config {
 	cfg := &tls.Config{
@@ -41,17 +43,15 @@ func (m *Manager) TLSConfig(identity *Identity, addr string, onVerify VerifyCall
 			}
 			if onVerify != nil {
 				if cbErr := onVerify(result, stored, presented); cbErr != nil {
-					return cbErr
+					return cbErr // declined: nothing is pinned
 				}
-				if result == VerifyChanged {
-					return m.rePin(addr, presented)
-				}
-				return nil
-			}
-			if result == VerifyChanged {
+			} else if result == VerifyChanged {
 				return fmt.Errorf("certs: %w: %s (pinned: %s)", ErrServerCertChanged, presented.Fingerprint, stored.Fingerprint)
 			}
-			return nil
+			if result == VerifyMatch {
+				return nil
+			}
+			return m.pin(addr, presented)
 		},
 	}
 	if identity != nil {

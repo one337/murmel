@@ -21,8 +21,8 @@ var ErrServerCertChanged = errors.New("server certificate changed")
 type VerifyResult int
 
 const (
-	// VerifyNew means no fingerprint was pinned for the address; the
-	// presented fingerprint has been recorded as the new pin.
+	// VerifyNew means no fingerprint was pinned for the address. Nothing is
+	// recorded until the certificate is accepted (see TLSConfig).
 	VerifyNew VerifyResult = iota
 	// VerifyMatch means the presented fingerprint equals the pin.
 	VerifyMatch
@@ -64,9 +64,13 @@ func Fingerprint(cert *x509.Certificate) string {
 }
 
 // VerifyServer applies TOFU to the server certificate chain (leaf first) for
-// host:port and persists the outcome.
+// host:port and persists the outcome; an unknown server is pinned on first
+// sight.
 func (m *Manager) VerifyServer(addr string, chain []*x509.Certificate) (VerifyResult, error) {
-	result, _, _, err := m.verifyServerDetail(addr, chain)
+	result, _, presented, err := m.verifyServerDetail(addr, chain)
+	if err == nil && result == VerifyNew {
+		err = m.pin(addr, presented)
+	}
 	return result, err
 }
 
@@ -98,10 +102,6 @@ func (m *Manager) verifyServerDetail(addr string, chain []*x509.Certificate) (Ve
 	stored, ok := store[addr]
 	switch {
 	case !ok:
-		store[addr] = presented
-		if err := m.saveStore(store); err != nil {
-			return 0, ServerEntry{}, ServerEntry{}, err
-		}
 		return VerifyNew, presented, presented, nil
 	case stored.Fingerprint == presented.Fingerprint:
 		stored.LastSeen = now
@@ -115,17 +115,19 @@ func (m *Manager) verifyServerDetail(addr string, chain []*x509.Certificate) (Ve
 	}
 }
 
-// rePin replaces the pinned fingerprint for addr after the user explicitly
-// accepted a changed certificate, preserving the original FirstSeen.
-func (m *Manager) rePin(addr string, presented ServerEntry) error {
+// pin records presented as the trusted certificate for addr once it has been
+// accepted: for an unknown server, or replacing a changed one (keeping the
+// original FirstSeen).
+func (m *Manager) pin(addr string, presented ServerEntry) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	store, err := m.loadStore()
 	if err != nil {
 		return err
 	}
-	stored := store[addr]
-	presented.FirstSeen = stored.FirstSeen
+	if stored, ok := store[addr]; ok {
+		presented.FirstSeen = stored.FirstSeen
+	}
 	store[addr] = presented
 	return m.saveStore(store)
 }
