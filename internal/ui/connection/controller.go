@@ -1467,12 +1467,12 @@ func (c *Controller) showTOFUDialog(stored *certs.ServerEntry, presented certs.S
 		heading = tr("Server Certificate Changed")
 		body = fmt.Sprintf(
 			tr("The server's certificate has changed.\n\nPreviously trusted fingerprint (since %s):\n%s\n\nNew fingerprint:\n%s\n\nOnly continue if you trust this certificate."),
-			localDate(stored.FirstSeen), groupedHex(stored.Fingerprint), groupedHex(presented.Fingerprint))
+			localDate(stored.FirstSeen), fingerprintLines(stored.Fingerprint), fingerprintLines(presented.Fingerprint))
 	} else {
 		heading = tr("New Server Certificate")
 		body = fmt.Sprintf(
 			tr("This server's certificate has not been seen before.\n\nFingerprint:\n%s\n\nTrust and connect?"),
-			groupedHex(presented.Fingerprint))
+			fingerprintLines(presented.Fingerprint))
 	}
 
 	alert := adw.NewAlertDialog(heading, body)
@@ -1538,17 +1538,19 @@ func localDate(t time.Time) string {
 	return glib.NewDateTimeFromUnixLocal(t.Unix()).Format("%x")
 }
 
-// groupedHex inserts a space every 2 hex characters for readability.
-func groupedHex(fp string) string {
-	const groupSize = 2
-	var out []byte
-	for i, b := range []byte(fp) {
-		if i > 0 && i%groupSize == 0 {
-			out = append(out, ' ')
-		}
-		out = append(out, b)
+// fingerprintLines breaks a colon-separated fingerprint ("aa:bb:…") into
+// lines of 8 bytes, so the 32 bytes of a SHA-256 fingerprint read as four
+// even lines in the narrow trust dialog.
+func fingerprintLines(fp string) string {
+	const perLine = 8
+	parts := strings.Split(fp, ":")
+	var lines []string
+	for len(parts) > perLine {
+		lines = append(lines, strings.Join(parts[:perLine], ":"))
+		parts = parts[perLine:]
 	}
-	return string(out)
+	lines = append(lines, strings.Join(parts, ":"))
+	return strings.Join(lines, "\n")
 }
 
 // transmitMode maps the transmission-mode setting to the engine's mode.
