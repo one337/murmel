@@ -172,8 +172,6 @@ func WindowOf(w gtk.Widgetter) *gtk.Window {
 		return nil
 	}
 	switch win := coreglib.InternObject(root).Cast().(type) {
-	case *adw.PreferencesWindow:
-		return &win.Window.Window
 	case *adw.ApplicationWindow:
 		return &win.ApplicationWindow.Window
 	case *adw.Window:

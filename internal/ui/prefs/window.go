@@ -1,6 +1,6 @@
-// Package prefs implements the application preferences window.
-// It is an adw.PreferencesWindow with five pages covering identity,
-// audio input, audio output, positional audio, and behavior settings.
+// Package prefs implements the application preferences.
+// It is an adw.PreferencesDialog over the main window with five pages
+// covering identity, audio input, audio output, chat and general settings.
 // All widgets bind directly to the Settings module with instant-apply.
 package prefs
 
@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
@@ -33,7 +34,7 @@ import (
 // Window is the preferences dialog. It is not reused: create a new one each
 // time the user opens Preferences. Present it with w.Present(parent).
 type Window struct {
-	*adw.PreferencesWindow
+	*adw.PreferencesDialog
 }
 
 // Shortcuts is the global shortcuts as the preferences show them (the
@@ -48,9 +49,9 @@ type Shortcuts interface {
 	OnChange(f func()) (remove func())
 }
 
-// New constructs the preferences window. It does not present itself.
+// New constructs the preferences dialog. It does not present itself.
 func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
-	pw := adw.NewPreferencesWindow()
+	pw := adw.NewPreferencesDialog()
 	pw.SetTitle(tr("Preferences"))
 	pw.SetSearchEnabled(false)
 
@@ -63,9 +64,35 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	return &Window{pw}
 }
 
+// shown is the dialog Show presented and that is still open.
+var shown *Window
+
+// Show presents the preferences over parent and returns them, or returns
+// nil and does nothing while they are already open: Ctrl+, also fires
+// while the dialog has the focus. Main loop only.
+func Show(parent gtk.Widgetter, st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
+	if shown != nil {
+		return nil
+	}
+	w := New(st, m, player, b, sc)
+	shown = w
+	onClose(w.PreferencesDialog, func() { shown = nil })
+	w.Present(parent)
+	return w
+}
+
+// onClose runs f once when the dialog is closed or destroyed, whichever
+// comes first, so listeners are removed on every way the dialog goes away.
+func onClose(d *adw.PreferencesDialog, f func()) {
+	var once sync.Once
+	run := func() { once.Do(f) }
+	d.ConnectClosed(run)
+	d.ConnectDestroy(run)
+}
+
 // --- Identity page ---------------------------------------------------------
 
-func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesWindow) *adw.PreferencesPage {
+func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesDialog) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("Identity"))
 	page.SetName("identity")
@@ -97,7 +124,7 @@ func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesWin
 type certList struct {
 	st settings.Settings
 	m  *certs.Manager
-	pw *adw.PreferencesWindow
+	pw *adw.PreferencesDialog
 
 	identities []certs.IdentityMeta
 	combo      *adw.ComboRow
@@ -143,7 +170,7 @@ func (c *certList) listGroup() *adw.PreferencesGroup {
 	imp := gtk.NewButtonWithLabel(tr("Import…"))
 	imp.SetTooltipText(tr("Load a PEM file with certificate and private key"))
 	imp.ConnectClicked(func() {
-		identities.Import(&c.pw.Window.Window, c.m, func(meta certs.IdentityMeta) {
+		identities.Import(identities.WindowOf(c.pw), c.m, func(meta certs.IdentityMeta) {
 			c.st.SetLastIdentity(meta.ID)
 			c.refresh()
 			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
@@ -229,7 +256,7 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	export.SetVAlign(gtk.AlignCenter)
 	export.SetTooltipText(tr("Export (back up) as PEM, including the private key"))
 	export.ConnectClicked(func() {
-		identities.Export(&c.pw.Window.Window, c.m, meta, func(err error) {
+		identities.Export(identities.WindowOf(c.pw), c.m, meta, func(err error) {
 			if err != nil {
 				c.pw.AddToast(plainToast(fmt.Sprintf(tr("Export failed: %v"), err)))
 				return
@@ -284,7 +311,7 @@ func shortFingerprint(fp string) string {
 
 // --- Audio Input page ------------------------------------------------------
 
-func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.PreferencesWindow) *adw.PreferencesPage {
+func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.PreferencesDialog) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("Audio Input"))
 	page.SetName("audio-input")
@@ -336,7 +363,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	}
 	modeHint()
 	if sc != nil {
-		pw.ConnectDestroy(sc.OnChange(modeHint))
+		onClose(pw, sc.OnChange(modeHint))
 	}
 	modeGroup := adw.NewPreferencesGroup()
 	modeGroup.SetTitle(tr("Sending"))
@@ -434,7 +461,7 @@ func pushToTalkHint(sc Shortcuts) string {
 
 // shortcutsGroup lists the global shortcuts with the keys the desktop
 // assigned, and a button that opens the desktop's dialog to set them.
-func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesWindow) *adw.PreferencesGroup {
+func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesDialog) *adw.PreferencesGroup {
 	group := adw.NewPreferencesGroup()
 	group.SetTitle(tr("Global Shortcuts"))
 	group.SetDescription(tr("Work while another window has the focus. The keys are assigned in your desktop's dialog."))
@@ -481,8 +508,7 @@ func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesWindow) *adw.PreferencesGro
 		}
 	}
 	update()
-	remove := sc.OnChange(update)
-	pw.ConnectDestroy(remove)
+	onClose(pw, sc.OnChange(update))
 	return group
 }
 
@@ -551,8 +577,8 @@ func chatPage(st settings.Settings) *adw.PreferencesPage {
 
 // --- Behavior page ---------------------------------------------------------
 
-func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesWindow, sc Shortcuts) *adw.PreferencesPage {
-	parent := func() *gtk.Window { return &pw.Window.Window }
+func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesDialog, sc Shortcuts) *adw.PreferencesPage {
+	parent := func() *gtk.Window { return identities.WindowOf(pw) }
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("General"))
 	page.SetName("general")
@@ -684,7 +710,7 @@ func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
 
 // languageGroup overrides the interface language (default: the system's,
 // English when Murmel has no translation for it). Applies on restart.
-func languageGroup(st settings.Settings, pw *adw.PreferencesWindow) *adw.PreferencesGroup {
+func languageGroup(st settings.Settings, pw *adw.PreferencesDialog) *adw.PreferencesGroup {
 	codes := append([]string{"", "en"}, ui.Languages()...)
 	names := []string{tr("Follow System"), ui.LanguageName("en")}
 	for _, c := range codes[2:] {
