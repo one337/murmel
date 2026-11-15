@@ -70,8 +70,28 @@ func Export(parent *gtk.Window, m *certs.Manager, meta certs.IdentityMeta, done 
 		}
 		data, err := m.ExportPEM(meta.ID)
 		if err == nil {
-			err = os.WriteFile(file.Path(), data, 0o600)
+			err = writePrivateFile(file.Path(), data)
 		}
 		done(err)
 	})
+}
+
+// writePrivateFile writes data readable only by the user. The mode is set
+// before anything is written, also when an existing file is overwritten
+// (os.WriteFile applies its mode only to new files). No temporary file and
+// rename: a path from the document portal allows only this one file.
+func writePrivateFile(path string, data []byte) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	if err != nil {
+		return err
+	}
+	if err := f.Chmod(0o600); err != nil {
+		f.Close()
+		return err
+	}
+	if _, err := f.Write(data); err != nil {
+		f.Close()
+		return err
+	}
+	return f.Close()
 }
