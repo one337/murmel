@@ -51,8 +51,11 @@ func TestGenerateCreatesValidSelfSignedCert(t *testing.T) {
 		t.Errorf("public key algorithm = %v, want RSA", got)
 	}
 
-	if err := cert.CheckSignatureFrom(cert); err != nil {
+	if err := cert.CheckSignature(cert.SignatureAlgorithm, cert.RawTBSCertificate, cert.Signature); err != nil {
 		t.Errorf("self-signature invalid: %v", err)
+	}
+	if !cert.BasicConstraintsValid || cert.IsCA || cert.KeyUsage&x509.KeyUsageCertSign != 0 {
+		t.Errorf("identity is marked as a certificate authority (IsCA=%v, KeyUsage=%v)", cert.IsCA, cert.KeyUsage)
 	}
 	if cert.NotAfter.Before(time.Now()) {
 		t.Errorf("cert already expired: NotAfter=%s", cert.NotAfter)

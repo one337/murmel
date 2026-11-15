@@ -50,14 +50,16 @@ func (m *Manager) Generate(name, email string) (*Identity, error) {
 	}
 	now := time.Now()
 	template := &x509.Certificate{
-		SerialNumber:          serial,
-		Subject:               pkix.Name{CommonName: name},
-		NotBefore:             now.Add(-time.Hour),
-		NotAfter:              now.AddDate(certYears, 0, 0),
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageCertSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		SerialNumber: serial,
+		Subject:      pkix.Name{CommonName: name},
+		NotBefore:    now.Add(-time.Hour),
+		NotAfter:     now.AddDate(certYears, 0, 0),
+		KeyUsage:     x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		// Not a certificate authority (critical CA:FALSE), like the
+		// official Mumble client's self-signed identities.
 		BasicConstraintsValid: true,
-		IsCA:                  true, // matches the official Mumble client's self-signed identity format
+		IsCA:                  false,
 	}
 	if email != "" {
 		if err := setEmail(template, box); err != nil {
