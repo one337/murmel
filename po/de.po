@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
-"Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-15 20:05+0100\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-16 00:30+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1528,7 +1528,10 @@ msgstr "Sicherung möglicherweise für andere lesbar"
 msgid ""
 "The backup contains your private key. Murmel could not restrict access to "
 "the file at this location. Keep it where only you have access."
-msgstr "Die Sicherung enthält deinen privaten Schlüssel. Murmel konnte den Zugriff auf die Datei an diesem Speicherort nicht einschränken. Bewahre sie dort auf, wo nur du Zugriff hast."
+msgstr ""
+"Die Sicherung enthält deinen privaten Schlüssel. Murmel konnte den Zugriff "
+"auf die Datei an diesem Speicherort nicht einschränken. Bewahre sie dort "
+"auf, wo nur du Zugriff hast."
 
 #: internal/ui/levelmeter/levelmeter.go
 msgid ""
@@ -2321,6 +2324,7 @@ msgstr "Verbindung fehlgeschlagen"
 msgid "Connection failed: %s"
 msgstr "Verbindung fehlgeschlagen: %s"
 
+#. TRANSLATORS: the application name, do not translate.
 #: internal/ui/window.go
 msgid "Murmel"
 msgstr "Murmel"
@@ -2382,6 +2386,14 @@ msgstr "Das Mikrofon liefert keinen Ton mehr. Wähle ein anderes Eingabegerät."
 msgid "The output device is not playing audio. Choose another output device."
 msgstr ""
 "Das Ausgabegerät gibt keinen Ton wieder. Wähle ein anderes Ausgabegerät."
+
+#: data/io.github.one337.murmel.desktop.in
+msgid "Voice chat on Mumble servers"
+msgstr "Sprachchat auf Mumble-Servern"
+
+#: data/io.github.one337.murmel.desktop.in
+msgid "Mumble;Voice;Chat;VoIP;Talk;"
+msgstr "Mumble;Sprache;Chat;VoIP;Sprechen;Sprachchat;"
 
 #~ msgid "Play a sound for connection, channel and message events"
 #~ msgstr ""

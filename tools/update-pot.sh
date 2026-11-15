@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # update-pot.sh — regenerate the translation template from the tr() calls
-# in internal/ui.
+# in internal/ui and the desktop file.
 #
 # Usage: tools/update-pot.sh [output]   (default: po/murmel.pot)
 #
@@ -21,6 +21,16 @@ xgettext \
   --msgid-bugs-address="https://github.com/one337/murmel/issues" \
   -o "$out" \
   $(find internal/ui -name '*.go' ! -name '*_test.go' | LC_ALL=C sort) 2>/dev/null
+
+# The desktop file: only Comment and Keywords are translated (the name
+# stays Murmel).
+xgettext \
+  --join-existing \
+  --language=Desktop \
+  --keyword= --keyword=Comment --keyword=Keywords \
+  --add-location=file \
+  -o "$out" \
+  data/io.github.one337.murmel.desktop.in 2>/dev/null
 
 # Writing the real template also brings every translation up to date:
 # new messages are added empty, changed ones keep their old translation

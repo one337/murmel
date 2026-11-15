@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Murmel Contributors
-# This file is distributed under the same license as the Murmel package.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Murmel 0.1\n"
-"Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-15 20:05+0100\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-16 00:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2214,6 +2214,7 @@ msgstr ""
 msgid "Connection failed: %s"
 msgstr ""
 
+#. TRANSLATORS: the application name, do not translate.
 #: internal/ui/window.go
 msgid "Murmel"
 msgstr ""
@@ -2272,4 +2273,12 @@ msgstr ""
 
 #: internal/ui/window.go
 msgid "The output device is not playing audio. Choose another output device."
+msgstr ""
+
+#: data/io.github.one337.murmel.desktop.in
+msgid "Voice chat on Mumble servers"
+msgstr ""
+
+#: data/io.github.one337.murmel.desktop.in
+msgid "Mumble;Voice;Chat;VoIP;Talk;"
 msgstr ""

@@ -2,7 +2,7 @@
 Type=Application
 Name=Murmel
 Comment=Voice chat on Mumble servers
-Comment[de]=Sprachchat auf Mumble-Servern
+Keywords=Mumble;Voice;Chat;VoIP;Talk;
 Exec=murmel %U
 Icon=io.github.one337.murmel
 Terminal=false
@@ -15,4 +15,3 @@ MimeType=x-scheme-handler/mumble;
 # registration ships with the packaging.
 DBusActivatable=true
 StartupWMClass=io.github.one337.murmel
-X-Purism=formFactor=workstation;mobile;

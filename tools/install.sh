@@ -98,7 +98,11 @@ fi
 [ -x murmel ] || { echo "install.sh: ./murmel not built" >&2; exit 1; }
 
 install -Dm755 murmel "$root/bin/murmel"
-install -Dm644 data/$APP_ID.desktop "$share/applications/$APP_ID.desktop"
+# The desktop file gets its translations (Comment, Keywords) from po/.
+install -d "$share/applications"
+msgfmt --desktop --template "data/$APP_ID.desktop.in" -d po \
+	--keyword= --keyword=Comment --keyword=Keywords \
+	-o "$share/applications/$APP_ID.desktop"
 install -Dm644 packaging/$APP_ID.metainfo.xml "$share/metainfo/$APP_ID.metainfo.xml"
 install -Dm644 data/$APP_ID.gschema.xml "$share/glib-2.0/schemas/$APP_ID.gschema.xml"
 # The desktop file is D-Bus activatable: the session bus starts the

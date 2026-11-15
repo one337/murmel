@@ -101,6 +101,7 @@ func newWindow(app *App) *Window {
 		cancel: cancel,
 	}
 	w.ApplicationWindow = adw.NewApplicationWindow(&app.Application.Application)
+	// TRANSLATORS: the application name, do not translate.
 	w.SetTitle(tr("Murmel"))
 	w.SetIconName(settings.SchemaID)
 	w.SetSizeRequest(minWindowWidth, minWindowHeight)
