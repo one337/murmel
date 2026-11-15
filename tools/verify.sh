@@ -142,6 +142,25 @@ for po in po/*.po; do
   printf '  %s: %s\n' "$(basename "$po" .po)" "$(msgfmt --statistics -o /dev/null "$po" 2>&1)"
 done
 
+step "desktop file: desktop-file-validate"
+TMPDESKTOP=$(mktemp -d /tmp/murmel-desktop-XXXXXX)
+if msgfmt --desktop --template data/io.github.one337.murmel.desktop.in -d po \
+  --keyword= --keyword=Comment --keyword=Keywords \
+  -o "$TMPDESKTOP/io.github.one337.murmel.desktop" 2>&1 &&
+  desktop-file-validate "$TMPDESKTOP/io.github.one337.murmel.desktop" 2>&1; then
+  pass "desktop file (as tools/install.sh builds it) is valid"
+else
+  fail "desktop file is invalid"
+fi
+rm -rf "$TMPDESKTOP"
+
+step "metainfo: appstreamcli validate --no-net"
+if appstreamcli validate --no-net packaging/io.github.one337.murmel.metainfo.xml 2>&1; then
+  pass "metainfo is valid"
+else
+  fail "metainfo is invalid"
+fi
+
 printf '========================\n'
 if [ "$failures" -eq 0 ]; then
   printf 'ALL CHECKS PASSED\n'

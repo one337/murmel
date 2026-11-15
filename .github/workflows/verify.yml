@@ -32,6 +32,7 @@ jobs:
           gtk4-devel libadwaita-devel gobject-introspection-devel graphene-devel
           opus-devel webrtc-audio-processing-devel libsecret-devel
           glib2-devel gettext xorg-x11-server-Xvfb openssl
+          desktop-file-utils appstream
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
