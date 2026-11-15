@@ -100,9 +100,12 @@ func testScreenshot(t *testing.T) string {
 }
 
 func TestEncodeImageFitsLimit(t *testing.T) {
-	path := testScreenshot(t)
+	data, err := os.ReadFile(testScreenshot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, limit := range []int{defaultImageMessageLength, 40000} {
-		uri, err := encodeImage(path, limit)
+		uri, err := encodeImage(data, limit)
 		if err != nil {
 			t.Fatalf("limit %d: %v", limit, err)
 		}
@@ -115,7 +118,7 @@ func TestEncodeImageFitsLimit(t *testing.T) {
 		}
 		t.Logf("limit %d → %d bytes", limit, len(uri))
 	}
-	if _, err := encodeImage(path, 2000); err == nil {
+	if _, err := encodeImage(data, 2000); err == nil {
 		t.Fatal("an impossible limit must fail")
 	}
 }

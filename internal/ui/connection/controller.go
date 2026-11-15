@@ -26,6 +26,7 @@ import (
 	"io.github/murmel/internal/ui"
 	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/clock"
+	"io.github/murmel/internal/ui/gfileio"
 	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/secrets"
 )
@@ -558,18 +559,17 @@ func (c *Controller) pickCertificateFile(parent *adw.Dialog, onImported func(cer
 		if err != nil || file == nil {
 			return // cancelled
 		}
-		path := file.Path()
-		name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
-		ident, err := c.certs.ImportFiles(name, path, "")
-		if err != nil {
-			slog.Info("certificate import failed", "path", path, "err", err)
-			alert := adw.NewAlertDialog(tr("Certificate Import Failed"),
-				fmt.Sprintf(tr("The file could not be imported: %v"), err))
-			alert.AddResponse("ok", tr("OK"))
-			alert.Present(parent)
-			return
-		}
-		onImported(ident.Meta)
+		identities.ImportFile(gfileio.ForWidget(parent), c.certs, file, func(ident *certs.Identity, err error) {
+			if err != nil {
+				slog.Info("certificate import failed", "file", file.Basename(), "err", err)
+				alert := adw.NewAlertDialog(tr("Certificate Import Failed"),
+					fmt.Sprintf(tr("The file could not be imported: %v"), err))
+				alert.AddResponse("ok", tr("OK"))
+				alert.Present(parent)
+				return
+			}
+			onImported(ident.Meta)
+		})
 	})
 }
 

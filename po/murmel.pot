@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-15 18:49+0100\n"
+"POT-Creation-Date: 2026-11-15 20:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1146,6 +1146,7 @@ msgid "The file could not be imported: %v"
 msgstr ""
 
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
+#: internal/ui/identities/files.go
 msgid "OK"
 msgstr ""
 
@@ -1358,6 +1359,10 @@ msgstr ""
 msgid "More"
 msgstr ""
 
+#: internal/ui/gfileio/gfileio.go
+msgid "The file is too large."
+msgstr ""
+
 #: internal/ui/globalshortcuts.go
 msgid "Push-to-talk"
 msgstr ""
@@ -1424,6 +1429,10 @@ msgid ""
 "accounts on another computer or after reinstalling."
 msgstr ""
 
+#: internal/ui/identities/create.go
+msgid "The backup contains your private key. Keep it in a safe place."
+msgstr ""
+
 #. TRANSLATORS: Button: back up the new certificate later.
 #: internal/ui/identities/create.go
 msgid "Later"
@@ -1443,6 +1452,16 @@ msgstr ""
 
 #: internal/ui/identities/files.go
 msgid "Export Identity"
+msgstr ""
+
+#: internal/ui/identities/files.go
+msgid "Backup May Be Readable by Others"
+msgstr ""
+
+#: internal/ui/identities/files.go
+msgid ""
+"The backup contains your private key. Murmel could not restrict access to "
+"the file at this location. Keep it where only you have access."
 msgstr ""
 
 #: internal/ui/levelmeter/levelmeter.go
@@ -1627,6 +1646,10 @@ msgstr ""
 
 #: internal/ui/prefs/sounds.go
 msgid "Choose Sound"
+msgstr ""
+
+#: internal/ui/prefs/sounds.go
+msgid "This file is not a usable sound (WAV or Ogg Vorbis)."
 msgstr ""
 
 #: internal/ui/prefs/window.go internal/ui/shortcutsdialog.go

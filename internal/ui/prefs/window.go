@@ -60,7 +60,7 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	pw.Add(audioInputPage(st, b, sc, pw))
 	pw.Add(audioOutputPage(st))
 	pw.Add(chatPage(st))
-	pw.Add(generalPage(st, player, pw, sc))
+	pw.Add(generalPage(st, player, pw, sc, filepath.Join(m.DataDir(), "sounds")))
 
 	return &Window{pw}
 }
@@ -171,7 +171,7 @@ func (c *certList) listGroup() *adw.PreferencesGroup {
 	imp := gtk.NewButtonWithLabel(tr("Import…"))
 	imp.SetTooltipText(tr("Load a PEM file with certificate and private key"))
 	imp.ConnectClicked(func() {
-		identities.Import(identities.WindowOf(c.pw), c.m, func(meta certs.IdentityMeta) {
+		identities.Import(c.pw, c.m, func(meta certs.IdentityMeta) {
 			c.st.SetLastIdentity(meta.ID)
 			c.refresh()
 			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
@@ -257,12 +257,15 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	export.SetVAlign(gtk.AlignCenter)
 	export.SetTooltipText(tr("Export (back up) as PEM, including the private key"))
 	export.ConnectClicked(func() {
-		identities.Export(identities.WindowOf(c.pw), c.m, meta, func(err error) {
+		identities.Export(c.pw, c.m, meta, func(exposed bool, err error) {
 			if err != nil {
 				c.pw.AddToast(plainToast(fmt.Sprintf(tr("Export failed: %v"), err)))
 				return
 			}
 			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Exported identity %s"), meta.Name)))
+			if exposed {
+				identities.WarnExposedBackup(c.pw)
+			}
 		})
 	})
 	del := gtk.NewButtonFromIconName("user-trash-symbolic")
@@ -578,7 +581,7 @@ func chatPage(st settings.Settings) *adw.PreferencesPage {
 
 // --- Behavior page ---------------------------------------------------------
 
-func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesDialog, sc Shortcuts) *adw.PreferencesPage {
+func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesDialog, sc Shortcuts, soundsDir string) *adw.PreferencesPage {
 	parent := func() *gtk.Window { return identities.WindowOf(pw) }
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("General"))
@@ -624,7 +627,7 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 
 	soundGroup := adw.NewPreferencesGroup()
 	soundGroup.SetTitle(tr("Sounds"))
-	soundGroup.Add(soundsRow(st, player, parent))
+	soundGroup.Add(soundsRow(st, player, parent, pw, soundsDir))
 
 	page.Add(group)
 	page.Add(notifGroup)

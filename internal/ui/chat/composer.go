@@ -13,6 +13,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
+	"io.github/murmel/internal/ui/gfileio"
 	"io.github/murmel/internal/ui/richtext"
 )
 
@@ -269,20 +270,32 @@ func (c *composer) pickImage() {
 		if err != nil || file == nil {
 			return
 		}
-		path, limit := file.Path(), c.imageLimit
+		name, limit := file.Basename(), c.imageLimit
 		c.imageBtn.SetSensitive(false)
-		go func() {
-			uri, err := encodeImage(path, limit)
-			glib.IdleAdd(func() {
+		ctx := gfileio.ForWidget(c.root)
+		gfileio.Load(ctx, file, gfileio.MaxImageBytes, func(data []byte, err error) {
+			if err != nil {
 				c.imageBtn.SetSensitive(true)
-				if err != nil {
-					slog.Info("chat: image not attached", "file", path, "err", err)
-					c.showError(err.Error())
-					return
-				}
-				c.setImage(uri)
-			})
-		}()
+				slog.Info("chat: image not read", "file", name, "err", err)
+				c.showError(gfileio.Message(err))
+				return
+			}
+			go func() {
+				uri, err := encodeImage(data, limit)
+				glib.IdleAdd(func() {
+					if ctx.Err() != nil {
+						return
+					}
+					c.imageBtn.SetSensitive(true)
+					if err != nil {
+						slog.Info("chat: image not attached", "file", name, "err", err)
+						c.showError(err.Error())
+						return
+					}
+					c.setImage(uri)
+				})
+			}()
+		})
 	})
 }
 

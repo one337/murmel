@@ -5,12 +5,11 @@ import (
 	"image"
 	"image/color"
 	"image/png"
-	"os"
 	"path/filepath"
 	"testing"
 )
 
-func writePNG(t *testing.T, w, h int) string {
+func writePNG(t *testing.T, w, h int) []byte {
 	t.Helper()
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
 	for x := 0; x < w; x++ {
@@ -18,16 +17,11 @@ func writePNG(t *testing.T, w, h int) string {
 			img.Set(x, y, color.RGBA{uint8(x), uint8(y), 200, 255})
 		}
 	}
-	path := filepath.Join(t.TempDir(), "in.png")
-	f, err := os.Create(path)
-	if err != nil {
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, img); err != nil {
 		t.Fatal(err)
 	}
-	defer f.Close()
-	if err := png.Encode(f, img); err != nil {
-		t.Fatal(err)
-	}
-	return path
+	return buf.Bytes()
 }
 
 func TestProcessCropsAndScales(t *testing.T) {

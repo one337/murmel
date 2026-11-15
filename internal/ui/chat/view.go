@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
@@ -135,7 +136,11 @@ func (v *View) InjectCompose(text string) {
 // InjectImage attaches an image file to the channel composer and sends it
 // with text — the QA harness drives the real attach and send path.
 func (v *View) InjectImage(path, text string) error {
-	uri, err := encodeImage(path, v.channel.composer.imageLimit)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	uri, err := encodeImage(data, v.channel.composer.imageLimit)
 	if err != nil {
 		return err
 	}

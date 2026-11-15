@@ -15,6 +15,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/pango"
 
 	"io.github/murmel/internal/ui/chat"
+	"io.github/murmel/internal/ui/gfileio"
 	"io.github/murmel/internal/ui/richtext"
 )
 
@@ -550,23 +551,34 @@ func (e *descEditor) pickImage() {
 		if err != nil || file == nil {
 			return
 		}
-		path := file.Path()
+		name := file.Basename()
 		budget := e.limit - len(e.HTML())
 		e.status.SetText(tr("Preparing image…"))
-		go func() {
-			uri, err := chat.EncodeImage(path, budget)
-			gioglib.IdleAdd(func() {
-				e.status.SetText("")
-				if err != nil {
-					slog.Info("description: image not inserted", "file", path, "err", err)
-					e.status.SetText(tr("The image does not fit into the description."))
-					return
-				}
-				if data, ok := richtext.DecodeDataURI(uri); ok {
-					e.insertImageAtCursor(data)
-				}
-			})
-		}()
+		ctx := gfileio.ForWidget(e.root)
+		gfileio.Load(ctx, file, gfileio.MaxImageBytes, func(data []byte, err error) {
+			if err != nil {
+				slog.Info("description: image not read", "file", name, "err", err)
+				e.status.SetText(gfileio.Message(err))
+				return
+			}
+			go func() {
+				uri, err := chat.EncodeImage(data, budget)
+				gioglib.IdleAdd(func() {
+					if ctx.Err() != nil {
+						return
+					}
+					e.status.SetText("")
+					if err != nil {
+						slog.Info("description: image not inserted", "file", name, "err", err)
+						e.status.SetText(tr("The image does not fit into the description."))
+						return
+					}
+					if data, ok := richtext.DecodeDataURI(uri); ok {
+						e.insertImageAtCursor(data)
+					}
+				})
+			}()
+		})
 	})
 }
 

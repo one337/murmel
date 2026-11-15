@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-15 18:29+0100\n"
+"POT-Creation-Date: 2026-11-15 20:05+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1143,7 +1143,9 @@ msgstr "Verbinden"
 #: internal/ui/connection/controller.go
 #, go-format
 msgid "Connected to %s. Connecting to another server ends this connection."
-msgstr "Verbunden mit %s. Beim Verbinden mit einem anderen Server wird diese Verbindung getrennt."
+msgstr ""
+"Verbunden mit %s. Beim Verbinden mit einem anderen Server wird diese "
+"Verbindung getrennt."
 
 #: internal/ui/connection/controller.go internal/ui/identities/files.go
 msgid "PEM Certificates"
@@ -1167,6 +1169,7 @@ msgid "The file could not be imported: %v"
 msgstr "Die Datei konnte nicht importiert werden: %v"
 
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
+#: internal/ui/identities/files.go
 msgid "OK"
 msgstr "OK"
 
@@ -1411,6 +1414,10 @@ msgstr "Verbindung vergessen"
 msgid "More"
 msgstr "Mehr"
 
+#: internal/ui/gfileio/gfileio.go
+msgid "The file is too large."
+msgstr "Die Datei ist zu groß."
+
 #: internal/ui/globalshortcuts.go
 msgid "Push-to-talk"
 msgstr "Push-to-Talk"
@@ -1486,6 +1493,12 @@ msgstr ""
 "registrierten Konten nicht auf einem anderen Rechner oder nach einer "
 "Neuinstallation nutzen."
 
+#: internal/ui/identities/create.go
+msgid "The backup contains your private key. Keep it in a safe place."
+msgstr ""
+"Die Sicherung enthält deinen privaten Schlüssel. Bewahre sie an einem "
+"sicheren Ort auf."
+
 #. TRANSLATORS: Button: back up the new certificate later.
 #: internal/ui/identities/create.go
 msgid "Later"
@@ -1506,6 +1519,16 @@ msgstr "Identität importieren"
 #: internal/ui/identities/files.go
 msgid "Export Identity"
 msgstr "Identität exportieren"
+
+#: internal/ui/identities/files.go
+msgid "Backup May Be Readable by Others"
+msgstr "Sicherung möglicherweise für andere lesbar"
+
+#: internal/ui/identities/files.go
+msgid ""
+"The backup contains your private key. Murmel could not restrict access to "
+"the file at this location. Keep it where only you have access."
+msgstr "Die Sicherung enthält deinen privaten Schlüssel. Murmel konnte den Zugriff auf die Datei an diesem Speicherort nicht einschränken. Bewahre sie dort auf, wo nur du Zugriff hast."
 
 #: internal/ui/levelmeter/levelmeter.go
 msgid ""
@@ -1693,6 +1716,10 @@ msgstr "Klänge (WAV, Ogg Vorbis)"
 #: internal/ui/prefs/sounds.go
 msgid "Choose Sound"
 msgstr "Klang auswählen"
+
+#: internal/ui/prefs/sounds.go
+msgid "This file is not a usable sound (WAV or Ogg Vorbis)."
+msgstr "Diese Datei ist kein verwendbarer Ton (WAV oder Ogg Vorbis)."
 
 #: internal/ui/prefs/window.go internal/ui/shortcutsdialog.go
 #: internal/ui/window.go

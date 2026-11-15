@@ -138,7 +138,8 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 // offerBackup suggests exporting a freshly created identity.
 func offerBackup(parent gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta) {
 	alert := adw.NewAlertDialog(tr("Certificate Created"),
-		fmt.Sprintf(tr("Save a backup of “%s” now? Without it you cannot use your registered accounts on another computer or after reinstalling."), meta.Name))
+		fmt.Sprintf(tr("Save a backup of “%s” now? Without it you cannot use your registered accounts on another computer or after reinstalling."), meta.Name)+
+			"\n\n"+tr("The backup contains your private key. Keep it in a safe place."))
 	// TRANSLATORS: Button: back up the new certificate later.
 	alert.AddResponse("later", tr("Later"))
 	alert.AddResponse("backup", tr("Back Up…"))
@@ -149,12 +150,16 @@ func offerBackup(parent gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta
 		if r != "backup" {
 			return
 		}
-		Export(WindowOf(parent), m, meta, func(err error) {
+		Export(parent, m, meta, func(exposed bool, err error) {
 			if err != nil {
 				slog.Info("identity backup failed", "err", err)
 				failed := adw.NewAlertDialog(tr("Backup Failed"), err.Error())
 				failed.AddResponse("ok", tr("OK"))
 				failed.Present(parent)
+				return
+			}
+			if exposed {
+				WarnExposedBackup(parent)
 			}
 		})
 	})

@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
+
+	"io.github/murmel/internal/ui/gfileio"
 )
 
 // defaultImageMessageLength is murmur's default limit for messages that
@@ -18,12 +20,12 @@ const imageMarkupOverhead = 512
 
 var errImageTooLarge = errors.New("the image cannot be made small enough for this server")
 
-// encodeImage loads an image file and returns it as a JPEG data: URI that
+// encodeImage decodes image file data and returns it as a JPEG data: URI that
 // fits limit bytes (the server's image message length): it scales the
 // image down and lowers the quality step by step until it fits.
 // Transparent areas become white (JPEG has no alpha).
-func encodeImage(path string, limit int) (string, error) {
-	src, err := gdkpixbuf.NewPixbufFromFile(path)
+func encodeImage(data []byte, limit int) (string, error) {
+	src, err := gfileio.Pixbuf(data)
 	if err != nil {
 		return "", err
 	}
@@ -66,7 +68,7 @@ func flatten(src *gdkpixbuf.Pixbuf, w, h int) *gdkpixbuf.Pixbuf {
 	return dst
 }
 
-// EncodeImage scales and compresses an image file into a JPEG data: URI
+// EncodeImage scales and compresses image file data into a JPEG data: URI
 // that, with some markup around it, fits limit bytes (channel descriptions
 // use it too).
-func EncodeImage(path string, limit int) (string, error) { return encodeImage(path, limit) }
+func EncodeImage(data []byte, limit int) (string, error) { return encodeImage(data, limit) }

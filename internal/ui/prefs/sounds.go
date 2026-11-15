@@ -2,15 +2,22 @@ package prefs
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"log/slog"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/audio/effects"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/gfileio"
 )
 
 // eventLabel is the preferences title of each sound event.
@@ -73,7 +80,9 @@ const chooseFile = "\x00choose"
 // soundsRow builds the "Event sounds" expander: its switch is the
 // sounds-enabled key, each child row picks the sound of one event (off,
 // built-in, or an audio file) and has a preview button.
-func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window) *adw.ExpanderRow {
+// soundsDir holds copies of sound files picked from locations without a
+// local path; pw shows problems with a picked file.
+func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, pw *adw.PreferencesDialog, soundsDir string) *adw.ExpanderRow {
 	exp := adw.NewExpanderRow()
 	exp.SetTitle(tr("Event sounds"))
 	exp.SetSubtitle(tr("For connections, users, messages and push-to-talk"))
@@ -83,12 +92,12 @@ func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.
 		st.SetSoundsEnabled(exp.EnableExpansion())
 	})
 	for _, ev := range effects.Events {
-		exp.AddRow(soundEventRow(st, player, parent, ev))
+		exp.AddRow(soundEventRow(st, player, parent, pw, soundsDir, ev))
 	}
 	return exp
 }
 
-func soundEventRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, ev effects.Event) *adw.ComboRow {
+func soundEventRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, pw *adw.PreferencesDialog, soundsDir string, ev effects.Event) *adw.ComboRow {
 	row := adw.NewComboRow()
 	row.SetTitle(eventLabel(ev))
 
@@ -110,6 +119,7 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 	row.AddSuffix(preview)
 
 	store := func(choice string) {
+		old := current
 		ov := st.SoundEvents()
 		if choice == effects.Default(ev) {
 			delete(ov, string(ev))
@@ -118,6 +128,9 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 		}
 		st.SetSoundEvents(ov)
 		current = choice
+		if old != choice {
+			removeUnusedCopy(soundsDir, old, ov)
+		}
 		preview.SetSensitive(current != effects.Off)
 	}
 	// rebuild fills the model for the current choice and selects it.
@@ -159,21 +172,29 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 			store(choices[sel])
 			return
 		}
-		pickSoundFile(parent(), func(path string) {
+		pickSoundFile(parent(), pw, soundsDir, func(path string, problem string) {
 			if path != "" {
 				store(effects.FileChoice(path))
 				player.PlayChoice(current, st.AudioOutputDevice())
 			}
-			rebuild() // also reverts the selection on cancel
+			if problem != "" {
+				t := adw.NewToast(problem)
+				t.SetUseMarkup(false)
+				pw.AddToast(t)
+			}
+			rebuild() // also reverts the selection on cancel or a problem
 		})
 	})
 
 	return row
 }
 
-// pickSoundFile asks for a WAV or Ogg Vorbis file; done receives its path
-// ("" when cancelled).
-func pickSoundFile(parent *gtk.Window, done func(path string)) {
+// pickSoundFile asks for a WAV or Ogg Vorbis file and checks that it can
+// be played. done receives its path, or a problem to show ("" for both when
+// cancelled). A file without a local path (network location) is copied to
+// soundsDir, since playback reads a local file. owner is the widget that
+// asked; closing it abandons the pick.
+func pickSoundFile(parent *gtk.Window, owner gtk.Widgetter, soundsDir string, done func(path, problem string)) {
 	audio := gtk.NewFileFilter()
 	audio.SetName(tr("Sounds (WAV, Ogg Vorbis)"))
 	for _, s := range []string{"wav", "ogg", "oga"} {
@@ -193,9 +214,86 @@ func pickSoundFile(parent *gtk.Window, done func(path string)) {
 	fd.Open(context.Background(), parent, func(res gio.AsyncResulter) {
 		file, err := fd.OpenFinish(res)
 		if err != nil || file == nil {
-			done("")
+			done("", "")
 			return
 		}
-		done(file.Path())
+		name, path := file.Basename(), file.Path()
+		ctx := gfileio.ForWidget(owner)
+		gfileio.Load(ctx, file, gfileio.MaxSoundBytes, func(data []byte, err error) {
+			if err != nil {
+				slog.Info("sound file not read", "file", name, "err", err)
+				done("", gfileio.Message(err))
+				return
+			}
+			go func() {
+				_, decodeErr := effects.Decode(data)
+				var copyErr error
+				if decodeErr == nil && path == "" {
+					path, copyErr = copySound(soundsDir, name, data)
+				}
+				glib.IdleAdd(func() {
+					if ctx.Err() != nil {
+						return
+					}
+					switch {
+					case decodeErr != nil:
+						slog.Info("sound file not usable", "file", name, "err", decodeErr)
+						done("", tr("This file is not a usable sound (WAV or Ogg Vorbis)."))
+					case copyErr != nil:
+						slog.Info("sound file not copied", "file", name, "err", copyErr)
+						done("", copyErr.Error())
+					default:
+						done(path, "")
+					}
+				})
+			}()
+		})
 	})
+}
+
+// copySound stores data under soundsDir with name (made unique) and
+// returns the new path.
+func copySound(soundsDir, name string, data []byte) (string, error) {
+	if err := os.MkdirAll(soundsDir, 0o700); err != nil {
+		return "", err
+	}
+	ext := filepath.Ext(name)
+	stem := strings.TrimSuffix(filepath.Base(name), ext)
+	for i := 1; ; i++ {
+		path := filepath.Join(soundsDir, stem+ext)
+		if i > 1 {
+			path = filepath.Join(soundsDir, fmt.Sprintf("%s-%d%s", stem, i, ext))
+		}
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+		if errors.Is(err, os.ErrExist) {
+			continue
+		}
+		if err != nil {
+			return "", err
+		}
+		if _, err := f.Write(data); err != nil {
+			f.Close()
+			os.Remove(path)
+			return "", err
+		}
+		return path, f.Close()
+	}
+}
+
+// removeUnusedCopy deletes the copy behind a replaced choice when it lies
+// in soundsDir and no event uses it any more (overrides: the stored
+// choices).
+func removeUnusedCopy(soundsDir, choice string, overrides map[string]string) {
+	path, ok := effects.FilePath(choice)
+	if !ok || filepath.Dir(filepath.Clean(path)) != filepath.Clean(soundsDir) {
+		return
+	}
+	for _, c := range overrides {
+		if c == choice {
+			return
+		}
+	}
+	if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+		slog.Info("sound copy not removed", "err", err)
+	}
 }

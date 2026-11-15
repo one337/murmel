@@ -22,6 +22,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+
+	"io.github/murmel/internal/ui/gfileio"
 )
 
 // SidePx is the edge of the stored square avatar: sharp at the channel
@@ -74,10 +76,10 @@ func (s *Store) Save(key string, data []byte) error {
 	return os.Rename(tmp, s.path(key))
 }
 
-// Process loads an image file, crops its centre to a square and scales it
-// to SidePx (never enlarging), as PNG.
-func Process(path string) ([]byte, error) {
-	src, err := gdkpixbuf.NewPixbufFromFile(path)
+// Process decodes image file data, crops its centre to a square and scales
+// it to SidePx (never enlarging), as PNG.
+func Process(data []byte) ([]byte, error) {
+	src, err := gfileio.Pixbuf(data)
 	if err != nil {
 		return nil, err
 	}
@@ -202,18 +204,29 @@ func (r *Row) choose() {
 		if err != nil || file == nil {
 			return // cancelled
 		}
-		path := file.Path()
-		go func() {
-			data, err := Process(path)
-			glib.IdleAdd(func() {
-				if err != nil {
-					slog.Info("avatar: image not usable", "file", path, "err", err)
-					r.SetSubtitle(tr("This image could not be read."))
-					return
-				}
-				r.set(data, true)
-			})
-		}()
+		name := file.Basename()
+		ctx := gfileio.ForWidget(r)
+		gfileio.Load(ctx, file, gfileio.MaxImageBytes, func(data []byte, err error) {
+			if err != nil {
+				slog.Info("avatar: image not read", "file", name, "err", err)
+				r.SetSubtitle(gfileio.Message(err))
+				return
+			}
+			go func() {
+				data, err := Process(data)
+				glib.IdleAdd(func() {
+					if ctx.Err() != nil {
+						return
+					}
+					if err != nil {
+						slog.Info("avatar: image not usable", "file", name, "err", err)
+						r.SetSubtitle(tr("This image could not be read."))
+						return
+					}
+					r.set(data, true)
+				})
+			}()
+		})
 	})
 }
 
