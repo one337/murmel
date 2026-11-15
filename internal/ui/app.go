@@ -134,7 +134,7 @@ func (a *App) OnUserList(f func()) { a.userListRequested = f }
 
 // RequestConnect routes a connect request into the connect seam. Main loop only.
 func (a *App) RequestConnect(req ConnectRequest) {
-	slog.Info("connect requested", "host", req.Host, "port", req.Port, "source", req.URL)
+	slog.Info("connect requested", "host", req.Host, "port", req.Port)
 	if a.connectRequested != nil {
 		a.connectRequested(req)
 	}

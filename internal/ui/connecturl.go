@@ -14,9 +14,6 @@ const DefaultPort = 64738
 // pre-filled. It is produced by ParseConnectURL for mumble:// URLs handed to
 // the binary; an empty request opens the dialog blank.
 type ConnectRequest struct {
-	// URL is the original mumble:// string ("" when the user clicked
-	// Connect without a URL).
-	URL string
 	// Host and Port name the server (Port defaults to DefaultPort).
 	Host string
 	Port int
@@ -46,7 +43,6 @@ func ParseConnectURL(raw string) (req ConnectRequest, ok bool) {
 	}
 
 	req = ConnectRequest{
-		URL:      raw,
 		Host:     u.Hostname(),
 		Port:     DefaultPort,
 		Username: u.User.Username(),

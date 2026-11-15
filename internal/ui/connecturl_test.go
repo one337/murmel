@@ -1,7 +1,12 @@
 package ui
 
-import "reflect"
-import "testing"
+import (
+	"bytes"
+	"log/slog"
+	"reflect"
+	"strings"
+	"testing"
+)
 
 func TestParseConnectURL(t *testing.T) {
 	tests := []struct {
@@ -13,14 +18,13 @@ func TestParseConnectURL(t *testing.T) {
 		{
 			name: "host only",
 			raw:  "mumble://example.com",
-			want: ConnectRequest{URL: "mumble://example.com", Host: "example.com", Port: 64738},
+			want: ConnectRequest{Host: "example.com", Port: 64738},
 			ok:   true,
 		},
 		{
 			name: "username, port and channel path",
 			raw:  "mumble://alice@example.com:64738/Lobby/Sub",
 			want: ConnectRequest{
-				URL:         "mumble://alice@example.com:64738/Lobby/Sub",
 				Host:        "example.com",
 				Port:        64738,
 				Username:    "alice",
@@ -32,7 +36,6 @@ func TestParseConnectURL(t *testing.T) {
 			name: "password in userinfo",
 			raw:  "mumble://alice:secret@example.com",
 			want: ConnectRequest{
-				URL:      "mumble://alice:secret@example.com",
 				Host:     "example.com",
 				Port:     64738,
 				Username: "alice",
@@ -43,19 +46,19 @@ func TestParseConnectURL(t *testing.T) {
 		{
 			name: "explicit port overrides default",
 			raw:  "mumble://example.com:1234",
-			want: ConnectRequest{URL: "mumble://example.com:1234", Host: "example.com", Port: 1234},
+			want: ConnectRequest{Host: "example.com", Port: 1234},
 			ok:   true,
 		},
 		{
 			name: "tls scheme alias",
 			raw:  "mumbles://example.com",
-			want: ConnectRequest{URL: "mumbles://example.com", Host: "example.com", Port: 64738},
+			want: ConnectRequest{Host: "example.com", Port: 64738},
 			ok:   true,
 		},
 		{
 			name: "query string ignored",
 			raw:  "mumble://example.com?version=1.2.0",
-			want: ConnectRequest{URL: "mumble://example.com?version=1.2.0", Host: "example.com", Port: 64738},
+			want: ConnectRequest{Host: "example.com", Port: 64738},
 			ok:   true,
 		},
 		{name: "wrong scheme", raw: "https://example.com", ok: false},
@@ -82,5 +85,26 @@ func TestParseConnectURL(t *testing.T) {
 func TestTRReturnsInput(t *testing.T) {
 	if got := tr("Not connected"); got != "Not connected" {
 		t.Errorf("tr identity without a translation, got %q", got)
+	}
+}
+
+func TestRequestConnectDoesNotLogCredentials(t *testing.T) {
+	var buf bytes.Buffer
+	prev := slog.Default()
+	slog.SetDefault(slog.New(slog.NewTextHandler(&buf, nil)))
+	t.Cleanup(func() { slog.SetDefault(prev) })
+
+	req, ok := ParseConnectURL("mumble://alice:geheim@example.com/")
+	if !ok {
+		t.Fatal("ParseConnectURL failed")
+	}
+	(&App{}).RequestConnect(req)
+
+	out := buf.String()
+	if !strings.Contains(out, "example.com") {
+		t.Fatalf("log line missing host: %q", out)
+	}
+	if strings.Contains(out, "geheim") {
+		t.Fatalf("log line contains the password: %q", out)
 	}
 }
