@@ -191,6 +191,20 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	passwordEntry := adw.NewPasswordEntryRow()
 	passwordEntry.SetTitle(tr("Server Password"))
 	passwordEntry.SetText(req.Password)
+	// pwField says whether the field may update the keyring; text set by
+	// the form itself (setPassword) does not count as the user's edit.
+	var pwField passwordField
+	settingPassword := false
+	setPassword := func(pw string) {
+		settingPassword = true
+		passwordEntry.SetText(pw)
+		settingPassword = false
+	}
+	passwordEntry.ConnectChanged(func() {
+		if !settingPassword {
+			pwField.edited()
+		}
+	})
 
 	group := adw.NewPreferencesGroup()
 	group.SetTitle(tr("Server"))
@@ -305,21 +319,24 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 		portEntry.SetText(strconv.Itoa(e.Port))
 		userEntry.SetText(e.Username)
 		selectIdentity(e.IdentityID)
-		passwordEntry.SetText("")
+		setPassword("")
 		saveRow.SetActive(true)
 		avatarRow.SetData(avatars.Load(avatarpick.AccountKey(e.Host, e.Port, e.Username)))
 		avatarChanged = false
 		key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
+		gen := pwField.startLookup()
 		go func() {
 			pw, err := secrets.Lookup(key)
 			if err != nil {
 				slog.Info("keyring lookup failed", "err", err)
-				return
 			}
 			glib.IdleAdd(func() bool {
 				// Only if the form still shows this account.
-				if hostEntry.Text() == e.Host && userEntry.Text() == e.Username {
-					passwordEntry.SetText(pw)
+				if hostEntry.Text() != e.Host || userEntry.Text() != e.Username {
+					return false
+				}
+				if pwField.lookupDone(gen, err == nil) {
+					setPassword(pw)
 				}
 				return false
 			})
@@ -399,13 +416,13 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 			texture = defaultAvatar
 		}
 		if saveRow.Active() {
-			c.saveServer(settings.ServerEntry{
+			c.saveServerEntry(settings.ServerEntry{
 				Name:       savedName(user, h, p),
 				Host:       h,
 				Port:       p,
 				Username:   user,
 				IdentityID: identityID,
-			}, password)
+			})
 		}
 
 		dialog.Close()
@@ -415,6 +432,9 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 			password: password,
 			identity: identity,
 			texture:  texture,
+			// The password reaches the keyring only once the server
+			// accepted it, and not while the saved one is still loading.
+			rememberPassword: saveRow.Active() && pwField.known(),
 		}
 		// A link's channel applies only to the server the link named.
 		if strings.EqualFold(h, req.Host) && p == port {
@@ -427,10 +447,16 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	dialog.Present(c.win)
 }
 
-// saveServer stores the connection (in place, or at the end when it is
-// new) and its password in the keyring; an empty password removes a previously stored one.
-func (c *Controller) saveServer(e settings.ServerEntry, password string) {
+// saveServerEntry stores the connection in the saved list (in place, or at
+// the end when it is new).
+func (c *Controller) saveServerEntry(e settings.ServerEntry) {
 	c.settings.SetServers(upsertServer(c.settings.Servers(), e))
+}
+
+// saveServer stores the connection and its password in the keyring; an
+// empty password removes a previously stored one.
+func (c *Controller) saveServer(e settings.ServerEntry, password string) {
+	c.saveServerEntry(e)
 	key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
 	go func() {
 		var err error
