@@ -37,8 +37,10 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 	status := gtk.NewLabel("")
 	status.AddCSSClass("dim-label")
 	status.SetWrap(true)
+	status.SetXAlign(0)
+	status.SetHExpand(true)
+	// Full width, starting at the fields' left edge like the description.
 	statusBox := gtk.NewBox(gtk.OrientationHorizontal, 8)
-	statusBox.SetHAlign(gtk.AlignCenter)
 	statusBox.Append(spinner)
 	statusBox.Append(status)
 
