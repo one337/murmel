@@ -136,7 +136,7 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 		r.root.SetTooltipText(tr("You are in this channel"))
 	}
 	if menu != nil {
-		rightClick(r.root, menu)
+		contextMenu(r.root, menu)
 	}
 	r.update(n)
 	return r
@@ -203,7 +203,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 		r.root.AddCSSClass("self-user")
 	}
 	if menu != nil {
-		rightClick(r.root, menu)
+		contextMenu(r.root, menu)
 	}
 	// A click opens the conversation with the user, also when the row is
 	// already selected (selection changes alone would not fire again).
@@ -221,11 +221,23 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	return r
 }
 
-func rightClick(row *gtk.ListBoxRow, menu func(x, y float64)) {
+// contextMenu opens the row's menu on a right click and, on touch
+// screens, on a long press (touch only, like GTK's own widgets). The long
+// press claims the touch, so it does not also count as a tap (which opens
+// a conversation).
+func contextMenu(row *gtk.ListBoxRow, menu func(x, y float64)) {
 	g := gtk.NewGestureClick()
 	g.SetButton(gdk.BUTTON_SECONDARY)
 	g.ConnectPressed(func(_ int, x, y float64) { menu(x, y) })
 	row.AddController(g)
+
+	hold := gtk.NewGestureLongPress()
+	hold.SetTouchOnly(true)
+	hold.ConnectPressed(func(x, y float64) {
+		hold.SetState(gtk.EventSequenceClaimed)
+		menu(x, y)
+	})
+	row.AddController(hold)
 }
 
 func applyIndent(box *gtk.Box, depth int) {
