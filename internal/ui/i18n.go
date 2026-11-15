@@ -13,14 +13,44 @@ import (
 const i18nDomain = "murmel"
 
 // localeDirs are probed in priority order:
-//  0. $MURMEL_LOCALEDIR — development (tools/install-translations.sh <dir>)
-//  1. /app/share/locale — Flatpak runtime
-//  2. /usr/share/locale — system-wide install
+//  1. $MURMEL_LOCALEDIR — development (tools/install-translations.sh <dir>)
+//  2. <prefix>/share/locale next to the program's <prefix>/bin — any
+//     install prefix: Flatpak (/app), packages (/usr), install.sh
+//     (/usr/local, ~/.local), Nix store paths, the snap ($SNAP/usr)
+//  3. /app/share/locale and /usr/share/locale — fallback for a program
+//     in an unusual place
 func localeDirs() []string {
-	dirs := []string{"/app/share/locale", "/usr/share/locale"}
-	if d := os.Getenv("MURMEL_LOCALEDIR"); d != "" {
-		dirs = append([]string{d}, dirs...)
+	exe, err := os.Executable()
+	if err != nil {
+		exe = ""
 	}
+	return localeDirsFor(os.Getenv("MURMEL_LOCALEDIR"), exe)
+}
+
+// localeDirsFor is localeDirs for a given $MURMEL_LOCALEDIR and program
+// path. Symlinks in the program path are resolved; if that fails, the
+// path is used as it is.
+func localeDirsFor(envDir, exe string) []string {
+	var dirs []string
+	add := func(d string) {
+		for _, have := range dirs {
+			if have == d {
+				return
+			}
+		}
+		dirs = append(dirs, d)
+	}
+	if envDir != "" {
+		add(envDir)
+	}
+	if exe != "" {
+		if resolved, err := filepath.EvalSymlinks(exe); err == nil {
+			exe = resolved
+		}
+		add(filepath.Join(filepath.Dir(exe), "..", "share", "locale"))
+	}
+	add("/app/share/locale")
+	add("/usr/share/locale")
 	return dirs
 }
 

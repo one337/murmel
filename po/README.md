@@ -66,4 +66,7 @@ a restart). Otherwise the app picks the first of the user's languages
 (`LANGUAGE`, `LC_ALL`, `LC_MESSAGES`, `LANG`) that has a translation,
 falling back from a regional variant (`de_AT`) to the language (`de`),
 and English when there is none. Translations are loaded from
-`/app/share/locale` (Flatpak) or `/usr/share/locale`.
+`share/locale` next to the program's `bin` directory, so any install
+prefix works (`/app` in the Flatpak, `/usr`, `/usr/local`, `~/.local`, a
+Nix store path, the snap); `/app/share/locale` and `/usr/share/locale`
+are the fallback. `MURMEL_LOCALEDIR` takes precedence over all of them.
