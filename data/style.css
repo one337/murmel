@@ -45,14 +45,17 @@ menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):n
   background-color: alpha(currentColor, 0.13);
 }
 .voice-meter.transmitting {
+  color: var(--success-bg-color);
   background-color: alpha(var(--success-bg-color), 0.12);
   box-shadow: inset 0 0 0 1px alpha(var(--success-bg-color), 0.55);
 }
 .voice-meter.detected {
+  color: var(--warning-bg-color);
   background-color: alpha(var(--warning-bg-color), 0.12);
   box-shadow: inset 0 0 0 1px alpha(var(--warning-bg-color), 0.6);
 }
 .voice-meter.clipping {
+  color: var(--error-bg-color);
   background-color: alpha(var(--error-bg-color), 0.12);
   box-shadow: inset 0 0 0 1px alpha(var(--error-bg-color), 0.65);
 }

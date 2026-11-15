@@ -146,22 +146,17 @@ func (m *voiceMeter) draw(area *gtk.DrawingArea, cr *cairo.Context, width, heigh
 	// A hint of movement even in silence, so the line reads as live.
 	amp := math.Max(0.6, level*(mid-1.5))
 
+	// The colour comes from style.css: the state classes on the pill set
+	// it, so it follows the light, dark and high-contrast styles.
 	setColor := func(alpha float64) {
-		switch m.state {
-		case meterClipping:
-			cr.SetSourceRGBA(0.878, 0.106, 0.141, alpha) // Adwaita red_3 #e01b24
-		case meterTalking:
-			cr.SetSourceRGBA(0.180, 0.761, 0.494, alpha) // Adwaita green_4 #2ec27e
-		case meterDetected:
-			cr.SetSourceRGBA(0.898, 0.647, 0.039, alpha) // Adwaita yellow_5 #e5a50a
-		default:
+		if m.state == meterQuiet {
 			// Quiet: the foreground colour, faint enough not to stand out.
 			alpha *= 0.35
-			if fg := area.Color(); fg != nil {
-				cr.SetSourceRGBA(float64(fg.Red()), float64(fg.Green()), float64(fg.Blue()), alpha)
-			} else {
-				cr.SetSourceRGBA(0.5, 0.5, 0.5, alpha)
-			}
+		}
+		if fg := area.Color(); fg != nil {
+			cr.SetSourceRGBA(float64(fg.Red()), float64(fg.Green()), float64(fg.Blue()), alpha)
+		} else {
+			cr.SetSourceRGBA(0.5, 0.5, 0.5, alpha)
 		}
 	}
 
