@@ -43,21 +43,17 @@ const (
 	chatImageMaxHeight = 280
 )
 
-// newRow builds one ListBoxRow. The sender label gets the theme's accent
-// color via a Pango foreground attribute (never markup) so a name like
-// "<b>evil</b>" can never be interpreted.
+// newRow builds one ListBoxRow. The sender label shows the theme's accent
+// color through the accent style class, so it follows a change of the
+// accent color or the light/dark style; its text is set as plain text
+// (never markup) so a name like "<b>evil</b>" can never be interpreted.
 func newRow(st rowStyle) *gtk.ListBoxRow {
 	if st.kind == rowLog {
 		return newLogRow(st)
 	}
 	sender := gtk.NewLabel(st.sender)
 	sender.AddCSSClass("heading")
-	if rgba, ok := sender.StyleContext().LookupColor("accent_color"); ok && rgba != nil {
-		attrs := pango.NewAttrList()
-		attrs.Insert(pango.NewAttrForeground(
-			uint16(rgba.Red()*65535), uint16(rgba.Green()*65535), uint16(rgba.Blue()*65535)))
-		sender.SetAttributes(attrs)
-	}
+	sender.AddCSSClass("accent")
 
 	stamp := gtk.NewLabel(st.at.Format("15:04"))
 	stamp.AddCSSClass("caption")
@@ -114,7 +110,7 @@ func newRow(st rowStyle) *gtk.ListBoxRow {
 
 // rowCSSClass maps row kinds to built-in style classes: errors carry the
 // destructive color, notices the dim style. Message rows stay unclassed —
-// the sender's accent attribute provides the only color.
+// the sender's accent style class provides the only color.
 func rowCSSClass(k rowKind) string {
 	switch k {
 	case rowError:
