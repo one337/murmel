@@ -346,14 +346,27 @@ func (w *Window) subscribe() {
 	context.AfterFunc(w.ctx, func() {
 		glib.IdleAdd(w.status.stopIdleMic)
 	})
+	// The first ConnectionInfo of a connection can overtake its Connected;
+	// it is kept until then (a new attempt or its end drops it).
+	var earlyInfo *bus.ConnectionInfo
+	showInfo := func(ev bus.ConnectionInfo) {
+		w.status.setInfo(ev)
+		w.setServerTitle(ev.Address)
+	}
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(bus.Connected) {
 		w.stack.SetVisibleChildName("session")
 		w.status.setConnected()
 		w.connected = true
 		w.setAdminMenu(true)
 		w.showPrimary()
+		if earlyInfo != nil {
+			showInfo(*earlyInfo)
+			earlyInfo = nil
+		}
 	})
+	bus.SubscribeCtx(w.ctx, w.app.bus, func(bus.ConnectionStarting) { earlyInfo = nil })
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(bus.Disconnected) {
+		earlyInfo = nil
 		w.stack.SetVisibleChildName("empty")
 		w.status.setDisconnected()
 		w.connected = false
@@ -364,6 +377,7 @@ func (w *Window) subscribe() {
 		w.status.SetSelfDeafened(false)
 	})
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(ev bus.ConnectError) {
+		earlyInfo = nil
 		w.stack.SetVisibleChildName("empty")
 		w.status.setError(ev.Text)
 		w.connected = false
@@ -392,8 +406,9 @@ func (w *Window) subscribe() {
 	})
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(ev bus.ConnectionInfo) {
 		if w.connected {
-			w.status.setInfo(ev)
-			w.setServerTitle(ev.Address)
+			showInfo(ev)
+		} else {
+			earlyInfo = &ev
 		}
 	})
 	// Reflect server-confirmed self-mute/deafen state.

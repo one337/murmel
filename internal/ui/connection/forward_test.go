@@ -40,7 +40,7 @@ func TestForwardBusDeliversEvents(t *testing.T) {
 		})
 		t.Cleanup(unsub)
 
-		stop := forwardBus(src, dst, nil)
+		stop := forwardBus(src, dst, nil, nil)
 		t.Cleanup(stop)
 
 		src.Emit(bus.UserAdded{User: bus.UserInfo{Session: 7, Name: "peer"}})
@@ -70,7 +70,7 @@ func TestForwardBusOrder(t *testing.T) {
 		})
 		t.Cleanup(unsub3)
 
-		stop := forwardBus(src, dst, nil)
+		stop := forwardBus(src, dst, nil, nil)
 		t.Cleanup(stop)
 
 		src.Emit(bus.Connected{})
@@ -99,7 +99,7 @@ func TestForwardBusDisconnectedCallback(t *testing.T) {
 		got := make(chan struct{}, 1)
 		stopDone := make(chan struct{})
 		var stopFwd func()
-		stopFwd = forwardBus(src, dst, func() {
+		stopFwd = forwardBus(src, dst, nil, func() {
 			got <- struct{}{}
 			// stopFwd must not be called synchronously from within the handler:
 			// the handler holds the subscription mutex, and stopFwd → kill()
@@ -135,7 +135,7 @@ func TestForwardBusStopDropsSubsequent(t *testing.T) {
 		t.Cleanup(dst.Close)
 		t.Cleanup(src.Close)
 
-		stop := forwardBus(src, dst, nil)
+		stop := forwardBus(src, dst, nil, nil)
 		stop()
 
 		delivered := make(chan struct{})

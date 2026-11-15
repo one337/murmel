@@ -342,3 +342,18 @@ user references — the root channel's default ACL, for one — never
 reached the application, and the channel editor kept loading.
 
 **Upstream**: layeh/gumble `gumble/handlers.go` (`handleACL` stores `tmpACL`, `handleQueryUsers` fires the event).
+
+## P16 — Dial that gives up before logging in
+
+**What**: New `DialContext(ctx, dialer, addr, config, tlsConfig)`;
+`DialWithDialer` calls it with `context.Background()`. The TCP connect
+and TLS handshake go through `tls.Dialer.DialContext`, the context is
+checked once more right before Version and Authenticate are sent, and
+the wait for ServerSync also ends with the context. Once the client is
+returned, the context has no effect on it.
+
+**Why**: When the user connects anew while an earlier attempt is still
+connecting, the earlier attempt must not log in afterwards: with the same
+registered account the server would drop the newer session as a ghost.
+
+**Upstream**: layeh/gumble `gumble/client.go` (`DialWithDialer` uses `tls.DialWithDialer` and has no way to cancel).

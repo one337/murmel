@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
@@ -53,6 +54,12 @@ type Controller struct {
 	retryStop context.CancelFunc
 	lastDial  *dialParams // saved for auto-reconnect
 	lastJoin  joinAttempt // for the channel password prompt
+
+	// gen numbers the connection attempts (see attempt); it is read by
+	// the dial goroutines, changed only on the main loop under mu.
+	gen           atomic.Uint64
+	attemptCancel context.CancelFunc // ends the current attempt
+	shownGen      uint64             // attempt whose connection the UI shows (main loop)
 
 	certPromptOpen bool // the missing-certificate prompt is showing
 
@@ -524,25 +531,39 @@ func (c *Controller) pickCertificateFile(parent *adw.Dialog, onImported func(cer
 // --- Dial ------------------------------------------------------------------
 
 func (c *Controller) startDial(p *dialParams) {
-	// Cancel any running reconnect.
+	a := c.switchAttempt(p)
+	go c.dial(p, a)
+}
+
+// switchAttempt ends whatever runs (a reconnect wait, a dial with its
+// prompts, a connection) and announces the new attempt: Disconnected for
+// a connection the user interface shows, then ConnectionStarting — in
+// this order, so clearing away the old server cannot wipe out the start
+// of the new one.
+func (c *Controller) switchAttempt(p *dialParams) attempt {
 	c.mu.Lock()
 	if c.retryStop != nil {
 		c.retryStop()
 		c.retryStop = nil
 	}
-	// Disconnect any live connection.
+	a, shown := c.beginAttemptLocked()
 	if c.client != nil {
+		shown = true
 		c.disconnectLocked()
 	}
 	c.boff.reset()
 	c.lastDial = p
 	c.mu.Unlock()
 
+	if shown {
+		slog.Info("leaving the server for another connection")
+		c.appBus.Emit(bus.Disconnected{Reason: bus.DisconnectUser})
+	}
 	c.appBus.Emit(bus.ConnectionStarting{Reconnect: false})
-	go c.dial(p)
+	return a
 }
 
-func (c *Controller) dial(p *dialParams) {
+func (c *Controller) dial(p *dialParams, a attempt) {
 	cfg := gumble.NewConfig()
 	cfg.Username = p.username
 	cfg.Password = p.password
@@ -553,7 +574,7 @@ func (c *Controller) dial(p *dialParams) {
 	// before dialing: gumble emits OnConnect (with the full channel/user
 	// snapshot) from inside DialWithDialer once ServerSync arrives.
 	connBus := bus.NewForConfig(cfg)
-	stopFwd := forwardBus(connBus, c.appBus, func() {
+	stopFwd := forwardBus(connBus, c.appBus, c.passFor(a), func() {
 		// Runs inside connBus's Disconnected handler; tearing the
 		// forwarders down synchronously from there would deadlock on the
 		// subscription's own lock, so defer to the next main-loop turn.
@@ -565,18 +586,20 @@ func (c *Controller) dial(p *dialParams) {
 
 	// TOFU callback runs in this goroutine (the dial goroutine); it marshals
 	// the trust dialog onto the main loop and blocks waiting for the response.
-	verifyFn := c.makeVerifyCallback()
+	verifyFn := c.makeVerifyCallback(a)
 	tlsCfg := c.certs.TLSConfig(p.identity, p.addr, verifyFn)
 
 	slog.Info("dialing", "addr", p.addr, "user", p.username,
 		"password", p.password != "", "certificate", p.identity != nil)
-	client, err := gumble.DialWithDialer(new(net.Dialer), p.addr, cfg, tlsCfg)
+	// A superseded attempt gives up before it logs in: logging in later
+	// would make the server drop the newer session of the same account.
+	client, err := gumble.DialContext(a.ctx, new(net.Dialer), p.addr, cfg, tlsCfg)
 	if err != nil {
 		slog.Info("dial error", "err", err)
 		stopFwd()
 		connBus.Close()
 		glib.IdleAdd(func() bool {
-			c.onDialError(err, p)
+			c.onDialError(err, p, a)
 			return false
 		})
 		return
@@ -593,12 +616,21 @@ func (c *Controller) dial(p *dialParams) {
 		"max_bandwidth", client.MaxBandwidth(), "self", self)
 
 	glib.IdleAdd(func() bool {
-		c.onDialSuccess(client, connBus, stopFwd, p.addr)
+		c.onDialSuccess(a, client, connBus, stopFwd, p.addr)
 		return false
 	})
 }
 
-func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stopFwd func(), addr string) {
+func (c *Controller) onDialSuccess(a attempt, client *gumble.Client, connBus *bus.Bus, stopFwd func(), addr string) {
+	if !c.current(a) {
+		// Superseded while dialing: leave again without a trace — no
+		// password or saved connection is stored, no voice starts.
+		slog.Info("superseded connection closed", "addr", addr)
+		stopFwd()
+		connBus.Close()
+		client.Disconnect()
+		return
+	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -666,7 +698,11 @@ func (c *Controller) onDialSuccess(client *gumble.Client, connBus *bus.Bus, stop
 	c.startLocalAudio(addr)
 }
 
-func (c *Controller) onDialError(err error, p *dialParams) {
+func (c *Controller) onDialError(err error, p *dialParams, a attempt) {
+	if !c.current(a) {
+		slog.Info("superseded attempt failed", "err", err)
+		return
+	}
 	class := classifyDialError(err)
 	if class == classNone {
 		return // TOFU declined — silent, the dialog explained it
@@ -701,10 +737,10 @@ func (c *Controller) onDialError(err error, p *dialParams) {
 		switch {
 		case ev.Reason == bus.RejectServerPassword,
 			ev.Reason == bus.RejectUserCredentials && strings.EqualFold(p.username, "SuperUser"):
-			c.promptPassword(p, ev.Reason == bus.RejectUserCredentials)
+			c.promptPassword(p, a, ev.Reason == bus.RejectUserCredentials)
 			return
 		case ev.Reason == bus.RejectUserCredentials:
-			c.promptRegisteredName(p)
+			c.promptRegisteredName(p, a)
 			return
 		}
 	}
@@ -714,7 +750,7 @@ func (c *Controller) onDialError(err error, p *dialParams) {
 // promptRegisteredName explains that the name is registered on the server
 // with another certificate (or a password) and offers the ways out:
 // change the name or certificate, or log in with the account's password.
-func (c *Controller) promptRegisteredName(p *dialParams) {
+func (c *Controller) promptRegisteredName(p *dialParams, a attempt) {
 	body := fmt.Sprintf(tr("The name %s is registered on this server, and the server does not recognize you as its owner. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username)
 	if p.identity != nil {
 		body = fmt.Sprintf(tr("The name %s is registered on this server with a different certificate than %s. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username, p.identity.Meta.Name)
@@ -758,6 +794,7 @@ func (c *Controller) promptRegisteredName(p *dialParams) {
 			c.showConnectDialog(ui.ConnectRequest{Host: host, Port: port, Username: p.username, Password: p.password})
 		}
 	})
+	closeWhenSuperseded(a, &alert.Dialog)
 	alert.Present(c.win)
 }
 
@@ -766,7 +803,7 @@ func (c *Controller) promptRegisteredName(p *dialParams) {
 // instead of a certificate) or the server password — and retries. With
 // "Remember password" the password goes to the keyring once the server
 // accepts it.
-func (c *Controller) promptPassword(p *dialParams, userPassword bool) {
+func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool) {
 	heading := tr("Password Required")
 	body := tr("This server is protected by a password.")
 	if userPassword {
@@ -806,6 +843,7 @@ func (c *Controller) promptPassword(p *dialParams, userPassword bool) {
 		retry.rememberPassword = remember.Active()
 		c.startDial(&retry)
 	})
+	closeWhenSuperseded(a, &alert.Dialog)
 	alert.Present(c.win)
 	entry.GrabFocus()
 }
@@ -937,9 +975,15 @@ func (c *Controller) scheduleReconnect(p *dialParams) {
 		case <-time.After(delay):
 		}
 		glib.IdleAdd(func() bool {
+			if ctx.Err() != nil {
+				return false // cancelled while this was queued
+			}
+			c.mu.Lock()
+			a, _ := c.beginAttemptLocked()
+			c.mu.Unlock()
 			c.appBus.Emit(bus.ConnectError{Text: tr("Reconnecting…")})
 			c.appBus.Emit(bus.ConnectionStarting{Reconnect: true})
-			go c.dial(p)
+			go c.dial(p, a)
 			return false
 		})
 	}()
@@ -1296,7 +1340,9 @@ func (c *Controller) onDisconnectRequested(bus.DisconnectRequested) {
 		c.retryStop()
 		c.retryStop = nil
 	}
-	connected := c.client != nil
+	// A dial still running is superseded: it neither connects later nor
+	// leaves a prompt open.
+	connected := c.endAttemptLocked() || c.client != nil
 	c.disconnectLocked()
 	c.boff.reset()
 	c.lastDial = nil
@@ -1452,19 +1498,19 @@ func (c *Controller) SendText(channelID, session uint32, message string) error {
 
 // makeVerifyCallback returns a certs.VerifyCallback that blocks the dial
 // goroutine while showing a GTK4 trust dialog on the main loop.
-func (c *Controller) makeVerifyCallback() certs.VerifyCallback {
+func (c *Controller) makeVerifyCallback(a attempt) certs.VerifyCallback {
 	return func(result certs.VerifyResult, stored, presented certs.ServerEntry) error {
 		switch result {
 		case certs.VerifyMatch:
 			return nil // already pinned — proceed silently
 		case certs.VerifyNew:
-			trusted := c.blockForTOFUDialog(nil, presented)
+			trusted := c.blockForTOFUDialog(a, nil, presented)
 			if !trusted {
 				return errDeclinedTOFU
 			}
 			return nil
 		case certs.VerifyChanged:
-			trusted := c.blockForTOFUDialog(&stored, presented)
+			trusted := c.blockForTOFUDialog(a, &stored, presented)
 			if !trusted {
 				return errDeclinedTOFU
 			}
@@ -1476,17 +1522,28 @@ func (c *Controller) makeVerifyCallback() certs.VerifyCallback {
 
 // blockForTOFUDialog shows a TOFU dialog on the main loop and blocks the
 // caller (which runs on a goroutine) until the user responds. stored is the
-// previously trusted certificate when it changed, nil for a new server.
-func (c *Controller) blockForTOFUDialog(stored *certs.ServerEntry, presented certs.ServerEntry) bool {
+// previously trusted certificate when it changed, nil for a new server. A
+// superseded attempt counts as declined (nothing is pinned) and closes
+// the dialog.
+func (c *Controller) blockForTOFUDialog(a attempt, stored *certs.ServerEntry, presented certs.ServerEntry) bool {
 	ch := make(chan bool, 1)
 	glib.IdleAdd(func() bool {
-		c.showTOFUDialog(stored, presented, ch)
+		c.showTOFUDialog(a, stored, presented, ch)
 		return false
 	})
-	return <-ch
+	select {
+	case trusted := <-ch:
+		return trusted && c.current(a)
+	case <-a.ctx.Done():
+		return false
+	}
 }
 
-func (c *Controller) showTOFUDialog(stored *certs.ServerEntry, presented certs.ServerEntry, ch chan<- bool) {
+func (c *Controller) showTOFUDialog(a attempt, stored *certs.ServerEntry, presented certs.ServerEntry, ch chan<- bool) {
+	if !c.current(a) {
+		ch <- false
+		return
+	}
 	changed := stored != nil
 	var heading, body string
 	if changed {
@@ -1514,8 +1571,12 @@ func (c *Controller) showTOFUDialog(stored *certs.ServerEntry, presented certs.S
 		alert.SetResponseAppearance("trust", adw.ResponseSuggested)
 	}
 	alert.ConnectResponse(func(resp string) {
-		ch <- (resp == "trust")
+		select {
+		case ch <- (resp == "trust"):
+		default:
+		}
 	})
+	closeWhenSuperseded(a, &alert.Dialog)
 	alert.Present(c.win)
 }
 

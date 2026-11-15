@@ -1,6 +1,7 @@
 package gumble
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -118,10 +119,24 @@ func Dial(addr string, config *Config) (*Client, error) {
 // min(time.Now() + dialer.Timeout, dialer.Deadline), or if the server rejects
 // the client.
 func DialWithDialer(dialer *net.Dialer, addr string, config *Config, tlsConfig *tls.Config) (*Client, error) {
+	return DialContext(context.Background(), dialer, addr, config, tlsConfig)
+}
+
+// DialContext is DialWithDialer that gives up once ctx ends: while
+// connecting, during the TLS handshake, right before authenticating and
+// while waiting for the server to sync. A dial given up before it
+// authenticated never logs in. ctx has no effect on the returned client.
+//
+// Murmel patch (see PATCHES.md).
+func DialContext(ctx context.Context, dialer *net.Dialer, addr string, config *Config, tlsConfig *tls.Config) (*Client, error) {
 	start := time.Now()
 
-	conn, err := tls.DialWithDialer(dialer, "tcp", addr, tlsConfig)
+	conn, err := (&tls.Dialer{NetDialer: dialer, Config: tlsConfig}).DialContext(ctx, "tcp", addr)
 	if err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		conn.Close()
 		return nil, err
 	}
 
@@ -190,6 +205,9 @@ func DialWithDialer(dialer *net.Dialer, addr string, config *Config, tlsConfig *
 	}
 
 	select {
+	case <-ctx.Done():
+		client.Conn.Close()
+		return nil, ctx.Err()
 	case <-timeout:
 		client.Conn.Close()
 		return nil, errors.New("gumble: synchronization timeout")
