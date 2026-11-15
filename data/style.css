@@ -3,19 +3,19 @@
 
 /* Channel the local user is currently in. */
 row.current-channel {
-  background-color: alpha(@accent_bg_color, 0.16);
+  background-color: alpha(var(--accent-bg-color), 0.16);
 }
 row.current-channel:selected {
-  background-color: alpha(@accent_bg_color, 0.28);
+  background-color: alpha(var(--accent-bg-color), 0.28);
 }
 /* Only the row's own name and marker: context menus are popovers inside
    the row and must not inherit this styling. */
 row.current-channel label.channel-name {
   font-weight: bold;
-  color: @accent_color;
+  color: var(--accent-color);
 }
 row.current-channel image.here-icon {
-  color: @accent_color;
+  color: var(--accent-color);
 }
 
 /* The local user's own row. */
@@ -45,23 +45,23 @@ menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):n
   background-color: alpha(currentColor, 0.13);
 }
 .voice-meter.transmitting {
-  background-color: alpha(#2ec27e, 0.12);
-  box-shadow: inset 0 0 0 1px alpha(#2ec27e, 0.55);
+  background-color: alpha(var(--success-bg-color), 0.12);
+  box-shadow: inset 0 0 0 1px alpha(var(--success-bg-color), 0.55);
 }
 .voice-meter.detected {
-  background-color: alpha(#e5a50a, 0.12);
-  box-shadow: inset 0 0 0 1px alpha(#e5a50a, 0.6);
+  background-color: alpha(var(--warning-bg-color), 0.12);
+  box-shadow: inset 0 0 0 1px alpha(var(--warning-bg-color), 0.6);
 }
 .voice-meter.clipping {
-  background-color: alpha(#e01b24, 0.12);
-  box-shadow: inset 0 0 0 1px alpha(#e01b24, 0.65);
+  background-color: alpha(var(--error-bg-color), 0.12);
+  box-shadow: inset 0 0 0 1px alpha(var(--error-bg-color), 0.65);
 }
 
 /* Chat composer: one rounded field across the full width — the text on
    top, a toolbar (formatting left, send right) inside the same frame. */
 /* The area around the composer in the chat's colour, like the messages. */
 .composer-bar {
-  background-color: @view_bg_color;
+  background-color: var(--view-bg-color);
 }
 .composer-frame {
   margin: 0 8px 8px 8px;
@@ -69,7 +69,7 @@ menubutton.voice-meter-button > button:checked .voice-meter:not(.transmitting):n
   background-color: alpha(currentColor, 0.05);
 }
 .composer-frame:focus-within {
-  box-shadow: inset 0 0 0 1px alpha(@accent_color, 0.45);
+  box-shadow: inset 0 0 0 1px alpha(var(--accent-color), 0.45);
 }
 .composer-toolbar {
   padding: 0 6px 6px 6px;
@@ -87,7 +87,7 @@ textview.composer-view > text {
 .server-message {
   margin: 4px 6px;
   border-radius: 8px;
-  background-color: alpha(@accent_bg_color, 0.08);
+  background-color: alpha(var(--accent-bg-color), 0.08);
 }
 
 /* Narrow dropdown arrow of the mic/headphone split buttons. */
@@ -113,12 +113,12 @@ menubutton.dropdown-arrow > button {
   border-radius: 9999px;
 }
 .status-dot.connected {
-  background-color: #2ec27e;
-  box-shadow: 0 0 0 3px alpha(#2ec27e, 0.2);
+  background-color: var(--success-bg-color);
+  box-shadow: 0 0 0 3px alpha(var(--success-bg-color), 0.2);
 }
 .status-dot.disconnected {
-  background-color: #e01b24;
-  box-shadow: 0 0 0 3px alpha(#e01b24, 0.2);
+  background-color: var(--error-bg-color);
+  box-shadow: 0 0 0 3px alpha(var(--error-bg-color), 0.2);
 }
 /* A saved server not answered yet. */
 .status-dot.checking {
@@ -146,8 +146,8 @@ scrolledwindow.saved-connections {
   min-width: 10px;
   padding: 0 6px;
   border-radius: 9999px;
-  background-color: @accent_bg_color;
-  color: @accent_fg_color;
+  background-color: var(--accent-bg-color);
+  color: var(--accent-fg-color);
   font-size: 0.8em;
   font-weight: bold;
 }
@@ -169,22 +169,22 @@ picture.composer-thumb {
    into the chat below. */
 .channel-info {
   padding: 2px 12px 0 12px;
-  background-color: @window_bg_color;
+  background-color: var(--window-bg-color);
 }
 .channel-info-fade {
   min-height: 28px;
-  background-image: linear-gradient(to bottom, alpha(@window_bg_color, 0), @window_bg_color);
+  background-image: linear-gradient(to bottom, alpha(var(--window-bg-color), 0), var(--window-bg-color));
 }
 /* The whole chat area in the view colour, so nothing of the window colour
    shows between the channel description and the messages. */
 scrolledwindow.chat-scroll,
 scrolledwindow.chat-scroll > viewport,
 list.chat-list {
-  background-color: @view_bg_color;
+  background-color: var(--view-bg-color);
 }
 .channel-info-bottom {
   min-height: 14px;
-  background-image: linear-gradient(to bottom, @window_bg_color, @view_bg_color);
+  background-image: linear-gradient(to bottom, var(--window-bg-color), var(--view-bg-color));
 }
 button.channel-info-toggle {
   min-height: 0;
@@ -203,11 +203,11 @@ button.channel-info-toggle {
    an expanded banner sits on the chat colour. */
 .channel-hero-fade {
   min-height: 72px;
-  background-image: linear-gradient(to bottom, alpha(@view_bg_color, 0), alpha(@view_bg_color, 0.85) 55%, @view_bg_color 75%);
+  background-image: linear-gradient(to bottom, alpha(var(--view-bg-color), 0), alpha(var(--view-bg-color), 0.85) 55%, var(--view-bg-color) 75%);
 }
 .channel-hero-text {
   padding: 0 12px;
-  background-color: @view_bg_color;
+  background-color: var(--view-bg-color);
 }
 headerbar.hero-header {
   background: none;
@@ -246,8 +246,8 @@ navigation-split-view.split-wide > .content-pane:dir(rtl) {
 /* Channel tree: the own voice is detected while muted — the crossed-out
    microphone lights up yellow like the voice meter (nothing is sent). */
 image.muted-speaking {
-  color: #e5a50a;
-  -gtk-icon-shadow: 0 0 4px alpha(#e5a50a, 0.6);
+  color: var(--warning-color);
+  -gtk-icon-shadow: 0 0 4px alpha(var(--warning-bg-color), 0.6);
 }
 
 /* Connect dialog: the saved connections fade out at the bottom edge while
@@ -255,7 +255,7 @@ image.muted-speaking {
 .saved-connections-fade {
   min-height: 36px;
   border-radius: 0 0 12px 12px;
-  background-image: linear-gradient(to bottom, alpha(@card_bg_color, 0), @card_bg_color);
+  background-image: linear-gradient(to bottom, alpha(var(--card-bg-color), 0), var(--card-bg-color));
 }
 
 /* Saved connections in the connect dialog: rows are reordered by dragging
@@ -265,10 +265,10 @@ image.muted-speaking {
   opacity: 0.55;
 }
 .saved-connections row.drop-above {
-  box-shadow: inset 0 2px 0 @accent_color;
+  box-shadow: inset 0 2px 0 var(--accent-color);
 }
 .saved-connections row.drop-below {
-  box-shadow: inset 0 -2px 0 @accent_color;
+  box-shadow: inset 0 -2px 0 var(--accent-color);
 }
 .saved-connections row.dragged {
   opacity: 0.4;
@@ -293,17 +293,17 @@ row.dragged {
   opacity: 0.4;
 }
 row.drop-target {
-  background-color: alpha(@accent_bg_color, 0.22);
-  box-shadow: inset 0 0 0 2px @accent_color;
+  background-color: alpha(var(--accent-bg-color), 0.22);
+  box-shadow: inset 0 0 0 2px var(--accent-color);
 }
 row.drop-target-maybe {
-  box-shadow: inset 0 0 0 1px alpha(@accent_color, 0.5);
+  box-shadow: inset 0 0 0 1px alpha(var(--accent-color), 0.5);
 }
 .user-drag-icon {
   padding: 6px 12px 6px 6px;
   border-radius: 999px;
-  background-color: @card_bg_color;
-  color: @card_fg_color;
+  background-color: var(--card-bg-color);
+  color: var(--card-fg-color);
   box-shadow: 0 1px 4px alpha(black, 0.25);
 }
 
@@ -312,7 +312,7 @@ row.drop-target-maybe {
   opacity: 0.7;
 }
 .local-audio.local-muted {
-  color: @error_color;
+  color: var(--error-color);
   opacity: 1;
 }
 .local-volume {
