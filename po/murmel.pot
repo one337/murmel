@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-11 16:56+0100\n"
+"POT-Creation-Date: 2026-11-14 23:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2015,6 +2015,10 @@ msgstr ""
 
 #: internal/ui/presence/presence.go
 msgid "Kicked from the server"
+msgstr ""
+
+#: internal/ui/richtext/widget.go
+msgid "Image not shown"
 msgstr ""
 
 #: internal/ui/shortcutsdialog.go

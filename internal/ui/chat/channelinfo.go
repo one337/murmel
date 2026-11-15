@@ -221,7 +221,7 @@ func (i *channelInfo) set(html string) {
 	i.heroTex = nil
 	if len(blocks) > 0 {
 		i.mode = infoNormal
-		if blocks[0].Image != nil {
+		if blocks[0].Image != nil && richtext.CheckImage(blocks[0].Image, richtext.MaxImageSide) {
 			if tex, err := gdk.NewTextureFromBytes(glib.NewBytes(blocks[0].Image)); err == nil && tex.Width() >= heroMinWidth {
 				i.mode = infoHero
 				i.heroTex = tex

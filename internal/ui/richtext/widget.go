@@ -23,11 +23,18 @@ type Options struct {
 // Build renders blocks into a vertical box.
 func Build(blocks []Block, opt Options) *gtk.Box {
 	box := gtk.NewBox(gtk.OrientationVertical, 4)
+	images := 0
 	for _, b := range blocks {
 		if b.Image != nil {
-			if pic := picture(b.Image, opt); pic != nil {
-				box.Append(pic)
+			images++
+			var pic gtk.Widgetter
+			if images <= maxImagesPerMessage {
+				pic = picture(b.Image, opt)
 			}
+			if pic == nil {
+				pic = imageNotShown()
+			}
+			box.Append(pic)
 			continue
 		}
 		box.Append(paragraph(b.Markup, opt))
@@ -53,9 +60,21 @@ func paragraph(markup string, opt Options) *gtk.Label {
 	return l
 }
 
+// imageNotShown stands in for an image that is refused or cannot be loaded.
+func imageNotShown() gtk.Widgetter {
+	l := gtk.NewLabel(tr("Image not shown"))
+	l.SetXAlign(0)
+	l.AddCSSClass("dim-label")
+	return l
+}
+
 // picture shows an embedded image scaled into the bounds; a click opens
-// it at full size. nil when the data is not a loadable image.
+// it at full size. nil when the data is refused (see CheckImage) or is not
+// a loadable image.
 func picture(data []byte, opt Options) gtk.Widgetter {
+	if !CheckImage(data, MaxImageSide) {
+		return nil
+	}
 	tex, err := gdk.NewTextureFromBytes(glib.NewBytes(data))
 	if err != nil || tex == nil {
 		return nil

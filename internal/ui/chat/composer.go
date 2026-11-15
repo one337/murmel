@@ -291,7 +291,8 @@ func (c *composer) setImage(uri string) {
 	c.image = uri
 	c.attachment.SetVisible(uri != "")
 	if uri != "" {
-		if blocks := richtext.Parse(`<img src="` + uri + `">`); len(blocks) == 1 && blocks[0].Image != nil {
+		if blocks := richtext.Parse(`<img src="` + uri + `">`); len(blocks) == 1 && blocks[0].Image != nil &&
+			richtext.CheckImage(blocks[0].Image, richtext.MaxImageSide) {
 			if tex, err := gdk.NewTextureFromBytes(glib.NewBytes(blocks[0].Image)); err == nil {
 				c.thumb.SetPaintable(tex)
 			}

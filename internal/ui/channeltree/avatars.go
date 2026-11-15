@@ -5,6 +5,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/richtext"
 )
 
 // maxAvatarBytes bounds the avatar images decoded (servers limit uploads
@@ -56,10 +57,11 @@ func (t *Tree) avatarFor(u bus.UserInfo) gdk.Paintabler {
 	return e.tex
 }
 
-// decodeAvatar decodes an uploaded avatar (PNG, JPEG, …); nil if it is not
-// an image GTK can load (e.g. the raw pixels of pre-1.2 clients).
+// decodeAvatar decodes an uploaded avatar (PNG, JPEG, GIF or WebP); nil if
+// it is refused by richtext.CheckImage or GTK cannot load it (e.g. the raw
+// pixels of pre-1.2 clients).
 func decodeAvatar(data []byte) gdk.Paintabler {
-	if len(data) == 0 || len(data) > maxAvatarBytes {
+	if len(data) == 0 || len(data) > maxAvatarBytes || !richtext.CheckImage(data, richtext.MaxAvatarSide) {
 		return nil
 	}
 	tex, err := gdk.NewTextureFromBytes(glib.NewBytes(data))

@@ -53,6 +53,7 @@ func addLegalSections(d *adw.AboutDialog) {
 		{"malgo, miniaudio", "", gtk.LicenseCustom, tr("Unlicense (public domain).")},
 		{"golang/protobuf", "© 2010 The Go Authors", gtk.LicenseBSD3, ""},
 		{"golang.org/x/sync", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
+		{"golang.org/x/image", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
 		{"hraban/opus", "© 2015–2022 Go Opus Authors", gtk.LicenseMITX11, ""},
 		{"oggvorbis, vorbis", "© 2016 Johann Freymuth", gtk.LicenseMITX11, ""},
 		{"gotext", "© 2016 Leonel Quinteros", gtk.LicenseMITX11, ""},
