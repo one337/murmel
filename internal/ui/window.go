@@ -203,22 +203,27 @@ func newWindow(app *App) *Window {
 	return w
 }
 
-// newPrimaryMenuButton builds the GNOME primary ("hamburger") menu. The
+// newPrimaryMenuButton builds the GNOME primary ("hamburger") menu in three
+// sections: the connection, server administration and the app. The
 // returned admin section starts empty: setAdminMenu fills it while
 // connected. Disconnect is hidden while there is no connection.
 func newPrimaryMenuButton() (*gtk.MenuButton, *gio.Menu) {
+	// Quit is no menu entry (GNOME HIG); Ctrl+Q and closing the window
+	// remain.
+	connection := gio.NewMenu()
+	disconnect := gio.NewMenuItem(tr("Disconnect"), "app.disconnect")
+	disconnect.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
+	connection.AppendItem(disconnect)
+
 	admin := gio.NewMenu()
 
 	general := gio.NewMenu()
 	general.Append(tr("Preferences"), "app.preferences")
 	general.Append(tr("Keyboard Shortcuts"), "app.shortcuts")
 	general.Append(tr("About Murmel"), "app.about")
-	disconnect := gio.NewMenuItem(tr("Disconnect"), "app.disconnect")
-	disconnect.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
-	general.AppendItem(disconnect)
-	general.Append(tr("Quit"), "app.quit")
 
 	menu := gio.NewMenu()
+	menu.AppendSection("", connection)
 	menu.AppendSection("", admin)
 	menu.AppendSection("", general)
 

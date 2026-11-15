@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-15 09:31+0100\n"
+"POT-Creation-Date: 2026-11-15 18:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2191,15 +2191,15 @@ msgid "Show chat"
 msgstr ""
 
 #: internal/ui/window.go
+msgid "Disconnect"
+msgstr ""
+
+#: internal/ui/window.go
 msgid "Keyboard Shortcuts"
 msgstr ""
 
 #: internal/ui/window.go
 msgid "About Murmel"
-msgstr ""
-
-#: internal/ui/window.go
-msgid "Disconnect"
 msgstr ""
 
 #: internal/ui/window.go
