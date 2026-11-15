@@ -14,6 +14,7 @@ import (
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/protocol/gumble"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/clock"
 	"io.github/murmel/internal/ui/presence"
 	"io.github/murmel/internal/ui/resources"
 )
@@ -84,6 +85,7 @@ func NewApp(st settings.Settings, b *bus.Bus) *App {
 	app.ConnectStartup(func() {
 		gtk.WindowSetDefaultIconName(settings.SchemaID)
 		applyColorScheme(st)
+		clock.Watch()
 	})
 
 	app.ConnectActivate(func() { app.ensureWindow() })

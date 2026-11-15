@@ -19,14 +19,14 @@ type conversation struct {
 	// info is the channel description (channel chat only; nil otherwise).
 	info *channelInfo
 
-	hist *history[*gtk.ListBoxRow]
+	hist *history[*chatRow]
 	// pin keeps the view scrolled to the bottom across allocation-driven
 	// adjustment changes while the user is anchored there.
 	pin bool
 }
 
 func newConversation(tag, title, emptyText string) *conversation {
-	c := &conversation{hist: newHistory[*gtk.ListBoxRow](maxRows), pin: true}
+	c := &conversation{hist: newHistory[*chatRow](maxRows), pin: true}
 
 	c.list = gtk.NewListBox()
 	c.list.SetSelectionMode(gtk.SelectionNone)
@@ -130,9 +130,9 @@ func (c *conversation) setTitle(title, subtitle string) {
 func (c *conversation) append(st rowStyle, fromOthers bool) {
 	wasAnchored := c.atBottom()
 	row := newRow(st)
-	c.list.Append(row)
+	c.list.Append(row.row)
 	if dropped, ok := c.hist.push(row); ok {
-		c.list.Remove(dropped)
+		c.list.Remove(dropped.row)
 	}
 	c.pin = wasAnchored
 	if wasAnchored {
@@ -145,10 +145,17 @@ func (c *conversation) append(st rowStyle, fromOthers bool) {
 // clear removes every message.
 func (c *conversation) clear() {
 	for _, row := range c.hist.clear() {
-		c.list.Remove(row)
+		c.list.Remove(row.row)
 	}
 	c.jump.SetRevealChild(false)
 	c.pin = true
+}
+
+// refreshTimes writes every time stamp anew (the clock format changed).
+func (c *conversation) refreshTimes() {
+	for _, row := range c.hist.items {
+		row.refreshTime()
+	}
 }
 
 func (c *conversation) atBottom() bool {

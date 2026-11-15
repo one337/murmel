@@ -20,6 +20,8 @@ func (h *history[T]) push(item T) (dropped T, droppedOK bool) {
 	if len(h.items) == h.limit {
 		dropped = h.items[0]
 		droppedOK = true
+		var zero T
+		h.items[0] = zero // the backing array must not keep it alive
 		h.items = h.items[1:]
 	}
 	h.items = append(h.items, item)

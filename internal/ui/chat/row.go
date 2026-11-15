@@ -7,6 +7,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
+	"io.github/murmel/internal/ui/clock"
 	"io.github/murmel/internal/ui/richtext"
 )
 
@@ -37,6 +38,16 @@ type rowStyle struct {
 	html string
 }
 
+// chatRow is one scrollback entry: the row and its time stamp, which is
+// written anew when the clock format changes (refreshTime).
+type chatRow struct {
+	row   *gtk.ListBoxRow
+	stamp *gtk.Label
+	at    time.Time
+}
+
+func (r *chatRow) refreshTime() { r.stamp.SetText(clock.Time(r.at)) }
+
 // Displayed image bounds inside chat rows.
 const (
 	chatImageMaxWidth  = 360
@@ -47,7 +58,7 @@ const (
 // color through the accent style class, so it follows a change of the
 // accent color or the light/dark style; its text is set as plain text
 // (never markup) so a name like "<b>evil</b>" can never be interpreted.
-func newRow(st rowStyle) *gtk.ListBoxRow {
+func newRow(st rowStyle) *chatRow {
 	if st.kind == rowLog {
 		return newLogRow(st)
 	}
@@ -55,7 +66,7 @@ func newRow(st rowStyle) *gtk.ListBoxRow {
 	sender.AddCSSClass("heading")
 	sender.AddCSSClass("accent")
 
-	stamp := gtk.NewLabel(st.at.Format("15:04"))
+	stamp := gtk.NewLabel(clock.Time(st.at))
 	stamp.AddCSSClass("caption")
 	stamp.AddCSSClass("dim-label")
 
@@ -105,7 +116,7 @@ func newRow(st rowStyle) *gtk.ListBoxRow {
 	row.SetChild(box)
 	row.SetActivatable(false)
 	row.SetSelectable(false)
-	return row
+	return &chatRow{row: row, stamp: stamp, at: st.at}
 }
 
 // rowCSSClass maps row kinds to built-in style classes: errors carry the
@@ -133,8 +144,8 @@ func errorRowText(reason string) string {
 }
 
 // newLogRow is a single faded line: time and event text.
-func newLogRow(st rowStyle) *gtk.ListBoxRow {
-	stamp := gtk.NewLabel(st.at.Format("15:04"))
+func newLogRow(st rowStyle) *chatRow {
+	stamp := gtk.NewLabel(clock.Time(st.at))
 	stamp.AddCSSClass("numeric")
 	text := gtk.NewLabel(st.content)
 	text.SetWrap(true)
@@ -153,5 +164,5 @@ func newLogRow(st rowStyle) *gtk.ListBoxRow {
 	row.SetChild(box)
 	row.SetActivatable(false)
 	row.SetSelectable(false)
-	return row
+	return &chatRow{row: row, stamp: stamp, at: st.at}
 }

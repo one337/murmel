@@ -7,10 +7,12 @@ import (
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/clock"
 	"io.github/murmel/internal/ui/presence"
 	"io.github/murmel/internal/ui/richtext"
 )
@@ -76,6 +78,10 @@ func NewView(ctx context.Context, b *bus.Bus, sender Sender) *View {
 	v.nav.ConnectMap(v.trackWindow)
 
 	v.subscribe(ctx)
+	// Time stamps follow the clock format, also when it becomes known
+	// only after the first rows (the desktop is asked asynchronously).
+	removeClock := clock.OnChange(v.refreshTimes)
+	context.AfterFunc(ctx, func() { glib.IdleAdd(removeClock) })
 	tracker := presence.NewTracker()
 	tracker.Listen(v.onPresence)
 	tracker.Subscribe(ctx, b)
@@ -287,6 +293,14 @@ func (v *View) reset() {
 	v.channelUnread = 0
 	v.lastWelcome = ""
 	v.bus.Emit(bus.UnreadChanged{Session: 0, Count: 0})
+}
+
+// refreshTimes writes the time stamps of every conversation anew.
+func (v *View) refreshTimes() {
+	v.channel.refreshTimes()
+	for _, c := range v.dms {
+		c.refreshTimes()
+	}
 }
 
 // dm returns (creating it if needed) the conversation for key.

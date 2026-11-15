@@ -26,6 +26,7 @@ import (
 	"io.github/murmel/internal/ui"
 	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/chat"
+	"io.github/murmel/internal/ui/clock"
 	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/levelmeter"
 	"io.github/murmel/internal/ui/shortcuts"
@@ -241,7 +242,7 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	row := adw.NewActionRow()
 	row.SetUseMarkup(false) // name and e-mail may come from an imported certificate
 	row.SetTitle(meta.Name)
-	sub := fmt.Sprintf(tr("Created %s"), meta.Created.Local().Format("2006-01-02"))
+	sub := fmt.Sprintf(tr("Created %s"), clock.Date(meta.Created))
 	if ident, err := c.m.Load(meta.ID); err == nil && ident.Certificate != nil {
 		sub += " · " + shortFingerprint(certs.Fingerprint(ident.Certificate))
 	}

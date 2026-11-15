@@ -25,6 +25,7 @@ import (
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui"
 	"io.github/murmel/internal/ui/avatarpick"
+	"io.github/murmel/internal/ui/clock"
 	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/secrets"
 )
@@ -1594,7 +1595,7 @@ func (c *Controller) showTOFUDialog(a attempt, stored *certs.ServerEntry, presen
 		heading = tr("Server Certificate Changed")
 		body = fmt.Sprintf(
 			tr("The server's certificate has changed.\n\nPreviously trusted fingerprint (since %s):\n%s\n\nNew fingerprint:\n%s\n\nOnly continue if you trust this certificate."),
-			localDate(stored.FirstSeen), fingerprintLines(stored.Fingerprint), fingerprintLines(presented.Fingerprint))
+			clock.Date(stored.FirstSeen), fingerprintLines(stored.Fingerprint), fingerprintLines(presented.Fingerprint))
 	} else {
 		heading = tr("New Server Certificate")
 		body = fmt.Sprintf(
@@ -1663,11 +1664,6 @@ func (c *Controller) showErrorDialog(class errorClass, err error) {
 }
 
 // --- Helpers ---------------------------------------------------------------
-
-// localDate formats t as a date in the user's locale (e.g. 14.11.2026).
-func localDate(t time.Time) string {
-	return glib.NewDateTimeFromUnixLocal(t.Unix()).Format("%x")
-}
 
 // fingerprintLines breaks a colon-separated fingerprint ("aa:bb:…") into
 // lines of 8 bytes, so the 32 bytes of a SHA-256 fingerprint read as four
