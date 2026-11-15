@@ -349,15 +349,15 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 			})
 		}()
 	}
-	savedGroup := c.savedServersGroup(fill)
+	saved := c.savedServersGroup(fill)
 
 	box := gtk.NewBox(gtk.OrientationVertical, 18)
 	box.SetMarginTop(12)
 	box.SetMarginBottom(18)
 	box.SetMarginStart(18)
 	box.SetMarginEnd(18)
-	if savedGroup != nil {
-		box.Append(savedGroup)
+	if saved != nil {
+		box.Append(saved.group)
 	}
 	box.Append(group)
 	box.Append(userGroup)
@@ -380,8 +380,35 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	hdr.SetShowEndTitleButtons(false)
 	hdr.SetShowStartTitleButtons(false)
 
+	// While connected, a banner says that connecting here ends that
+	// connection, and the saved list marks its account. Both follow the
+	// connection while the dialog is open.
+	banner := adw.NewBanner("")
+	banner.SetUseMarkup(false) // the host is the user's text
+	showConnection := func() {
+		host, port, user, ok := c.shownConnection()
+		banner.SetRevealed(ok)
+		if ok {
+			shown := host
+			if port != ui.DefaultPort {
+				shown = net.JoinHostPort(host, strconv.Itoa(port))
+			}
+			banner.SetTitle(fmt.Sprintf(tr("Connected to %s. Connecting to another server ends this connection."), shown))
+		}
+		if saved != nil {
+			saved.markConnected(host, port, user, ok)
+		}
+	}
+	showConnection()
+	dialogCtx, closeDialogCtx := context.WithCancel(c.appCtx)
+	dialog.ConnectClosed(closeDialogCtx)
+	bus.SubscribeCtx(dialogCtx, c.appBus, func(bus.Connected) { showConnection() })
+	bus.SubscribeCtx(dialogCtx, c.appBus, func(bus.Disconnected) { showConnection() })
+	bus.SubscribeCtx(dialogCtx, c.appBus, func(bus.ConnectError) { showConnection() })
+
 	toolbar := adw.NewToolbarView()
 	toolbar.AddTopBar(hdr)
+	toolbar.AddTopBar(banner)
 	toolbar.SetContent(scroll)
 	dialog.SetChild(toolbar)
 	dialog.SetDefaultWidget(connectBtn)
@@ -452,6 +479,23 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	hostEntry.ConnectChanged(func() { hostEntry.RemoveCSSClass("error") })
 
 	dialog.Present(c.win)
+}
+
+// shownConnection is the server and account of the connection the user
+// interface shows (ok false: none). Main loop only.
+func (c *Controller) shownConnection() (host string, port int, username string, ok bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	p := c.lastDial
+	if p == nil || c.shownGen == 0 || c.shownGen != c.gen.Load() {
+		return "", 0, "", false
+	}
+	host, portStr, err := net.SplitHostPort(p.addr)
+	if err != nil {
+		return "", 0, "", false
+	}
+	port, _ = strconv.Atoi(portStr)
+	return host, port, p.username, true
 }
 
 // saveServerEntry stores the connection in the saved list (in place, or at

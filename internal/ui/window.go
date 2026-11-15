@@ -211,6 +211,7 @@ func newPrimaryMenuButton() (*gtk.MenuButton, *gio.Menu) {
 	// Quit is no menu entry (GNOME HIG); Ctrl+Q and closing the window
 	// remain.
 	connection := gio.NewMenu()
+	connection.Append(tr("Connect to Server…"), "app.connect")
 	disconnect := gio.NewMenuItem(tr("Disconnect"), "app.disconnect")
 	disconnect.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
 	connection.AppendItem(disconnect)
@@ -328,7 +329,7 @@ func newEmptyState(app *App) gtk.Widgetter {
 	connect := gtk.NewButtonWithLabel(tr("Connect…"))
 	connect.AddCSSClass("suggested-action")
 	connect.AddCSSClass("pill")
-	connect.ConnectClicked(func() { app.RequestConnect(ConnectRequest{}) })
+	connect.SetActionName("app.connect")
 
 	page := adw.NewStatusPage()
 	page.SetIconName(settings.SchemaID)

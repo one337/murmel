@@ -12,6 +12,7 @@ func (a *App) showShortcuts() {
 	general := adw.NewShortcutsSection(tr("General"))
 	general.Add(adw.NewShortcutsItem(tr("Show keyboard shortcuts"), "<Control>question"))
 	general.Add(adw.NewShortcutsItem(tr("Open the main menu"), "F10"))
+	general.Add(adw.NewShortcutsItem(tr("Connect to a server"), "<Control>n"))
 	general.Add(adw.NewShortcutsItem(tr("Preferences"), "<Control>comma"))
 	general.Add(adw.NewShortcutsItem(tr("Fullscreen"), "F11"))
 	general.Add(adw.NewShortcutsItem(tr("Quit"), "<Control>q"))

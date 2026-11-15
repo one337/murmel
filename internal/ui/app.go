@@ -208,6 +208,12 @@ func (a *App) registerActions() {
 	})
 	a.AddAction(openChat)
 
+	// connect opens the connect dialog, also while connected: connecting
+	// there replaces the current connection.
+	connect := gio.NewSimpleAction("connect", nil)
+	connect.ConnectActivate(func(*glib.Variant) { a.RequestConnect(ConnectRequest{}) })
+	a.AddAction(connect)
+
 	preferences := gio.NewSimpleAction("preferences", nil)
 	preferences.ConnectActivate(func(*glib.Variant) {
 		if a.prefsRequested != nil {
@@ -248,6 +254,7 @@ func (a *App) registerActions() {
 
 	// GNOME HIG accelerators; the win.* actions themselves live on Window.
 	a.SetAccelsForAction("app.quit", []string{"<Primary>q"})
+	a.SetAccelsForAction("app.connect", []string{"<Primary>n"})
 	a.SetAccelsForAction("app.preferences", []string{"<Primary>comma"})
 	a.SetAccelsForAction("app.shortcuts", []string{"<Primary>question"})
 	a.SetAccelsForAction("win.fullscreen", []string{"F11"})

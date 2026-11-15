@@ -52,6 +52,7 @@ type savedRow struct {
 	up     *gio.SimpleAction
 	down   *gio.SimpleAction
 	users  *gtk.Label // "5/100" from the server's ping answer
+	active *gtk.Image // shown on the account connected right now
 	dot    *gtk.Box   // green: answers, red: no answer, grey: checking
 	status *gtk.Box
 }
@@ -66,7 +67,7 @@ const (
 
 // savedServersGroup lists the saved connections (nil when there are none).
 // Activating a row calls fill.
-func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *adw.PreferencesGroup {
+func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *savedList {
 	servers := c.settings.Servers()
 	if len(servers) == 0 {
 		return nil
@@ -128,7 +129,15 @@ func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *adw.Pre
 			stop()
 		}
 	})
-	return s.group
+	return s
+}
+
+// markConnected marks the row of the account connected right now (ok
+// false: none).
+func (s *savedList) markConnected(host string, port int, username string, ok bool) {
+	for _, r := range s.rows {
+		r.active.SetVisible(ok && sameAccount(r.entry, host, port, username))
+	}
 }
 
 // pingLoop pings every listed server now and then every savedPingEvery
@@ -224,6 +233,11 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 	r.status.Append(r.dot)
 	r.status.SetTooltipText(tr("Checking the server…"))
 	r.row.AddSuffix(r.status)
+
+	r.active = gtk.NewImageFromIconName("object-select-symbolic")
+	r.active.SetTooltipText(tr("Connected"))
+	r.active.SetVisible(false)
+	r.row.AddSuffix(r.active)
 
 	actions := gio.NewSimpleActionGroup()
 	r.up = gio.NewSimpleAction("up", nil)

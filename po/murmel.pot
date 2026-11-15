@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-15 18:26+0100\n"
+"POT-Creation-Date: 2026-11-15 18:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1119,6 +1119,11 @@ msgstr ""
 msgid "Connect"
 msgstr ""
 
+#: internal/ui/connection/controller.go
+#, go-format
+msgid "Connected to %s. Connecting to another server ends this connection."
+msgstr ""
+
 #: internal/ui/connection/controller.go internal/ui/identities/files.go
 msgid "PEM Certificates"
 msgstr ""
@@ -1339,6 +1344,10 @@ msgstr ""
 
 #: internal/ui/connection/savedlist.go
 msgid "Checking the server…"
+msgstr ""
+
+#: internal/ui/connection/savedlist.go internal/ui/statusbar.go
+msgid "Connected"
 msgstr ""
 
 #: internal/ui/connection/savedlist.go
@@ -2041,6 +2050,10 @@ msgid "Open the main menu"
 msgstr ""
 
 #: internal/ui/shortcutsdialog.go
+msgid "Connect to a server"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
 msgid "Fullscreen"
 msgstr ""
 
@@ -2127,10 +2140,6 @@ msgid "%s (not available)"
 msgstr ""
 
 #: internal/ui/statusbar.go
-msgid "Connected"
-msgstr ""
-
-#: internal/ui/statusbar.go
 #, go-format
 msgid "Connected to %s"
 msgstr ""
@@ -2188,6 +2197,10 @@ msgstr ""
 
 #: internal/ui/window.go
 msgid "Show chat"
+msgstr ""
+
+#: internal/ui/window.go
+msgid "Connect to Server…"
 msgstr ""
 
 #: internal/ui/window.go

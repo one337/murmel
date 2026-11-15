@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-15 18:26+0100\n"
+"POT-Creation-Date: 2026-11-15 18:29+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1140,6 +1140,11 @@ msgstr "Konto"
 msgid "Connect"
 msgstr "Verbinden"
 
+#: internal/ui/connection/controller.go
+#, go-format
+msgid "Connected to %s. Connecting to another server ends this connection."
+msgstr "Verbunden mit %s. Beim Verbinden mit einem anderen Server wird diese Verbindung getrennt."
+
 #: internal/ui/connection/controller.go internal/ui/identities/files.go
 msgid "PEM Certificates"
 msgstr "PEM-Zertifikate"
@@ -1393,6 +1398,10 @@ msgstr "Zum Sortieren ziehen"
 #: internal/ui/connection/savedlist.go
 msgid "Checking the server…"
 msgstr "Server wird geprüft …"
+
+#: internal/ui/connection/savedlist.go internal/ui/statusbar.go
+msgid "Connected"
+msgstr "Verbunden"
 
 #: internal/ui/connection/savedlist.go
 msgid "Forget Connection"
@@ -2138,6 +2147,10 @@ msgid "Open the main menu"
 msgstr "Hauptmenü öffnen"
 
 #: internal/ui/shortcutsdialog.go
+msgid "Connect to a server"
+msgstr "Mit einem Server verbinden"
+
+#: internal/ui/shortcutsdialog.go
 msgid "Fullscreen"
 msgstr "Vollbild"
 
@@ -2230,10 +2243,6 @@ msgid "%s (not available)"
 msgstr "%s (nicht verfügbar)"
 
 #: internal/ui/statusbar.go
-msgid "Connected"
-msgstr "Verbunden"
-
-#: internal/ui/statusbar.go
 #, go-format
 msgid "Connected to %s"
 msgstr "Verbunden mit %s"
@@ -2292,6 +2301,10 @@ msgstr "Murmel"
 #: internal/ui/window.go
 msgid "Show chat"
 msgstr "Chat anzeigen"
+
+#: internal/ui/window.go
+msgid "Connect to Server…"
+msgstr "Mit Server verbinden …"
 
 #: internal/ui/window.go
 msgid "Disconnect"

@@ -139,3 +139,25 @@ func TestDisconnectSupersedesRunningDial(t *testing.T) {
 		}
 	})
 }
+
+func TestShownConnectionFollowsTheAttempt(t *testing.T) {
+	withMainLoop(t, func() {
+		c := newAttemptController(t)
+		if _, _, _, ok := c.shownConnection(); ok {
+			t.Fatal("a connection is shown before any dial")
+		}
+		a := c.switchAttempt(&dialParams{addr: "Voice.Example.org:64739", username: "simon"})
+		if _, _, _, ok := c.shownConnection(); ok {
+			t.Fatal("a connection is shown while still dialing")
+		}
+		c.passFor(a)(bus.Connected{})
+		host, port, user, ok := c.shownConnection()
+		if !ok || host != "Voice.Example.org" || port != 64739 || user != "simon" {
+			t.Fatalf("shownConnection = %q %d %q %v", host, port, user, ok)
+		}
+		c.switchAttempt(&dialParams{addr: "other.example:64738", username: "simon"})
+		if _, _, _, ok := c.shownConnection(); ok {
+			t.Fatal("the replaced connection is still shown")
+		}
+	})
+}
