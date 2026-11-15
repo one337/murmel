@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/asn1"
 	"encoding/json"
 	"encoding/pem"
 	"errors"
@@ -19,10 +18,6 @@ import (
 	"time"
 )
 
-// emailAddressOID is the pkcs-9 emailAddress RDN used by the official Mumble
-// client when generating identities.
-var emailAddressOID = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
-
 const (
 	rsaKeyBits = 2048
 	certYears  = 10
@@ -30,11 +25,19 @@ const (
 
 // Generate creates a new identity: an RSA 2048 self-signed certificate with
 // CN = name (the Mumble username convention) and, if email is non-empty, the
-// pkcs-9 emailAddress RDN. The PEM pair and identity.json are persisted under
+// address in the subjectAltName (see setEmail; ErrInvalidEmail if it cannot
+// be stored). The PEM pair and identity.json are persisted under
 // identities/<id>/.
 func (m *Manager) Generate(name, email string) (*Identity, error) {
 	if name == "" {
 		return nil, errors.New("certs: identity name (username) must not be empty")
+	}
+	var box mailbox
+	if email != "" {
+		var err error
+		if box, err = parseMailbox(email); err != nil {
+			return nil, err
+		}
 	}
 	key, err := rsa.GenerateKey(rand.Reader, rsaKeyBits)
 	if err != nil {
@@ -46,19 +49,20 @@ func (m *Manager) Generate(name, email string) (*Identity, error) {
 		return nil, err
 	}
 	now := time.Now()
-	subject := pkix.Name{CommonName: name}
-	if email != "" {
-		subject.ExtraNames = []pkix.AttributeTypeAndValue{{Type: emailAddressOID, Value: ia5String(email)}}
-	}
 	template := &x509.Certificate{
 		SerialNumber:          serial,
-		Subject:               subject,
+		Subject:               pkix.Name{CommonName: name},
 		NotBefore:             now.Add(-time.Hour),
 		NotAfter:              now.AddDate(certYears, 0, 0),
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment | x509.KeyUsageCertSign,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  true, // matches the official Mumble client's self-signed identity format
+	}
+	if email != "" {
+		if err := setEmail(template, box); err != nil {
+			return nil, err
+		}
 	}
 	der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
 	if err != nil {
@@ -73,10 +77,17 @@ func (m *Manager) Generate(name, email string) (*Identity, error) {
 	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der})
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
 
-	if err := m.persistIdentity(meta, certPEM, keyPEM); err != nil {
+	// Check the result before anything is written, and leave no partial
+	// identity directory behind.
+	ident, err := m.loadIdentity(meta, certPEM, keyPEM)
+	if err != nil {
 		return nil, err
 	}
-	return m.loadIdentity(meta, certPEM, keyPEM)
+	if err := m.persistIdentity(meta, certPEM, keyPEM); err != nil {
+		_ = os.RemoveAll(m.identityDir(id))
+		return nil, err
+	}
+	return ident, nil
 }
 
 // Load reads identity <id> from disk.

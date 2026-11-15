@@ -36,8 +36,8 @@ func TestGenerateCreatesValidSelfSignedCert(t *testing.T) {
 	if got := cert.Subject.CommonName; got != "TestUser" {
 		t.Errorf("CN = %q, want %q (Mumble convention: CN = username)", got, "TestUser")
 	}
-	if got := subjectEmail(cert); got != "test@example.com" {
-		t.Errorf("emailAddress RDN = %q, want test@example.com (round-tripped through DER)", got)
+	if got := certEmail(cert); got != "test@example.com" {
+		t.Errorf("email = %q, want test@example.com (round-tripped through DER)", got)
 	}
 
 	key, ok := id.PrivateKey.(*rsa.PrivateKey)

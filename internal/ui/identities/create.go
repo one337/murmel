@@ -24,11 +24,11 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 	nameRow.SetTitle(tr("Name"))
 	nameRow.SetText(name)
 	emailRow := adw.NewEntryRow()
-	emailRow.SetTitle(tr("E-mail (optional)"))
+	emailRow.SetTitle(tr("Email (optional)"))
 	emailRow.SetInputPurpose(gtk.InputPurposeEmail)
 
 	group := adw.NewPreferencesGroup()
-	group.SetDescription(tr("A certificate is your identity on Mumble servers: registered accounts are recognized by it. Keep a backup — if it is lost, so is the registration. The e-mail address is only stored in the certificate."))
+	group.SetDescription(tr("A certificate is your identity on Mumble servers: registered accounts are recognized by it. Keep a backup — if it is lost, so is the registration. The email address is stored in the certificate and visible to the servers you connect to."))
 	group.Add(nameRow)
 	group.Add(emailRow)
 
@@ -70,8 +70,34 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 	nameRow.SetActivatesDefault(true)
 	emailRow.SetActivatesDefault(true)
 
-	update := func() { create.SetSensitive(strings.TrimSpace(nameRow.Text()) != "") }
+	// emailOK checks the address as typed: an invalid one is marked and
+	// blocks Create; one servers cannot read only gets a hint.
+	emailOK := func() bool {
+		email := strings.TrimSpace(emailRow.Text())
+		if email == "" {
+			emailRow.RemoveCSSClass("error")
+			status.SetText("")
+			return true
+		}
+		unreadable, err := certs.CheckEmail(email)
+		switch {
+		case err != nil:
+			emailRow.AddCSSClass("error")
+			status.SetText(tr("This is not a valid email address."))
+			return false
+		case unreadable:
+			status.SetText(tr("Mumble servers cannot read addresses with letters such as ä or é before the @. The address is stored in the certificate, but servers will not see it."))
+		default:
+			status.SetText("")
+		}
+		emailRow.RemoveCSSClass("error")
+		return true
+	}
+	update := func() {
+		create.SetSensitive(strings.TrimSpace(nameRow.Text()) != "" && emailOK())
+	}
 	nameRow.ConnectChanged(update)
+	emailRow.ConnectChanged(update)
 	update()
 	cancel.ConnectClicked(func() { dialog.Close() })
 
@@ -92,9 +118,9 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 				if err != nil {
 					slog.Info("identity not created", "err", err)
 					spinner.SetVisible(false)
-					status.SetText(fmt.Sprintf(tr("The certificate could not be created: %v"), err))
 					group.SetSensitive(true)
 					update()
+					status.SetText(fmt.Sprintf(tr("The certificate could not be created: %v"), err))
 					return
 				}
 				dialog.Close()

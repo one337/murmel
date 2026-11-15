@@ -10,6 +10,8 @@ malgo            github.com/gen2brain/malgo                  vendor/github.com/g
 golang-protobuf  github.com/golang/protobuf                  vendor/github.com/golang/protobuf/LICENSE
 x-sync           golang.org/x/sync                           vendor/golang.org/x/sync/LICENSE vendor/golang.org/x/sync/PATENTS
 x-image          golang.org/x/image                          vendor/golang.org/x/image/LICENSE vendor/golang.org/x/image/PATENTS
+x-net            golang.org/x/net                            vendor/golang.org/x/net/LICENSE vendor/golang.org/x/net/PATENTS
+x-text           golang.org/x/text                           vendor/golang.org/x/text/LICENSE vendor/golang.org/x/text/PATENTS
 oggvorbis        github.com/jfreymuth/oggvorbis              vendor/github.com/jfreymuth/oggvorbis/LICENSE
 vorbis           github.com/jfreymuth/vorbis                 vendor/github.com/jfreymuth/vorbis/LICENSE
 gotext           github.com/leonelquinteros/gotext           vendor/github.com/leonelquinteros/gotext/LICENSE

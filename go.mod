@@ -10,13 +10,15 @@ require (
 	github.com/jfreymuth/oggvorbis v1.0.5
 	github.com/leonelquinteros/gotext v1.8.0
 	golang.org/x/image v0.48.0
+	golang.org/x/net v0.62.0
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
 	layeh.com/gumble v0.0.0-20221205141517-d1df60a3cc14
 )
 
 require (
 	github.com/jfreymuth/vorbis v1.0.2 // indirect
-	golang.org/x/sync v0.22.0 // indirect
+	golang.org/x/sync v0.25.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )
 
 replace gopkg.in/hraban/opus.v2 => ./third_party/hraban-opus

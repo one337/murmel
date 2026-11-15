@@ -7,7 +7,6 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/asn1"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -89,7 +88,7 @@ func (m *Manager) importParsed(name string, certDERs [][]byte, key crypto.Privat
 	if err != nil {
 		return nil, err
 	}
-	meta := IdentityMeta{ID: id, Name: name, Email: subjectEmail(leaf), Created: time.Now().UTC()}
+	meta := IdentityMeta{ID: id, Name: name, Email: certEmail(leaf), Created: time.Now().UTC()}
 
 	var certPEM []byte
 	for _, der := range certDERs {
@@ -175,27 +174,4 @@ func x509MarshalPrivateKey(key crypto.PrivateKey) ([]byte, error) {
 		return nil, fmt.Errorf("certs: encoding private key: %w", err)
 	}
 	return der, nil
-}
-
-func subjectEmail(cert *x509.Certificate) string {
-	for _, atv := range cert.Subject.Names {
-		if atv.Type.Equal(emailAddressOID) {
-			if s, ok := atv.Value.(string); ok {
-				return s
-			}
-		}
-	}
-	return ""
-}
-
-// ia5String wraps s as an ASN.1 IA5String so the pkcs-9 emailAddress RDN is
-// encoded per RFC 2985 (Go's default string encoding would use UTF8String,
-// which openssl renders as a raw-OID hex blob instead of emailAddress=...).
-func ia5String(s string) asn1.RawValue {
-	return asn1.RawValue{
-		Class:     asn1.ClassUniversal,
-		Tag:       asn1.TagIA5String,
-		Bytes:     []byte(s),
-		FullBytes: append([]byte{byte(asn1.TagIA5String), byte(len(s))}, s...),
-	}
 }

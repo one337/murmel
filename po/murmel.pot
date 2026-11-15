@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: https://github.com/one337/murmel/issues\n"
-"POT-Creation-Date: 2026-11-14 23:47+0100\n"
+"POT-Creation-Date: 2026-11-15 09:31+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1370,18 +1370,29 @@ msgid "Move one channel down"
 msgstr ""
 
 #: internal/ui/identities/create.go
-msgid "E-mail (optional)"
+msgid "Email (optional)"
 msgstr ""
 
 #: internal/ui/identities/create.go
 msgid ""
 "A certificate is your identity on Mumble servers: registered accounts are "
 "recognized by it. Keep a backup — if it is lost, so is the registration. The "
-"e-mail address is only stored in the certificate."
+"email address is stored in the certificate and visible to the servers you "
+"connect to."
 msgstr ""
 
 #: internal/ui/identities/create.go
 msgid "New Certificate"
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid "This is not a valid email address."
+msgstr ""
+
+#: internal/ui/identities/create.go
+msgid ""
+"Mumble servers cannot read addresses with letters such as ä or é before the "
+"@. The address is stored in the certificate, but servers will not see it."
 msgstr ""
 
 #: internal/ui/identities/create.go
