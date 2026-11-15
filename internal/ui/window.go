@@ -89,8 +89,6 @@ type Window struct {
 
 	connected bool
 	shortcuts *globalShortcuts
-	// adminMenu holds the server-admin entries; filled while connected.
-	adminMenu *gio.Menu
 	// quitConfirmed skips the quit confirmation once the user agreed.
 	quitConfirmed bool
 }
@@ -127,8 +125,7 @@ func newWindow(app *App) *Window {
 	w.status.dotHolder.AddCSSClass("status-dot-corner")
 	w.status.dotHolder.SetVAlign(gtk.AlignCenter)
 	sidebarHeader.PackStart(w.status.dotHolder)
-	menuBtn, adminMenu := newPrimaryMenuButton()
-	w.adminMenu = adminMenu
+	menuBtn := newPrimaryMenuButton()
 	sidebarHeader.PackEnd(menuBtn)
 	sidebarHeader.PackEnd(w.chatBtn)
 
@@ -204,10 +201,11 @@ func newWindow(app *App) *Window {
 }
 
 // newPrimaryMenuButton builds the GNOME primary ("hamburger") menu in three
-// sections: the connection, server administration and the app. The
-// returned admin section starts empty: setAdminMenu fills it while
-// connected. Disconnect is hidden while there is no connection.
-func newPrimaryMenuButton() (*gtk.MenuButton, *gio.Menu) {
+// sections: the connection, server administration and the app. Entries
+// whose action is disabled are hidden: Disconnect while there is no
+// connection, the administration entries without a connection or the
+// right for them (an empty section shows no separator).
+func newPrimaryMenuButton() *gtk.MenuButton {
 	// Quit is no menu entry (GNOME HIG); Ctrl+Q and closing the window
 	// remain.
 	connection := gio.NewMenu()
@@ -217,6 +215,14 @@ func newPrimaryMenuButton() (*gtk.MenuButton, *gio.Menu) {
 	connection.AppendItem(disconnect)
 
 	admin := gio.NewMenu()
+	for _, e := range []struct{ label, action string }{
+		{tr("Ban List"), "app.banlist"},
+		{tr("Registered Users"), "app.userlist"},
+	} {
+		item := gio.NewMenuItem(e.label, e.action)
+		item.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
+		admin.AppendItem(item)
+	}
 
 	general := gio.NewMenu()
 	general.Append(tr("Preferences"), "app.preferences")
@@ -233,20 +239,7 @@ func newPrimaryMenuButton() (*gtk.MenuButton, *gio.Menu) {
 	btn.SetTooltipText(tr("Main Menu"))
 	btn.SetMenuModel(menu)
 	btn.SetPrimary(true)
-	return btn, admin
-}
-
-// setAdminMenu shows the server-admin entries only while connected; the
-// app actions grey them out when the server does not grant the rights.
-func (w *Window) setAdminMenu(connected bool) {
-	if !connected {
-		w.adminMenu.RemoveAll()
-		return
-	}
-	if w.adminMenu.NItems() == 0 {
-		w.adminMenu.Append(tr("Ban List"), "app.banlist")
-		w.adminMenu.Append(tr("Registered Users"), "app.userlist")
-	}
+	return btn
 }
 
 // confirmQuit asks before quitting while connected; agreeing leaves the
@@ -363,7 +356,6 @@ func (w *Window) subscribe() {
 		w.stack.SetVisibleChildName("session")
 		w.status.setConnected()
 		w.connected = true
-		w.setAdminMenu(true)
 		w.showPrimary()
 		if earlyInfo != nil {
 			showInfo(*earlyInfo)
@@ -376,7 +368,6 @@ func (w *Window) subscribe() {
 		w.stack.SetVisibleChildName("empty")
 		w.status.setDisconnected()
 		w.connected = false
-		w.setAdminMenu(false)
 		w.setServerTitle("")
 		w.showPrimary()
 		w.status.SetSelfMuted(false)
@@ -387,7 +378,6 @@ func (w *Window) subscribe() {
 		w.stack.SetVisibleChildName("empty")
 		w.status.setError(ev.Text)
 		w.connected = false
-		w.setAdminMenu(false)
 		w.setServerTitle("")
 		w.showPrimary()
 	})
