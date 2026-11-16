@@ -161,6 +161,14 @@ else
   fail "metainfo is invalid"
 fi
 
+step "flatpak: local manifest and Flathub template agree"
+if go run ./tools/manifestcheck packaging/io.github.one337.murmel.json \
+  packaging/flathub/io.github.one337.murmel.json 2>&1; then
+  pass "finish-args, runtime, runtime-version, sdk and sdk-extensions match"
+else
+  fail "the Flatpak manifests differ (keep packaging/flathub/ in line)"
+fi
+
 printf '========================\n'
 if [ "$failures" -eq 0 ]; then
   printf 'ALL CHECKS PASSED\n'
