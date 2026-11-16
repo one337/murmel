@@ -26,7 +26,7 @@ type connectForm struct {
 	reqPort int // the request's port, or the default port
 
 	host     *adw.EntryRow
-	port     *adw.EntryRow
+	port     *adw.SpinRow
 	password *adw.PasswordEntryRow
 	user     *adw.EntryRow
 
@@ -63,10 +63,9 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 	f.host.SetTitle(tr("Address"))
 	f.host.SetText(req.Host)
 
-	f.port = adw.NewEntryRow()
+	f.port = adw.NewSpinRow(gtk.NewAdjustment(float64(f.reqPort), 1, 65535, 1, 100, 0), 1, 0)
 	f.port.SetTitle(tr("Port"))
-	f.port.SetText(strconv.Itoa(f.reqPort))
-	f.port.SetInputPurpose(gtk.InputPurposeDigits)
+	f.port.SetNumeric(true)
 
 	f.password = adw.NewPasswordEntryRow()
 	f.password.SetTitle(tr("Server Password"))
@@ -179,13 +178,19 @@ func (f *connectForm) addIdentity(meta certs.IdentityMeta) {
 	f.identityRow.SetSelected(uint(len(f.idList)))
 }
 
-// formPort is the port in the form, or the default port.
-func (f *connectForm) formPort() int {
-	p, err := strconv.Atoi(f.port.Text())
-	if err != nil || p <= 0 || p > 65535 {
-		return ui.DefaultPort
+// typedPort is the port as typed so far, for the name preview: the field
+// takes typed text only when it is confirmed or left.
+func (f *connectForm) typedPort() int {
+	if p, err := strconv.Atoi(strings.TrimSpace(f.port.Text())); err == nil && p >= 1 && p <= 65535 {
+		return p
 	}
-	return p
+	return int(f.port.Value())
+}
+
+// formPort takes over typed text and returns the port (1–65535).
+func (f *connectForm) formPort() int {
+	f.port.Update()
+	return int(f.port.Value())
 }
 
 func (f *connectForm) updateSaveName() {
@@ -194,14 +199,14 @@ func (f *connectForm) updateSaveName() {
 		return
 	}
 	f.saveRow.SetSubtitle(fmt.Sprintf(tr("Saved as %s"),
-		savedName(strings.TrimSpace(f.user.Text()), strings.TrimSpace(f.host.Text()), f.formPort())))
+		savedName(strings.TrimSpace(f.user.Text()), strings.TrimSpace(f.host.Text()), f.typedPort())))
 }
 
 // fill shows a saved connection in the form; the password comes from the
 // keyring.
 func (f *connectForm) fill(e settings.ServerEntry) {
 	f.host.SetText(e.Host)
-	f.port.SetText(strconv.Itoa(e.Port))
+	f.port.SetValue(float64(e.Port))
 	f.user.SetText(e.Username)
 	f.selectIdentity(e.IdentityID)
 	f.setPassword("")
