@@ -43,6 +43,19 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// needGTK skips a test without GTK and a display, except in CI, where a
+// GTK test that cannot run is a failure.
+func needGTK(t *testing.T) {
+	t.Helper()
+	if gtkReady {
+		return
+	}
+	if os.Getenv("CI") != "" {
+		t.Fatal("GTK test cannot run in CI: GTK did not start (tools/verify.sh runs it under xvfb-run with MURMEL_GTK_TESTS=1)")
+	}
+	t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
+}
+
 // onMain runs f on the GTK main loop and waits for it.
 func onMain(f func()) {
 	done := make(chan struct{})
@@ -79,10 +92,8 @@ func connectedEvent(channels, users int) bus.Connected {
 
 // Rebuilding the tree frees the rows it replaced, on the Go side (the row
 // structs) and in GTK (the row widgets are finalized).
-func TestRebuildFreesOldRows(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKRebuildFreesOldRows(t *testing.T) {
+	needGTK(t)
 	const channels, users, rebuilds = 30, 100, 20
 
 	ctx, cancel := context.WithCancel(context.Background())

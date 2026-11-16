@@ -36,8 +36,9 @@ welcome.
   toggle reference, which turns weak once GTK no longer holds the object;
   in the second, GTK keeps the child alive through its parent, so gotk4
   keeps the closure and the closure keeps the parent. The rule above
-  covers both. The leak tests run under `xvfb-run` in `tools/verify.sh`
-  (`MURMEL_GTK_TESTS=1`).
+  covers both. The leak tests are named `TestGTK…` and run under
+  `xvfb-run` in `tools/verify.sh` (`MURMEL_GTK_TESTS=1`); without a display
+  they are skipped, except in CI, where that is a failure.
 
 By contributing you agree that your contribution is licensed under the
 GPL-3.0-or-later, like Murmel itself.

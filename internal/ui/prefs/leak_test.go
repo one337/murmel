@@ -45,6 +45,19 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// needGTK skips a test without GTK and a display, except in CI, where a
+// GTK test that cannot run is a failure.
+func needGTK(t *testing.T) {
+	t.Helper()
+	if gtkReady {
+		return
+	}
+	if os.Getenv("CI") != "" {
+		t.Fatal("GTK test cannot run in CI: GTK did not start (tools/verify.sh runs it under xvfb-run with MURMEL_GTK_TESTS=1)")
+	}
+	t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
+}
+
 func onMain(f func()) {
 	done := make(chan struct{})
 	glib.IdleAdd(func() bool { f(); close(done); return false })
@@ -116,10 +129,8 @@ const cycles = 50
 
 // Opening and closing Preferences 50 times frees every dialog; the
 // certificate list of the Identity page goes with its dialog.
-func TestPreferencesAreFreed(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKPreferencesAreFreed(t *testing.T) {
+	needGTK(t)
 	mgr, err := certs.NewManager(certs.WithDataDir(t.TempDir()))
 	if err != nil {
 		t.Fatal(err)
@@ -168,10 +179,8 @@ func collect() {
 
 // onNotify still reaches its row after the Go side collected everything
 // it could: the row lives on in the window, the test keeps no reference.
-func TestOnNotifyWorksAfterGC(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKOnNotifyWorksAfterGC(t *testing.T) {
+	needGTK(t)
 	var win *adw.Window
 	var got atomic.Int32
 	onMain(func() {

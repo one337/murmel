@@ -33,6 +33,8 @@ jobs:
           opus-devel webrtc-audio-processing-devel libsecret-devel
           glib2-devel gettext xorg-x11-server-Xvfb openssl
           desktop-file-utils appstream
+          mesa-dri-drivers mesa-libEGL mesa-libGL libglvnd-egl libglvnd-gles
+          dejavu-sans-fonts adwaita-icon-theme
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

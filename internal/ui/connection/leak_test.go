@@ -47,6 +47,19 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// needGTK skips a test without GTK and a display, except in CI, where a
+// GTK test that cannot run is a failure.
+func needGTK(t *testing.T) {
+	t.Helper()
+	if gtkReady {
+		return
+	}
+	if os.Getenv("CI") != "" {
+		t.Fatal("GTK test cannot run in CI: GTK did not start (tools/verify.sh runs it under xvfb-run with MURMEL_GTK_TESTS=1)")
+	}
+	t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
+}
+
 func onMain(f func()) {
 	done := make(chan struct{})
 	glib.IdleAdd(func() bool { f(); close(done); return false })
@@ -118,10 +131,8 @@ const cycles = 50
 
 // Opening and closing the connect dialog 50 times frees every dialog with
 // its form and its saved list.
-func TestConnectDialogIsFreed(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKConnectDialogIsFreed(t *testing.T) {
+	needGTK(t)
 	mgr, err := certs.NewManager(certs.WithDataDir(t.TempDir()))
 	if err != nil {
 		t.Fatal(err)
@@ -159,10 +170,8 @@ func TestConnectDialogIsFreed(t *testing.T) {
 
 // Connecting from the dialog (here to a port nobody listens on) frees the
 // dialog with its form and saved list too.
-func TestConnectDialogIsFreedAfterConnecting(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKConnectDialogIsFreedAfterConnecting(t *testing.T) {
+	needGTK(t)
 	mgr, err := certs.NewManager(certs.WithDataDir(t.TempDir()))
 	if err != nil {
 		t.Fatal(err)
@@ -216,10 +225,8 @@ func TestConnectDialogIsFreedAfterConnecting(t *testing.T) {
 
 // enableWhenFilled still works after the Go side collected everything it
 // could: the prompt stays open, the test keeps no reference to it.
-func TestEnableWhenFilledWorksAfterGC(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKEnableWhenFilledWorksAfterGC(t *testing.T) {
+	needGTK(t)
 	win := testWindow(t)
 	onMain(func() {
 		entry := adw.NewPasswordEntryRow()

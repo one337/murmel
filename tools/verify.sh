@@ -68,7 +68,8 @@ else
 fi
 
 step "go test"
-if go test "${PKGS[@]}" 2>&1; then
+# The GTK tests (TestGTK…) need a display; they run in their own step below.
+if go test -skip '^TestGTK' "${PKGS[@]}" 2>&1; then
   pass "go test"
 else
   fail "go test"
@@ -123,7 +124,7 @@ if command -v xvfb-run >/dev/null 2>&1; then
     DBUS_SESSION_BUS_ADDRESS=disabled: GDK_BACKEND=x11 GDK_DEBUG=no-portals GSETTINGS_BACKEND=memory \
     MESA_SHADER_CACHE_DISABLE=true \
     GOCACHE="$(go env GOCACHE)" GOMODCACHE="$(go env GOMODCACHE)" GOPATH="$(go env GOPATH)" \
-    MURMEL_GTK_TESTS=1 xvfb-run -a go test -count=1 "${GTK_TEST_PKGS[@]}" 2>&1; then
+    MURMEL_GTK_TESTS=1 xvfb-run -a go test -count=1 -run '^TestGTK' "${GTK_TEST_PKGS[@]}" 2>&1; then
     pass "GTK leak tests"
   else
     fail "GTK leak tests"

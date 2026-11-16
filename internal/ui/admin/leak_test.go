@@ -43,6 +43,19 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// needGTK skips a test without GTK and a display, except in CI, where a
+// GTK test that cannot run is a failure.
+func needGTK(t *testing.T) {
+	t.Helper()
+	if gtkReady {
+		return
+	}
+	if os.Getenv("CI") != "" {
+		t.Fatal("GTK test cannot run in CI: GTK did not start (tools/verify.sh runs it under xvfb-run with MURMEL_GTK_TESTS=1)")
+	}
+	t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
+}
+
 func onMain(f func()) {
 	done := make(chan struct{})
 	glib.IdleAdd(func() bool { f(); close(done); return false })
@@ -114,10 +127,8 @@ const cycles = 50
 
 // Opening and closing the channel editor 50 times frees every editor:
 // the dialog, the editor struct and its description and ACL pages.
-func TestChannelEditorIsFreed(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKChannelEditorIsFreed(t *testing.T) {
+	needGTK(t)
 	win := testWindow(t)
 	b := bus.New(nil)
 	var w leakWatch
@@ -146,10 +157,8 @@ func TestChannelEditorIsFreed(t *testing.T) {
 }
 
 // An alert dialog (Kick) is freed after closing, 50 times.
-func TestAlertDialogIsFreed(t *testing.T) {
-	if !gtkReady {
-		t.Skip("needs GTK and a display: run with MURMEL_GTK_TESTS=1 under xvfb-run (tools/verify.sh)")
-	}
+func TestGTKAlertDialogIsFreed(t *testing.T) {
+	needGTK(t)
 	win := testWindow(t)
 	b := bus.New(nil)
 	var w leakWatch
