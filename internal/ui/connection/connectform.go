@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
@@ -36,6 +37,7 @@ type connectForm struct {
 	settingPassword bool
 
 	idList        []certs.IdentityMeta
+	listed        bool // the stored certificates could be read
 	identityStore *gtk.StringList
 	identityRow   *adw.ComboRow
 
@@ -89,7 +91,12 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 
 	// Certificate picker: "None" + stored idList. The import row below
 	// adds a certificate file to the store and selects it.
-	f.idList, _ = c.certs.List()
+	var err error
+	f.idList, err = c.certs.List()
+	f.listed = err == nil
+	if err != nil {
+		slog.Warn("connect: certificates not listed", "err", err)
+	}
 	f.identityStore = gtk.NewStringList([]string{tr("None (anonymous)")})
 	for _, id := range f.idList {
 		f.identityStore.Append(id.Name)
@@ -97,6 +104,8 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 	f.identityRow = adw.NewComboRow()
 	f.identityRow.SetTitle(tr("User Certificate"))
 	f.identityRow.SetModel(f.identityStore)
+	f.identityNote("")
+	coreglib.InternObject(f.identityRow).NotifyProperty("selected", func() { f.identityNote("") })
 	f.selectIdentity(c.settings.LastIdentity())
 
 	// Import button inside the certificate row keeps the form compact.
@@ -158,6 +167,27 @@ func (f *connectForm) setPassword(pw string) {
 	f.settingPassword = true
 	f.password.SetText(pw)
 	f.settingPassword = false
+}
+
+// identityNote shows problem under the certificate row, or (problem "")
+// that the stored certificates could not be read, if so.
+func (f *connectForm) identityNote(problem string) {
+	if problem == "" && !f.listed {
+		problem = tr("Your certificates could not be read.")
+	}
+	f.identityRow.SetSubtitle(problem)
+	if problem != "" {
+		f.identityRow.AddCSSClass("error")
+	} else {
+		f.identityRow.RemoveCSSClass("error")
+	}
+}
+
+// rememberIdentity says whether connecting stores id as the last used
+// certificate: not when the stored certificates could not be read and
+// none is selected, so a read error does not make Murmel forget it.
+func rememberIdentity(listed bool, id string) bool {
+	return listed || id != ""
 }
 
 // selectIdentity selects the certificate with id, or "None".
@@ -234,7 +264,8 @@ func (f *connectForm) fill(e settings.ServerEntry) {
 }
 
 // connectFromForm saves what the form asks for and connects; it closes
-// dialog unless the form is incomplete.
+// dialog unless the form is incomplete or the selected certificate cannot
+// be loaded.
 func (c *Controller) connectFromForm(dialog *adw.Dialog, f *connectForm) {
 	h := strings.TrimSpace(f.host.Text())
 	if h == "" {
@@ -253,12 +284,19 @@ func (c *Controller) connectFromForm(dialog *adw.Dialog, f *connectForm) {
 	identityID := ""
 	sel := int(f.identityRow.Selected())
 	if sel > 0 && sel-1 < len(f.idList) {
-		if id, lerr := c.certs.Load(f.idList[sel-1].ID); lerr == nil {
-			identity = id
-			identityID = f.idList[sel-1].ID
+		id, err := c.certs.Load(f.idList[sel-1].ID)
+		if err != nil {
+			// Never connect anonymously instead of with the chosen certificate.
+			slog.Warn("connect: certificate not loaded", "id", f.idList[sel-1].ID, "err", err)
+			f.identityNote(tr("This certificate could not be loaded."))
+			return
 		}
+		identity = id
+		identityID = f.idList[sel-1].ID
 	}
-	c.settings.SetLastIdentity(identityID)
+	if rememberIdentity(f.listed, identityID) {
+		c.settings.SetLastIdentity(identityID)
+	}
 
 	texture := f.avatarRow.Data()
 	if f.saveRow.Active() && (f.avatarChanged || texture != nil) {

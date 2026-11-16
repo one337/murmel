@@ -191,7 +191,7 @@ func (c *certList) listGroup() *adw.PreferencesGroup {
 func (c *certList) refresh() {
 	list, err := c.m.List()
 	if err != nil {
-		slog.Info("prefs: identities not listed", "err", err)
+		slog.Warn("prefs: identities not listed", "err", err)
 	}
 	sort.Slice(list, func(i, j int) bool { return list[i].Created.Before(list[j].Created) })
 	c.identities = list
@@ -208,11 +208,30 @@ func (c *certList) refresh() {
 	c.combo.SetModel(gtk.NewStringList(names))
 	c.combo.SetSelected(selected)
 	c.syncing = false
+	// Unreadable certificates: the default stays as it is.
+	c.combo.SetSensitive(err == nil)
+	if err != nil {
+		c.combo.SetSubtitle(tr("Your certificates could not be read."))
+		c.combo.AddCSSClass("error")
+	} else {
+		c.combo.SetSubtitle(tr("Used for new connections"))
+		c.combo.RemoveCSSClass("error")
+	}
 
 	for _, r := range c.rows {
 		c.group.Remove(r)
 	}
 	c.rows = nil
+	if err != nil {
+		unreadable := adw.NewActionRow()
+		unreadable.SetUseMarkup(false) // the error names a path
+		unreadable.SetTitle(tr("Your certificates could not be read."))
+		unreadable.SetSubtitle(err.Error())
+		unreadable.AddPrefix(gtk.NewImageFromIconName("dialog-warning-symbolic"))
+		unreadable.AddCSSClass("error")
+		c.add(unreadable)
+		return
+	}
 	if len(list) == 0 {
 		empty := adw.NewActionRow()
 		empty.SetTitle(tr("No certificates yet"))

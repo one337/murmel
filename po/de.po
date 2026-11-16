@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 00:52+0100\n"
+"POT-Creation-Date: 2026-11-16 09:13+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1123,6 +1123,10 @@ msgstr "Avatar"
 msgid "Account"
 msgstr "Konto"
 
+#: internal/ui/connection/connectform.go internal/ui/prefs/window.go
+msgid "Your certificates could not be read."
+msgstr "Deine Zertifikate konnten nicht gelesen werden."
+
 #: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr "Gespeichert als benutzername@adresse"
@@ -1131,6 +1135,10 @@ msgstr "Gespeichert als benutzername@adresse"
 #, go-format
 msgid "Saved as %s"
 msgstr "Gespeichert als %s"
+
+#: internal/ui/connection/connectform.go
+msgid "This certificate could not be loaded."
+msgstr "Dieses Zertifikat konnte nicht geladen werden."
 
 #: internal/ui/connection/controller.go
 msgid "Connect to Server"
