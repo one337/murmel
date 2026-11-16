@@ -110,6 +110,30 @@ else
   fail "GSettings roundtrip"
 fi
 
+# Leak tests need GTK and a display: they run on a virtual X server in a
+# throwaway HOME, without the desktop's D-Bus session or Wayland display.
+GTK_TEST_PKGS=(./internal/ui/channeltree)
+step "GTK leak tests (xvfb-run)"
+if command -v xvfb-run >/dev/null 2>&1; then
+  GTKHOME=$(mktemp -d /tmp/murmel-gtk-XXXXXX)
+  mkdir -m 700 "$GTKHOME/run"
+  if env -u WAYLAND_DISPLAY -u DISPLAY \
+    HOME="$GTKHOME" XDG_CONFIG_HOME="$GTKHOME/config" XDG_DATA_HOME="$GTKHOME/data" \
+    XDG_CACHE_HOME="$GTKHOME/cache" XDG_STATE_HOME="$GTKHOME/state" XDG_RUNTIME_DIR="$GTKHOME/run" \
+    DBUS_SESSION_BUS_ADDRESS=disabled: GDK_BACKEND=x11 GDK_DEBUG=no-portals GSETTINGS_BACKEND=memory \
+    MESA_SHADER_CACHE_DISABLE=true \
+    GOCACHE="$(go env GOCACHE)" GOMODCACHE="$(go env GOMODCACHE)" GOPATH="$(go env GOPATH)" \
+    MURMEL_GTK_TESTS=1 xvfb-run -a go test -count=1 "${GTK_TEST_PKGS[@]}" 2>&1; then
+    pass "GTK leak tests"
+  else
+    fail "GTK leak tests"
+  fi
+  rm -rf "$GTKHOME"
+else
+  printf 'xvfb-run is not installed (Fedora: xorg-x11-server-Xvfb)\n'
+  fail "GTK leak tests need xvfb-run"
+fi
+
 step "i18n: TestNoHardcodedStrings"
 if go test ./internal/ui -run TestNoHardcodedStrings 2>&1; then
   pass "no hardcoded UI strings"

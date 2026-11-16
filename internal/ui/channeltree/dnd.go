@@ -76,7 +76,9 @@ func (t *Tree) refreshDragHandles() {
 }
 
 // dragUser makes r's handle drag the user, and asks for the permissions
-// the handle depends on when the pointer comes near.
+// the handle depends on when the pointer comes near. The closures find the
+// row by its session when they run: holding r would keep the row alive
+// after a rebuild (see internal/ui/weakref).
 func (t *Tree) dragUser(r *userRowWidgets, session uint32) {
 	hover := gtk.NewEventControllerMotion()
 	hover.ConnectEnter(func(float64, float64) {
@@ -89,10 +91,11 @@ func (t *Tree) dragUser(r *userRowWidgets, session uint32) {
 	src := gtk.NewDragSource()
 	src.SetActions(gdk.ActionMove)
 	src.ConnectPrepare(func(float64, float64) *gdk.ContentProvider {
-		if t.drag != nil || !canDragUser(t.model, session) {
+		row, ok := t.userRows[session]
+		if t.drag != nil || !ok || !canDragUser(t.model, session) {
 			return nil
 		}
-		t.drag = &treeDrag{session: session, row: r}
+		t.drag = &treeDrag{session: session, row: row}
 		// The targets' permissions decide how they are highlighted.
 		ids := make([]uint32, 0, len(t.model.channels))
 		for id := range t.model.channels {
@@ -102,18 +105,22 @@ func (t *Tree) dragUser(r *userRowWidgets, session uint32) {
 		return gdk.NewContentProviderForValue(coreglib.NewValue(strconv.FormatUint(uint64(session), 10)))
 	})
 	src.ConnectDragBegin(func(drag gdk.Dragger) {
+		row, ok := t.userRows[session]
+		if !ok {
+			return
+		}
 		u := t.model.users[session]
 		icon := gtk.NewBox(gtk.OrientationHorizontal, 8)
 		icon.AddCSSClass("user-drag-icon")
 		av := adw.NewAvatar(avatarSizePx, u.Name, true)
-		if img := r.avatar.CustomImage(); img != nil {
+		if img := row.avatar.CustomImage(); img != nil {
 			av.SetCustomImage(img)
 		}
 		icon.Append(av)
 		icon.Append(gtk.NewLabel(u.Name))
 		gtk.NewDragIconGetForDrag(drag).SetChild(icon)
 		gdk.BaseDrag(drag).SetHotspot(-8, avatarSizePx/2)
-		r.root.AddCSSClass("dragged")
+		row.root.AddCSSClass("dragged")
 		t.setRowTooltips(false) // "Double-click to join" would cover the targets
 
 	})

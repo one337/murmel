@@ -12,6 +12,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/pango"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 const (
@@ -233,8 +234,9 @@ func contextMenu(row *gtk.ListBoxRow, menu func(x, y float64)) {
 
 	hold := gtk.NewGestureLongPress()
 	hold.SetTouchOnly(true)
+	self := weakref.New(hold)
 	hold.ConnectPressed(func(x, y float64) {
-		hold.SetState(gtk.EventSequenceClaimed)
+		self.Do(func(hold *gtk.GestureLongPress) { hold.SetState(gtk.EventSequenceClaimed) })
 		menu(x, y)
 	})
 	row.AddController(hold)
@@ -460,9 +462,10 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 	if a.SetLocalAudio != nil {
 		state := a.LocalAudio
 		mute := gio.NewSimpleActionStateful("local-mute", nil, glib.NewVariantBoolean(state.muted))
+		muteRef := weakref.New(mute)
 		mute.ConnectActivate(func(*glib.Variant) {
 			state.muted = !state.muted
-			mute.SetState(glib.NewVariantBoolean(state.muted))
+			muteRef.Do(func(mute *gio.SimpleAction) { mute.SetState(glib.NewVariantBoolean(state.muted)) })
 			a.SetLocalAudio(state)
 		})
 		group.AddAction(mute)
@@ -513,7 +516,10 @@ func localVolumeSlider(volume float64, set func(float64)) gtk.Widgetter {
 		return fmt.Sprintf("%d %%", int(v+0.5))
 	})
 	scale.SetSizeRequest(200, -1)
-	scale.ConnectValueChanged(func() { set(scale.Value() / 100) })
+	self := weakref.New(scale)
+	scale.ConnectValueChanged(func() {
+		self.Do(func(scale *gtk.Scale) { set(scale.Value() / 100) })
+	})
 	box.Append(title)
 	box.Append(scale)
 	return box
