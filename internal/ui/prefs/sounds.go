@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
-	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -18,6 +17,7 @@ import (
 	"io.github/murmel/internal/audio/effects"
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/gfileio"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // eventLabel is the preferences title of each sound event.
@@ -82,13 +82,13 @@ const chooseFile = "\x00choose"
 // built-in, or an audio file) and has a preview button.
 // soundsDir holds copies of sound files picked from locations without a
 // local path; pw shows problems with a picked file.
-func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, pw *adw.PreferencesDialog, soundsDir string) *adw.ExpanderRow {
+func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, pw weakref.Ref[*adw.PreferencesDialog], soundsDir string) *adw.ExpanderRow {
 	exp := adw.NewExpanderRow()
 	exp.SetTitle(tr("Event sounds"))
 	exp.SetSubtitle(tr("For connections, users, messages and push-to-talk"))
 	exp.SetShowEnableSwitch(true)
 	exp.SetEnableExpansion(st.SoundsEnabled())
-	coreglib.InternObject(exp).NotifyProperty("enable-expansion", func() {
+	onNotify(exp, "enable-expansion", func(exp *adw.ExpanderRow) {
 		st.SetSoundsEnabled(exp.EnableExpansion())
 	})
 	for _, ev := range effects.Events {
@@ -97,7 +97,7 @@ func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.
 	return exp
 }
 
-func soundEventRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, pw *adw.PreferencesDialog, soundsDir string, ev effects.Event) *adw.ComboRow {
+func soundEventRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, pw weakref.Ref[*adw.PreferencesDialog], soundsDir string, ev effects.Event) *adw.ComboRow {
 	row := adw.NewComboRow()
 	row.SetTitle(eventLabel(ev))
 
@@ -134,7 +134,12 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 		preview.SetSensitive(current != effects.Off)
 	}
 	// rebuild fills the model for the current choice and selects it.
+	rowRef := weakref.New(row)
 	rebuild := func() {
+		row, ok := rowRef.Get()
+		if !ok {
+			return
+		}
 		preview.SetSensitive(current != effects.Off)
 		updating = true
 		defer func() { updating = false }()
@@ -160,7 +165,7 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 	current = effects.Choice(st.SoundEvents(), ev)
 	rebuild()
 
-	coreglib.InternObject(row).NotifyProperty("selected", func() {
+	onNotify(row, "selected", func(row *adw.ComboRow) {
 		if updating {
 			return
 		}
@@ -172,7 +177,11 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 			store(choices[sel])
 			return
 		}
-		pickSoundFile(parent(), pw, soundsDir, func(path string, problem string) {
+		owner, ok := pw.Get()
+		if !ok {
+			return
+		}
+		pickSoundFile(parent(), owner, soundsDir, func(path string, problem string) {
 			if path != "" {
 				store(effects.FileChoice(path))
 				player.PlayChoice(current, st.AudioOutputDevice())
@@ -180,7 +189,7 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 			if problem != "" {
 				t := adw.NewToast(problem)
 				t.SetUseMarkup(false)
-				pw.AddToast(t)
+				pw.Do(func(pw *adw.PreferencesDialog) { pw.AddToast(t) })
 			}
 			rebuild() // also reverts the selection on cancel or a problem
 		})

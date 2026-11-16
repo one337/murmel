@@ -9,6 +9,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // ShowBanList opens the ban list management dialog. It emits
@@ -101,10 +102,11 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 			removeBtn := gtk.NewButtonFromIconName("list-remove-symbolic")
 			removeBtn.AddCSSClass("flat")
 			removeBtn.SetTooltipText(tr("Remove ban"))
+			rowRef, btnRef := weakref.New(row), weakref.New(removeBtn)
 			removeBtn.ConnectClicked(func() {
 				removed[idx] = true
-				row.SetSensitive(false)
-				removeBtn.SetSensitive(false)
+				rowRef.Do(func(row *adw.ActionRow) { row.SetSensitive(false) })
+				btnRef.Do(func(b *gtk.Button) { b.SetSensitive(false) })
 			})
 			row.AddSuffix(removeBtn)
 			listbox.Append(row)
@@ -113,6 +115,7 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 		saveBtn.SetSensitive(true)
 	})
 
+	dialogRef := weakref.New(dialog)
 	saveBtn.ConnectClicked(func() {
 		remaining := make([]bus.BanEntry, 0, len(entries))
 		for i, e := range entries {
@@ -121,10 +124,10 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 			}
 		}
 		b.Emit(bus.BanListWriteRequested{Entries: remaining})
-		dialog.Close()
+		dialogRef.Do(func(d *adw.Dialog) { d.Close() })
 	})
 
-	cancelBtn.ConnectClicked(func() { dialog.Close() })
+	cancelBtn.ConnectClicked(func() { dialogRef.Do(func(d *adw.Dialog) { d.Close() }) })
 
 	b.Emit(bus.BanListRequested{})
 	dialog.Present(parent)

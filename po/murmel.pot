@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 09:13+0100\n"
+"POT-Creation-Date: 2026-11-16 09:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1743,6 +1743,10 @@ msgid "Export (back up) as PEM, including the private key"
 msgstr ""
 
 #: internal/ui/prefs/window.go
+msgid "Delete certificate"
+msgstr ""
+
+#: internal/ui/prefs/window.go
 #, go-format
 msgid "Export failed: %v"
 msgstr ""
@@ -1750,10 +1754,6 @@ msgstr ""
 #: internal/ui/prefs/window.go
 #, go-format
 msgid "Exported identity %s"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "Delete certificate"
 msgstr ""
 
 #: internal/ui/prefs/window.go

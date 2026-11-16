@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math"
 	"time"
+	"weak"
 
 	"github.com/diamondburned/gotk4/pkg/cairo"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
@@ -21,6 +22,7 @@ import (
 	"io.github/murmel/internal/audio/pipeline"
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/settings"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 const (
@@ -39,9 +41,12 @@ const (
 	dbStep   = 1.0 / 60 // one dB on the meter scale
 )
 
-// Meter is the level meter widget.
+// Meter is the level meter widget. It lives as long as its root widget
+// (weakref.Owned) and holds that only weakly; the closures of its widgets
+// reach it through a weak pointer.
 type Meter struct {
-	root  *gtk.Box
+	self  weak.Pointer[Meter]
+	root  weakref.Ref[*gtk.Box]
 	area  *gtk.DrawingArea
 	value *gtk.Label
 	state *gtk.Label
@@ -73,14 +78,30 @@ func New(st settings.Settings, b *bus.Bus) *Meter {
 	m.area.SetFocusable(true)
 	m.area.SetCursorFromName("pointer")
 	m.area.SetTooltipText(tr("Drag the handle to set the activation threshold: speech louder than the handle is transmitted. Arrow keys move it by 1 dB."))
-	m.area.SetDrawFunc(m.draw)
+	root := gtk.NewBox(gtk.OrientationVertical, 2)
+	m.root = weakref.New(root)
+	m.self = weakref.Owned(root, m)
+	ws := m.self
+	m.area.SetDrawFunc(func(area *gtk.DrawingArea, cr *cairo.Context, width, height int) {
+		if m := ws.Value(); m != nil {
+			m.draw(area, cr, width, height)
+		}
+	})
 
 	drag := gtk.NewGestureDrag()
 	drag.ConnectDragBegin(func(x, _ float64) {
-		m.area.GrabFocus()
-		m.setThreshold(m.fractionAt(x))
+		if m := ws.Value(); m != nil {
+			m.area.GrabFocus()
+			m.setThreshold(m.fractionAt(x))
+		}
 	})
+	dragRef := weakref.New(drag)
 	drag.ConnectDragUpdate(func(dx, _ float64) {
+		m := ws.Value()
+		drag, ok := dragRef.Get()
+		if m == nil || !ok {
+			return
+		}
 		if x, _, ok := drag.StartPoint(); ok {
 			m.setThreshold(m.fractionAt(x + dx))
 		}
@@ -89,6 +110,10 @@ func New(st settings.Settings, b *bus.Bus) *Meter {
 
 	keys := gtk.NewEventControllerKey()
 	keys.ConnectKeyPressed(func(keyval, _ uint, _ gdk.ModifierType) bool {
+		m := ws.Value()
+		if m == nil {
+			return false
+		}
 		switch keyval {
 		case gdk.KEY_Left, gdk.KEY_Down:
 			m.setThreshold(m.threshold - dbStep)
@@ -109,8 +134,13 @@ func New(st settings.Settings, b *bus.Bus) *Meter {
 	})
 	m.area.AddController(keys)
 	focus := gtk.NewEventControllerFocus()
-	focus.ConnectEnter(m.area.QueueDraw)
-	focus.ConnectLeave(m.area.QueueDraw)
+	redraw := func() {
+		if m := ws.Value(); m != nil {
+			m.area.QueueDraw()
+		}
+	}
+	focus.ConnectEnter(redraw)
+	focus.ConnectLeave(redraw)
 	m.area.AddController(focus)
 
 	scale := gtk.NewCenterBox()
@@ -130,19 +160,29 @@ func New(st settings.Settings, b *bus.Bus) *Meter {
 	info.Append(m.value)
 	info.Append(m.state)
 
-	m.root = gtk.NewBox(gtk.OrientationVertical, 2)
-	m.root.AddCSSClass("level-meter")
-	m.root.Append(m.area)
-	m.root.Append(scale)
-	m.root.Append(info)
-	m.root.ConnectMap(m.start)
-	m.root.ConnectUnmap(m.stop)
+	root.AddCSSClass("level-meter")
+	root.Append(m.area)
+	root.Append(scale)
+	root.Append(info)
+	root.ConnectMap(func() {
+		if m := ws.Value(); m != nil {
+			m.start()
+		}
+	})
+	root.ConnectUnmap(func() {
+		if m := ws.Value(); m != nil {
+			m.stop()
+		}
+	})
 	m.updateLabels()
 	return m
 }
 
-// Root returns the widget to pack.
-func (m *Meter) Root() *gtk.Box { return m.root }
+// Root returns the widget to pack (nil once it no longer exists).
+func (m *Meter) Root() *gtk.Box {
+	root, _ := m.root.Get()
+	return root
+}
 
 func scaleLabel(text string) *gtk.Label {
 	l := gtk.NewLabel(text)

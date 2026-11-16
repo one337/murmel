@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"weak"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
@@ -30,6 +31,7 @@ import (
 	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/levelmeter"
 	"io.github/murmel/internal/ui/shortcuts"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // Window is the preferences dialog. It is not reused: create a new one each
@@ -56,7 +58,8 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	pw.SetTitle(tr("Preferences"))
 	pw.SetSearchEnabled(false)
 
-	pw.Add(identityPage(st, m, pw))
+	identity, _ := identityPage(st, m, pw)
+	pw.Add(identity)
 	pw.Add(audioInputPage(st, b, sc, pw))
 	pw.Add(audioOutputPage(st))
 	pw.Add(chatPage(st))
@@ -93,7 +96,9 @@ func onClose(d *adw.PreferencesDialog, f func()) {
 
 // --- Identity page ---------------------------------------------------------
 
-func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesDialog) *adw.PreferencesPage {
+// identityPage builds the Identity page of pw; it also returns the page's
+// certificate list, which lives as long as pw.
+func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesDialog) (*adw.PreferencesPage, *certList) {
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("Identity"))
 	page.SetName("identity")
@@ -113,19 +118,23 @@ func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesDia
 	avatarGroup.Add(avatarRow)
 	page.Add(avatarGroup)
 
-	c := &certList{st: st, m: m, pw: pw}
+	c := &certList{st: st, m: m, pw: weakref.New(pw)}
+	c.self = weakref.Owned(pw, c)
 	page.Add(c.defaultGroup())
 	page.Add(c.listGroup())
 	c.refresh()
-	return page
+	return page, c
 }
 
 // certList is the Identity page's certificate section: the default
-// identity and the list of all identities with export and delete.
+// identity and the list of all identities with export and delete. It lives
+// as long as the dialog (weakref.Owned); the closures of its widgets reach
+// it through a weak pointer, and it holds the dialog only weakly.
 type certList struct {
-	st settings.Settings
-	m  *certs.Manager
-	pw *adw.PreferencesDialog
+	self weak.Pointer[certList]
+	st   settings.Settings
+	m    *certs.Manager
+	pw   weakref.Ref[*adw.PreferencesDialog]
 
 	identities []certs.IdentityMeta
 	combo      *adw.ComboRow
@@ -138,7 +147,7 @@ func (c *certList) defaultGroup() *adw.PreferencesGroup {
 	c.combo = adw.NewComboRow()
 	c.combo.SetTitle(tr("Default identity"))
 	c.combo.SetSubtitle(tr("Used for new connections"))
-	coreglib.InternObject(c.combo).NotifyProperty("selected", func() {
+	coreglib.InternObject(c.combo).NotifyProperty("selected", c.on(func(c *certList) {
 		if c.syncing {
 			return
 		}
@@ -148,7 +157,7 @@ func (c *certList) defaultGroup() *adw.PreferencesGroup {
 			return
 		}
 		c.st.SetLastIdentity(c.identities[sel-1].ID)
-	})
+	}))
 	g := adw.NewPreferencesGroup()
 	g.SetTitle(tr("Client Certificate"))
 	g.Add(c.combo)
@@ -162,23 +171,34 @@ func (c *certList) listGroup() *adw.PreferencesGroup {
 
 	create := gtk.NewButtonWithLabel(tr("Create…"))
 	create.SetTooltipText(tr("Create a new certificate"))
-	create.ConnectClicked(func() {
-		identities.ShowCreate(c.pw, c.m, "", func(meta certs.IdentityMeta) {
-			c.st.SetLastIdentity(meta.ID)
-			c.refresh()
+	ws := c.self
+	create.ConnectClicked(c.on(func(c *certList) {
+		c.pw.Do(func(pw *adw.PreferencesDialog) {
+			identities.ShowCreate(pw, c.m, "", func(meta certs.IdentityMeta) {
+				if c := ws.Value(); c != nil {
+					c.st.SetLastIdentity(meta.ID)
+					c.refresh()
+				}
+			})
 		})
-	})
+	}))
 	imp := gtk.NewButtonWithLabel(tr("Import…"))
 	imp.SetTooltipText(tr("Load a PEM file with certificate and private key"))
-	imp.ConnectClicked(func() {
-		identities.Import(c.pw, c.m, func(meta certs.IdentityMeta) {
-			c.st.SetLastIdentity(meta.ID)
-			c.refresh()
-			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Imported identity %s"), meta.Name)))
-		}, func(err error) {
-			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Import failed: %v"), err)))
+	imp.ConnectClicked(c.on(func(c *certList) {
+		c.pw.Do(func(pw *adw.PreferencesDialog) {
+			identities.Import(pw, c.m, func(meta certs.IdentityMeta) {
+				if c := ws.Value(); c != nil {
+					c.st.SetLastIdentity(meta.ID)
+					c.refresh()
+					c.toast(fmt.Sprintf(tr("Imported identity %s"), meta.Name))
+				}
+			}, func(err error) {
+				if c := ws.Value(); c != nil {
+					c.toast(fmt.Sprintf(tr("Import failed: %v"), err))
+				}
+			})
 		})
-	})
+	}))
 	buttons := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	buttons.SetVAlign(gtk.AlignCenter)
 	buttons.Append(create)
@@ -244,6 +264,21 @@ func (c *certList) refresh() {
 	}
 }
 
+// on returns a callback that runs fn with the list while it exists.
+func (c *certList) on(fn func(c *certList)) func() {
+	ws := c.self
+	return func() {
+		if c := ws.Value(); c != nil {
+			fn(c)
+		}
+	}
+}
+
+// toast shows text on the dialog while it is open.
+func (c *certList) toast(text string) {
+	c.pw.Do(func(pw *adw.PreferencesDialog) { pw.AddToast(plainToast(text)) })
+}
+
 func (c *certList) add(w gtk.Widgetter) {
 	c.group.Add(w)
 	c.rows = append(c.rows, w)
@@ -275,29 +310,36 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	export.AddCSSClass("flat")
 	export.SetVAlign(gtk.AlignCenter)
 	export.SetTooltipText(tr("Export (back up) as PEM, including the private key"))
-	export.ConnectClicked(func() {
-		identities.Export(c.pw, c.m, meta, func(exposed bool, err error) {
-			if err != nil {
-				c.pw.AddToast(plainToast(fmt.Sprintf(tr("Export failed: %v"), err)))
-				return
-			}
-			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Exported identity %s"), meta.Name)))
-			if exposed {
-				identities.WarnExposedBackup(c.pw)
-			}
+	export.ConnectClicked(c.on(func(c *certList) {
+		c.pw.Do(func(pw *adw.PreferencesDialog) {
+			identities.Export(pw, c.m, meta, func(exposed bool, err error) {
+				c.toast(exportResult(meta, err))
+				if err == nil && exposed {
+					c.pw.Do(func(pw *adw.PreferencesDialog) { identities.WarnExposedBackup(pw) })
+				}
+			})
 		})
-	})
+	}))
 	del := gtk.NewButtonFromIconName("user-trash-symbolic")
 	del.AddCSSClass("flat")
 	del.SetVAlign(gtk.AlignCenter)
 	del.SetTooltipText(tr("Delete certificate"))
-	del.ConnectClicked(func() { c.confirmDelete(meta) })
+	del.ConnectClicked(c.on(func(c *certList) { c.confirmDelete(meta) }))
 	row.AddSuffix(export)
 	row.AddSuffix(del)
 	return row
 }
 
+// exportResult is the toast after exporting meta.
+func exportResult(meta certs.IdentityMeta, err error) string {
+	if err != nil {
+		return fmt.Sprintf(tr("Export failed: %v"), err)
+	}
+	return fmt.Sprintf(tr("Exported identity %s"), meta.Name)
+}
+
 func (c *certList) confirmDelete(meta certs.IdentityMeta) {
+	ws := c.self
 	alert := adw.NewAlertDialog(fmt.Sprintf(tr("Delete “%s”?"), meta.Name),
 		tr("Servers on which you registered with this certificate will no longer recognize you. Export it first if you might need it again. This cannot be undone."))
 	alert.AddResponse("cancel", tr("Cancel"))
@@ -306,20 +348,21 @@ func (c *certList) confirmDelete(meta certs.IdentityMeta) {
 	alert.SetDefaultResponse("cancel")
 	alert.SetCloseResponse("cancel")
 	alert.ConnectResponse(func(r string) {
-		if r != "delete" {
+		c := ws.Value()
+		if c == nil || r != "delete" {
 			return
 		}
 		if err := c.m.Delete(meta.ID); err != nil {
-			c.pw.AddToast(plainToast(fmt.Sprintf(tr("Delete failed: %v"), err)))
+			c.toast(fmt.Sprintf(tr("Delete failed: %v"), err))
 			return
 		}
 		if c.st.LastIdentity() == meta.ID {
 			c.st.SetLastIdentity("")
 		}
 		c.refresh()
-		c.pw.AddToast(plainToast(fmt.Sprintf(tr("Deleted identity %s"), meta.Name)))
+		c.toast(fmt.Sprintf(tr("Deleted identity %s"), meta.Name))
 	})
-	alert.Present(c.pw)
+	c.pw.Do(func(pw *adw.PreferencesDialog) { alert.Present(pw) })
 }
 
 // shortFingerprint shows the first bytes of a grouped-hex fingerprint.
@@ -350,7 +393,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	noise.SetSubtitle(tr("Removes steady background noise such as fans, hum or traffic from your voice"))
 	noise.SetModel(gtk.NewStringList([]string{tr("Off"), tr("Low"), tr("Moderate"), tr("High"), tr("Very High")}))
 	noise.SetSelected(uint(min(4, max(0, st.NoiseSuppression()))))
-	coreglib.InternObject(noise).NotifyProperty("selected", func() {
+	onNotify(noise, "selected", func(noise *adw.ComboRow) {
 		st.SetNoiseSuppression(int(noise.Selected()))
 	})
 	devGroup.Add(noise)
@@ -359,7 +402,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	echo.SetTitle(tr("Echo Cancellation"))
 	echo.SetSubtitle(tr("For speakers instead of a headset: keeps the others from hearing themselves through your microphone"))
 	echo.SetActive(st.EchoCancellation())
-	coreglib.InternObject(echo).NotifyProperty("active", func() {
+	onNotify(echo, "active", func(echo *adw.SwitchRow) {
 		st.SetEchoCancellation(echo.Active())
 	})
 	devGroup.Add(echo)
@@ -374,7 +417,12 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 			modeRow.SetSelected(uint(i))
 		}
 	}
+	modeRef := weakref.New(modeRow)
 	modeHint := func() {
+		modeRow, ok := modeRef.Get()
+		if !ok {
+			return
+		}
 		switch st.TransmissionMode() {
 		case "push-to-talk":
 			modeRow.SetSubtitle(pushToTalkHint(sc))
@@ -396,7 +444,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	vadGroup.SetTitle(tr("Voice Detection"))
 	// The threshold only matters for voice activation.
 	vadGroup.SetVisible(st.TransmissionMode() == "voice-activation")
-	coreglib.InternObject(modeRow).NotifyProperty("selected", func() {
+	onNotify(modeRow, "selected", func(modeRow *adw.ComboRow) {
 		if sel := int(modeRow.Selected()); sel < len(modes) {
 			st.SetTransmissionMode(modes[sel])
 			modeHint()
@@ -437,19 +485,24 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	// Quality: the Opus bitrate, like the official client's "Quality".
 	quality := adw.NewSpinRow(gtk.NewAdjustment(float64(st.AudioQuality()), 32, 192, 1, 8, 0), 8, 0)
 	quality.SetTitle(tr("Quality (kb/s)"))
+	qualityRef := weakref.New(quality)
 	updateQualityHint := func() {
+		quality, ok := qualityRef.Get()
+		if !ok {
+			return
+		}
 		total := engine.NetworkBandwidth(st.AudioQuality()*1000, st.AudioPacketFrames())
 		quality.SetSubtitle(fmt.Sprintf(
 			tr("Needs about %.1f kb/s including network overhead. Servers with a lower limit reduce it automatically. Default: 40 kb/s"),
 			float64(total)/1000))
 	}
 	updateQualityHint()
-	coreglib.InternObject(quality).NotifyProperty("value", func() {
+	onNotify(quality, "value", func(quality *adw.SpinRow) {
 		st.SetAudioQuality(int(quality.Value()))
 		updateQualityHint()
 	})
 
-	coreglib.InternObject(packetRow).NotifyProperty("selected", func() {
+	onNotify(packetRow, "selected", func(packetRow *adw.ComboRow) {
 		if sel := int(packetRow.Selected()); sel < len(packetSizes) {
 			st.SetAudioPacketFrames(packetSizes[sel])
 			updateQualityHint()
@@ -558,7 +611,7 @@ func audioOutputPage(st settings.Settings) *adw.PreferencesPage {
 	jitterSpin.SetTitle(tr("Buffer (ms)"))
 	jitterSpin.SetSubtitle(tr("Raise it if voices stutter on unstable connections; lower values reduce delay. Default: 30 ms"))
 	jitterSpin.SetSnapToTicks(true)
-	coreglib.InternObject(jitterSpin).NotifyProperty("value", func() {
+	onNotify(jitterSpin, "value", func(jitterSpin *adw.SpinRow) {
 		st.SetJitterTargetFrames(int(jitterSpin.Value()+5) / 10)
 	})
 	jitterGroup.Add(jitterSpin)
@@ -583,7 +636,7 @@ func chatPage(st settings.Settings) *adw.PreferencesPage {
 		row := adw.NewSwitchRow()
 		row.SetTitle(chat.LogLabel(e))
 		row.SetActive(chat.LogEnabled(st.ChatLogEvents(), e))
-		coreglib.InternObject(row).NotifyProperty("active", func() {
+		onNotify(row, "active", func(row *adw.SwitchRow) {
 			ov := st.ChatLogEvents()
 			if row.Active() == chat.LogDefault(e) {
 				delete(ov, string(e))
@@ -601,7 +654,14 @@ func chatPage(st settings.Settings) *adw.PreferencesPage {
 // --- Behavior page ---------------------------------------------------------
 
 func generalPage(st settings.Settings, player *effects.Player, pw *adw.PreferencesDialog, sc Shortcuts, soundsDir string) *adw.PreferencesPage {
-	parent := func() *gtk.Window { return identities.WindowOf(pw) }
+	pwRef := weakref.New(pw)
+	parent := func() *gtk.Window {
+		pw, ok := pwRef.Get()
+		if !ok {
+			return nil
+		}
+		return identities.WindowOf(pw)
+	}
 	page := adw.NewPreferencesPage()
 	page.SetTitle(tr("General"))
 	page.SetName("general")
@@ -617,7 +677,7 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 	reconnectRow.SetTitle(tr("Auto-reconnect"))
 	reconnectRow.SetSubtitle(tr("Reconnect automatically after a connection drop"))
 	reconnectRow.SetActive(st.AutoReconnect())
-	coreglib.InternObject(reconnectRow).NotifyProperty("active", func() {
+	onNotify(reconnectRow, "active", func(reconnectRow *adw.SwitchRow) {
 		st.SetAutoReconnect(reconnectRow.Active())
 	})
 	group.Add(reconnectRow)
@@ -632,7 +692,7 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 		row.SetTitle(title)
 		row.SetSubtitle(subtitle)
 		row.SetActive(get())
-		coreglib.InternObject(row).NotifyProperty("active", func() { set(row.Active()) })
+		onNotify(row, "active", func(row *adw.SwitchRow) { set(row.Active()) })
 		notifGroup.Add(row)
 	}
 	notify(tr("Private messages"), tr("When someone writes to you directly"),
@@ -646,7 +706,7 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 
 	soundGroup := adw.NewPreferencesGroup()
 	soundGroup.SetTitle(tr("Sounds"))
-	soundGroup.Add(soundsRow(st, player, parent, pw, soundsDir))
+	soundGroup.Add(soundsRow(st, player, parent, pwRef, soundsDir))
 
 	page.Add(group)
 	page.Add(notifGroup)
@@ -658,6 +718,13 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 }
 
 // --- Helpers ---------------------------------------------------------------
+
+// onNotify calls f with w whenever w's property changes. The closure holds
+// w only weakly: it is attached to w (see internal/ui/weakref).
+func onNotify[T coreglib.Objector](w T, property string, f func(T)) {
+	self := weakref.New(w)
+	coreglib.InternObject(w).NotifyProperty(property, func() { self.Do(f) })
+}
 
 // deviceComboRow builds a ComboRow backed by audio device enumeration.
 // getStored/setStored read and write the device-name key to settings.
@@ -691,7 +758,7 @@ func deviceComboRow(title string, capture bool,
 		}
 	}
 
-	coreglib.InternObject(row).NotifyProperty("selected", func() {
+	onNotify(row, "selected", func(row *adw.ComboRow) {
 		sel := int(row.Selected())
 		if sel == 0 {
 			setStored("")
@@ -720,7 +787,7 @@ func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
 			row.SetSelected(uint(i))
 		}
 	}
-	coreglib.InternObject(row).NotifyProperty("selected", func() {
+	onNotify(row, "selected", func(row *adw.ComboRow) {
 		if i := int(row.Selected()); i < len(colorSchemes) {
 			st.SetColorScheme(colorSchemes[i])
 		}
@@ -748,13 +815,16 @@ func languageGroup(st settings.Settings, pw *adw.PreferencesDialog) *adw.Prefere
 			row.SetSelected(uint(i))
 		}
 	}
-	coreglib.InternObject(row).NotifyProperty("selected", func() {
+	pwRef := weakref.New(pw)
+	onNotify(row, "selected", func(row *adw.ComboRow) {
 		i := int(row.Selected())
 		if i >= len(codes) || codes[i] == st.Language() {
 			return
 		}
 		st.SetLanguage(codes[i])
-		pw.AddToast(adw.NewToast(tr("Restart Murmel to use the new language.")))
+		pwRef.Do(func(pw *adw.PreferencesDialog) {
+			pw.AddToast(adw.NewToast(tr("Restart Murmel to use the new language.")))
+		})
 	})
 	group := adw.NewPreferencesGroup()
 	group.Add(row)

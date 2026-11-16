@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net"
@@ -18,11 +19,14 @@ import (
 	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/secrets"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // connectForm is the form of the connect dialog: the server and account
-// groups. Main loop only.
+// groups. It lives as long as the dialog (weakref.Owned); the closures of
+// its widgets reach it through a weak pointer. Main loop only.
 type connectForm struct {
+	ctx     context.Context // ends when the dialog closes
 	req     ui.ConnectRequest
 	reqPort int // the request's port, or the default port
 
@@ -53,11 +57,21 @@ type connectForm struct {
 }
 
 // newConnectForm builds the form for req inside dialog (the parent of the
-// certificate dialogs it opens).
-func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *connectForm {
-	f := &connectForm{req: req, reqPort: req.Port}
+// certificate dialogs it opens); ctx ends when the dialog closes.
+func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req ui.ConnectRequest) *connectForm {
+	f := &connectForm{ctx: ctx, req: req, reqPort: req.Port}
 	if f.reqPort == 0 {
 		f.reqPort = ui.DefaultPort
+	}
+	// The widgets' closures hold the form and the dialog only weakly.
+	wf := weakref.Owned(dialog, f)
+	dialogRef := weakref.New(dialog)
+	with := func(fn func(f *connectForm)) func() {
+		return func() {
+			if f := wf.Value(); f != nil {
+				fn(f)
+			}
+		}
 	}
 
 	// --- Server group
@@ -72,11 +86,11 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 	f.password = adw.NewPasswordEntryRow()
 	f.password.SetTitle(tr("Server Password"))
 	f.password.SetText(req.Password)
-	f.password.ConnectChanged(func() {
+	f.password.ConnectChanged(with(func(f *connectForm) {
 		if !f.settingPassword {
 			f.pwField.edited()
 		}
-	})
+	}))
 
 	f.server = adw.NewPreferencesGroup()
 	f.server.SetTitle(tr("Server"))
@@ -105,7 +119,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 	f.identityRow.SetTitle(tr("User Certificate"))
 	f.identityRow.SetModel(f.identityStore)
 	f.identityNote("")
-	coreglib.InternObject(f.identityRow).NotifyProperty("selected", func() { f.identityNote("") })
+	coreglib.InternObject(f.identityRow).NotifyProperty("selected", with(func(f *connectForm) { f.identityNote("") }))
 	f.selectIdentity(c.settings.LastIdentity())
 
 	// Import button inside the certificate row keeps the form compact.
@@ -113,27 +127,30 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 	importBtn.AddCSSClass("flat")
 	importBtn.SetVAlign(gtk.AlignCenter)
 	importBtn.SetTooltipText(tr("Import certificate (PEM file with certificate and private key)"))
-	importBtn.ConnectClicked(func() {
-		c.pickCertificateFile(dialog, f.addIdentity)
-	})
+	importBtn.ConnectClicked(with(func(f *connectForm) {
+		dialogRef.Do(func(dialog *adw.Dialog) { c.pickCertificateFile(dialog, f.addIdentity) })
+	}))
 	f.identityRow.AddSuffix(importBtn)
 
 	createBtn := gtk.NewButtonFromIconName("list-add-symbolic")
 	createBtn.AddCSSClass("flat")
 	createBtn.SetVAlign(gtk.AlignCenter)
 	createBtn.SetTooltipText(tr("Create a new certificate"))
-	createBtn.ConnectClicked(func() {
-		identities.ShowCreate(dialog, c.certs, strings.TrimSpace(f.user.Text()), f.addIdentity)
-	})
+	createBtn.ConnectClicked(with(func(f *connectForm) {
+		dialogRef.Do(func(dialog *adw.Dialog) {
+			identities.ShowCreate(dialog, c.certs, strings.TrimSpace(f.user.Text()), f.addIdentity)
+		})
+	}))
 	f.identityRow.AddSuffix(createBtn)
 
 	// --- Save switch: the name preview follows the form.
 	f.saveRow = adw.NewSwitchRow()
 	f.saveRow.SetTitle(tr("Save Connection"))
 	f.saveRow.SetActive(true)
-	f.host.ConnectChanged(f.updateSaveName)
-	f.port.ConnectChanged(f.updateSaveName)
-	f.user.ConnectChanged(f.updateSaveName)
+	updateSaveName := with((*connectForm).updateSaveName)
+	f.host.ConnectChanged(updateSaveName)
+	f.port.ConnectChanged(updateSaveName)
+	f.user.ConnectChanged(updateSaveName)
 	f.updateSaveName()
 
 	// Optional avatar for this account; without one the default avatar
@@ -144,12 +161,14 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 	if f.defaultAvatar != nil {
 		unset = tr("Optional — otherwise your default avatar is used")
 	}
-	f.avatarRow = avatarpick.NewRow(tr("Avatar"), req.Username, unset, func([]byte) { f.avatarChanged = true })
+	f.avatarRow = avatarpick.NewRow(tr("Avatar"), req.Username, unset, func([]byte) {
+		with(func(f *connectForm) { f.avatarChanged = true })()
+	})
 	f.avatarRow.SetFallback(f.defaultAvatar)
 	if req.Host != "" {
 		f.avatarRow.SetData(f.avatars.Load(avatarpick.AccountKey(req.Host, f.reqPort, req.Username)))
 	}
-	f.user.ConnectChanged(func() { f.avatarRow.SetName(f.user.Text()) })
+	f.user.ConnectChanged(with(func(f *connectForm) { f.avatarRow.SetName(f.user.Text()) }))
 
 	f.account = adw.NewPreferencesGroup()
 	f.account.SetTitle(tr("Account"))
@@ -158,7 +177,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, req ui.ConnectRequest) *
 	f.account.Add(f.identityRow)
 	f.account.Add(f.saveRow)
 
-	f.host.ConnectChanged(func() { f.host.RemoveCSSClass("error") })
+	f.host.ConnectChanged(with(func(f *connectForm) { f.host.RemoveCSSClass("error") }))
 	return f
 }
 
@@ -251,8 +270,8 @@ func (f *connectForm) fill(e settings.ServerEntry) {
 			slog.Info("keyring lookup failed", "err", err)
 		}
 		glib.IdleAdd(func() bool {
-			// Only if the form still shows this account.
-			if f.host.Text() != e.Host || f.user.Text() != e.Username {
+			// Only if the dialog is open and still shows this account.
+			if f.ctx.Err() != nil || f.host.Text() != e.Host || f.user.Text() != e.Username {
 				return false
 			}
 			if f.pwField.lookupDone(gen, err == nil) {

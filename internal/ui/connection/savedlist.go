@@ -7,6 +7,7 @@ import (
 	"net"
 	"strconv"
 	"time"
+	"weak"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
@@ -20,6 +21,7 @@ import (
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/avatarpick"
 	"io.github/murmel/internal/ui/secrets"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // savedAutoScrollEdgePx is the band at the top and bottom of the saved
@@ -32,8 +34,11 @@ const (
 
 // savedList is the "Saved Connections" group of the connect dialog. Its
 // order is the user's: rows are dragged by their handle or moved with the
-// row menu, and every change is stored right away.
+// row menu, and every change is stored right away. It lives as long as the
+// dialog (weakref.Owned); the closures of its widgets reach it and its rows
+// through weak pointers.
 type savedList struct {
+	self  weak.Pointer[savedList]
 	c     *Controller
 	fill  func(settings.ServerEntry)
 	group *adw.PreferencesGroup
@@ -65,14 +70,15 @@ const (
 	savedPingInterval = 500 * time.Millisecond // resend within the timeout
 )
 
-// savedServersGroup lists the saved connections (nil when there are none).
-// Activating a row calls fill.
-func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *savedList {
+// savedServersGroup lists the saved connections of dialog (nil when there
+// are none). Activating a row calls fill.
+func (c *Controller) savedServersGroup(dialog *adw.Dialog, fill func(settings.ServerEntry)) *savedList {
 	servers := c.settings.Servers()
 	if len(servers) == 0 {
 		return nil
 	}
 	s := &savedList{c: c, fill: fill}
+	s.self = weakref.Owned(dialog, s)
 	s.group = adw.NewPreferencesGroup()
 	s.group.SetTitle(tr("Saved Connections"))
 	s.list = gtk.NewListBox()
@@ -94,8 +100,13 @@ func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *savedLi
 	fade.SetVAlign(gtk.AlignEnd)
 	fade.SetCanTarget(false)
 	adj := s.scroll.VAdjustment()
+	adjRef, fadeRef := weakref.New(adj), weakref.New(fade)
 	updateFade := func() {
-		fade.SetVisible(adj.Value()+adj.PageSize() < adj.Upper()-1)
+		adj, ok1 := adjRef.Get()
+		fade, ok2 := fadeRef.Get()
+		if ok1 && ok2 {
+			fade.SetVisible(adj.Value()+adj.PageSize() < adj.Upper()-1)
+		}
 	}
 	adj.ConnectValueChanged(updateFade)
 	adj.ConnectChanged(updateFade)
@@ -106,8 +117,13 @@ func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *savedLi
 
 	// A dragged row near the top or bottom edge scrolls the list.
 	motion := gtk.NewDropControllerMotion()
-	motion.ConnectMotion(func(_, y float64) { s.autoScroll(y) })
-	motion.ConnectLeave(func() { s.speed = 0 })
+	ws := s.self
+	motion.ConnectMotion(func(_, y float64) {
+		if s := ws.Value(); s != nil {
+			s.autoScroll(y)
+		}
+	})
+	motion.ConnectLeave(s.with(func(s *savedList) { s.speed = 0 }))
 	s.scroll.AddController(motion)
 
 	for _, e := range servers {
@@ -119,17 +135,37 @@ func (c *Controller) savedServersGroup(fill func(settings.ServerEntry)) *savedLi
 
 	// Ping while the list is on screen.
 	var stop context.CancelFunc
-	s.group.ConnectMap(func() {
+	s.group.ConnectMap(s.with(func(s *savedList) {
 		var ctx context.Context
 		ctx, stop = context.WithCancel(context.Background())
 		go s.pingLoop(ctx)
-	})
+	}))
 	s.group.ConnectUnmap(func() {
 		if stop != nil {
 			stop()
 		}
 	})
 	return s
+}
+
+// with returns a callback that runs fn with the list while it exists.
+func (s *savedList) with(fn func(s *savedList)) func() {
+	ws := s.self
+	return func() {
+		if s := ws.Value(); s != nil {
+			fn(s)
+		}
+	}
+}
+
+// withRow is with for a row of the list.
+func (s *savedList) withRow(r *savedRow, fn func(s *savedList, r *savedRow)) func() {
+	ws, wr := s.self, weak.Make(r)
+	return func() {
+		if s, r := ws.Value(), wr.Value(); s != nil && r != nil {
+			fn(s, r)
+		}
+	}
 }
 
 // markConnected marks the row of the account connected right now (ok
@@ -205,7 +241,7 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 	r.row.SetTitleLines(1)
 	r.row.SetSubtitle(net.JoinHostPort(e.Host, strconv.Itoa(e.Port)))
 	r.row.SetActivatable(true)
-	r.row.ConnectActivated(func() { s.fill(r.entry) })
+	r.row.ConnectActivated(s.withRow(r, func(s *savedList, r *savedRow) { s.fill(r.entry) }))
 
 	handle := gtk.NewImageFromIconName("list-drag-handle-symbolic")
 	handle.AddCSSClass("drag-handle")
@@ -241,11 +277,14 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 
 	actions := gio.NewSimpleActionGroup()
 	r.up = gio.NewSimpleAction("up", nil)
-	r.up.ConnectActivate(func(*glib.Variant) { s.move(r, s.index(r)-1) })
+	up := s.withRow(r, func(s *savedList, r *savedRow) { s.move(r, s.index(r)-1) })
+	r.up.ConnectActivate(func(*glib.Variant) { up() })
 	r.down = gio.NewSimpleAction("down", nil)
-	r.down.ConnectActivate(func(*glib.Variant) { s.move(r, s.index(r)+1) })
+	down := s.withRow(r, func(s *savedList, r *savedRow) { s.move(r, s.index(r)+1) })
+	r.down.ConnectActivate(func(*glib.Variant) { down() })
 	forget := gio.NewSimpleAction("forget", nil)
-	forget.ConnectActivate(func(*glib.Variant) { s.forget(r) })
+	forgetRow := s.withRow(r, (*savedList).forget)
+	forget.ConnectActivate(func(*glib.Variant) { forgetRow() })
 	actions.AddAction(r.up)
 	actions.AddAction(r.down)
 	actions.AddAction(forget)
@@ -274,7 +313,13 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 	src := gtk.NewDragSource()
 	src.SetActions(gdk.ActionMove)
 	var hotX, hotY float64
+	ws, wr, handleRef := s.self, weak.Make(r), weakref.New(handle)
 	src.ConnectPrepare(func(x, y float64) *gdk.ContentProvider {
+		s, r := ws.Value(), wr.Value()
+		handle, ok := handleRef.Get()
+		if s == nil || r == nil || !ok {
+			return nil
+		}
 		hotX, hotY = x, y
 		if p, ok := handle.ComputePoint(r.row, graphene.NewPointAlloc().Init(float32(x), float32(y))); ok {
 			hotX, hotY = float64(p.X()), float64(p.Y())
@@ -283,6 +328,10 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 		return gdk.NewContentProviderForValue(coreglib.NewValue(r.entry.Name))
 	})
 	src.ConnectDragBegin(func(drag gdk.Dragger) {
+		r := wr.Value()
+		if r == nil {
+			return
+		}
 		// The icon is a copy of the row in a card of the row's width, as
 		// GNOME Settings does; the row itself stays in place, dimmed.
 		copyList := gtk.NewListBox()
@@ -300,11 +349,12 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 		gdk.BaseDrag(drag).SetHotspot(int(hotX), int(hotY))
 		r.row.AddCSSClass("dragged")
 	})
-	src.ConnectDragEnd(func(gdk.Dragger, bool) {
+	end := s.withRow(r, func(s *savedList, r *savedRow) {
 		r.row.RemoveCSSClass("dragged")
 		s.dragging = nil
 		s.speed = 0
 	})
+	src.ConnectDragEnd(func(gdk.Dragger, bool) { end() })
 	handle.AddController(src)
 }
 
@@ -312,7 +362,12 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 // dragged row goes above r, on its lower half below it. A line shows where.
 func (s *savedList) dropTarget(r *savedRow) {
 	target := gtk.NewDropTarget(coreglib.TypeString, gdk.ActionMove)
+	ws, wr := s.self, weak.Make(r)
 	mark := func(y float64) gdk.DragAction {
+		s, r := ws.Value(), wr.Value()
+		if s == nil || r == nil {
+			return 0
+		}
 		r.row.RemoveCSSClass("drop-above")
 		r.row.RemoveCSSClass("drop-below")
 		if s.dragging == nil || s.dragging == r {
@@ -328,10 +383,16 @@ func (s *savedList) dropTarget(r *savedRow) {
 	target.ConnectEnter(func(_, y float64) gdk.DragAction { return mark(y) })
 	target.ConnectMotion(func(_, y float64) gdk.DragAction { return mark(y) })
 	target.ConnectLeave(func() {
-		r.row.RemoveCSSClass("drop-above")
-		r.row.RemoveCSSClass("drop-below")
+		if r := wr.Value(); r != nil {
+			r.row.RemoveCSSClass("drop-above")
+			r.row.RemoveCSSClass("drop-below")
+		}
 	})
 	target.ConnectDrop(func(_ *coreglib.Value, _, y float64) bool {
+		s, r := ws.Value(), wr.Value()
+		if s == nil || r == nil {
+			return false
+		}
 		r.row.RemoveCSSClass("drop-above")
 		r.row.RemoveCSSClass("drop-below")
 		src := s.dragging
@@ -371,7 +432,12 @@ func (s *savedList) autoScroll(y float64) {
 		return
 	}
 	s.ticking = true
+	ws := s.self
 	s.scroll.AddTickCallback(func(gtk.Widgetter, gdk.FrameClocker) bool {
+		s := ws.Value()
+		if s == nil {
+			return false
+		}
 		if s.speed == 0 || s.dragging == nil {
 			s.ticking = false
 			return false

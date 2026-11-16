@@ -7,6 +7,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // attempt is one connection attempt: a dial (the first one or a reconnect)
@@ -70,10 +71,11 @@ func (c *Controller) passFor(a attempt) func(bus.Event) bool {
 // superseded. Main loop only.
 func closeWhenSuperseded(a attempt, d *adw.Dialog) {
 	closed := false
+	self := weakref.New(d)
 	stop := context.AfterFunc(a.ctx, func() {
 		glib.IdleAdd(func() {
 			if !closed {
-				d.ForceClose()
+				self.Do(func(d *adw.Dialog) { d.ForceClose() })
 			}
 		})
 	})

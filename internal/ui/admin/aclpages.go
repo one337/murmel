@@ -5,12 +5,14 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"weak"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // aclWork is the editor's working copy of the channel's ACL, shared by the
@@ -71,7 +73,14 @@ func userPicker(icon, tooltip string, users func() map[uint32]string, skip func(
 	btn.SetVAlign(gtk.AlignCenter)
 	btn.SetPopover(pop)
 
+	// The closures hold the search field and the popover only weakly:
+	// they are attached to them or to widgets inside them.
+	searchRef, popRef := weakref.New(search), weakref.New(pop)
 	fill := func() {
+		search, ok := searchRef.Get()
+		if !ok {
+			return
+		}
 		for c := list.FirstChild(); c != nil; c = list.FirstChild() {
 			list.Remove(c)
 		}
@@ -97,7 +106,7 @@ func userPicker(icon, tooltip string, users func() map[uint32]string, skip func(
 			row.SetTitle(u.name)
 			row.SetActivatable(true)
 			row.ConnectActivated(func() {
-				pop.Popdown()
+				popRef.Do(func(pop *gtk.Popover) { pop.Popdown() })
 				pick(u.id, u.name)
 			})
 			list.Append(row)
@@ -120,7 +129,10 @@ type activeGetter interface {
 
 // onActive calls f with the new value whenever w's "active" changes.
 func onActive(w activeGetter, f func(bool)) {
-	coreglib.InternObject(w).NotifyProperty("active", func() { f(w.Active()) })
+	self := weakref.New(w)
+	coreglib.InternObject(w).NotifyProperty("active", func() {
+		self.Do(func(w activeGetter) { f(w.Active()) })
+	})
 }
 
 func iconButton(icon, tooltip string, onClick func()) *gtk.Button {
@@ -140,7 +152,10 @@ func clearBox(b *gtk.Box) {
 
 // --- Groups page -------------------------------------------------------------
 
+// groupsPage is held by the channel editor; the closures of its widgets
+// reach it through a weak pointer (see internal/ui/weakref).
 type groupsPage struct {
+	self     weak.Pointer[groupsPage]
 	w        *aclWork
 	box      *gtk.Box
 	expanded map[string]bool
@@ -148,8 +163,29 @@ type groupsPage struct {
 
 func newGroupsPage(w *aclWork, box *gtk.Box) *groupsPage {
 	p := &groupsPage{w: w, box: box, expanded: map[string]bool{}}
+	p.self = weak.Make(p)
 	p.render()
 	return p
+}
+
+// on returns a callback that runs fn with the page while it exists.
+func (p *groupsPage) on(fn func(p *groupsPage)) func() {
+	ws := p.self
+	return func() {
+		if p := ws.Value(); p != nil {
+			fn(p)
+		}
+	}
+}
+
+// onBool is on for callbacks with a boolean.
+func (p *groupsPage) onBool(fn func(p *groupsPage, on bool)) func(bool) {
+	ws := p.self
+	return func(on bool) {
+		if p := ws.Value(); p != nil {
+			fn(p, on)
+		}
+	}
 }
 
 func (p *groupsPage) changed() { p.w.dirty = true }
@@ -173,7 +209,12 @@ func (p *groupsPage) render() {
 	add := adw.NewEntryRow()
 	add.SetTitle(tr("New group name"))
 	add.SetShowApplyButton(true)
-	add.ConnectApply(func() {
+	addRef := weakref.New(add)
+	add.ConnectApply(p.on(func(p *groupsPage) {
+		add, ok := addRef.Get()
+		if !ok {
+			return
+		}
 		name := strings.TrimSpace(add.Text())
 		if name == "" || strings.ContainsAny(name, " @#~") || slices.Contains(builtinGroups, name) ||
 			slices.ContainsFunc(p.w.groups, func(g bus.ACLGroupInfo) bool { return g.Name == name }) {
@@ -184,8 +225,8 @@ func (p *groupsPage) render() {
 		p.expanded[name] = true
 		p.changed()
 		p.render()
-	})
-	add.ConnectChanged(func() { add.RemoveCSSClass("error") })
+	}))
+	add.ConnectChanged(func() { addRef.Do(func(add *adw.EntryRow) { add.RemoveCSSClass("error") }) })
 	newGroup := adw.NewPreferencesGroup()
 	newGroup.Add(add)
 	p.box.Append(newGroup)
@@ -211,35 +252,38 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	exp.SetSubtitle(sub)
 	exp.SetExpanded(p.expanded[g.Name])
 	name := g.Name
-	coreglib.InternObject(exp).NotifyProperty("expanded", func() { p.expanded[name] = exp.Expanded() })
+	expRef := weakref.New(exp)
+	coreglib.InternObject(exp).NotifyProperty("expanded", p.on(func(p *groupsPage) {
+		expRef.Do(func(exp *adw.ExpanderRow) { p.expanded[name] = exp.Expanded() })
+	}))
 
 	if !g.Inherited {
-		exp.AddSuffix(iconButton("user-trash-symbolic", tr("Delete group"), func() {
+		exp.AddSuffix(iconButton("user-trash-symbolic", tr("Delete group"), p.on(func(p *groupsPage) {
 			p.w.groups = slices.Delete(p.w.groups, i, i+1)
 			p.changed()
 			p.render()
-		}))
+		})))
 	}
 
 	inherit := adw.NewSwitchRow()
 	inherit.SetTitle(tr("Inherit members"))
 	inherit.SetSubtitle(tr("Members of the same group in the parent channel belong to it too"))
 	inherit.SetActive(g.InheritUsers)
-	onActive(inherit, func(on bool) {
+	onActive(inherit, p.onBool(func(p *groupsPage, on bool) {
 		p.w.groups[i].InheritUsers = on
 		p.changed()
 		p.render()
-	})
+	}))
 	exp.AddRow(inherit)
 
 	inheritable := adw.NewSwitchRow()
 	inheritable.SetTitle(tr("Inheritable"))
 	inheritable.SetSubtitle(tr("Sub-channels can use this group"))
 	inheritable.SetActive(g.Inheritable)
-	onActive(inheritable, func(on bool) {
+	onActive(inheritable, p.onBool(func(p *groupsPage, on bool) {
 		p.w.groups[i].Inheritable = on
 		p.changed()
-	})
+	}))
 	exp.AddRow(inheritable)
 
 	for _, u := range g.UsersAdd {
@@ -248,11 +292,11 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 		row.SetTitle(p.userName(u))
 		row.AddPrefix(gtk.NewImageFromIconName("avatar-default-symbolic"))
 		id := u.UserID
-		row.AddSuffix(iconButton("list-remove-symbolic", tr("Remove from group"), func() {
+		row.AddSuffix(iconButton("list-remove-symbolic", tr("Remove from group"), p.on(func(p *groupsPage) {
 			p.w.groups[i].UsersAdd = withoutUser(p.w.groups[i].UsersAdd, id)
 			p.changed()
 			p.render()
-		}))
+		})))
 		exp.AddRow(row)
 	}
 	if g.InheritUsers {
@@ -273,7 +317,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 			sw.SetActive(!excluded)
 			sw.SetVAlign(gtk.AlignCenter)
 			sw.SetTooltipText(tr("Member in this channel"))
-			onActive(sw, func(on bool) {
+			onActive(sw, p.onBool(func(p *groupsPage, on bool) {
 				if on {
 					p.w.groups[i].UsersRemove = withoutUser(p.w.groups[i].UsersRemove, id)
 				} else if !hasUser(p.w.groups[i].UsersRemove, id) {
@@ -281,7 +325,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 				}
 				p.changed()
 				p.render()
-			})
+			}))
 			row.AddSuffix(sw)
 			exp.AddRow(row)
 		}
@@ -289,9 +333,23 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 
 	addRow := adw.NewActionRow()
 	addRow.SetTitle(tr("Add member…"))
-	addRow.AddSuffix(userPicker("list-add-symbolic", tr("Add member"), func() map[uint32]string { return p.w.users },
-		func(id uint32) bool { return hasUser(p.w.groups[i].UsersAdd, id) },
+	ws := p.self
+	addRow.AddSuffix(userPicker("list-add-symbolic", tr("Add member"),
+		func() map[uint32]string {
+			if p := ws.Value(); p != nil {
+				return p.w.users
+			}
+			return nil
+		},
+		func(id uint32) bool {
+			p := ws.Value()
+			return p == nil || hasUser(p.w.groups[i].UsersAdd, id)
+		},
 		func(id uint32, name string) {
+			p := ws.Value()
+			if p == nil {
+				return
+			}
 			p.w.groups[i].UsersAdd = append(p.w.groups[i].UsersAdd, bus.ACLUserInfo{UserID: id, Name: name})
 			p.w.groups[i].UsersRemove = withoutUser(p.w.groups[i].UsersRemove, id)
 			p.changed()
@@ -313,7 +371,10 @@ func (p *groupsPage) userName(u bus.ACLUserInfo) string {
 
 // --- Permissions page --------------------------------------------------------
 
+// permsPage is held by the channel editor; the closures of its widgets
+// reach it through a weak pointer (see internal/ui/weakref).
 type permsPage struct {
+	self     weak.Pointer[permsPage]
 	w        *aclWork
 	box      *gtk.Box
 	root     bool // the root channel: server-wide permissions apply
@@ -323,8 +384,29 @@ type permsPage struct {
 
 func newPermsPage(w *aclWork, box *gtk.Box, root bool) *permsPage {
 	p := &permsPage{w: w, box: box, root: root, expanded: map[int]bool{}}
+	p.self = weak.Make(p)
 	p.render()
 	return p
+}
+
+// on returns a callback that runs fn with the page while it exists.
+func (p *permsPage) on(fn func(p *permsPage)) func() {
+	ws := p.self
+	return func() {
+		if p := ws.Value(); p != nil {
+			fn(p)
+		}
+	}
+}
+
+// onBool is on for callbacks with a boolean.
+func (p *permsPage) onBool(fn func(p *permsPage, on bool)) func(bool) {
+	ws := p.self
+	return func(on bool) {
+		if p := ws.Value(); p != nil {
+			fn(p, on)
+		}
+	}
 }
 
 func (p *permsPage) render() {
@@ -333,11 +415,11 @@ func (p *permsPage) render() {
 	inherit := adw.NewSwitchRow()
 	inherit.SetTitle(tr("Inherit permissions from the parent channel"))
 	inherit.SetActive(p.w.inherits)
-	onActive(inherit, func(on bool) {
+	onActive(inherit, p.onBool(func(p *permsPage, on bool) {
 		p.w.inherits = on
 		p.w.dirty = true
 		p.render()
-	})
+	}))
 	top := adw.NewPreferencesGroup()
 	top.Add(inherit)
 	p.box.Append(top)
@@ -398,9 +480,12 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	exp.SetSubtitle(ruleSummary(*r))
 	exp.SetSubtitleLines(2)
 	exp.SetExpanded(p.expanded[i])
-	coreglib.InternObject(exp).NotifyProperty("expanded", func() { p.expanded[i] = exp.Expanded() })
+	expRef := weakref.New(exp)
+	coreglib.InternObject(exp).NotifyProperty("expanded", p.on(func(p *permsPage) {
+		expRef.Do(func(exp *adw.ExpanderRow) { p.expanded[i] = exp.Expanded() })
+	}))
 
-	move := func(dir int) {
+	move := func(p *permsPage, dir int) {
 		j := p.neighbour(i, dir)
 		if j < 0 {
 			return
@@ -412,10 +497,10 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	}
 	up := gtk.NewButtonWithLabel(tr("Move Up"))
 	up.SetSensitive(p.neighbour(i, -1) >= 0)
-	up.ConnectClicked(func() { move(-1) })
+	up.ConnectClicked(p.on(func(p *permsPage) { move(p, -1) }))
 	down := gtk.NewButtonWithLabel(tr("Move Down"))
 	down.SetSensitive(p.neighbour(i, 1) >= 0)
-	down.ConnectClicked(func() { move(1) })
+	down.ConnectClicked(p.on(func(p *permsPage) { move(p, 1) }))
 	order := gtk.NewBox(gtk.OrientationHorizontal, 0)
 	order.AddCSSClass("linked")
 	order.SetVAlign(gtk.AlignCenter)
@@ -424,12 +509,12 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	del := gtk.NewButtonWithLabel(tr("Delete"))
 	del.AddCSSClass("destructive-action")
 	del.SetVAlign(gtk.AlignCenter)
-	del.ConnectClicked(func() {
+	del.ConnectClicked(p.on(func(p *permsPage) {
 		p.w.ownRules = slices.Delete(p.w.ownRules, i, i+1)
 		p.expanded = map[int]bool{}
 		p.w.dirty = true
 		p.render()
-	})
+	}))
 	manage := adw.NewActionRow()
 	// TRANSLATORS: Position of an ACL rule in the rule list (rules are applied in order).
 	manage.SetTitle(tr("Order"))
@@ -441,11 +526,11 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	here := adw.NewSwitchRow()
 	here.SetTitle(tr("Applies to this channel"))
 	here.SetActive(r.AppliesCurrent)
-	onActive(here, func(on bool) { p.w.ownRules[i].AppliesCurrent = on; p.w.dirty = true })
+	onActive(here, p.onBool(func(p *permsPage, on bool) { p.w.ownRules[i].AppliesCurrent = on; p.w.dirty = true }))
 	subs := adw.NewSwitchRow()
 	subs.SetTitle(tr("Applies to sub-channels"))
 	subs.SetActive(r.AppliesChildren)
-	onActive(subs, func(on bool) { p.w.ownRules[i].AppliesChildren = on; p.w.dirty = true })
+	onActive(subs, p.onBool(func(p *permsPage, on bool) { p.w.ownRules[i].AppliesChildren = on; p.w.dirty = true }))
 	exp.AddRow(here)
 	exp.AddRow(subs)
 
@@ -456,10 +541,15 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 		row := adw.NewActionRow()
 		row.SetTitle(perm.name())
 		bit := perm.bit
+		ws := p.self
 		row.AddSuffix(stateSwitch(ruleState(*r, bit), func(st permState) {
+			p := ws.Value()
+			if p == nil {
+				return
+			}
 			setRuleState(&p.w.ownRules[i], bit, st)
 			p.w.dirty = true
-			exp.SetSubtitle(ruleSummary(p.w.ownRules[i]))
+			expRef.Do(func(exp *adw.ExpanderRow) { exp.SetSubtitle(ruleSummary(p.w.ownRules[i])) })
 		}))
 		exp.AddRow(row)
 	}
@@ -494,7 +584,12 @@ func stateSwitch(st permState, set func(permState)) *gtk.Box {
 			b.AddCSSClass(o.class)
 		}
 		ost, class := o.st, o.class
+		self := weakref.New(b)
 		b.ConnectToggled(func() {
+			b, ok := self.Get()
+			if !ok {
+				return
+			}
 			if class != "" {
 				if b.Active() {
 					b.AddCSSClass(class)
@@ -532,23 +627,31 @@ func (p *permsPage) addRuleButton() *gtk.Box {
 	groupBtn.AddCSSClass("flat")
 	groupBtn.SetPopover(pop)
 	var names []string
-	pop.ConnectShow(func() {
+	ws, popRef := p.self, weakref.New(pop)
+	pop.ConnectShow(p.on(func(p *permsPage) {
 		names = groupNames(p.w.groups)
 		groups.SetModel(gtk.NewStringList(names))
-	})
-	addGroup.ConnectClicked(func() {
+	}))
+	addGroup.ConnectClicked(p.on(func(p *permsPage) {
 		sel := int(groups.Selected())
 		if sel < 0 || sel >= len(names) {
 			return
 		}
-		pop.Popdown()
+		popRef.Do(func(pop *gtk.Popover) { pop.Popdown() })
 		p.addRule(bus.ACLRuleInfo{AppliesCurrent: true, AppliesChildren: true, GroupName: names[sel]})
-	})
+	}))
 
 	userBtn := userPicker("avatar-default-symbolic", tr("Add a rule for a registered user"),
-		func() map[uint32]string { return p.w.users }, nil,
+		func() map[uint32]string {
+			if p := ws.Value(); p != nil {
+				return p.w.users
+			}
+			return nil
+		}, nil,
 		func(id uint32, name string) {
-			p.addRule(bus.ACLRuleInfo{AppliesCurrent: true, AppliesChildren: true, UserID: id, UserName: name})
+			if p := ws.Value(); p != nil {
+				p.addRule(bus.ACLRuleInfo{AppliesCurrent: true, AppliesChildren: true, UserID: id, UserName: name})
+			}
 		})
 
 	box := gtk.NewBox(gtk.OrientationHorizontal, 4)

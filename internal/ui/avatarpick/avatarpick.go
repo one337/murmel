@@ -24,6 +24,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/ui/gfileio"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // SidePx is the edge of the stored square avatar: sharp at the channel
@@ -103,8 +104,15 @@ func Process(data []byte) ([]byte, error) {
 // until the caller reads them (Data) unless it saves them itself.
 type Row struct {
 	*adw.ActionRow
-	preview  *adw.Avatar
-	remove   *gtk.Button
+	s *rowState
+}
+
+// rowState is the state behind a Row. The row's signal closures capture
+// it, so it holds the row's widgets only weakly (see internal/ui/weakref).
+type rowState struct {
+	row      weakref.Ref[*adw.ActionRow]
+	preview  weakref.Ref[*adw.Avatar]
+	remove   weakref.Ref[*gtk.Button]
 	data     []byte
 	fallback []byte // shown dimmed when no own avatar is set
 	unset    string // subtitle without an own avatar
@@ -113,61 +121,72 @@ type Row struct {
 
 // NewRow builds the row. name sets the preview's initials; unset is the
 // subtitle while no avatar is chosen. onChange (optional) runs after every
-// pick or removal with the new data (nil = removed).
+// pick or removal with the new data (nil = removed); it is kept as long
+// as the row, so it must not hold the row or its dialog strongly.
 func NewRow(title, name, unset string, onChange func([]byte)) *Row {
-	r := &Row{ActionRow: adw.NewActionRow(), unset: unset, onChange: onChange}
-	r.SetTitle(title)
-	r.preview = adw.NewAvatar(36, name, true)
-	r.AddPrefix(r.preview)
+	row := adw.NewActionRow()
+	row.SetTitle(title)
+	preview := adw.NewAvatar(36, name, true)
+	row.AddPrefix(preview)
 
 	pick := gtk.NewButtonFromIconName("document-open-symbolic")
 	pick.AddCSSClass("flat")
 	pick.SetVAlign(gtk.AlignCenter)
 	pick.SetTooltipText(tr("Choose image…"))
-	pick.ConnectClicked(r.choose)
-	r.AddSuffix(pick)
 
-	r.remove = gtk.NewButtonFromIconName("edit-clear-symbolic")
-	r.remove.AddCSSClass("flat")
-	r.remove.SetVAlign(gtk.AlignCenter)
-	r.remove.SetTooltipText(tr("Remove avatar"))
-	r.remove.ConnectClicked(func() { r.set(nil, true) })
-	r.AddSuffix(r.remove)
+	remove := gtk.NewButtonFromIconName("edit-clear-symbolic")
+	remove.AddCSSClass("flat")
+	remove.SetVAlign(gtk.AlignCenter)
+	remove.SetTooltipText(tr("Remove avatar"))
 
-	r.SetActivatable(true)
-	r.SetActivatableWidget(pick)
-	r.set(nil, false)
-	return r
+	s := &rowState{
+		row:      weakref.New(row),
+		preview:  weakref.New(preview),
+		remove:   weakref.New(remove),
+		unset:    unset,
+		onChange: onChange,
+	}
+	pick.ConnectClicked(s.choose)
+	remove.ConnectClicked(func() { s.set(nil, true) })
+	row.AddSuffix(pick)
+	row.AddSuffix(remove)
+
+	row.SetActivatable(true)
+	row.SetActivatableWidget(pick)
+	s.set(nil, false)
+	return &Row{ActionRow: row, s: s}
 }
 
 // SetName updates the initials shown without an image.
-func (r *Row) SetName(name string) { r.preview.SetText(name) }
+func (r *Row) SetName(name string) {
+	r.s.preview.Do(func(p *adw.Avatar) { p.SetText(name) })
+}
 
 // SetFallback is shown (dimmed) while no own avatar is set, e.g. the
 // default avatar under a connection.
 func (r *Row) SetFallback(data []byte) {
-	r.fallback = data
-	r.refresh()
+	r.s.fallback = data
+	r.s.refresh()
 }
 
 // SetData shows data without reporting a change (loading a saved one).
-func (r *Row) SetData(data []byte) { r.set(data, false) }
+func (r *Row) SetData(data []byte) { r.s.set(data, false) }
 
 // Data is the chosen avatar (nil = none).
-func (r *Row) Data() []byte { return r.data }
+func (r *Row) Data() []byte { return r.s.data }
 
-func (r *Row) set(data []byte, changed bool) {
-	r.data = data
-	r.refresh()
-	if changed && r.onChange != nil {
-		r.onChange(data)
+func (s *rowState) set(data []byte, changed bool) {
+	s.data = data
+	s.refresh()
+	if changed && s.onChange != nil {
+		s.onChange(data)
 	}
 }
 
-func (r *Row) refresh() {
-	shown := r.data
+func (s *rowState) refresh() {
+	shown := s.data
 	if shown == nil {
-		shown = r.fallback
+		shown = s.fallback
 	}
 	var tex gdk.Paintabler
 	if shown != nil {
@@ -175,20 +194,28 @@ func (r *Row) refresh() {
 			tex = t
 		}
 	}
-	r.preview.SetCustomImage(tex)
-	r.preview.SetOpacity(1)
-	if r.data == nil && r.fallback != nil {
-		r.preview.SetOpacity(0.55)
-	}
-	r.remove.SetVisible(r.data != nil)
-	if r.data != nil {
-		r.SetSubtitle(tr("Shown to others next to your name"))
-	} else {
-		r.SetSubtitle(r.unset)
-	}
+	s.preview.Do(func(p *adw.Avatar) {
+		p.SetCustomImage(tex)
+		p.SetOpacity(1)
+		if s.data == nil && s.fallback != nil {
+			p.SetOpacity(0.55)
+		}
+	})
+	s.remove.Do(func(b *gtk.Button) { b.SetVisible(s.data != nil) })
+	s.row.Do(func(row *adw.ActionRow) {
+		if s.data != nil {
+			row.SetSubtitle(tr("Shown to others next to your name"))
+		} else {
+			row.SetSubtitle(s.unset)
+		}
+	})
 }
 
-func (r *Row) choose() {
+func (s *rowState) choose() {
+	row, ok := s.row.Get()
+	if !ok {
+		return
+	}
 	filter := gtk.NewFileFilter()
 	filter.SetName(tr("Images"))
 	filter.AddPixbufFormats()
@@ -199,17 +226,21 @@ func (r *Row) choose() {
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(filter)
-	fd.Open(context.Background(), windowOf(r), func(res gio.AsyncResulter) {
+	fd.Open(context.Background(), windowOf(row), func(res gio.AsyncResulter) {
 		file, err := fd.OpenFinish(res)
 		if err != nil || file == nil {
 			return // cancelled
 		}
+		row, ok := s.row.Get()
+		if !ok {
+			return
+		}
 		name := file.Basename()
-		ctx := gfileio.ForWidget(r)
+		ctx := gfileio.ForWidget(row)
 		gfileio.Load(ctx, file, gfileio.MaxImageBytes, func(data []byte, err error) {
 			if err != nil {
 				slog.Info("avatar: image not read", "file", name, "err", err)
-				r.SetSubtitle(gfileio.Message(err))
+				s.row.Do(func(row *adw.ActionRow) { row.SetSubtitle(gfileio.Message(err)) })
 				return
 			}
 			go func() {
@@ -220,10 +251,10 @@ func (r *Row) choose() {
 					}
 					if err != nil {
 						slog.Info("avatar: image not usable", "file", name, "err", err)
-						r.SetSubtitle(tr("This image could not be read."))
+						s.row.Do(func(row *adw.ActionRow) { row.SetSubtitle(tr("This image could not be read.")) })
 						return
 					}
-					r.set(data, true)
+					s.set(data, true)
 				})
 			}()
 		})

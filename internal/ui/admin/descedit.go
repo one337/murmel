@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"strings"
+	"weak"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/core/glib"
@@ -17,6 +18,7 @@ import (
 	"io.github/murmel/internal/ui/chat"
 	"io.github/murmel/internal/ui/gfileio"
 	"io.github/murmel/internal/ui/richtext"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 const (
@@ -32,7 +34,10 @@ const (
 // descEditor edits a channel description with the toolbar's formatting
 // only (see descdoc.go): bold, italic, heading, bullet list, link, image.
 // A live preview renders the result as the channel header will.
+// descEditor is held by the channel editor; the closures of its widgets
+// and its buffer reach it through a weak pointer (see internal/ui/weakref).
 type descEditor struct {
+	self    weak.Pointer[descEditor]
 	root    *gtk.Box
 	view    *gtk.TextView
 	buffer  *gtk.TextBuffer
@@ -65,6 +70,8 @@ func newDescEditor(html string, limit int) *descEditor {
 		links:    map[uintptr]string{},
 		images:   map[uintptr][]byte{},
 	}
+	e.self = weak.Make(e)
+	ws := e.self
 	e.buffer = gtk.NewTextBuffer(nil)
 	e.bold = e.newTag("bold", "weight", 700)
 	e.italic = e.newTag("italic", "style", pango.StyleItalic)
@@ -76,22 +83,23 @@ func newDescEditor(html string, limit int) *descEditor {
 	e.bulletTag = e.newTag("bullet", "editable", false)
 
 	e.buffer.ConnectInsertText(func(at *gtk.TextIter, text string, _ int) {
-		if e.busy {
+		e := ws.Value()
+		if e == nil || e.busy {
 			return
 		}
 		e.pending.active = true
 		e.pending.offset = at.Offset()
 		e.pending.n = len([]rune(text))
 	})
-	e.buffer.ConnectChanged(func() {
+	e.buffer.ConnectChanged(e.on(func(e *descEditor) {
 		if e.pending.active && !e.busy {
 			e.pending.active = false
 			e.afterInsert(e.pending.offset, e.pending.n)
 		}
 		e.schedulePreview()
-	})
+	}))
 	e.buffer.ConnectMarkSet(func(_ *gtk.TextIter, mark *gtk.TextMark) {
-		if mark.Name() == "insert" {
+		if e := ws.Value(); e != nil && mark.Name() == "insert" {
 			e.syncButtons()
 		}
 	})
@@ -105,7 +113,8 @@ func newDescEditor(html string, limit int) *descEditor {
 	e.view.SetVExpand(true)
 	keys := gtk.NewEventControllerKey()
 	keys.ConnectKeyPressed(func(keyval, _ uint, state gdk.ModifierType) bool {
-		if state&gdk.ControlMask == 0 {
+		e := ws.Value()
+		if e == nil || state&gdk.ControlMask == 0 {
 			return false
 		}
 		switch keyval {
@@ -125,8 +134,8 @@ func newDescEditor(html string, limit int) *descEditor {
 	// --- toolbar
 	toolbar := gtk.NewBox(gtk.OrientationHorizontal, 2)
 	toolbar.AddCSSClass("toolbar")
-	e.boldBtn = e.styleToggle("format-text-bold-symbolic", tr("Bold (Ctrl+B)"), e.bold, func(on bool) { e.typing.bold = on })
-	e.italicBtn = e.styleToggle("format-text-italic-symbolic", tr("Italic (Ctrl+I)"), e.italic, func(on bool) { e.typing.italic = on })
+	e.boldBtn = e.styleToggle("format-text-bold-symbolic", tr("Bold (Ctrl+B)"), e.bold, func(e *descEditor, on bool) { e.typing.bold = on })
+	e.italicBtn = e.styleToggle("format-text-italic-symbolic", tr("Italic (Ctrl+I)"), e.italic, func(e *descEditor, on bool) { e.typing.italic = on })
 	toolbar.Append(e.boldBtn)
 	toolbar.Append(e.italicBtn)
 	toolbar.Append(gtk.NewSeparator(gtk.OrientationVertical))
@@ -136,14 +145,14 @@ func newDescEditor(html string, limit int) *descEditor {
 	hLabel.SetMarkup("<b>H</b>")
 	headingBtn.SetChild(hLabel)
 	headingBtn.SetTooltipText(tr("Heading"))
-	headingBtn.ConnectClicked(func() {
+	headingBtn.ConnectClicked(e.on(func(e *descEditor) {
 		e.toggleLines(e.heading)
 		e.view.GrabFocus()
-	})
+	}))
 	toolbar.Append(headingBtn)
-	toolbar.Append(e.button("view-list-bullet-symbolic", "view-list-symbolic", tr("Bullet list"), func() { e.toggleLines(e.item) }))
+	toolbar.Append(e.button("view-list-bullet-symbolic", "view-list-symbolic", tr("Bullet list"), func(e *descEditor) { e.toggleLines(e.item) }))
 	toolbar.Append(e.linkButton())
-	toolbar.Append(e.button("insert-image-symbolic", "image-x-generic-symbolic", tr("Insert image…"), e.pickImage))
+	toolbar.Append(e.button("insert-image-symbolic", "image-x-generic-symbolic", tr("Insert image…"), (*descEditor).pickImage))
 
 	edScroll := gtk.NewScrolledWindow()
 	edScroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
@@ -211,6 +220,16 @@ func newDescEditor(html string, limit int) *descEditor {
 	return e
 }
 
+// on returns a callback that runs fn with the editor while it exists.
+func (e *descEditor) on(fn func(e *descEditor)) func() {
+	ws := e.self
+	return func() {
+		if e := ws.Value(); e != nil {
+			fn(e)
+		}
+	}
+}
+
 func (e *descEditor) newTag(name, prop string, value any) *gtk.TextTag {
 	t := gtk.NewTextTag(name)
 	glib.InternObject(t).SetObjectProperty(prop, value)
@@ -222,15 +241,15 @@ func key(o any) uintptr { return glib.InternObject(o.(glib.Objector)).Native() }
 
 // button is a flat toolbar button; fallback is used when the icon theme
 // lacks icon.
-func (e *descEditor) button(icon, fallback, tooltip string, onClick func()) *gtk.Button {
+func (e *descEditor) button(icon, fallback, tooltip string, onClick func(e *descEditor)) *gtk.Button {
 	b := gtk.NewButton()
 	b.AddCSSClass("flat")
 	b.SetChild(themedIcon(icon, fallback))
 	b.SetTooltipText(tooltip)
-	b.ConnectClicked(func() {
-		onClick()
+	b.ConnectClicked(e.on(func(e *descEditor) {
+		onClick(e)
 		e.view.GrabFocus()
-	})
+	}))
 	return b
 }
 
@@ -239,17 +258,19 @@ func themedIcon(names ...string) *gtk.Image {
 }
 
 // styleToggle formats the selection, or what is typed next without one.
-func (e *descEditor) styleToggle(icon, tooltip string, tag *gtk.TextTag, setTyping func(bool)) *gtk.ToggleButton {
+func (e *descEditor) styleToggle(icon, tooltip string, tag *gtk.TextTag, setTyping func(e *descEditor, on bool)) *gtk.ToggleButton {
 	b := gtk.NewToggleButton()
 	b.AddCSSClass("flat")
 	b.SetIconName(icon)
 	b.SetTooltipText(tooltip)
-	b.ConnectToggled(func() {
-		if e.busy {
+	self := weakref.New(b)
+	b.ConnectToggled(e.on(func(e *descEditor) {
+		b, ok := self.Get()
+		if !ok || e.busy {
 			return
 		}
 		on := b.Active()
-		setTyping(on)
+		setTyping(e, on)
 		if start, end, ok := e.buffer.SelectionBounds(); ok {
 			if on {
 				e.buffer.ApplyTag(tag, start, end)
@@ -258,7 +279,7 @@ func (e *descEditor) styleToggle(icon, tooltip string, tag *gtk.TextTag, setTypi
 			}
 		}
 		e.view.GrabFocus()
-	})
+	}))
 	return b
 }
 
@@ -466,7 +487,8 @@ func (e *descEditor) linkButton() *gtk.MenuButton {
 	btn.SetTooltipText(tr("Link"))
 	btn.SetPopover(pop)
 
-	pop.ConnectShow(func() {
+	popRef, entryRef := weakref.New(pop), weakref.New(entry)
+	pop.ConnectShow(e.on(func(e *descEditor) {
 		start, _, ok := e.buffer.SelectionBounds()
 		apply.SetSensitive(ok)
 		hint.SetVisible(!ok)
@@ -479,8 +501,8 @@ func (e *descEditor) linkButton() *gtk.MenuButton {
 			}
 		}
 		entry.GrabFocus()
-	})
-	setLink := func(href string) {
+	}))
+	setLink := func(e *descEditor, href string) {
 		start, end, ok := e.buffer.SelectionBounds()
 		if !ok {
 			return
@@ -494,10 +516,10 @@ func (e *descEditor) linkButton() *gtk.MenuButton {
 			e.links[key(tag)] = href
 			e.buffer.ApplyTag(tag, start, end)
 		}
-		pop.Popdown()
+		popRef.Do(func(pop *gtk.Popover) { pop.Popdown() })
 		e.schedulePreview()
 	}
-	apply.ConnectClicked(func() {
+	apply.ConnectClicked(e.on(func(e *descEditor) {
 		href := strings.TrimSpace(entry.Text())
 		if href != "" && !strings.Contains(href, ":") {
 			href = "https://" + href
@@ -506,11 +528,11 @@ func (e *descEditor) linkButton() *gtk.MenuButton {
 			entry.AddCSSClass("error")
 			return
 		}
-		setLink(href)
-	})
+		setLink(e, href)
+	}))
 	entry.ConnectActivate(func() { apply.Activate() })
-	entry.ConnectChanged(func() { entry.RemoveCSSClass("error") })
-	remove.ConnectClicked(func() { setLink("") })
+	entry.ConnectChanged(func() { entryRef.Do(func(entry *gtk.Entry) { entry.RemoveCSSClass("error") }) })
+	remove.ConnectClicked(e.on(func(e *descEditor) { setLink(e, "") }))
 	return btn
 }
 

@@ -12,6 +12,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"weak"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -29,6 +30,7 @@ import (
 	"io.github/murmel/internal/ui/gfileio"
 	"io.github/murmel/internal/ui/identities"
 	"io.github/murmel/internal/ui/secrets"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // Controller manages the gumble connection lifecycle:
@@ -178,14 +180,33 @@ const (
 )
 
 func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
+	dialog, _, _ := c.newConnectDialog(req)
+	dialog.Present(c.win)
+}
+
+// newConnectDialog builds the connect dialog for req. It also returns its
+// form and its saved list (nil without saved connections), which live as
+// long as the dialog.
+func (c *Controller) newConnectDialog(req ui.ConnectRequest) (*adw.Dialog, *connectForm, *savedList) {
 	dialog := adw.NewDialog()
 	dialog.SetTitle(tr("Connect to Server"))
 	dialog.SetContentWidth(connectDialogWidth)
 
-	form := c.newConnectForm(dialog, req)
+	dialogCtx, closeDialogCtx := context.WithCancel(c.appCtx)
+	dialog.ConnectClosed(closeDialogCtx)
+
+	// The form and the saved list live as long as the dialog; the closures
+	// below hold them and the dialog only weakly (see internal/ui/weakref).
+	form := c.newConnectForm(dialog, dialogCtx, req)
+	formRef := weak.Make(form)
+	dialogRef := weakref.New(dialog)
 	// Saved connections: activating one fills the form (the password comes
 	// from the keyring).
-	saved := c.savedServersGroup(form.fill)
+	saved := c.savedServersGroup(dialog, func(e settings.ServerEntry) {
+		if f := formRef.Value(); f != nil {
+			f.fill(e)
+		}
+	})
 
 	box := gtk.NewBox(gtk.OrientationVertical, 18)
 	box.SetMarginTop(12)
@@ -236,8 +257,6 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 		}
 	}
 	showConnection()
-	dialogCtx, closeDialogCtx := context.WithCancel(c.appCtx)
-	dialog.ConnectClosed(closeDialogCtx)
 	bus.SubscribeCtx(dialogCtx, c.appBus, func(bus.Connected) { showConnection() })
 	bus.SubscribeCtx(dialogCtx, c.appBus, func(bus.Disconnected) { showConnection() })
 	bus.SubscribeCtx(dialogCtx, c.appBus, func(bus.ConnectError) { showConnection() })
@@ -249,10 +268,15 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	dialog.SetChild(toolbar)
 	dialog.SetDefaultWidget(connectBtn)
 
-	cancelBtn.ConnectClicked(func() { dialog.Close() })
-	connectBtn.ConnectClicked(func() { c.connectFromForm(dialog, form) })
-
-	dialog.Present(c.win)
+	cancelBtn.ConnectClicked(func() { dialogRef.Do(func(d *adw.Dialog) { d.Close() }) })
+	connectBtn.ConnectClicked(func() {
+		f := formRef.Value()
+		if f == nil {
+			return
+		}
+		dialogRef.Do(func(d *adw.Dialog) { c.connectFromForm(d, f) })
+	})
+	return dialog, form, saved
 }
 
 // shownConnection is the server and account of the connection the user
@@ -586,7 +610,13 @@ func (c *Controller) promptRegisteredName(p *dialParams, a attempt) {
 	alert.SetResponseEnabled("password", false)
 	alert.SetDefaultResponse("change")
 	alert.SetCloseResponse("cancel")
+	entryRef, alertRef := weakref.New(entry), weakref.New(alert)
 	entry.ConnectChanged(func() {
+		entry, ok1 := entryRef.Get()
+		alert, ok2 := alertRef.Get()
+		if !ok1 || !ok2 {
+			return
+		}
 		on := entry.Text() != ""
 		alert.SetResponseEnabled("password", on)
 		if on {
@@ -649,7 +679,7 @@ func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool)
 	alert.SetDefaultResponse("connect")
 	alert.SetCloseResponse("cancel")
 	alert.SetResponseEnabled("connect", false)
-	entry.ConnectChanged(func() { alert.SetResponseEnabled("connect", entry.Text() != "") })
+	enableWhenFilled(entry, alert, "connect")
 	entry.SetActivatesDefault(true) // Enter connects
 	alert.ConnectResponse(func(response string) {
 		if response != "connect" {
@@ -663,6 +693,18 @@ func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool)
 	closeWhenSuperseded(a, &alert.Dialog)
 	alert.Present(c.win)
 	entry.GrabFocus()
+}
+
+// enableWhenFilled enables alert's response only while entry is not empty.
+func enableWhenFilled(entry *adw.PasswordEntryRow, alert *adw.AlertDialog, response string) {
+	entryRef, alertRef := weakref.New(entry), weakref.New(alert)
+	entry.ConnectChanged(func() {
+		entry, ok1 := entryRef.Get()
+		alert, ok2 := alertRef.Get()
+		if ok1 && ok2 {
+			alert.SetResponseEnabled(response, entry.Text() != "")
+		}
+	})
 }
 
 // rememberAccepted stores the password of a successful dial in the keyring
@@ -1109,7 +1151,7 @@ func (c *Controller) promptChannelPassword(channelID uint32) {
 	alert.SetDefaultResponse("join")
 	alert.SetCloseResponse("cancel")
 	alert.SetResponseEnabled("join", false)
-	entry.ConnectChanged(func() { alert.SetResponseEnabled("join", entry.Text() != "") })
+	enableWhenFilled(entry, alert, "join")
 	entry.SetActivatesDefault(true)
 	alert.ConnectResponse(func(response string) {
 		if response == "join" {

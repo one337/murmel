@@ -11,6 +11,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/certs"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 const createDialogWidth = 420
@@ -72,9 +73,18 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 	nameRow.SetActivatesDefault(true)
 	emailRow.SetActivatesDefault(true)
 
+	// The closures below hold the fields, the Create button and the dialog
+	// only weakly: they are attached to them (see internal/ui/weakref).
+	nameRef, emailRef := weakref.New(nameRow), weakref.New(emailRow)
+	createRef, dialogRef := weakref.New(create), weakref.New(dialog)
+
 	// emailOK checks the address as typed: an invalid one is marked and
 	// blocks Create; one servers cannot read only gets a hint.
 	emailOK := func() bool {
+		emailRow, ok := emailRef.Get()
+		if !ok {
+			return false
+		}
 		email := strings.TrimSpace(emailRow.Text())
 		if email == "" {
 			emailRow.RemoveCSSClass("error")
@@ -96,14 +106,24 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 		return true
 	}
 	update := func() {
-		create.SetSensitive(strings.TrimSpace(nameRow.Text()) != "" && emailOK())
+		nameRow, ok1 := nameRef.Get()
+		create, ok2 := createRef.Get()
+		if ok1 && ok2 {
+			create.SetSensitive(strings.TrimSpace(nameRow.Text()) != "" && emailOK())
+		}
 	}
 	nameRow.ConnectChanged(update)
 	emailRow.ConnectChanged(update)
 	update()
-	cancel.ConnectClicked(func() { dialog.Close() })
+	cancel.ConnectClicked(func() { dialogRef.Do(func(d *adw.Dialog) { d.Close() }) })
 
 	create.ConnectClicked(func() {
+		nameRow, ok1 := nameRef.Get()
+		emailRow, ok2 := emailRef.Get()
+		create, ok3 := createRef.Get()
+		if !ok1 || !ok2 || !ok3 {
+			return
+		}
 		n := strings.TrimSpace(nameRow.Text())
 		email := strings.TrimSpace(emailRow.Text())
 		if n == "" {
@@ -125,7 +145,7 @@ func ShowCreate(parent gtk.Widgetter, m *certs.Manager, name string, done func(c
 					status.SetText(fmt.Sprintf(tr("The certificate could not be created: %v"), err))
 					return
 				}
-				dialog.Close()
+				dialogRef.Do(func(d *adw.Dialog) { d.Close() })
 				done(ident.Meta)
 				offerBackup(parent, m, ident.Meta)
 			})

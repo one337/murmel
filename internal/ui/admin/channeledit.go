@@ -2,11 +2,13 @@ package admin
 
 import (
 	"fmt"
+	"weak"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // Pages of the channel editor (ShowChannelEditor's page argument).
@@ -27,12 +29,15 @@ const (
 
 // channelEditor is the "Edit Channel" dialog: one page per aspect of the
 // channel, saved together. The channel's ACL (password, groups,
-// permissions) is fetched when the dialog opens.
+// permissions) is fetched when the dialog opens. It lives as long as the
+// dialog (weakref.Owned); the closures of its widgets reach it through a
+// weak pointer, and it holds the dialog itself only weakly.
 type channelEditor struct {
+	self weak.Pointer[channelEditor]
 	b    *bus.Bus
 	info bus.ChannelInfo
 
-	dialog  *adw.Dialog
+	dialog  weakref.Ref[*adw.Dialog]
 	stack   *adw.ViewStack
 	saveBtn *gtk.Button
 
@@ -54,6 +59,8 @@ type channelEditor struct {
 
 	// Groups and Permissions pages work on one copy of the ACL.
 	work       *aclWork
+	groups     *groupsPage
+	perms      *permsPage
 	groupsBox  *gtk.Box
 	permsBox   *gtk.Box
 	registered []bus.RegisteredUserInfo
@@ -62,6 +69,13 @@ type channelEditor struct {
 // ShowChannelEditor opens the editor for info's channel on page (one of the
 // Page constants; "" = general). Called on the main loop.
 func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, page string) {
+	e, dialog := newChannelEditor(b, info, page)
+	dialog.Present(parent)
+	e.name.GrabFocus()
+}
+
+// newChannelEditor builds the editor and its dialog (not yet shown).
+func newChannelEditor(b *bus.Bus, info bus.ChannelInfo, page string) (*channelEditor, *adw.Dialog) {
 	e := &channelEditor{b: b, info: info}
 
 	e.stack = adw.NewViewStack()
@@ -94,39 +108,41 @@ func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, p
 	toolbar.AddTopBar(hdr)
 	toolbar.SetContent(e.stack)
 
-	e.dialog = adw.NewDialog()
-	e.dialog.SetTitle(fmt.Sprintf(tr("Edit Channel %s"), info.Name))
-	e.dialog.SetContentWidth(editorWidth)
-	e.dialog.SetContentHeight(editorHeight)
-	e.dialog.SetChild(toolbar)
+	dialog := adw.NewDialog()
+	dialog.SetTitle(fmt.Sprintf(tr("Edit Channel %s"), info.Name))
+	dialog.SetContentWidth(editorWidth)
+	dialog.SetContentHeight(editorHeight)
+	dialog.SetChild(toolbar)
+	e.dialog = weakref.New(dialog)
+	e.self = weakref.Owned(dialog, e)
 
 	if page != "" && e.stack.ChildByName(page) != nil {
 		e.stack.SetVisibleChildName(page)
 	}
 
-	subscribeWhileOpen(e.dialog, b, func(ev bus.ACLFetched) {
+	subscribeWhileOpen(dialog, b, func(ev bus.ACLFetched) {
 		if ev.ChannelID != info.ID || e.acl != nil {
 			return
 		}
 		e.acl = &ev
 		e.aclLoaded()
 	})
-	subscribeWhileOpen(e.dialog, b, func(ev bus.PermissionDenied) {
+	subscribeWhileOpen(dialog, b, func(ev bus.PermissionDenied) {
 		if e.acl == nil && !e.aclDenied {
 			e.aclDenied = true
 			e.aclLoaded()
 		}
 	})
 
-	cancelBtn.ConnectClicked(func() { e.dialog.Close() })
-	e.saveBtn.ConnectClicked(e.save)
+	cancelBtn.ConnectClicked(e.on(func(e *channelEditor) { e.dialog.Do(func(d *adw.Dialog) { d.Close() }) }))
+	e.saveBtn.ConnectClicked(e.on((*channelEditor).save))
 
 	// The description may still have to be fetched (only its hash known).
 	if info.DescriptionPending {
 		spinner := adw.NewSpinner()
 		spinner.SetVExpand(true)
 		e.descPage.Append(spinner)
-		subscribeWhileOpen(e.dialog, b, func(ev bus.ChannelUpdated) {
+		subscribeWhileOpen(dialog, b, func(ev bus.ChannelUpdated) {
 			if ev.Channel.ID == info.ID && !ev.Channel.DescriptionPending && e.desc == nil {
 				e.descPage.Remove(spinner)
 				e.loadDescription(ev.Channel.Description)
@@ -138,7 +154,7 @@ func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, p
 	}
 
 	// The server's user list (if permitted) offers more users to add.
-	subscribeWhileOpen(e.dialog, b, func(ev bus.UserListFetched) {
+	subscribeWhileOpen(dialog, b, func(ev bus.UserListFetched) {
 		e.registered = ev.Users
 		if e.work != nil {
 			for _, u := range ev.Users {
@@ -151,8 +167,17 @@ func ShowChannelEditor(parent gtk.Widgetter, b *bus.Bus, info bus.ChannelInfo, p
 
 	b.Emit(bus.ACLRequested{ChannelID: info.ID})
 	b.Emit(bus.UserListRequested{})
-	e.dialog.Present(parent)
-	e.name.GrabFocus()
+	return e, dialog
+}
+
+// on returns a callback that runs fn with the editor while it exists.
+func (e *channelEditor) on(fn func(e *channelEditor)) func() {
+	ws := e.self
+	return func() {
+		if e := ws.Value(); e != nil {
+			fn(e)
+		}
+	}
 }
 
 func (e *channelEditor) loadDescription(html string) {
@@ -190,7 +215,7 @@ func (e *channelEditor) generalPage() gtk.Widgetter {
 	e.name = adw.NewEntryRow()
 	e.name.SetTitle(tr("Name"))
 	e.name.SetText(e.info.Name)
-	e.name.ConnectChanged(func() { e.name.RemoveCSSClass("error") })
+	e.name.ConnectChanged(e.on(func(e *channelEditor) { e.name.RemoveCSSClass("error") }))
 
 	e.position = adw.NewSpinRowWithRange(-maxPosition, maxPosition, 1)
 	e.position.SetTitle(tr("Position"))
@@ -244,8 +269,8 @@ func (e *channelEditor) aclLoaded() {
 		return
 	}
 	e.work = newACLWork(e.acl, userCatalog(e.acl, e.b.State().Users, e.registered))
-	newGroupsPage(e.work, e.groupsBox)
-	newPermsPage(e.work, e.permsBox, e.info.ID == 0)
+	e.groups = newGroupsPage(e.work, e.groupsBox)
+	e.perms = newPermsPage(e.work, e.permsBox, e.info.ID == 0)
 	e.origPW = channelPassword(e.acl.Rules)
 	e.password.SetText(e.origPW)
 	e.password.SetSensitive(true)
@@ -295,7 +320,7 @@ func (e *channelEditor) save() {
 			})
 		}
 	}
-	e.dialog.Close()
+	e.dialog.Do(func(d *adw.Dialog) { d.Close() })
 }
 
 // ownGroups are the groups an ACL write must repeat: the server replaces

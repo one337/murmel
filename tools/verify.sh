@@ -112,7 +112,7 @@ fi
 
 # Leak tests need GTK and a display: they run on a virtual X server in a
 # throwaway HOME, without the desktop's D-Bus session or Wayland display.
-GTK_TEST_PKGS=(./internal/ui/channeltree)
+GTK_TEST_PKGS=(./internal/ui/channeltree ./internal/ui/admin ./internal/ui/connection ./internal/ui/prefs)
 step "GTK leak tests (xvfb-run)"
 if command -v xvfb-run >/dev/null 2>&1; then
   GTKHOME=$(mktemp -d /tmp/murmel-gtk-XXXXXX)

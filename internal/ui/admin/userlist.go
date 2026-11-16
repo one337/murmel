@@ -7,6 +7,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // ShowUserList opens the registered user management dialog. It emits
@@ -88,16 +89,18 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 			deregBtn := gtk.NewButtonFromIconName("user-trash-symbolic")
 			deregBtn.AddCSSClass("flat")
 			deregBtn.SetTooltipText(tr("Deregister user"))
+			rowRef := weakref.New(row)
 			deregBtn.ConnectClicked(func() {
 				b.Emit(bus.UserUnregisterRequested{UserID: userID})
-				row.SetSensitive(false)
+				rowRef.Do(func(row *adw.ActionRow) { row.SetSensitive(false) })
 			})
 			row.AddSuffix(deregBtn)
 			listbox.Append(row)
 		}
 	})
 
-	closeBtn.ConnectClicked(func() { dialog.Close() })
+	dialogRef := weakref.New(dialog)
+	closeBtn.ConnectClicked(func() { dialogRef.Do(func(d *adw.Dialog) { d.Close() }) })
 
 	b.Emit(bus.UserListRequested{})
 	dialog.Present(parent)
