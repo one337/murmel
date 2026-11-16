@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 00:30+0100\n"
+"POT-Creation-Date: 2026-11-16 00:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -570,7 +570,7 @@ msgstr ""
 msgid "Bandwidth"
 msgstr ""
 
-#: internal/ui/admin/stats.go internal/ui/connection/controller.go
+#: internal/ui/admin/stats.go internal/ui/connection/connectform.go
 msgid "Address"
 msgstr ""
 
@@ -1038,7 +1038,7 @@ msgstr ""
 msgid "The user is offline"
 msgstr ""
 
-#: internal/ui/chat/view.go internal/ui/connection/controller.go
+#: internal/ui/chat/view.go internal/ui/connection/connectform.go
 msgid "Server"
 msgstr ""
 
@@ -1054,65 +1054,65 @@ msgstr ""
 msgid "message too long"
 msgstr ""
 
-#: internal/ui/connection/controller.go
-msgid "Connect to Server"
-msgstr ""
-
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Port"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Server Password"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Username"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "None (anonymous)"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "User Certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Import certificate (PEM file with certificate and private key)"
 msgstr ""
 
-#: internal/ui/connection/controller.go internal/ui/prefs/window.go
+#: internal/ui/connection/connectform.go internal/ui/prefs/window.go
 msgid "Create a new certificate"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Save Connection"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
+msgid "Optional"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
+msgid "Optional — otherwise your default avatar is used"
+msgstr ""
+
+#: internal/ui/connection/connectform.go internal/ui/prefs/window.go
+msgid "Avatar"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
+msgid "Account"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr ""
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 #, go-format
 msgid "Saved as %s"
 msgstr ""
 
 #: internal/ui/connection/controller.go
-msgid "Optional"
-msgstr ""
-
-#: internal/ui/connection/controller.go
-msgid "Optional — otherwise your default avatar is used"
-msgstr ""
-
-#: internal/ui/connection/controller.go internal/ui/prefs/window.go
-msgid "Avatar"
-msgstr ""
-
-#: internal/ui/connection/controller.go
-msgid "Account"
+msgid "Connect to Server"
 msgstr ""
 
 #: internal/ui/connection/controller.go

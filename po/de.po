@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 00:30+0100\n"
+"POT-Creation-Date: 2026-11-16 00:52+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -586,7 +586,7 @@ msgstr "Untätig seit"
 msgid "Bandwidth"
 msgstr "Bandbreite"
 
-#: internal/ui/admin/stats.go internal/ui/connection/controller.go
+#: internal/ui/admin/stats.go internal/ui/connection/connectform.go
 msgid "Address"
 msgstr "Adresse"
 
@@ -1058,7 +1058,7 @@ msgstr "offline"
 msgid "The user is offline"
 msgstr "Der Benutzer ist offline"
 
-#: internal/ui/chat/view.go internal/ui/connection/controller.go
+#: internal/ui/chat/view.go internal/ui/connection/connectform.go
 msgid "Server"
 msgstr "Server"
 
@@ -1074,67 +1074,67 @@ msgstr "Du"
 msgid "message too long"
 msgstr "Nachricht zu lang"
 
-#: internal/ui/connection/controller.go
-msgid "Connect to Server"
-msgstr "Mit Server verbinden"
-
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Port"
 msgstr "Port"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Server Password"
 msgstr "Server-Passwort"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Username"
 msgstr "Benutzername"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "None (anonymous)"
 msgstr "Keins (anonym)"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "User Certificate"
 msgstr "Benutzerzertifikat"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Import certificate (PEM file with certificate and private key)"
 msgstr ""
 "Zertifikat importieren (PEM-Datei mit Zertifikat und privatem Schlüssel)"
 
-#: internal/ui/connection/controller.go internal/ui/prefs/window.go
+#: internal/ui/connection/connectform.go internal/ui/prefs/window.go
 msgid "Create a new certificate"
 msgstr "Neues Zertifikat erstellen"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 msgid "Save Connection"
 msgstr "Verbindung speichern"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
+msgid "Optional"
+msgstr "Optional"
+
+#: internal/ui/connection/connectform.go
+msgid "Optional — otherwise your default avatar is used"
+msgstr "Optional – sonst wird dein Standard-Avatar verwendet"
+
+#: internal/ui/connection/connectform.go internal/ui/prefs/window.go
+msgid "Avatar"
+msgstr "Avatar"
+
+#: internal/ui/connection/connectform.go
+msgid "Account"
+msgstr "Konto"
+
+#: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr "Gespeichert als benutzername@adresse"
 
-#: internal/ui/connection/controller.go
+#: internal/ui/connection/connectform.go
 #, go-format
 msgid "Saved as %s"
 msgstr "Gespeichert als %s"
 
 #: internal/ui/connection/controller.go
-msgid "Optional"
-msgstr "Optional"
-
-#: internal/ui/connection/controller.go
-msgid "Optional — otherwise your default avatar is used"
-msgstr "Optional – sonst wird dein Standard-Avatar verwendet"
-
-#: internal/ui/connection/controller.go internal/ui/prefs/window.go
-msgid "Avatar"
-msgstr "Avatar"
-
-#: internal/ui/connection/controller.go
-msgid "Account"
-msgstr "Konto"
+msgid "Connect to Server"
+msgstr "Mit Server verbinden"
 
 #: internal/ui/connection/controller.go
 msgid "Connect"

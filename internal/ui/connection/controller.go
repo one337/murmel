@@ -178,180 +178,14 @@ const (
 )
 
 func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
-	port := req.Port
-	if port == 0 {
-		port = ui.DefaultPort
-	}
-
 	dialog := adw.NewDialog()
 	dialog.SetTitle(tr("Connect to Server"))
 	dialog.SetContentWidth(connectDialogWidth)
 
-	// --- Server group
-	hostEntry := adw.NewEntryRow()
-	hostEntry.SetTitle(tr("Address"))
-	hostEntry.SetText(req.Host)
-
-	portEntry := adw.NewEntryRow()
-	portEntry.SetTitle(tr("Port"))
-	portEntry.SetText(strconv.Itoa(port))
-	portEntry.SetInputPurpose(gtk.InputPurposeDigits)
-
-	passwordEntry := adw.NewPasswordEntryRow()
-	passwordEntry.SetTitle(tr("Server Password"))
-	passwordEntry.SetText(req.Password)
-	// pwField says whether the field may update the keyring; text set by
-	// the form itself (setPassword) does not count as the user's edit.
-	var pwField passwordField
-	settingPassword := false
-	setPassword := func(pw string) {
-		settingPassword = true
-		passwordEntry.SetText(pw)
-		settingPassword = false
-	}
-	passwordEntry.ConnectChanged(func() {
-		if !settingPassword {
-			pwField.edited()
-		}
-	})
-
-	group := adw.NewPreferencesGroup()
-	group.SetTitle(tr("Server"))
-	group.Add(hostEntry)
-	group.Add(portEntry)
-	group.Add(passwordEntry)
-
-	// --- Account group
-	userEntry := adw.NewEntryRow()
-	userEntry.SetTitle(tr("Username"))
-	userEntry.SetText(req.Username)
-
-	// Certificate picker: "None" + stored idList. The import row below
-	// adds a certificate file to the store and selects it.
-	idList, _ := c.certs.List()
-	identityStore := gtk.NewStringList([]string{tr("None (anonymous)")})
-	for _, id := range idList {
-		identityStore.Append(id.Name)
-	}
-	identityRow := adw.NewComboRow()
-	identityRow.SetTitle(tr("User Certificate"))
-	identityRow.SetModel(identityStore)
-	selectIdentity := func(id string) {
-		identityRow.SetSelected(0)
-		for i, m := range idList {
-			if m.ID == id {
-				identityRow.SetSelected(uint(i + 1))
-				return
-			}
-		}
-	}
-	selectIdentity(c.settings.LastIdentity())
-
-	// Import button inside the certificate row keeps the form compact.
-	importBtn := gtk.NewButtonFromIconName("document-open-symbolic")
-	importBtn.AddCSSClass("flat")
-	importBtn.SetVAlign(gtk.AlignCenter)
-	importBtn.SetTooltipText(tr("Import certificate (PEM file with certificate and private key)"))
-	importBtn.ConnectClicked(func() {
-		c.pickCertificateFile(dialog, func(meta certs.IdentityMeta) {
-			idList = append(idList, meta)
-			identityStore.Append(meta.Name)
-			identityRow.SetSelected(uint(len(idList)))
-		})
-	})
-	identityRow.AddSuffix(importBtn)
-
-	createBtn := gtk.NewButtonFromIconName("list-add-symbolic")
-	createBtn.AddCSSClass("flat")
-	createBtn.SetVAlign(gtk.AlignCenter)
-	createBtn.SetTooltipText(tr("Create a new certificate"))
-	createBtn.ConnectClicked(func() {
-		identities.ShowCreate(dialog, c.certs, strings.TrimSpace(userEntry.Text()), func(meta certs.IdentityMeta) {
-			idList = append(idList, meta)
-			identityStore.Append(meta.Name)
-			identityRow.SetSelected(uint(len(idList)))
-		})
-	})
-	identityRow.AddSuffix(createBtn)
-
-	// --- Save switch: the name preview follows the form.
-	saveRow := adw.NewSwitchRow()
-	saveRow.SetTitle(tr("Save Connection"))
-	saveRow.SetActive(true)
-	formPort := func() int {
-		p, err := strconv.Atoi(portEntry.Text())
-		if err != nil || p <= 0 || p > 65535 {
-			return ui.DefaultPort
-		}
-		return p
-	}
-	updateSaveName := func() {
-		if strings.TrimSpace(hostEntry.Text()) == "" {
-			saveRow.SetSubtitle(tr("Saved as username@address"))
-			return
-		}
-		saveRow.SetSubtitle(fmt.Sprintf(tr("Saved as %s"),
-			savedName(strings.TrimSpace(userEntry.Text()), strings.TrimSpace(hostEntry.Text()), formPort())))
-	}
-	hostEntry.ConnectChanged(updateSaveName)
-	portEntry.ConnectChanged(updateSaveName)
-	userEntry.ConnectChanged(updateSaveName)
-	updateSaveName()
-
-	// Optional avatar for this account; without one the default avatar
-	// (Preferences) is sent.
-	avatars := c.avatarStore()
-	defaultAvatar := avatars.Load(avatarpick.DefaultKey)
-	unset := tr("Optional")
-	if defaultAvatar != nil {
-		unset = tr("Optional — otherwise your default avatar is used")
-	}
-	avatarChanged := false
-	avatarRow := avatarpick.NewRow(tr("Avatar"), req.Username, unset, func([]byte) { avatarChanged = true })
-	avatarRow.SetFallback(defaultAvatar)
-	if req.Host != "" {
-		avatarRow.SetData(avatars.Load(avatarpick.AccountKey(req.Host, port, req.Username)))
-	}
-	userEntry.ConnectChanged(func() { avatarRow.SetName(userEntry.Text()) })
-
-	userGroup := adw.NewPreferencesGroup()
-	userGroup.SetTitle(tr("Account"))
-	userGroup.Add(userEntry)
-	userGroup.Add(avatarRow)
-	userGroup.Add(identityRow)
-	userGroup.Add(saveRow)
-
-	// --- Saved connections: activating one fills the form (the password
-	// comes from the keyring).
-	fill := func(e settings.ServerEntry) {
-		hostEntry.SetText(e.Host)
-		portEntry.SetText(strconv.Itoa(e.Port))
-		userEntry.SetText(e.Username)
-		selectIdentity(e.IdentityID)
-		setPassword("")
-		saveRow.SetActive(true)
-		avatarRow.SetData(avatars.Load(avatarpick.AccountKey(e.Host, e.Port, e.Username)))
-		avatarChanged = false
-		key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
-		gen := pwField.startLookup()
-		go func() {
-			pw, err := secrets.Lookup(key)
-			if err != nil {
-				slog.Info("keyring lookup failed", "err", err)
-			}
-			glib.IdleAdd(func() bool {
-				// Only if the form still shows this account.
-				if hostEntry.Text() != e.Host || userEntry.Text() != e.Username {
-					return false
-				}
-				if pwField.lookupDone(gen, err == nil) {
-					setPassword(pw)
-				}
-				return false
-			})
-		}()
-	}
-	saved := c.savedServersGroup(fill)
+	form := c.newConnectForm(dialog, req)
+	// Saved connections: activating one fills the form (the password comes
+	// from the keyring).
+	saved := c.savedServersGroup(form.fill)
 
 	box := gtk.NewBox(gtk.OrientationVertical, 18)
 	box.SetMarginTop(12)
@@ -361,8 +195,8 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	if saved != nil {
 		box.Append(saved.group)
 	}
-	box.Append(group)
-	box.Append(userGroup)
+	box.Append(form.server)
+	box.Append(form.account)
 
 	// The scrolled window only kicks in when the screen is too small; it
 	// otherwise propagates the form's natural height to the dialog so the
@@ -416,69 +250,7 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 	dialog.SetDefaultWidget(connectBtn)
 
 	cancelBtn.ConnectClicked(func() { dialog.Close() })
-
-	connectBtn.ConnectClicked(func() {
-		h := strings.TrimSpace(hostEntry.Text())
-		if h == "" {
-			hostEntry.AddCSSClass("error")
-			hostEntry.GrabFocus()
-			return
-		}
-		p := formPort()
-		user := strings.TrimSpace(userEntry.Text())
-		if user == "" {
-			user = "Murmel"
-		}
-		password := passwordEntry.Text()
-
-		var identity *certs.Identity
-		identityID := ""
-		sel := int(identityRow.Selected())
-		if sel > 0 && sel-1 < len(idList) {
-			if id, lerr := c.certs.Load(idList[sel-1].ID); lerr == nil {
-				identity = id
-				identityID = idList[sel-1].ID
-			}
-		}
-		c.settings.SetLastIdentity(identityID)
-
-		texture := avatarRow.Data()
-		if saveRow.Active() && (avatarChanged || texture != nil) {
-			if err := avatars.Save(avatarpick.AccountKey(h, p, user), texture); err != nil {
-				slog.Info("avatar not saved", "err", err)
-			}
-		}
-		if texture == nil {
-			texture = defaultAvatar
-		}
-		if saveRow.Active() {
-			c.saveServerEntry(settings.ServerEntry{
-				Name:       savedName(user, h, p),
-				Host:       h,
-				Port:       p,
-				Username:   user,
-				IdentityID: identityID,
-			})
-		}
-
-		dialog.Close()
-		params := &dialParams{
-			addr:     net.JoinHostPort(h, strconv.Itoa(p)),
-			username: user,
-			password: password,
-			identity: identity,
-			texture:  texture,
-			// The password reaches the keyring only once the server
-			// accepted it, and not while the saved one is still loading.
-			rememberPassword: saveRow.Active() && pwField.known(),
-		}
-		// A link's channel applies only to the server the link named.
-		if strings.EqualFold(h, req.Host) && p == port {
-			params.channelPath = req.ChannelPath
-		}
-		c.startDial(params)
-	})
-	hostEntry.ConnectChanged(func() { hostEntry.RemoveCSSClass("error") })
+	connectBtn.ConnectClicked(func() { c.connectFromForm(dialog, form) })
 
 	dialog.Present(c.win)
 }
