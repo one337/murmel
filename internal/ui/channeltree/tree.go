@@ -2,8 +2,10 @@ package channeltree
 
 import (
 	"context"
+	"time"
 
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
@@ -50,7 +52,19 @@ type Tree struct {
 
 	// localAudio is the volume and mute set for oneself, by session.
 	localAudio map[uint32]localAudio
+
+	// rebuildPending marks a structural change the list does not show yet;
+	// rebuildScheduled, that a batched rebuild is queued on the main loop.
+	// lastRebuild is when the list was last rebuilt.
+	rebuildPending   bool
+	rebuildScheduled bool
+	lastRebuild      time.Time
 }
+
+// rebuildInterval is the least time between two batched rebuilds:
+// structural changes that arrive closer together (20 users leaving at
+// once, or one after another) are shown by one rebuild.
+const rebuildInterval = 100 * time.Millisecond
 
 // localAudio is one user's volume (0..2, 1 = 100 %) and mute for oneself.
 type localAudio struct {
@@ -170,17 +184,12 @@ func (t *Tree) applyUnread() {
 }
 
 // handle folds one event into the model: if the model signals a structural
-// change (insert/remove/move) the entire list is rebuilt; otherwise only the
-// directly affected row widget is refreshed.
+// change (insert/remove/move) the entire list is rebuilt, batched with the
+// other structural changes of the moment (see scheduleRebuild); otherwise
+// only the directly affected row widget is refreshed.
 func (t *Tree) handle(ev bus.Event) {
 	if t.model.apply(ev) {
-		// A rebuild would destroy the row being dragged and end the drag:
-		// it waits until the drop.
-		if t.drag != nil {
-			t.drag.pendingRebuild = true
-		} else {
-			t.rebuild()
-		}
+		t.scheduleRebuild()
 	} else {
 		t.updateInPlace(ev)
 	}
@@ -189,8 +198,49 @@ func (t *Tree) handle(ev bus.Event) {
 	}
 }
 
+// scheduleRebuild queues one rebuild for all structural changes until it
+// runs. It runs after the events already waiting on the main loop (the bus
+// delivers each event in its own idle callback), and no sooner than
+// rebuildInterval after the last rebuild. Until then the rows show the
+// state before the change; whatever acts on them checks the model, and the
+// context menus catch up first (flushRebuild).
+func (t *Tree) scheduleRebuild() {
+	t.rebuildPending = true
+	if t.rebuildScheduled {
+		return
+	}
+	t.rebuildScheduled = true
+	run := func() bool {
+		t.rebuildScheduled = false
+		t.flushRebuild()
+		return false
+	}
+	if wait := rebuildInterval - time.Since(t.lastRebuild); wait > 0 {
+		glib.TimeoutAdd(uint(wait.Milliseconds())+1, run)
+	} else {
+		glib.IdleAdd(run)
+	}
+}
+
+// flushRebuild shows a pending structural change now. A rebuild would
+// destroy the row being dragged and end the drag: during a drag it waits
+// until the drop.
+func (t *Tree) flushRebuild() {
+	if !t.rebuildPending {
+		return
+	}
+	if t.drag != nil {
+		t.drag.pendingRebuild = true
+		t.rebuildPending = false
+		return
+	}
+	t.rebuild()
+}
+
 // rebuild clears the list and reconstructs it from the model walk order.
 func (t *Tree) rebuild() {
+	t.rebuildPending = false
+	defer func() { t.lastRebuild = time.Now() }()
 	for _, r := range t.channelRows {
 		t.list.Remove(r.root)
 	}
@@ -222,7 +272,12 @@ func (t *Tree) newRowFor(e entry) gtk.Widgetter {
 		session := e.id
 		r := newUserRow(t.model, session,
 			func(x, y float64) { t.showUserMenu(session, x, y) },
-			func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) })
+			func() {
+				// The row may outlive the user until the pending rebuild.
+				if _, ok := t.model.users[session]; ok {
+					t.b.Emit(bus.ChatTargetChanged{Session: session})
+				}
+			})
 		t.userRows[session] = r
 		t.applyAvatar(r, t.model.users[session])
 		r.setLocalAudio(t.localAudioOf(session))
@@ -271,6 +326,7 @@ func (t *Tree) toggleExpand(id uint32) {
 }
 
 func (t *Tree) showChannelMenu(id uint32, x, y float64) {
+	t.flushRebuild()
 	r, ok := t.channelRows[id]
 	if !ok {
 		return
@@ -301,6 +357,7 @@ func (t *Tree) showChannelMenu(id uint32, x, y float64) {
 }
 
 func (t *Tree) showUserMenu(session uint32, x, y float64) {
+	t.flushRebuild()
 	r, ok := t.userRows[session]
 	if !ok {
 		return
@@ -375,28 +432,36 @@ func sameRow(a, b *gtk.ListBoxRow) bool {
 
 // onActivate fires when the user double-clicks or presses Enter on a row.
 // Channel rows request a join; user rows have their own click handler
-// (it opens the conversation).
+// (it opens the conversation). The row may still show a channel that a
+// pending rebuild removes: only channels the model knows are joined.
 func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 	for id, r := range t.channelRows {
 		if sameRow(r.root, row) {
-			t.b.Emit(bus.ChannelJoinRequested{ChannelID: id})
+			if _, ok := t.model.channels[id]; ok {
+				t.b.Emit(bus.ChannelJoinRequested{ChannelID: id})
+			}
 			return
 		}
 	}
 }
 
 // onSelect fires on a row selection change and emits ChatTargetChanged so
-// the chat view follows the sidebar selection.
+// the chat view follows the sidebar selection (only to channels and users
+// the model still knows, see onActivate).
 func (t *Tree) onSelect(row *gtk.ListBoxRow) {
 	for id, r := range t.channelRows {
 		if sameRow(r.root, row) {
-			t.b.Emit(bus.ChatTargetChanged{ChannelID: id})
+			if _, ok := t.model.channels[id]; ok {
+				t.b.Emit(bus.ChatTargetChanged{ChannelID: id})
+			}
 			return
 		}
 	}
 	for session, r := range t.userRows {
 		if sameRow(r.root, row) {
-			t.b.Emit(bus.ChatTargetChanged{Session: session})
+			if _, ok := t.model.users[session]; ok {
+				t.b.Emit(bus.ChatTargetChanged{Session: session})
+			}
 			return
 		}
 	}
