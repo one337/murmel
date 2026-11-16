@@ -59,6 +59,14 @@ type Tree struct {
 	rebuildPending   bool
 	rebuildScheduled bool
 	lastRebuild      time.Time
+
+	// restoring is set while a rebuild gives the new rows the old
+	// selection: that is no new chat target.
+	restoring bool
+	// holdScroll keeps the list at heldScroll after a rebuild until the
+	// new rows have a size (see keepHeldScroll).
+	holdScroll bool
+	heldScroll float64
 }
 
 // rebuildInterval is the least time between two batched rebuilds:
@@ -110,6 +118,7 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 	t.root.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
 	t.root.SetVExpand(true)
 	t.autoScrollOnDrag()
+	t.root.VAdjustment().ConnectValueChanged(t.keepHeldScroll)
 
 	t.subscribe(ctx)
 	return t
@@ -237,10 +246,12 @@ func (t *Tree) flushRebuild() {
 	t.rebuild()
 }
 
-// rebuild clears the list and reconstructs it from the model walk order.
+// rebuild clears the list and reconstructs it from the model walk order,
+// keeping focus, selection and scroll position (see restoreListState).
 func (t *Tree) rebuild() {
 	t.rebuildPending = false
 	defer func() { t.lastRebuild = time.Now() }()
+	state := t.saveListState()
 	for _, r := range t.channelRows {
 		t.list.Remove(r.root)
 	}
@@ -255,6 +266,7 @@ func (t *Tree) rebuild() {
 	}
 	t.refreshDragHandles()
 	t.applyUnread()
+	t.restoreListState(state)
 }
 
 // newRowFor builds the row for one walk entry and registers it.
@@ -449,6 +461,9 @@ func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 // the chat view follows the sidebar selection (only to channels and users
 // the model still knows, see onActivate).
 func (t *Tree) onSelect(row *gtk.ListBoxRow) {
+	if t.restoring {
+		return
+	}
 	for id, r := range t.channelRows {
 		if sameRow(r.root, row) {
 			if _, ok := t.model.channels[id]; ok {
