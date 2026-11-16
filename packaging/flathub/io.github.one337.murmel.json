@@ -1,0 +1,52 @@
+{
+  "id": "io.github.one337.murmel",
+  "runtime": "org.gnome.Platform",
+  "runtime-version": "51",
+  "sdk": "org.gnome.Sdk",
+  "sdk-extensions": [
+    "org.freedesktop.Sdk.Extension.golang"
+  ],
+  "command": "murmel",
+  "separate-locales": false,
+  "finish-args": [
+    "--socket=wayland",
+    "--socket=fallback-x11",
+    "--share=ipc",
+    "--socket=pulseaudio",
+    "--share=network",
+    "--device=dri"
+  ],
+  "build-options": {
+    "append-path": "/usr/lib/sdk/golang/bin",
+    "env": {
+      "GOFLAGS": "-mod=vendor",
+      "GONOSUMCHECK": "*",
+      "GONOSUMDB": "*",
+      "CGO_ENABLED": "1"
+    }
+  },
+  "cleanup": [
+    "/include",
+    "/lib/pkgconfig",
+    "/share/man",
+    "*.la"
+  ],
+  "modules": [
+    {
+      "name": "murmel",
+      "buildsystem": "simple",
+      "build-commands": [
+        "cat VERSION > build-version",
+        "tools/install.sh --prefix /app"
+      ],
+      "sources": [
+        {
+          "type": "git",
+          "url": "https://github.com/one337/murmel.git",
+          "tag": "v0.3.10",
+          "commit": "9387bd6f31a04efd0aa59134b600b356af782921"
+        }
+      ]
+    }
+  ]
+}
