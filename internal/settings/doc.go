@@ -20,9 +20,16 @@
 //
 // [New] picks GSettings when the schema is resolvable and silently falls
 // back to [Memory] otherwise (development convenience; the Flatpak always
-// ships the compiled schema).
+// ships the compiled schema), and wraps either in a [Store].
 //
-// There is deliberately NO JSON config file fallback.
+// # Data files
+//
+// The saved servers and the per-user volumes and mutes grow with use, so
+// they are not kept in GSettings (dconf) but by [Store] in JSON files in
+// the data directory ($XDG_DATA_HOME/murmel): servers.json and
+// local-audio.json, each with a "version" field. Values still found in the
+// former GSettings keys (server-list, user-volumes, user-local-mutes) are
+// moved there once; the keys stay in the schema for that move only.
 //
 // # Threading
 //
@@ -43,7 +50,7 @@
 //	Schema key           Typed accessors                            Preferences widget
 //	first-run            FirstRun / SetFirstRun                     (none: first-run flow)
 //	last-identity        LastIdentity / SetLastIdentity             identity picker
-//	server-list          Servers / SetServers                       favorites list
+//	server-list          Servers / SetServers                       saved servers (data file)
 //	audio-input-device   AudioInputDevice / SetAudioInputDevice     input device combo
 //	audio-output-device  AudioOutputDevice / SetAudioOutputDevice   output device combo
 //	vad-threshold        VADThreshold / SetVADThreshold             sensitivity scale
@@ -63,14 +70,13 @@
 //	chat-log             ChatLogEvents / SetChatLogEvents           chat log switches
 //	sounds-enabled       SoundsEnabled / SetSoundsEnabled           sounds expander switch
 //	sound-events         SoundEvents / SetSoundEvents               per-event sound combos
-//	user-volumes         UserVolumes / SetUserVolumes               volume slider in the user menu
-//	user-local-mutes     UserLocalMutes / SetUserLocalMutes         "Mute for me" in the user menu
+//	user-volumes         UserVolumes / SetUserVolumes               volume slider in the user menu (data file)
+//	user-local-mutes     UserLocalMutes / SetUserLocalMutes         "Mute for me" in the user menu (data file)
 //	auto-reconnect       AutoReconnect / SetAutoReconnect           reconnect switch
 //	window-width         WindowWidth / SetWindowWidth              (none: saved on close)
 //	window-height        WindowHeight / SetWindowHeight            (none: saved on close)
 //	window-maximized     WindowMaximized / SetWindowMaximized      (none: saved on close)
 //
-// server-list entries are [ServerEntry] values serialized as compact JSON
-// strings inside the GSettings string array (format documented in the
-// schema file itself).
+// In GSettings, server-list entries were [ServerEntry] values serialized
+// as compact JSON strings inside the string array.
 package settings

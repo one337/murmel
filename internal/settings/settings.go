@@ -1,13 +1,14 @@
 package settings
 
+import "log/slog"
+
 // SchemaID is the GSettings schema id of the application. It must match the
 // id in data/io.github.one337.murmel.gschema.xml.
 const SchemaID = "io.github.one337.murmel"
 
-// ServerEntry is one favorite server stored in the server-list key. Each
-// entry is serialized as a compact JSON object string (fields "name",
-// "host", "port", "username", "identity-id") inside the GSettings string
-// array.
+// ServerEntry is one saved server (see Store; the fields keep the names
+// of the former server-list key, "name", "host", "port", "username",
+// "identity-id").
 type ServerEntry struct {
 	Name       string `json:"name"`
 	Host       string `json:"host"`
@@ -137,14 +138,22 @@ type Settings interface {
 	ConnectChanged(f func(key string)) (disconnect func())
 }
 
-// New returns the process settings store: the GSettings-backed
-// implementation when SchemaID is resolvable (installed system-wide or via
-// GSETTINGS_SCHEMA_DIR), otherwise the Memory implementation. The fallback
+// New returns the process settings store: plain settings come from
+// GSettings when SchemaID is resolvable (installed system-wide or via
+// GSETTINGS_SCHEMA_DIR), otherwise from the Memory implementation, which
 // keeps plain `go run`/`go test` sessions working without installing
-// schemas; the Flatpak always ships the compiled schema.
-func New() Settings {
+// schemas; the Flatpak always ships the compiled schema. The saved servers
+// and the per-user volumes and mutes live in data files under
+// $XDG_DATA_HOME/murmel either way (see Store).
+func New() *Store {
+	var base Settings = NewMemory()
 	if gs, err := NewGSettings(); err == nil {
-		return gs
+		base = gs
 	}
-	return NewMemory()
+	dir, err := dataDir()
+	if err != nil {
+		slog.Error("settings: no data directory, saved servers and volumes are not kept", "err", err)
+		dir = ""
+	}
+	return NewStore(base, dir)
 }

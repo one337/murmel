@@ -14,7 +14,7 @@
     <key name="server-list" type="as">
       <default>[]</default>
       <summary>Favorite servers</summary>
-      <description>Favorite Mumble servers. Each array element is one favorite serialized as a compact JSON object string with the fields "name", "host", "port", "username" and "identity-id"; e.g. {"name":"Community","host":"mumble.example.org","port":64738,"username":"alice","identity-id":"sha256:..."}. Entries that fail to parse are skipped on load.</description>
+      <description>Favorite Mumble servers. Each array element is one favorite serialized as a compact JSON object string with the fields "name", "host", "port", "username" and "identity-id"; e.g. {"name":"Community","host":"mumble.example.org","port":64738,"username":"alice","identity-id":"sha256:..."}. Entries that fail to parse are skipped on load. No longer used: Murmel moves the value to a data file once and then clears this key.</description>
     </key>
     <key name="audio-input-device" type="s">
       <default>''</default>
@@ -129,12 +129,12 @@
     <key name="user-volumes" type="a{sd}">
       <default>{}</default>
       <summary>Volume per user</summary>
-      <description>Local volume of other users (1.0 = 100 %, up to 2.0), by "host:port|cert:hash" or "host:port|name:name" (users without a certificate). Users without an entry play at 100 %.</description>
+      <description>Local volume of other users (1.0 = 100 %, up to 2.0), by "host:port|cert:hash" or "host:port|name:name" (users without a certificate). Users without an entry play at 100 %. No longer used: Murmel moves the value to a data file once and then clears this key.</description>
     </key>
     <key name="user-local-mutes" type="a{sb}">
       <default>{}</default>
       <summary>Users muted for you</summary>
-      <description>Users you muted locally, keyed like user-volumes.</description>
+      <description>Users you muted locally, keyed like user-volumes. No longer used: Murmel moves the value to a data file once and then clears this key.</description>
     </key>
     <key name="auto-reconnect" type="b">
       <default>true</default>

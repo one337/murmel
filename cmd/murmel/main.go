@@ -62,6 +62,7 @@ func main() {
 	})
 
 	code := app.Run(os.Args)
+	st.Flush()
 	b.Close()
 	os.Exit(code)
 }

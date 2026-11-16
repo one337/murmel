@@ -166,14 +166,23 @@ func TestEntryMarshalFormat(t *testing.T) {
 }
 
 // TestNewFactory documents New()'s runtime selection: GSettings when the
-// schema is resolvable in this environment, Memory otherwise.
+// schema is resolvable in this environment, Memory otherwise, with the
+// data files in $XDG_DATA_HOME/murmel.
 func TestNewFactory(t *testing.T) {
+	// Never the user's real settings or data directory.
+	t.Setenv("GSETTINGS_BACKEND", "memory")
+	data := t.TempDir()
+	t.Setenv("XDG_DATA_HOME", data)
+
 	s := New()
 	if SchemaAvailable() {
-		if _, ok := s.(*GSettings); !ok {
-			t.Fatalf("schema available but New() returned %T, want *GSettings", s)
+		if _, ok := s.Settings.(*GSettings); !ok {
+			t.Fatalf("schema available but New() uses %T, want *GSettings", s.Settings)
 		}
-	} else if _, ok := s.(*Memory); !ok {
-		t.Fatalf("schema unavailable but New() returned %T, want *Memory", s)
+	} else if _, ok := s.Settings.(*Memory); !ok {
+		t.Fatalf("schema unavailable but New() uses %T, want *Memory", s.Settings)
+	}
+	if want := filepath.Join(data, "murmel", serversFile); s.servers.path != want {
+		t.Fatalf("servers file = %q, want %q", s.servers.path, want)
 	}
 }
