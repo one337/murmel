@@ -9,6 +9,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
+
+	"io.github/murmel/internal/ui/weakref"
 )
 
 // Options tunes how blocks become widgets.
@@ -96,7 +98,12 @@ func picture(data []byte, opt Options) gtk.Widgetter {
 	pic.AddCSSClass("rich-image")
 	pic.SetCursorFromName("zoom-in")
 	click := gtk.NewGestureClick()
-	click.ConnectReleased(func(int, float64, float64) { showFull(pic, tex) })
+	// The gesture belongs to pic: holding pic strongly would keep it (and
+	// its texture) alive after the row is gone (see internal/ui/weakref).
+	picRef := weakref.New(pic)
+	click.ConnectReleased(func(int, float64, float64) {
+		picRef.Do(func(pic *gtk.Picture) { showFull(pic, tex) })
+	})
 	pic.AddController(click)
 	frame.Append(pic)
 	return frame
