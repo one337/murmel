@@ -169,9 +169,9 @@ func TestGTKFocusedUserLeavesFocusStaysInChannel(t *testing.T) {
 	}
 }
 
-// The focus far down the list and the scroll position stay where they
-// were.
-func TestGTKRebuildKeepsFocusAndScrollFarDown(t *testing.T) {
+// The focus far down the list stays, and so does its place on screen
+// while users above it leave.
+func TestGTKRebuildKeepsFocusAndPlaceFarDown(t *testing.T) {
 	needGTK(t)
 	tree, b, _, _ := focusTree(t, 30, 300)
 	var keep rowID
@@ -182,10 +182,13 @@ func TestGTKRebuildKeepsFocusAndScrollFarDown(t *testing.T) {
 	})
 	focusRow(t, tree, keep)
 	time.Sleep(3 * rebuildInterval) // the list scrolls to the row
-	var before, after float64
-	onMain(func() { before = tree.root.VAdjustment().Value() })
-	if before < 1000 {
-		t.Fatalf("focusing a row far down did not scroll (at %.0f)", before)
+	var scroll, top float64
+	onMain(func() {
+		scroll = tree.root.VAdjustment().Value()
+		top, _, _ = viewTop(tree, keep)
+	})
+	if scroll < 1000 {
+		t.Fatalf("focusing a row far down did not scroll (at %.0f)", scroll)
 	}
 
 	var gone []uint32
@@ -195,10 +198,7 @@ func TestGTKRebuildKeepsFocusAndScrollFarDown(t *testing.T) {
 		}
 	}
 	removeAndWait(t, tree, b, gone...)
-	onMain(func() { after = tree.root.VAdjustment().Value() })
-	if after != before {
-		t.Errorf("the scroll position moved from %.0f to %.0f", before, after)
-	}
+	keepsPlace(t, tree, keep, top, "the focused row")
 	if got, ok := focused(tree); !ok || got != keep {
 		t.Errorf("focus on %+v (%v), want %+v", got, ok, keep)
 	}

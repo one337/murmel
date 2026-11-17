@@ -2,6 +2,7 @@ package channeltree
 
 import (
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -14,7 +15,7 @@ type rowID struct {
 }
 
 // listState is what a rebuild must keep: keyboard focus, selection and
-// scroll position.
+// what is on screen.
 type listState struct {
 	// focus lists the rows that may take the keyboard focus after the
 	// rebuild, best first: the focused row, then (if it goes) the users
@@ -26,6 +27,47 @@ type listState struct {
 	hasSelected bool
 
 	scroll float64
+
+	// anchor lists the rows that keep their place on screen, best first:
+	// the focused row if it is in view, else the top row in view; then
+	// the rows below it and the rows above it, nearest first. With the
+	// focus ring hidden (mouse use), the focused row is followed by the
+	// top row in view and its neighbours instead, so that the view stays
+	// as it is when the focused row goes. Empty when the rows had no
+	// layout yet.
+	anchor []anchorCandidate
+
+	// focusShown: the focus ring was shown and the focused row was in
+	// view. If the focus then ends on another row, or the same user in
+	// another channel, that row is scrolled fully into view.
+	focusShown bool
+	// focusChannel is the channel the focused row was in (or is).
+	focusChannel uint32
+	// ensureFocus is carried over from a rebuild whose rows never got a
+	// layout.
+	ensureFocus bool
+}
+
+// anchorCandidate is a row and how far its top was below the top of the
+// view. A user only counts while still in the channel they were in, so
+// that a user being moved elsewhere does not carry the view along.
+type anchorCandidate struct {
+	row     rowID
+	channel uint32
+	offset  float64
+}
+
+// pendingAnchor is applied once the new rows have a layout.
+type pendingAnchor struct {
+	anchor []anchorCandidate
+	// ensureFocus scrolls the focused row fully into view (by as little
+	// as possible) after anchoring.
+	ensureFocus bool
+	clock       *gdk.FrameClock
+	layout      coreglib.SignalHandle
+	// retried is the frame in which the layout phase was asked to run
+	// once more.
+	retried int64
 }
 
 // focusCandidate is a row to focus. A user other than the focused one
@@ -66,20 +108,13 @@ func (t *Tree) rowFor(id rowID) *gtk.ListBoxRow {
 	return nil
 }
 
-// saveListState records focus, selection and scroll position before the
-// rows go.
+// saveListState records focus, selection and the rows' place on screen
+// before the rows go.
 func (t *Tree) saveListState() listState {
-	s := listState{scroll: t.root.VAdjustment().Value()}
+	adj := t.root.VAdjustment()
+	s := listState{scroll: adj.Value()}
 	if sel := t.list.SelectedRow(); sel != nil {
 		s.selected, s.hasSelected = t.rowIDOf(sel)
-	}
-	root := t.list.Root()
-	if root == nil {
-		return s
-	}
-	focused := focusedRow(root.Focus(), t.list)
-	if focused == nil {
-		return s
 	}
 
 	// The rows in their current order, as identities.
@@ -90,8 +125,20 @@ func (t *Tree) saveListState() listState {
 	for session, r := range t.userRows {
 		ids[coreglib.InternObject(r.root).Native()] = rowID{user: true, id: session}
 	}
-	focusedNative := coreglib.InternObject(focused).Native()
+	var focused *gtk.ListBoxRow
+	focusVisible := false
+	if root := t.list.Root(); root != nil {
+		focused = focusedRow(root.Focus(), t.list)
+		if w, ok := coreglib.InternObject(root).Cast().(interface{ FocusVisible() bool }); ok {
+			focusVisible = w.FocusVisible()
+		}
+	}
+	var focusedNative uintptr
+	if focused != nil {
+		focusedNative = coreglib.InternObject(focused).Native()
+	}
 	var order []rowID
+	var rows []*gtk.ListBoxRow
 	at := -1
 	for c := t.list.FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
 		native := coreglib.InternObject(c).Native()
@@ -103,12 +150,71 @@ func (t *Tree) saveListState() listState {
 			at = len(order)
 		}
 		order = append(order, id)
+		rows = append(rows, t.rowFor(id))
 	}
-	if at < 0 {
+	if at >= 0 {
+		s.focus = focusCandidates(order, at)
+		s.focusChannel = channelAbove(order, at)
+	}
+
+	if t.anchor != nil {
+		// The last rebuild's rows never got a layout: keep its anchor.
+		s.anchor, s.scroll, s.ensureFocus = t.anchor.anchor, t.heldScroll, t.anchor.ensureFocus
 		return s
 	}
-	s.focus = focusCandidates(order, at)
+	if len(rows) == 0 || rows[0].Width() == 0 {
+		return s
+	}
+	tops := make([]float64, len(rows))
+	inView := make([]bool, len(rows))
+	page := adj.PageSize()
+	for i, row := range rows {
+		b, ok := row.ComputeBounds(t.list)
+		if !ok {
+			return s
+		}
+		tops[i] = float64(b.Y())
+		inView[i] = tops[i]+float64(b.Height()) > s.scroll && tops[i] < s.scroll+page
+	}
+	top := -1
+	for i := range rows {
+		if inView[i] {
+			top = i
+			break
+		}
+	}
+	switch {
+	case at >= 0 && inView[at] && focusVisible:
+		// Keyboard use: the focused row holds its place; if it goes, the
+		// rows next to it do.
+		s.anchor = anchorCandidates(order, at, tops, s.scroll)
+		s.focusShown = true
+	case at >= 0 && inView[at]:
+		// Mouse use: the focused row holds its place; if it goes, the
+		// view stays as it is, held by its top row.
+		s.anchor = append(anchorCandidates(order, at, tops, s.scroll)[:1:1],
+			anchorCandidates(order, top, tops, s.scroll)...)
+	case top >= 0:
+		s.anchor = anchorCandidates(order, top, tops, s.scroll)
+	}
 	return s
+}
+
+// anchorCandidates lists the rows that keep their place on screen when
+// order[from] was the anchor: itself, the rows below, then the rows above,
+// nearest first.
+func anchorCandidates(order []rowID, from int, tops []float64, scroll float64) []anchorCandidate {
+	out := make([]anchorCandidate, 0, len(order))
+	add := func(i int) {
+		out = append(out, anchorCandidate{row: order[i], channel: channelAbove(order, i), offset: tops[i] - scroll})
+	}
+	for i := from; i < len(order); i++ {
+		add(i)
+	}
+	for i := from - 1; i >= 0; i-- {
+		add(i)
+	}
+	return out
 }
 
 // focusCandidates lists the rows to focus when order[at] had the focus, in
@@ -174,8 +280,8 @@ func focusedRow(focus gtk.Widgetter, list *gtk.ListBox) *gtk.ListBoxRow {
 	return nil
 }
 
-// restoreListState gives the new rows the focus, selection and scroll
-// position the old ones had.
+// restoreListState gives the new rows the focus and selection the old ones
+// had, and keeps what was on screen there (see anchorAfterLayout).
 func (t *Tree) restoreListState(s listState) {
 	t.restoring = true
 	defer func() { t.restoring = false }()
@@ -185,10 +291,11 @@ func (t *Tree) restoreListState(s listState) {
 	t.heldScroll, t.holdScroll = s.scroll, true
 	t.root.VAdjustment().SetValue(s.scroll)
 
+	var target *gtk.ListBoxRow
 	if len(s.focus) > 0 {
 		// The focus ring stays as shown or hidden.
-		if row := t.focusTarget(s.focus); row != nil {
-			row.GrabFocus()
+		if target = t.focusTarget(s.focus); target != nil {
+			target.GrabFocus()
 		}
 	}
 	if s.hasSelected {
@@ -196,24 +303,119 @@ func (t *Tree) restoreListState(s listState) {
 			t.list.SelectRow(row)
 		}
 	}
+
+	// The focus moved to another row, or followed its user to another
+	// channel: with the focus ring shown, that row must be in view.
+	ensureFocus := s.ensureFocus
+	if s.focusShown && target != nil {
+		id, _ := t.rowIDOf(target)
+		ensureFocus = id != s.focus[0].row || t.channelOf(id) != s.focusChannel
+	}
+	t.anchorAfterLayout(s.anchor, ensureFocus)
+}
+
+// channelOf is the channel a row is in (or, for a channel row, is).
+func (t *Tree) channelOf(id rowID) uint32 {
+	if id.user {
+		return t.model.users[id.id].Channel
+	}
+	return id.id
 }
 
 // keepHeldScroll undoes scrolling after a rebuild until the new rows have
 // a size. The list scrolls to a row it focuses (the restored focus, or
 // the next row of an arrow key pressed during the rebuild); a row without
 // a size counts as being at the top, so it would scroll to the top. Once
-// the rows are laid out, scrolling to the focused row works as usual.
+// the rows are laid out (and the anchor is applied), scrolling to the
+// focused row works as usual.
 func (t *Tree) keepHeldScroll() {
 	if !t.holdScroll {
 		return
 	}
-	if row := t.list.RowAtIndex(0); row == nil || row.Width() > 0 {
+	if row := t.list.RowAtIndex(0); row == nil || (row.Width() > 0 && t.anchor == nil) {
 		t.holdScroll = false
 		return
 	}
 	if adj := t.root.VAdjustment(); adj.Value() != t.heldScroll {
 		adj.SetValue(t.heldScroll)
 	}
+}
+
+// anchorAfterLayout puts the anchor row back at its old place on screen
+// as soon as the new rows are laid out: in the layout phase of the frame,
+// after GTK's own layout, so that no frame is drawn with the rows in
+// another place (setting the scroll value there lays out again before
+// drawing).
+func (t *Tree) anchorAfterLayout(anchor []anchorCandidate, ensureFocus bool) {
+	t.dropAnchor()
+	fc := t.list.FrameClock()
+	if fc == nil || (len(anchor) == 0 && !ensureFocus) {
+		return
+	}
+	p := &pendingAnchor{anchor: anchor, ensureFocus: ensureFocus, clock: gdk.BaseFrameClock(fc), retried: -1}
+	p.layout = coreglib.InternObject(p.clock).ConnectAfter("layout", func() {
+		if t.anchor != p {
+			return
+		}
+		if row := t.list.RowAtIndex(0); row != nil && row.Width() == 0 {
+			// Not laid out yet in this pass: once more in this frame, so
+			// that the frame is not drawn first. A list without a size
+			// (hidden) waits for the next layout instead.
+			if frame := p.clock.FrameCounter(); p.retried != frame {
+				p.retried = frame
+				p.clock.RequestPhase(gdk.FrameClockPhaseLayout)
+			}
+			return
+		}
+		t.dropAnchor()
+		t.applyAnchor(p)
+	})
+	t.anchor = p
+	p.clock.RequestPhase(gdk.FrameClockPhaseLayout)
+}
+
+// dropAnchor forgets a pending anchor.
+func (t *Tree) dropAnchor() {
+	if p := t.anchor; p != nil {
+		t.anchor = nil
+		coreglib.InternObject(p.clock).HandlerDisconnect(p.layout)
+	}
+}
+
+// applyAnchor scrolls so that the first anchor candidate that is still
+// there is where it was on screen, then (ensureFocus) by as little as
+// possible so that the focused row is fully in view.
+func (t *Tree) applyAnchor(p *pendingAnchor) {
+	adj := t.root.VAdjustment()
+	value := t.heldScroll
+	for _, c := range p.anchor {
+		row := t.rowFor(c.row)
+		if row == nil || (c.row.user && t.channelOf(c.row) != c.channel) {
+			continue
+		}
+		if b, ok := row.ComputeBounds(t.list); ok {
+			value = float64(b.Y()) - c.offset
+			break
+		}
+	}
+	if p.ensureFocus {
+		if root := t.list.Root(); root != nil {
+			if row := focusedRow(root.Focus(), t.list); row != nil {
+				if b, ok := row.ComputeBounds(t.list); ok {
+					top, bottom := float64(b.Y()), float64(b.Y()+b.Height())
+					if bottom > value+adj.PageSize() {
+						value = bottom - adj.PageSize()
+					}
+					if top < value {
+						value = top
+					}
+				}
+			}
+		}
+	}
+	value = max(adj.Lower(), min(value, adj.Upper()-adj.PageSize()))
+	t.holdScroll = false
+	adj.SetValue(value)
 }
 
 // focusTarget picks the first candidate that still has a row (a user only

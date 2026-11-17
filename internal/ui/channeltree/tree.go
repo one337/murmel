@@ -73,6 +73,9 @@ type Tree struct {
 	// new rows have a size (see keepHeldScroll).
 	holdScroll bool
 	heldScroll float64
+	// anchor is waiting for the new rows' layout to put the anchor row
+	// back where it was on screen (see anchorAfterLayout).
+	anchor *pendingAnchor
 }
 
 // openMenu is the shown context menu, of a channel or (user) of a user.

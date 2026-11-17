@@ -261,21 +261,27 @@ func TestGTKUpdatesForALeavingUserBeforeTheRebuild(t *testing.T) {
 	checkListMatchesModel(t, tree)
 }
 
-// A batched rebuild keeps the scroll position, as the single rebuild did.
-func TestGTKBatchedRebuildKeepsScrollPosition(t *testing.T) {
+// A batched rebuild keeps the top row of the view where it was, as the
+// single rebuild does.
+func TestGTKBatchedRebuildKeepsTheView(t *testing.T) {
 	needGTK(t)
 	tree, b, _ := batchTree(t, 30, 300)
 	time.Sleep(3 * rebuildInterval)
 
-	var before, after float64
+	var scroll, top float64
+	var anchor rowID
 	onMain(func() {
 		adj := tree.root.VAdjustment()
 		adj.SetValue((adj.Upper() - adj.PageSize()) * 0.9)
 	})
 	time.Sleep(3 * rebuildInterval)
-	onMain(func() { before = tree.root.VAdjustment().Value() })
-	if before < 1000 {
-		t.Fatalf("could not scroll down (at %.0f)", before)
+	onMain(func() {
+		scroll = tree.root.VAdjustment().Value()
+		anchor, _ = rowAtView(tree, 0)
+		top, _, _ = viewTop(tree, anchor)
+	})
+	if scroll < 1000 {
+		t.Fatalf("could not scroll down (at %.0f)", scroll)
 	}
 	var evs []bus.Event
 	for s := 1; s <= 20; s++ {
@@ -284,8 +290,5 @@ func TestGTKBatchedRebuildKeepsScrollPosition(t *testing.T) {
 	inOnePass(b, evs, func() {})
 	waitFor(t, "the rebuild", func() bool { return len(tree.userRows) == 280 && !tree.rebuildPending })
 	time.Sleep(3 * rebuildInterval)
-	onMain(func() { after = tree.root.VAdjustment().Value() })
-	if after != before {
-		t.Errorf("the scroll position moved from %.0f to %.0f", before, after)
-	}
+	keepsPlace(t, tree, anchor, top, "the top row")
 }
