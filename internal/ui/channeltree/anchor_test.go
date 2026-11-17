@@ -35,11 +35,21 @@ func viewTop(tree *Tree, id rowID) (top, height float64, ok bool) {
 	if row == nil {
 		return 0, 0, false
 	}
-	b, ok := row.ComputeBounds(tree.list)
+	b, ok := row.ComputeBounds(tree.root.Child())
 	if !ok {
 		return 0, 0, false
 	}
-	return float64(b.Y()) - tree.root.VAdjustment().Value(), float64(b.Height()), true
+	return float64(b.Y()), float64(b.Height()), true
+}
+
+// sidebarMargin gives the list the margin the sidebar style gives it in
+// the app (the tests run without that style sheet).
+func sidebarMargin(tree *Tree) {
+	onMain(func() {
+		tree.list.SetMarginTop(6)
+		tree.list.SetMarginBottom(6)
+	})
+	time.Sleep(2 * rebuildInterval)
 }
 
 // rowAtView is the row y px below the top of the view (call on the main
@@ -58,8 +68,9 @@ func rowAtView(tree *Tree, y float64) (rowID, bool) {
 func scrollRowToTop(t *testing.T, tree *Tree, id rowID) {
 	t.Helper()
 	onMain(func() {
-		b, _ := tree.rowFor(id).ComputeBounds(tree.list)
-		tree.root.VAdjustment().SetValue(float64(b.Y()))
+		top, _, _ := viewTop(tree, id)
+		adj := tree.root.VAdjustment()
+		adj.SetValue(adj.Value() + top)
 	})
 	time.Sleep(3 * rebuildInterval)
 	var top float64
@@ -321,6 +332,7 @@ func focusedUserInView(t *testing.T, tree *Tree, order []rowID) (rowID, int, flo
 func TestGTKFocusedUserMovedKeyboardViewFollows(t *testing.T) {
 	needGTK(t)
 	tree, b, win, _ := focusTree(t, 30, 300)
+	sidebarMargin(tree)
 	order := listOrder(tree)
 	focus, _, _ := focusedUserInView(t, tree, order)
 	onMain(func() { win.SetFocusVisible(true) })

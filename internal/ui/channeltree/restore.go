@@ -46,6 +46,9 @@ type listState struct {
 	// ensureFocus is carried over from a rebuild whose rows never got a
 	// layout.
 	ensureFocus bool
+	// reveal: one's own row is to be scrolled into view (see
+	// Tree.revealSelf), also carried over.
+	reveal bool
 }
 
 // anchorCandidate is a row and how far its top was below the top of the
@@ -63,8 +66,11 @@ type pendingAnchor struct {
 	// ensureFocus scrolls the focused row fully into view (by as little
 	// as possible) after anchoring.
 	ensureFocus bool
-	clock       *gdk.FrameClock
-	layout      coreglib.SignalHandle
+	// reveal then does the same for one's own row; it wins where both do
+	// not fit.
+	reveal bool
+	clock  *gdk.FrameClock
+	layout coreglib.SignalHandle
 	// retried is the frame in which the layout phase was asked to run
 	// once more.
 	retried int64
@@ -159,7 +165,7 @@ func (t *Tree) saveListState() listState {
 
 	if t.anchor != nil {
 		// The last rebuild's rows never got a layout: keep its anchor.
-		s.anchor, s.scroll, s.ensureFocus = t.anchor.anchor, t.heldScroll, t.anchor.ensureFocus
+		s.anchor, s.scroll, s.ensureFocus, s.reveal = t.anchor.anchor, t.heldScroll, t.anchor.ensureFocus, t.anchor.reveal
 		return s
 	}
 	if len(rows) == 0 || rows[0].Width() == 0 {
@@ -169,12 +175,12 @@ func (t *Tree) saveListState() listState {
 	inView := make([]bool, len(rows))
 	page := adj.PageSize()
 	for i, row := range rows {
-		b, ok := row.ComputeBounds(t.list)
+		top, height, ok := t.contentBounds(row)
 		if !ok {
 			return s
 		}
-		tops[i] = float64(b.Y())
-		inView[i] = tops[i]+float64(b.Height()) > s.scroll && tops[i] < s.scroll+page
+		tops[i] = top
+		inView[i] = top+height > s.scroll && top < s.scroll+page
 	}
 	top := -1
 	for i := range rows {
@@ -311,7 +317,9 @@ func (t *Tree) restoreListState(s listState) {
 		id, _ := t.rowIDOf(target)
 		ensureFocus = id != s.focus[0].row || t.channelOf(id) != s.focusChannel
 	}
-	t.anchorAfterLayout(s.anchor, ensureFocus)
+	reveal := s.reveal || t.revealSelf
+	t.revealSelf = false
+	t.anchorAfterLayout(s.anchor, ensureFocus, reveal)
 }
 
 // channelOf is the channel a row is in (or, for a channel row, is).
@@ -346,13 +354,13 @@ func (t *Tree) keepHeldScroll() {
 // after GTK's own layout, so that no frame is drawn with the rows in
 // another place (setting the scroll value there lays out again before
 // drawing).
-func (t *Tree) anchorAfterLayout(anchor []anchorCandidate, ensureFocus bool) {
+func (t *Tree) anchorAfterLayout(anchor []anchorCandidate, ensureFocus, reveal bool) {
 	t.dropAnchor()
 	fc := t.list.FrameClock()
-	if fc == nil || (len(anchor) == 0 && !ensureFocus) {
+	if fc == nil || (len(anchor) == 0 && !ensureFocus && !reveal) {
 		return
 	}
-	p := &pendingAnchor{anchor: anchor, ensureFocus: ensureFocus, clock: gdk.BaseFrameClock(fc), retried: -1}
+	p := &pendingAnchor{anchor: anchor, ensureFocus: ensureFocus, reveal: reveal, clock: gdk.BaseFrameClock(fc), retried: -1}
 	p.layout = coreglib.InternObject(p.clock).ConnectAfter("layout", func() {
 		if t.anchor != p {
 			return
@@ -384,7 +392,8 @@ func (t *Tree) dropAnchor() {
 
 // applyAnchor scrolls so that the first anchor candidate that is still
 // there is where it was on screen, then (ensureFocus) by as little as
-// possible so that the focused row is fully in view.
+// possible so that the focused row is fully in view, and (reveal) one's
+// own row.
 func (t *Tree) applyAnchor(p *pendingAnchor) {
 	adj := t.root.VAdjustment()
 	value := t.heldScroll
@@ -393,29 +402,49 @@ func (t *Tree) applyAnchor(p *pendingAnchor) {
 		if row == nil || (c.row.user && t.channelOf(c.row) != c.channel) {
 			continue
 		}
-		if b, ok := row.ComputeBounds(t.list); ok {
-			value = float64(b.Y()) - c.offset
+		if top, _, ok := t.contentBounds(row); ok {
+			value = top - c.offset
 			break
+		}
+	}
+	show := func(row *gtk.ListBoxRow) {
+		if top, height, ok := t.contentBounds(row); ok {
+			bottom := top + height
+			if bottom > value+adj.PageSize() {
+				value = bottom - adj.PageSize()
+			}
+			if top < value {
+				value = top
+			}
 		}
 	}
 	if p.ensureFocus {
 		if root := t.list.Root(); root != nil {
 			if row := focusedRow(root.Focus(), t.list); row != nil {
-				if b, ok := row.ComputeBounds(t.list); ok {
-					top, bottom := float64(b.Y()), float64(b.Y()+b.Height())
-					if bottom > value+adj.PageSize() {
-						value = bottom - adj.PageSize()
-					}
-					if top < value {
-						value = top
-					}
-				}
+				show(row)
 			}
+		}
+	}
+	if p.reveal {
+		if r, ok := t.userRows[t.model.self]; ok {
+			show(r.root)
 		}
 	}
 	value = max(adj.Lower(), min(value, adj.Upper()-adj.PageSize()))
 	t.holdScroll = false
 	adj.SetValue(value)
+}
+
+// contentBounds is the top and height of row in the scrolled content,
+// the coordinates the scroll value counts in. The list itself may sit
+// lower than the content's top (the sidebar style gives it a margin), so
+// the list's own coordinates would be off by that much.
+func (t *Tree) contentBounds(row *gtk.ListBoxRow) (top, height float64, ok bool) {
+	b, ok := row.ComputeBounds(t.root.Child())
+	if !ok {
+		return 0, 0, false
+	}
+	return float64(b.Y()) + t.root.VAdjustment().Value(), float64(b.Height()), true
 }
 
 // focusTarget picks the first candidate that still has a row (a user only

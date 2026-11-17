@@ -278,6 +278,21 @@ func (m *treeModel) hasSelf() bool {
 	return ok
 }
 
+// openTo opens channel id and every channel above it.
+func (m *treeModel) openTo(id uint32) {
+	for depth := 0; depth < 64; depth++ { // guards against a parent cycle
+		n, ok := m.channels[id]
+		if !ok {
+			return
+		}
+		n.expanded = true
+		if isRoot(id) {
+			return
+		}
+		id = n.info.ParentID
+	}
+}
+
 // selfChannel returns the local user's channel (0 while unknown).
 func (m *treeModel) selfChannel() uint32 {
 	if u, ok := m.users[m.self]; ok {

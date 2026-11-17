@@ -79,6 +79,9 @@ type Tree struct {
 	// anchor is waiting for the new rows' layout to put the anchor row
 	// back where it was on screen (see anchorAfterLayout).
 	anchor *pendingAnchor
+	// revealSelf: one's own channel changed; the next rebuild scrolls
+	// one's own row into view.
+	revealSelf bool
 }
 
 // openMenu is the shown context menu, of a channel or (user) of a user.
@@ -223,7 +226,14 @@ func (t *Tree) applyUnread() {
 // other structural changes of the moment (see scheduleRebuild); otherwise
 // only the directly affected row widget is refreshed.
 func (t *Tree) handle(ev bus.Event) {
+	had, from := t.model.hasSelf(), t.model.selfChannel()
 	if t.model.apply(ev) {
+		// One's own channel changed (one moved or was moved): the next
+		// rebuild opens it and shows one's own row.
+		if had && t.model.hasSelf() && t.model.selfChannel() != from {
+			t.model.openTo(t.model.selfChannel())
+			t.revealSelf = true
+		}
 		t.scheduleRebuild()
 	} else {
 		t.updateInPlace(ev)
