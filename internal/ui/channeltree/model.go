@@ -313,6 +313,23 @@ func (m *treeModel) walk() []entry {
 	return out
 }
 
+// below lists the entries walk shows inside channel id: its users and
+// sub-channels, as far as they are open. Empty if id is closed.
+func (m *treeModel) below(id uint32) []entry {
+	walk := m.walk()
+	for i, e := range walk {
+		if e.kind != entryChannel || e.id != id {
+			continue
+		}
+		end := i + 1
+		for end < len(walk) && walk[end].depth > e.depth {
+			end++
+		}
+		return walk[i+1 : end]
+	}
+	return nil
+}
+
 // channelOrder lists all channels depth-first, as the tree shows them
 // when everything is expanded.
 func (m *treeModel) channelOrder() []uint32 {

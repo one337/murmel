@@ -136,9 +136,8 @@ func TestGTKRebuildFreesOldRows(t *testing.T) {
 		}
 	})
 
-	// Collapsing and expanding the root rebuilds the whole list.
 	for range rebuilds {
-		onMain(func() { tree.toggleExpand(0) })
+		onMain(func() { tree.rebuild() })
 	}
 	onMain(func() {
 		if len(tree.userRows) != users {

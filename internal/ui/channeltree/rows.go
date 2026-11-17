@@ -280,6 +280,20 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	} else {
 		r.chevron.SetIconName(iconExpanderCollapsed)
 	}
+	// Assistive technologies hear "expanded" or "collapsed" only where
+	// there is something to open.
+	if hasKids {
+		// GTK reads "boolean or undefined" states as an int (-1 is
+		// undefined); a boolean GValue would read as false.
+		open := int32(0)
+		if n.expanded {
+			open = 1
+		}
+		r.root.UpdateState([]gtk.AccessibleState{gtk.AccessibleStateExpanded},
+			[]coreglib.Value{*coreglib.NewValue(open)})
+	} else {
+		r.root.ResetState(gtk.AccessibleStateExpanded)
+	}
 	if len(n.users) > 0 {
 		r.count.SetText(fmt.Sprintf("%d", len(n.users)))
 		r.count.SetVisible(true)

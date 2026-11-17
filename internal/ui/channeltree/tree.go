@@ -378,12 +378,66 @@ func (t *Tree) updateInPlace(ev bus.Event) {
 }
 
 func (t *Tree) toggleExpand(id uint32) {
+	if n, ok := t.model.channels[id]; ok {
+		t.setExpanded(id, !n.expanded)
+	}
+}
+
+// setExpanded opens or closes a channel by adding or removing the rows
+// below it; every other row stays as it is (focus, selection, place on
+// screen). While the rows do not match the model (a rebuild pending or
+// held back by a menu, a drag or a pressed handle), the rebuild shows it.
+func (t *Tree) setExpanded(id uint32, expanded bool) {
 	n, ok := t.model.channels[id]
-	if !ok {
+	if !ok || n.expanded == expanded {
 		return
 	}
-	n.expanded = !n.expanded
-	t.rebuild()
+	if t.rebuildPending || t.menu != nil || t.drag != nil || t.handlePressed {
+		n.expanded = expanded
+		t.scheduleRebuild()
+		return
+	}
+	if expanded {
+		n.expanded = true
+		t.insertMissingRows()
+	} else {
+		t.removeRowsBelow(id)
+		n.expanded = false
+	}
+	if r, ok := t.channelRows[id]; ok {
+		r.update(n)
+	}
+	t.refreshDragHandles()
+	t.applyUnread()
+}
+
+// removeRowsBelow removes the rows shown inside channel id (its users and
+// sub-channels, as far as they are open). The focus, if it was on one of
+// them, goes to the channel's row.
+func (t *Tree) removeRowsBelow(id uint32) {
+	var focused rowID
+	hasFocus := false
+	if root := t.list.Root(); root != nil {
+		if row := focusedRow(root.Focus(), t.list); row != nil {
+			focused, hasFocus = t.rowIDOf(row)
+		}
+	}
+	lost := false
+	for _, e := range t.model.below(id) {
+		if e.kind == entryChannel {
+			if r, ok := t.channelRows[e.id]; ok {
+				t.list.Remove(r.root)
+				delete(t.channelRows, e.id)
+			}
+		} else if r, ok := t.userRows[e.id]; ok {
+			t.list.Remove(r.root)
+			delete(t.userRows, e.id)
+		}
+		lost = lost || (hasFocus && focused == rowID{user: e.kind != entryChannel, id: e.id})
+	}
+	if r, ok := t.channelRows[id]; ok && lost {
+		r.root.GrabFocus()
+	}
 }
 
 // showChannelMenu opens a channel's menu at a point of its row (a right
@@ -491,11 +545,17 @@ func (t *Tree) userMenu(session uint32, at gdk.Rectangle, keyboard bool) {
 //     channel, a click does as before.
 //   - The Menu key and Shift+F10 open the context menu of the focused
 //     row, pointing at the whole row.
+//   - Right and Left open and close channels and move along the tree
+//     (see sideways).
 func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 	mods := state & (gdk.ShiftMask | gdk.ControlMask | gdk.AltMask | gdk.SuperMask)
 	switch {
 	case keyval == gdk.KEY_Menu && mods == 0, keyval == gdk.KEY_F10 && mods == gdk.ShiftMask:
 		return t.menuForFocused()
+	case (keyval == gdk.KEY_Right || keyval == gdk.KEY_KP_Right) && mods == 0:
+		return t.sideways(true)
+	case (keyval == gdk.KEY_Left || keyval == gdk.KEY_KP_Left) && mods == 0:
+		return t.sideways(false)
 	case mods&^gdk.ShiftMask != 0:
 		return false // Ctrl, Alt, Super: GTK's own meaning
 	}
@@ -518,6 +578,59 @@ func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 	}
 	// extend false, modify true: move the cursor without selecting.
 	coreglib.InternObject(t.list).Emit("move-cursor", step, count, false, true)
+	return true
+}
+
+// sideways handles Right and Left on the focused row, as tree views do:
+//
+//   - Right opens a closed channel; on an open one it moves the cursor to
+//     the first row inside.
+//   - Left closes an open channel; on a closed (or empty) channel it moves
+//     the cursor to the parent channel, on a user to their channel.
+//
+// Otherwise (Right on an empty channel or a user, Left on the top
+// channel) nothing happens. The selection, and with it the conversation,
+// stays.
+func (t *Tree) sideways(right bool) bool {
+	root := t.list.Root()
+	if root == nil {
+		return false
+	}
+	row := focusedRow(root.Focus(), t.list)
+	if row == nil {
+		return false
+	}
+	id, ok := t.rowIDOf(row)
+	if !ok {
+		return false
+	}
+	if id.user {
+		if !right {
+			if ch, ok := t.channelRows[t.model.users[id.id].Channel]; ok {
+				ch.root.GrabFocus()
+			}
+		}
+		return true
+	}
+	n, ok := t.model.channels[id.id]
+	if !ok {
+		return true
+	}
+	hasContent := len(n.children) > 0 || len(n.users) > 0
+	switch {
+	case right && hasContent && !n.expanded:
+		t.setExpanded(id.id, true)
+	case right && hasContent:
+		if next := t.list.RowAtIndex(row.Index() + 1); next != nil {
+			next.GrabFocus()
+		}
+	case !right && hasContent && n.expanded:
+		t.setExpanded(id.id, false)
+	case !right && !isRoot(id.id):
+		if parent, ok := t.channelRows[n.info.ParentID]; ok {
+			parent.root.GrabFocus()
+		}
+	}
 	return true
 }
 
