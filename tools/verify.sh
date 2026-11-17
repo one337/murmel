@@ -22,12 +22,14 @@ fail() {
 # scratch programs that may exist in a working copy.
 mapfile -t PKGS < <(go list ./... | grep -v '/target/')
 mapfile -t BUILD_PKGS < <(go list -f '{{if .GoFiles}}{{.ImportPath}}{{end}}' ./... | grep -v '/target/')
-mapfile -t GOFILES < <(git ls-files '*.go' ':!:vendor/**')
+# Go files in git and new ones not added yet; .gitignore (target/, ...)
+# keeps scratch programs out.
+mapfile -t GOFILES < <(git ls-files --cached --others --exclude-standard '*.go' ':!:vendor/**')
 # Packages without GTK widgets: fast enough for the race detector (the UI
 # packages compile gotk4 with -race, which takes many minutes).
 mapfile -t RACE_PKGS < <(printf '%s\n' "${PKGS[@]}" | grep -v '/internal/ui')
 
-step "gofmt (tracked files)"
+step "gofmt (tracked and new files)"
 if gofmt_output="$(gofmt -l "${GOFILES[@]}" 2>&1)" && [ -z "$gofmt_output" ]; then
   pass "gofmt (no unformatted files)"
 else
