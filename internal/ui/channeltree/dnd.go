@@ -125,6 +125,13 @@ func (t *Tree) dragUser(r *userRowWidgets, session uint32) {
 
 	})
 	src.ConnectDragEnd(func(gdk.Dragger, bool) { t.endDrag() })
+	// From the press on the handle, rebuilds wait (see flushRebuild);
+	// released without a drag, the list catches up at once.
+	src.ConnectBegin(func(*gdk.EventSequence) { t.handlePressed = true })
+	src.ConnectEnd(func(*gdk.EventSequence) {
+		t.handlePressed = false
+		t.flushRebuild()
+	})
 	r.handle.AddController(src)
 }
 

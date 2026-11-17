@@ -97,14 +97,21 @@ func removeAndWait(t *testing.T, tree *Tree, b *bus.Bus, sessions ...uint32) {
 	time.Sleep(3 * rebuildInterval) // let layout and any scrolling settle
 }
 
-// record collects the events of type T the bus delivers from now on.
-func record[T bus.Event](t *testing.T, b *bus.Bus) func() []T {
+// record collects the events of type T the bus delivers from now on. The
+// returned func waits until at least want of them arrived (2 s at most;
+// the bus delivers from its own goroutine) and a little longer for any
+// further ones, then returns them all.
+func record[T bus.Event](t *testing.T, b *bus.Bus) func(want int) []T {
 	var mu sync.Mutex
 	var got []T
 	stop := bus.Subscribe(b, func(ev T) { mu.Lock(); got = append(got, ev); mu.Unlock() })
 	t.Cleanup(stop)
-	return func() []T {
-		onMain(func() {}) // events queued before now are handled
+	count := func() int { mu.Lock(); defer mu.Unlock(); return len(got) }
+	return func(want int) []T {
+		for deadline := time.Now().Add(2 * time.Second); count() < want && time.Now().Before(deadline); time.Sleep(10 * time.Millisecond) {
+		}
+		time.Sleep(100 * time.Millisecond)
+		onMain(func() {})
 		mu.Lock()
 		defer mu.Unlock()
 		return append([]T(nil), got...)
@@ -156,7 +163,7 @@ func TestGTKFocusedUserLeavesFocusStaysInChannel(t *testing.T) {
 
 	// Enter (the list's activate-cursor-row) joins the focused channel.
 	onMain(func() { coreglib.InternObject(tree.list).Emit("activate-cursor-row") })
-	got := joins()
+	got := joins(1)
 	if len(got) != 1 || got[0].ChannelID != ch {
 		t.Errorf("Enter after the rebuild requested %+v, want to join channel %d", got, ch)
 	}
@@ -262,10 +269,8 @@ func TestGTKRebuildKeepsSelection(t *testing.T) {
 		targets := record[bus.ChatTargetChanged](t, b)
 		onMain(func() { tree.list.SelectRow(tree.rowFor(sel)) })
 		// Selecting is a new chat target: the test sees that event.
-		for deadline := time.Now().Add(5 * time.Second); len(targets()) == 0; time.Sleep(10 * time.Millisecond) {
-			if time.Now().After(deadline) {
-				t.Fatal("selecting a row did not change the chat target")
-			}
+		if len(targets(1)) == 0 {
+			t.Fatal("selecting a row did not change the chat target")
 		}
 		removeAndWait(t, tree, b, usersOf(tree, 1)[0])
 		var got rowID
@@ -278,7 +283,7 @@ func TestGTKRebuildKeepsSelection(t *testing.T) {
 		if !ok || got != sel {
 			t.Errorf("selected %+v (%v) after the rebuild, want %+v", got, ok, sel)
 		}
-		if ev := targets(); len(ev) != 1 {
+		if ev := targets(1); len(ev) != 1 {
 			t.Errorf("restoring the selection of %+v changed the chat target: %+v", sel, ev[1:])
 		}
 	}

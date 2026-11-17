@@ -31,8 +31,9 @@ type Tree struct {
 	parent gtk.Widgetter // dialog parent for admin actions
 
 	// menuRefresh re-evaluates the open context menu's entries (nil when
-	// no menu is shown).
+	// no menu is shown); menu is that menu and whose it is.
 	menuRefresh func()
+	menu        *openMenu
 
 	// unread counts of private conversations (by session) and of the
 	// channel chat, kept across row rebuilds.
@@ -63,10 +64,22 @@ type Tree struct {
 	// restoring is set while a rebuild gives the new rows the old
 	// selection: that is no new chat target.
 	restoring bool
+	// handlePressed is set while a mouse button is down on a drag handle.
+	// A rebuild would replace the row under it and break the drag that
+	// may follow, so it waits (like during a drag and while a menu is
+	// open).
+	handlePressed bool
 	// holdScroll keeps the list at heldScroll after a rebuild until the
 	// new rows have a size (see keepHeldScroll).
 	holdScroll bool
 	heldScroll float64
+}
+
+// openMenu is the shown context menu, of a channel or (user) of a user.
+type openMenu struct {
+	popover *gtk.PopoverMenu
+	user    bool
+	id      uint32
 }
 
 // rebuildInterval is the least time between two batched rebuilds:
@@ -205,6 +218,27 @@ func (t *Tree) handle(ev bus.Event) {
 	if t.menuRefresh != nil {
 		t.menuRefresh()
 	}
+	t.closeOrphanedMenu()
+}
+
+// closeOrphanedMenu closes the open context menu when the user or channel
+// it is for is gone; the rebuild waiting for it then runs.
+func (t *Tree) closeOrphanedMenu() {
+	m := t.menu
+	if m == nil {
+		return
+	}
+	gone := false
+	if m.user {
+		_, ok := t.model.users[m.id]
+		gone = !ok
+	} else {
+		_, ok := t.model.channels[m.id]
+		gone = !ok
+	}
+	if gone {
+		m.popover.Popdown()
+	}
 }
 
 // scheduleRebuild queues one rebuild for all structural changes until it
@@ -231,11 +265,13 @@ func (t *Tree) scheduleRebuild() {
 	}
 }
 
-// flushRebuild shows a pending structural change now. A rebuild would
-// destroy the row being dragged and end the drag: during a drag it waits
-// until the drop.
+// flushRebuild shows a pending structural change now. A rebuild replaces
+// every row: it would end a drag, break the drag a press on a handle may
+// start, and take an open context menu (attached to its row) off the
+// screen. So it waits until the drop, the release of the button or the
+// menu closing.
 func (t *Tree) flushRebuild() {
-	if !t.rebuildPending {
+	if !t.rebuildPending || t.handlePressed || t.menu != nil {
 		return
 	}
 	if t.drag != nil {
@@ -340,7 +376,7 @@ func (t *Tree) toggleExpand(id uint32) {
 func (t *Tree) showChannelMenu(id uint32, x, y float64) {
 	t.flushRebuild()
 	r, ok := t.channelRows[id]
-	if !ok {
+	if _, known := t.model.channels[id]; !ok || !known {
 		return
 	}
 	name := ""
@@ -364,14 +400,14 @@ func (t *Tree) showChannelMenu(id uint32, x, y float64) {
 		},
 	}
 	menu, refresh := buildChannelMenu(t.model, id, a)
-	t.openMenu(menu, refresh, permissionChannels(t.model, id, 0))
+	t.openMenu(&openMenu{popover: menu, id: id}, refresh, permissionChannels(t.model, id, 0))
 	popupAt(r.root, menu, x, y)
 }
 
 func (t *Tree) showUserMenu(session uint32, x, y float64) {
 	t.flushRebuild()
 	r, ok := t.userRows[session]
-	if !ok {
+	if _, known := t.model.users[session]; !ok || !known {
 		return
 	}
 	u, hasUser := t.model.users[session]
@@ -415,16 +451,23 @@ func (t *Tree) showUserMenu(session uint32, x, y float64) {
 		}
 	}
 	menu, refresh := buildUserMenu(t.model, session, a)
-	t.openMenu(menu, refresh, permissionChannels(t.model, 0, session))
+	t.openMenu(&openMenu{popover: menu, user: true, id: session}, refresh, permissionChannels(t.model, 0, session))
 	popupAt(r.root, menu, x, y)
 }
 
 // openMenu tracks the shown context menu so permission answers arriving
 // while it is open update its entries, and asks the server for the
-// permissions it still lacks.
-func (t *Tree) openMenu(menu *gtk.PopoverMenu, refresh func(), channels []uint32) {
+// permissions it still lacks. Rebuilds wait while it is open.
+func (t *Tree) openMenu(m *openMenu, refresh func(), channels []uint32) {
 	t.menuRefresh = refresh
-	menu.ConnectClosed(func() { t.menuRefresh = nil })
+	t.menu = m
+	m.popover.ConnectClosed(func() {
+		if t.menu != m {
+			return
+		}
+		t.menu, t.menuRefresh = nil, nil
+		t.flushRebuild()
+	})
 	for _, id := range channels {
 		if _, known := t.model.channelPerm(id); !known {
 			t.b.Emit(bus.ChannelPermissionRequested{ChannelID: id})
