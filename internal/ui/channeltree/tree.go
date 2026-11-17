@@ -5,6 +5,7 @@ import (
 	"time"
 
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
+	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
@@ -17,7 +18,9 @@ import (
 // gtk.ListBox (one row per visible entry in depth-first order).
 //
 // When the user activates a channel row (double-click or Enter) it emits
-// bus.ChannelJoinRequested. Row selection emits bus.ChatTargetChanged.
+// bus.ChannelJoinRequested. Row selection (a click, Enter) and activating
+// a user row emit bus.ChatTargetChanged; the arrow keys only move the
+// cursor (see onKey).
 // Construct on the main loop; ctx tears the subscriptions down.
 type Tree struct {
 	root *gtk.ScrolledWindow
@@ -83,6 +86,9 @@ type openMenu struct {
 	popover *gtk.PopoverMenu
 	user    bool
 	id      uint32
+	// keyboard: opened with the Menu key or Shift+F10; the focus goes
+	// back to the row when it closes.
+	keyboard bool
 }
 
 // rebuildInterval is the least time between two batched rebuilds:
@@ -128,6 +134,10 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 			t.onSelect(row)
 		}
 	})
+	keys := gtk.NewEventControllerKey()
+	keys.SetPropagationPhase(gtk.PhaseCapture)
+	keys.ConnectKeyPressed(t.onKey)
+	t.list.AddController(keys)
 
 	t.root = gtk.NewScrolledWindow()
 	t.root.SetChild(t.list)
@@ -376,7 +386,14 @@ func (t *Tree) toggleExpand(id uint32) {
 	t.rebuild()
 }
 
+// showChannelMenu opens a channel's menu at a point of its row (a right
+// click or long press).
 func (t *Tree) showChannelMenu(id uint32, x, y float64) {
+	t.channelMenu(id, gdk.NewRectangle(int(x), int(y), 1, 1), false)
+}
+
+// channelMenu opens a channel's menu pointing at the area at of its row.
+func (t *Tree) channelMenu(id uint32, at gdk.Rectangle, keyboard bool) {
 	t.flushRebuild()
 	r, ok := t.channelRows[id]
 	if _, known := t.model.channels[id]; !ok || !known {
@@ -403,11 +420,18 @@ func (t *Tree) showChannelMenu(id uint32, x, y float64) {
 		},
 	}
 	menu, refresh := buildChannelMenu(t.model, id, a)
-	t.openMenu(&openMenu{popover: menu, id: id}, refresh, permissionChannels(t.model, id, 0))
-	popupAt(r.root, menu, x, y)
+	t.openMenu(&openMenu{popover: menu, id: id, keyboard: keyboard}, refresh, permissionChannels(t.model, id, 0))
+	popupAt(r.root, menu, at)
 }
 
+// showUserMenu opens a user's menu at a point of their row (a right click
+// or long press).
 func (t *Tree) showUserMenu(session uint32, x, y float64) {
+	t.userMenu(session, gdk.NewRectangle(int(x), int(y), 1, 1), false)
+}
+
+// userMenu opens a user's menu pointing at the area at of their row.
+func (t *Tree) userMenu(session uint32, at gdk.Rectangle, keyboard bool) {
 	t.flushRebuild()
 	r, ok := t.userRows[session]
 	if _, known := t.model.users[session]; !ok || !known {
@@ -454,8 +478,70 @@ func (t *Tree) showUserMenu(session uint32, x, y float64) {
 		}
 	}
 	menu, refresh := buildUserMenu(t.model, session, a)
-	t.openMenu(&openMenu{popover: menu, user: true, id: session}, refresh, permissionChannels(t.model, 0, session))
-	popupAt(r.root, menu, x, y)
+	t.openMenu(&openMenu{popover: menu, user: true, id: session, keyboard: keyboard}, refresh, permissionChannels(t.model, 0, session))
+	popupAt(r.root, menu, at)
+}
+
+// onKey handles keys pressed while the focus is in the list, before the
+// list itself (capture phase):
+//
+//   - The arrow keys, Page Up/Down, Home and End only move the cursor, as
+//     Ctrl with them does: the selection, and with it the conversation
+//     shown, stays. Enter (or Space) opens the conversation or joins the
+//     channel, a click does as before.
+//   - The Menu key and Shift+F10 open the context menu of the focused
+//     row, pointing at the whole row.
+func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
+	mods := state & (gdk.ShiftMask | gdk.ControlMask | gdk.AltMask | gdk.SuperMask)
+	switch {
+	case keyval == gdk.KEY_Menu && mods == 0, keyval == gdk.KEY_F10 && mods == gdk.ShiftMask:
+		return t.menuForFocused()
+	case mods&^gdk.ShiftMask != 0:
+		return false // Ctrl, Alt, Super: GTK's own meaning
+	}
+	step, count := gtk.MovementDisplayLines, 0
+	switch keyval {
+	case gdk.KEY_Up, gdk.KEY_KP_Up:
+		count = -1
+	case gdk.KEY_Down, gdk.KEY_KP_Down:
+		count = 1
+	case gdk.KEY_Page_Up, gdk.KEY_KP_Page_Up:
+		step, count = gtk.MovementPages, -1
+	case gdk.KEY_Page_Down, gdk.KEY_KP_Page_Down:
+		step, count = gtk.MovementPages, 1
+	case gdk.KEY_Home, gdk.KEY_KP_Home:
+		step, count = gtk.MovementBufferEnds, -1
+	case gdk.KEY_End, gdk.KEY_KP_End:
+		step, count = gtk.MovementBufferEnds, 1
+	default:
+		return false
+	}
+	// extend false, modify true: move the cursor without selecting.
+	coreglib.InternObject(t.list).Emit("move-cursor", step, count, false, true)
+	return true
+}
+
+// menuForFocused opens the context menu of the row that has the focus.
+func (t *Tree) menuForFocused() bool {
+	root := t.list.Root()
+	if root == nil {
+		return false
+	}
+	row := focusedRow(root.Focus(), t.list)
+	if row == nil {
+		return false
+	}
+	id, ok := t.rowIDOf(row)
+	if !ok {
+		return false
+	}
+	at := gdk.NewRectangle(0, 0, row.Width(), row.Height())
+	if id.user {
+		t.userMenu(id.id, at, true)
+	} else {
+		t.channelMenu(id.id, at, true)
+	}
+	return true
 }
 
 // openMenu tracks the shown context menu so permission answers arriving
@@ -470,12 +556,34 @@ func (t *Tree) openMenu(m *openMenu, refresh func(), channels []uint32) {
 		}
 		t.menu, t.menuRefresh = nil, nil
 		t.flushRebuild()
+		if m.keyboard {
+			t.focusAfterMenu(rowID{user: m.user, id: m.id})
+		}
 	})
 	for _, id := range channels {
 		if _, known := t.model.channelPerm(id); !known {
 			t.b.Emit(bus.ChannelPermissionRequested{ChannelID: id})
 		}
 	}
+}
+
+// focusAfterMenu gives the focus back to the row of a menu opened with the
+// keyboard, once the chosen entry has run: unless that entry moved the
+// focus elsewhere (a dialog, the message composer). The row may have been
+// replaced by the rebuild that waited for the menu.
+func (t *Tree) focusAfterMenu(id rowID) {
+	glib.IdleAdd(func() {
+		root := t.list.Root()
+		if root == nil {
+			return
+		}
+		if f := root.Focus(); f != nil && focusedRow(f, t.list) == nil {
+			return
+		}
+		if row := t.rowFor(id); row != nil {
+			row.GrabFocus()
+		}
+	})
 }
 
 // sameRow reports whether a and b wrap the same GtkListBoxRow. Signal
@@ -488,15 +596,24 @@ func sameRow(a, b *gtk.ListBoxRow) bool {
 	return coreglib.InternObject(a).Native() == coreglib.InternObject(b).Native()
 }
 
-// onActivate fires when the user double-clicks or presses Enter on a row.
-// Channel rows request a join; user rows have their own click handler
-// (it opens the conversation). The row may still show a channel that a
-// pending rebuild removes: only channels the model knows are joined.
+// onActivate fires when the user double-clicks or presses Enter (or
+// Space) on a row. Channel rows request a join; user rows open the
+// conversation, also when the row is selected already (a click does that
+// through the row's own click handler). The row may still show a channel
+// or user that a pending rebuild removes: only those the model knows count.
 func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 	for id, r := range t.channelRows {
 		if sameRow(r.root, row) {
 			if _, ok := t.model.channels[id]; ok {
 				t.b.Emit(bus.ChannelJoinRequested{ChannelID: id})
+			}
+			return
+		}
+	}
+	for session, r := range t.userRows {
+		if sameRow(r.root, row) {
+			if _, ok := t.model.users[session]; ok {
+				t.b.Emit(bus.ChatTargetChanged{Session: session})
 			}
 			return
 		}

@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
@@ -227,6 +228,11 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 // press claims the touch, so it does not also count as a tap (which opens
 // a conversation).
 func contextMenu(row *gtk.ListBoxRow, menu func(x, y float64)) {
+	// Assistive technologies announce that the row has a menu (opened
+	// with the Menu key or Shift+F10, see Tree.onKey).
+	row.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyHasPopup},
+		[]coreglib.Value{*coreglib.NewValue(true)})
+
 	g := gtk.NewGestureClick()
 	g.SetButton(gdk.BUTTON_SECONDARY)
 	g.ConnectPressed(func(_ int, x, y float64) { menu(x, y) })
@@ -520,15 +526,46 @@ func localVolumeSlider(volume float64, set func(float64)) gtk.Widgetter {
 	scale.ConnectValueChanged(func() {
 		self.Do(func(scale *gtk.Scale) { set(scale.Value() / 100) })
 	})
+	// Up and Down go to the menu entry above or below, as everywhere else
+	// in the menu; Left and Right (Page Up/Down, Home, End) set the value.
+	keys := gtk.NewEventControllerKey()
+	keys.SetPropagationPhase(gtk.PhaseCapture)
+	keys.ConnectKeyPressed(func(keyval, _ uint, state gdk.ModifierType) bool {
+		handled := false
+		self.Do(func(scale *gtk.Scale) { handled = sliderKey(scale, keyval, state) })
+		return handled
+	})
+	scale.AddController(keys)
 	box.Append(title)
 	box.Append(scale)
 	return box
 }
 
-func popupAt(row gtk.Widgetter, menu *gtk.PopoverMenu, x, y float64) {
+// sliderKey moves the focus from the volume slider to the menu entry
+// above or below it on Up or Down.
+func sliderKey(scale *gtk.Scale, keyval uint, state gdk.ModifierType) bool {
+	if state&(gdk.ShiftMask|gdk.ControlMask|gdk.AltMask|gdk.SuperMask) != 0 {
+		return false
+	}
+	var dir gtk.DirectionType
+	switch keyval {
+	case gdk.KEY_Up, gdk.KEY_KP_Up:
+		dir = gtk.DirUp
+	case gdk.KEY_Down, gdk.KEY_KP_Down:
+		dir = gtk.DirDown
+	default:
+		return false
+	}
+	if p := scale.Ancestor(gtk.GTypePopover); p != nil {
+		gtk.BaseWidget(p).ChildFocus(dir)
+	}
+	return true
+}
+
+// popupAt shows menu pointing at the area at of row.
+func popupAt(row gtk.Widgetter, menu *gtk.PopoverMenu, at gdk.Rectangle) {
 	menu.SetParent(row)
-	rect := gdk.NewRectangle(int(x), int(y), 1, 1)
-	menu.SetPointingTo(&rect)
+	menu.SetPointingTo(&at)
 	menu.Popup()
 }
 
