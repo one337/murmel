@@ -284,4 +284,3 @@ func TestGTKCollapseFreesRows(t *testing.T) {
 	}
 	t.Errorf("of %d user rows removed by closing, %d still alive in Go, %d of them finalized in GTK", len(structs), alive, finalized.Load())
 }
-
