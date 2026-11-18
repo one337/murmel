@@ -391,6 +391,12 @@ func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
 	r.icons[iconDeafened].SetVisible(u.Deafened || u.SelfDeafened)
 	r.icons[iconPrioritySpeaker].SetVisible(u.PrioritySpeaker)
 	r.icons[iconRecording].SetVisible(u.Recording)
+	setTooltip(r.icons[iconMuted], iconTooltip(stateIf{u.SelfMuted, stateSelfMuted},
+		stateIf{u.Muted, stateServerMuted}, stateIf{u.Suppressed, stateSuppressed}))
+	setTooltip(r.icons[iconDeafened], iconTooltip(stateIf{u.SelfDeafened, stateSelfDeafened},
+		stateIf{u.Deafened, stateServerDeafened}))
+	setTooltip(r.icons[iconPrioritySpeaker], iconTooltip(stateIf{u.PrioritySpeaker, statePrioritySpeaker}))
+	setTooltip(r.icons[iconRecording], iconTooltip(stateIf{u.Recording, stateRecording}))
 	// Speech while muted (the own microphone's voice detection) is not
 	// transmitted: the crossed-out microphone lights up yellow instead of a
 	// second, misleading microphone icon, and the name stays regular.
@@ -403,6 +409,14 @@ func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
 	setBold(r.name, speaking && !muted)
 	r.user = u
 	r.announce()
+}
+
+// setTooltip leaves an unchanged tooltip alone: rows update on every word
+// spoken.
+func setTooltip(img *gtk.Image, text string) {
+	if img.TooltipText() != text {
+		img.SetTooltipText(text)
+	}
 }
 
 func (r *userRowWidgets) announce() {

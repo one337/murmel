@@ -3,6 +3,8 @@ package channeltree
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"io.github/murmel/internal/bus"
 )
@@ -12,6 +14,85 @@ import (
 // a user is speaking is not part of it: screen readers read out a changed
 // description of the focused row, which would happen on every word.
 
+// userState is a state of a user that has a text of its own.
+type userState int
+
+const (
+	stateSelfDeafened userState = iota
+	stateSelfMuted
+	stateServerDeafened
+	stateServerMuted
+	stateSuppressed
+	statePrioritySpeaker
+	stateRecording
+)
+
+func (s userState) text() string {
+	switch s {
+	case stateSelfDeafened:
+		// TRANSLATORS: Part of a comma-separated list that screen readers
+		// read after a user's name; also the status icon's tooltip, there
+		// with a capital first letter.
+		return tr("deafened themselves")
+	case stateSelfMuted:
+		// TRANSLATORS: Part of a comma-separated list that screen readers
+		// read after a user's name; also the status icon's tooltip, there
+		// with a capital first letter.
+		return tr("muted themselves")
+	case stateServerDeafened:
+		// TRANSLATORS: Part of a comma-separated list that screen readers
+		// read after a user's name; also the status icon's tooltip, there
+		// with a capital first letter.
+		return tr("deafened on the server")
+	case stateServerMuted:
+		// TRANSLATORS: Part of a comma-separated list that screen readers
+		// read after a user's name; also the status icon's tooltip, there
+		// with a capital first letter.
+		return tr("muted on the server")
+	case stateSuppressed:
+		// TRANSLATORS: Part of a comma-separated list that screen readers
+		// read after a user's name: the channel does not let the user speak.
+		// Also the status icon's tooltip, there with a capital first letter.
+		return tr("not allowed to speak here")
+	case statePrioritySpeaker:
+		// TRANSLATORS: Part of a comma-separated list that screen readers
+		// read after a user's name; same wording as the "Priority speaker"
+		// menu entry. Also the status icon's tooltip, there with a capital
+		// first letter.
+		return tr("priority speaker")
+	case stateRecording:
+		// TRANSLATORS: Part of a comma-separated list that screen readers
+		// read after a user's name; also the status icon's tooltip, there
+		// with a capital first letter.
+		return tr("recording")
+	}
+	return ""
+}
+
+// stateIf is a state and whether the user is in it.
+type stateIf struct {
+	on    bool
+	state userState
+}
+
+// iconTooltip lists the states a status icon stands for. Unlike the
+// description it names being muted next to being deafened: both icons are
+// shown then, and each explains itself.
+func iconTooltip(states ...stateIf) string {
+	var parts []string
+	for _, s := range states {
+		if s.on {
+			parts = append(parts, s.state.text())
+		}
+	}
+	text := strings.Join(parts, ", ")
+	first, size := utf8.DecodeRuneInString(text)
+	if size == 0 {
+		return ""
+	}
+	return string(unicode.ToUpper(first)) + text[size:]
+}
+
 // userDescription lists a user's state for assistive technologies. Being
 // deafened includes being muted the same way, so then only the first is
 // named.
@@ -19,39 +100,24 @@ func userDescription(u bus.UserInfo, a localAudio, unread int) string {
 	var parts []string
 	switch {
 	case u.SelfDeafened:
-		// TRANSLATORS: Part of a comma-separated list that screen readers
-		// read after a user's name.
-		parts = append(parts, tr("deafened themselves"))
+		parts = append(parts, stateSelfDeafened.text())
 	case u.SelfMuted:
-		// TRANSLATORS: Part of a comma-separated list that screen readers
-		// read after a user's name.
-		parts = append(parts, tr("muted themselves"))
+		parts = append(parts, stateSelfMuted.text())
 	}
 	switch {
 	case u.Deafened:
-		// TRANSLATORS: Part of a comma-separated list that screen readers
-		// read after a user's name.
-		parts = append(parts, tr("deafened on the server"))
+		parts = append(parts, stateServerDeafened.text())
 	case u.Muted:
-		// TRANSLATORS: Part of a comma-separated list that screen readers
-		// read after a user's name.
-		parts = append(parts, tr("muted on the server"))
+		parts = append(parts, stateServerMuted.text())
 	}
 	if u.Suppressed {
-		// TRANSLATORS: Part of a comma-separated list that screen readers
-		// read after a user's name: the channel does not let the user speak.
-		parts = append(parts, tr("not allowed to speak here"))
+		parts = append(parts, stateSuppressed.text())
 	}
 	if u.PrioritySpeaker {
-		// TRANSLATORS: Part of a comma-separated list that screen readers
-		// read after a user's name; same wording as the "Priority speaker"
-		// menu entry.
-		parts = append(parts, tr("priority speaker"))
+		parts = append(parts, statePrioritySpeaker.text())
 	}
 	if u.Recording {
-		// TRANSLATORS: Part of a comma-separated list that screen readers
-		// read after a user's name.
-		parts = append(parts, tr("recording"))
+		parts = append(parts, stateRecording.text())
 	}
 	switch {
 	case a.muted:

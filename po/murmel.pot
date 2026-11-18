@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 15:24+0100\n"
+"POT-Creation-Date: 2026-11-18 09:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -683,44 +683,51 @@ msgid "Choose Avatar"
 msgstr ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
-#. read after a user's name.
+#. read after a user's name; also the status icon's tooltip, there
+#. with a capital first letter.
 #: internal/ui/channeltree/announce.go
 msgid "deafened themselves"
 msgstr ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
-#. read after a user's name.
+#. read after a user's name; also the status icon's tooltip, there
+#. with a capital first letter.
 #: internal/ui/channeltree/announce.go
 msgid "muted themselves"
 msgstr ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
-#. read after a user's name.
+#. read after a user's name; also the status icon's tooltip, there
+#. with a capital first letter.
 #: internal/ui/channeltree/announce.go
 msgid "deafened on the server"
 msgstr ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
-#. read after a user's name.
+#. read after a user's name; also the status icon's tooltip, there
+#. with a capital first letter.
 #: internal/ui/channeltree/announce.go
 msgid "muted on the server"
 msgstr ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
 #. read after a user's name: the channel does not let the user speak.
+#. Also the status icon's tooltip, there with a capital first letter.
 #: internal/ui/channeltree/announce.go
 msgid "not allowed to speak here"
 msgstr ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
 #. read after a user's name; same wording as the "Priority speaker"
-#. menu entry.
+#. menu entry. Also the status icon's tooltip, there with a capital
+#. first letter.
 #: internal/ui/channeltree/announce.go
 msgid "priority speaker"
 msgstr ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
-#. read after a user's name.
+#. read after a user's name; also the status icon's tooltip, there
+#. with a capital first letter.
 #: internal/ui/channeltree/announce.go
 msgid "recording"
 msgstr ""
