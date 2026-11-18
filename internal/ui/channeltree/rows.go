@@ -42,6 +42,10 @@ type channelRowWidgets struct {
 	name    *gtk.Label
 	count   *gtk.Label
 	badge   *gtk.Label
+
+	users   int  // users in the channel
+	current bool // one is in this channel oneself
+	text    rowText
 }
 
 type userRowWidgets struct {
@@ -53,6 +57,59 @@ type userRowWidgets struct {
 	icons  map[string]*gtk.Image
 	// localAudio shows a volume changed or muted for oneself.
 	localAudio *gtk.Image
+
+	user  bus.UserInfo
+	local localAudio
+	text  rowText
+}
+
+// rowText is what a row tells assistive technologies: its name and, as
+// description, its state (see announce.go).
+type rowText struct {
+	name, desc string
+	set        bool
+	// unread is the current number of unread messages, shownUnread the
+	// one in the description.
+	unread, shownUnread int
+}
+
+// apply gives row its name and description where they changed. The
+// unread count of the focused row stays as it is until the focus leaves:
+// screen readers would read the description again on every new message.
+func (a *rowText) apply(row *gtk.ListBoxRow, name string, desc func(unread int) string) {
+	if !row.HasFocus() {
+		a.shownUnread = a.unread
+	}
+	d := desc(a.shownUnread)
+	var props []gtk.AccessibleProperty
+	var vals []coreglib.Value
+	if !a.set || name != a.name {
+		props = append(props, gtk.AccessiblePropertyLabel)
+		vals = append(vals, *coreglib.NewValue(name))
+	}
+	if !a.set || d != a.desc {
+		props = append(props, gtk.AccessiblePropertyDescription)
+		vals = append(vals, *coreglib.NewValue(d))
+	}
+	a.name, a.desc, a.set = name, d, true
+	if len(props) > 0 {
+		row.UpdateProperty(props, vals)
+	}
+}
+
+// rowContent wraps a row's content. The wrapper's role keeps it and
+// everything in it from assistive technologies, as the row itself names
+// what they show; the role can only be given when the wrapper is created
+// (GTK sets the "hidden" state of each widget itself whenever it is
+// shown). A row's tooltip belongs on the wrapper: on the row, GTK would
+// read it out where the row's description is empty.
+func rowContent(content *gtk.Box) *gtk.Box {
+	b := gtk.NewBuilderFromString(`<interface><object class="GtkBox" id="box">
+<property name="accessible-role">none</property></object></interface>`)
+	wrap := b.GetObject("box").Cast().(*gtk.Box)
+	content.SetHExpand(true)
+	wrap.Append(content)
+	return wrap
 }
 
 // newBadge builds the unread-messages pill shown next to a name.
@@ -65,8 +122,8 @@ func newBadge() *gtk.Label {
 	return b
 }
 
-// setUnread shows n unread messages on the badge (hidden at 0).
-func setUnread(b *gtk.Label, n int) {
+// showUnread shows n unread messages on the badge (hidden at 0).
+func showUnread(b *gtk.Label, n int) {
 	b.SetVisible(n > 0)
 	switch {
 	case n > 99:
@@ -79,10 +136,13 @@ func setUnread(b *gtk.Label, n int) {
 	}
 }
 
+// newChevron is the button that opens and closes a channel with the
+// mouse; the keyboard uses Left and Right on the row instead.
 func newChevron() *gtk.Button {
 	b := gtk.NewButtonFromIconName(iconExpanderExpanded)
 	b.AddCSSClass("flat")
 	b.SetHasFrame(false)
+	b.SetCanFocus(false)
 	return b
 }
 
@@ -91,7 +151,6 @@ func chevronSpacer() *gtk.Button {
 	b := newChevron()
 	b.SetOpacity(0)
 	b.SetCanTarget(false)
-	b.SetCanFocus(false)
 	return b
 }
 
@@ -126,16 +185,18 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	box.Append(r.count)
 	applyIndent(box, depthOf(m, id))
 
+	content := rowContent(box)
+	content.SetTooltipText(tr("Double-click to join"))
 	r.root = gtk.NewListBoxRow()
-	r.root.SetChild(box)
+	r.root.SetChild(content)
 	r.root.SetActivatable(true)
 	r.root.SetSelectable(true)
-	r.root.SetTooltipText(tr("Double-click to join"))
 	current := id == m.selfChannel() && m.hasSelf()
+	r.current = current
 	r.here.SetVisible(current)
 	if current {
 		r.root.AddCSSClass("current-channel")
-		r.root.SetTooltipText(tr("You are in this channel"))
+		content.SetTooltipText(tr("You are in this channel"))
 	}
 	if menu != nil {
 		contextMenu(r.root, menu)
@@ -197,7 +258,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	applyIndent(box, depthOf(m, u.Channel))
 
 	r.root = gtk.NewListBoxRow()
-	r.root.SetChild(box)
+	r.root.SetChild(rowContent(box))
 	r.root.SetActivatable(true)
 	r.root.SetSelectable(true)
 	r.root.AddCSSClass("user-row")
@@ -248,6 +309,13 @@ func contextMenu(row *gtk.ListBoxRow, menu func(x, y float64)) {
 	row.AddController(hold)
 }
 
+// onFocusLeave calls f when the keyboard focus leaves row.
+func onFocusLeave(row *gtk.ListBoxRow, f func()) {
+	c := gtk.NewEventControllerFocus()
+	c.ConnectLeave(f)
+	row.AddController(c)
+}
+
 func applyIndent(box *gtk.Box, depth int) {
 	if depth > 0 {
 		box.SetMarginStart(indentPerDepthPx * depth)
@@ -274,7 +342,6 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	hasKids := len(n.children) > 0 || len(n.users) > 0
 	r.chevron.SetOpacity(boolOpacity(hasKids))
 	r.chevron.SetCanTarget(hasKids)
-	r.chevron.SetCanFocus(hasKids)
 	if n.expanded {
 		r.chevron.SetIconName(iconExpanderExpanded)
 	} else {
@@ -300,6 +367,20 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	} else {
 		r.count.SetVisible(false)
 	}
+	r.users = len(n.users)
+	r.announce()
+}
+
+func (r *channelRowWidgets) announce() {
+	r.text.apply(r.root, r.name.Text(), func(unread int) string {
+		return channelDescription(r.users, r.current, unread)
+	})
+}
+
+func (r *channelRowWidgets) setUnread(n int) {
+	showUnread(r.badge, n)
+	r.text.unread = n
+	r.announce()
 }
 
 func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
@@ -320,6 +401,20 @@ func (r *userRowWidgets) update(u bus.UserInfo, speaking bool) {
 		r.icons[iconMuted].RemoveCSSClass("muted-speaking")
 	}
 	setBold(r.name, speaking && !muted)
+	r.user = u
+	r.announce()
+}
+
+func (r *userRowWidgets) announce() {
+	r.text.apply(r.root, r.user.Name, func(unread int) string {
+		return userDescription(r.user, r.local, unread)
+	})
+}
+
+func (r *userRowWidgets) setUnread(n int) {
+	showUnread(r.badge, n)
+	r.text.unread = n
+	r.announce()
 }
 
 // setLocalAudio shows the volume set for oneself: nothing at 100 %, a
@@ -337,6 +432,8 @@ func (r *userRowWidgets) setLocalAudio(a localAudio) {
 		r.localAudio.SetTooltipText(fmt.Sprintf(tr("Volume for you: %d %%"), percent(a.volume)))
 	}
 	r.localAudio.SetVisible(a.muted || a.volume != 1)
+	r.local = a
+	r.announce()
 }
 
 func percent(v float64) int { return int(v*100 + 0.5) }
@@ -550,6 +647,9 @@ func localVolumeSlider(volume float64, set func(float64)) gtk.Widgetter {
 		return handled
 	})
 	scale.AddController(keys)
+	// Screen readers name the slider by its title.
+	scale.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyLabel},
+		[]coreglib.Value{*coreglib.NewValue(title.Text())})
 	box.Append(title)
 	box.Append(scale)
 	return box

@@ -209,7 +209,7 @@ func (t *Tree) subscribe(ctx context.Context) {
 // the local user's channel for the channel chat.
 func (t *Tree) applyUnread() {
 	for session, r := range t.userRows {
-		setUnread(r.badge, t.unread[session])
+		r.setUnread(t.unread[session])
 	}
 	self := t.model.users[t.model.self].Channel
 	for id, r := range t.channelRows {
@@ -217,7 +217,7 @@ func (t *Tree) applyUnread() {
 		if id == self && t.model.self != 0 {
 			n = t.channelUnread
 		}
-		setUnread(r.badge, n)
+		r.setUnread(n)
 	}
 }
 
@@ -337,6 +337,11 @@ func (t *Tree) newRowFor(e entry) gtk.Widgetter {
 			func() { t.toggleExpand(id) },
 			func(x, y float64) { t.showChannelMenu(id, x, y) })
 		t.channelRows[id] = r
+		onFocusLeave(r.root, func() {
+			if r, ok := t.channelRows[id]; ok {
+				r.announce()
+			}
+		})
 		t.acceptDrops(r.root, func() (uint32, bool) { return id, true }, id)
 		return r.root
 	default:
@@ -350,6 +355,11 @@ func (t *Tree) newRowFor(e entry) gtk.Widgetter {
 				}
 			})
 		t.userRows[session] = r
+		onFocusLeave(r.root, func() {
+			if r, ok := t.userRows[session]; ok {
+				r.announce()
+			}
+		})
 		t.applyAvatar(r, t.model.users[session])
 		r.setLocalAudio(t.localAudioOf(session))
 		t.dragUser(r, session)

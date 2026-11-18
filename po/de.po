@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 09:27+0100\n"
+"POT-Creation-Date: 2026-11-16 15:24+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -699,6 +699,86 @@ msgstr "Wird anderen neben deinem Namen angezeigt"
 #: internal/ui/avatarpick/avatarpick.go
 msgid "Choose Avatar"
 msgstr "Avatar auswählen"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name.
+#: internal/ui/channeltree/announce.go
+msgid "deafened themselves"
+msgstr "hat sich taubgeschaltet"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name.
+#: internal/ui/channeltree/announce.go
+msgid "muted themselves"
+msgstr "hat sich stummgeschaltet"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name.
+#: internal/ui/channeltree/announce.go
+msgid "deafened on the server"
+msgstr "vom Server taubgeschaltet"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name.
+#: internal/ui/channeltree/announce.go
+msgid "muted on the server"
+msgstr "vom Server stummgeschaltet"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name: the channel does not let the user speak.
+#: internal/ui/channeltree/announce.go
+msgid "not allowed to speak here"
+msgstr "darf hier nicht sprechen"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name; same wording as the "Priority speaker"
+#. menu entry.
+#: internal/ui/channeltree/announce.go
+msgid "priority speaker"
+msgstr "vorrangiger Sprecher"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name.
+#: internal/ui/channeltree/announce.go
+msgid "recording"
+msgstr "nimmt auf"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name.
+#: internal/ui/channeltree/announce.go
+msgid "muted for you"
+msgstr "für dich stummgeschaltet"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a user's name.
+#: internal/ui/channeltree/announce.go
+#, go-format
+msgid "volume for you: %d %%"
+msgstr "Lautstärke für dich: %d %%"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a channel's name.
+#: internal/ui/channeltree/announce.go
+#, go-format
+msgid "%d user"
+msgid_plural "%d users"
+msgstr[0] "%d Benutzer"
+msgstr[1] "%d Benutzer"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a channel's name: one is in this channel oneself.
+#: internal/ui/channeltree/announce.go
+msgid "you are here"
+msgstr "du bist hier"
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers read
+#. after a user's or channel's name.
+#: internal/ui/channeltree/announce.go
+#, go-format
+msgid "%d unread message"
+msgid_plural "%d unread messages"
+msgstr[0] "%d ungelesene Nachricht"
+msgstr[1] "%d ungelesene Nachrichten"
 
 #: internal/ui/channeltree/rows.go
 #, go-format
