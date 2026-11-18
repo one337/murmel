@@ -7,8 +7,8 @@ import (
 )
 
 // rowID names a row by what it shows: a channel by its ID, a user by
-// their session. A rebuild replaces every row, so focus and selection are
-// carried over by this identity, not by position.
+// their session. A rebuild may move or replace rows, so focus and
+// selection are carried over by this identity, not by position.
 type rowID struct {
 	user bool
 	id   uint32
@@ -363,6 +363,11 @@ func (t *Tree) anchorAfterLayout(anchor []anchorCandidate, ensureFocus, reveal b
 	p := &pendingAnchor{anchor: anchor, ensureFocus: ensureFocus, reveal: reveal, clock: gdk.BaseFrameClock(fc), retried: -1}
 	p.layout = coreglib.InternObject(p.clock).ConnectAfter("layout", func() {
 		if t.anchor != p {
+			return
+		}
+		if !t.list.Mapped() {
+			// Hidden (the sidebar folded away): rows that stayed keep their
+			// old size and place until the list is shown and laid out again.
 			return
 		}
 		if row := t.list.RowAtIndex(0); row != nil && row.Width() == 0 {

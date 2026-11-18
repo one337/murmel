@@ -90,12 +90,9 @@ func connectedEvent(channels, users int) bus.Connected {
 	return ev
 }
 
-// Rebuilding the tree frees the rows it replaced, on the Go side (the row
-// structs) and in GTK (the row widgets are finalized).
-func TestGTKRebuildFreesOldRows(t *testing.T) {
-	needGTK(t)
-	const channels, users, rebuilds = 30, 100, 20
-
+// buildLeakTree shows a tree of channels and users in a window.
+func buildLeakTree(t *testing.T, channels, users int) (*Tree, *bus.Bus) {
+	t.Helper()
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 	b := bus.New(nil)
@@ -107,65 +104,110 @@ func TestGTKRebuildFreesOldRows(t *testing.T) {
 		win.SetChild(tree.Root())
 	})
 	t.Cleanup(func() { onMain(func() { win.Destroy() }) })
-
 	b.Emit(connectedEvent(channels, users))
+	waitBuilt(t, tree, channels, users)
+	return tree, b
+}
+
+func waitBuilt(t *testing.T, tree *Tree, channels, users int) {
+	t.Helper()
 	built := false
 	for deadline := time.Now().Add(5 * time.Second); !built && time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
-		onMain(func() { built = len(tree.userRows) == users && len(tree.channelRows) == channels+1 })
+		onMain(func() {
+			built = len(tree.userRows) == users && len(tree.channelRows) == channels+1 && !tree.rebuildPending && !tree.rebuildScheduled
+		})
 	}
 	if !built {
 		t.Fatal("the tree was not built")
 	}
+}
 
-	// Watch the first generation of rows: weakly on the Go side, by GObject
-	// finalization in GTK.
-	var structs []weak.Pointer[userRowWidgets]
-	var channelStructs []weak.Pointer[channelRowWidgets]
-	var finalized atomic.Int32
-	total := 0
-	onMain(func() {
-		for _, r := range tree.userRows {
-			structs = append(structs, weak.Make(r))
-			coreglib.WeakRefObject(r.root, func() { finalized.Add(1) })
-			total++
-		}
-		for _, r := range tree.channelRows {
-			channelStructs = append(channelStructs, weak.Make(r))
-			coreglib.WeakRefObject(r.root, func() { finalized.Add(1) })
-			total++
-		}
-	})
+// rowWatch watches rows weakly on the Go side and by GObject finalization
+// in GTK.
+type rowWatch struct {
+	users     []weak.Pointer[userRowWidgets]
+	channels  []weak.Pointer[channelRowWidgets]
+	finalized atomic.Int32
+	total     int
+}
 
-	for range rebuilds {
-		onMain(func() { tree.rebuild() })
+// watchAll watches every row the tree has now (main loop).
+func (w *rowWatch) watchAll(tree *Tree) {
+	for _, r := range tree.userRows {
+		w.users = append(w.users, weak.Make(r))
+		coreglib.WeakRefObject(r.root, func() { w.finalized.Add(1) })
+		w.total++
 	}
-	onMain(func() {
-		if len(tree.userRows) != users {
-			t.Fatalf("after the rebuilds the tree shows %d users, want %d", len(tree.userRows), users)
+	for _, r := range tree.channelRows {
+		w.channels = append(w.channels, weak.Make(r))
+		coreglib.WeakRefObject(r.root, func() { w.finalized.Add(1) })
+		w.total++
+	}
+}
+
+// alive counts the watched rows still held in Go and not finalized in GTK.
+func (w *rowWatch) alive() (inGo, inGTK int) {
+	for _, p := range w.users {
+		if p.Value() != nil {
+			inGo++
 		}
-	})
+	}
+	for _, p := range w.channels {
+		if p.Value() != nil {
+			inGo++
+		}
+	}
+	return inGo, w.total - int(w.finalized.Load())
+}
+
+// Rows that go are freed, on the Go side (the row structs) and in GTK (the
+// row widgets are finalized): here every row, replaced by reconnecting 20
+// times.
+func TestGTKReplacedRowsAreFreed(t *testing.T) {
+	needGTK(t)
+	const channels, users, reconnects = 30, 100, 20
+	tree, b := buildLeakTree(t, channels, users)
+
+	var w rowWatch
+	onMain(func() { w.watchAll(tree) })
+	for range reconnects {
+		b.Emit(bus.Disconnected{})
+		b.Emit(connectedEvent(channels, users))
+		waitBuilt(t, tree, channels, users)
+	}
 
 	// Only a small remainder may still wait for the next collection.
 	const tolerance = 2
 	var aliveGo, aliveGTK int
 	for range 3 {
 		collect()
-		aliveGo = 0
-		for _, p := range structs {
-			if p.Value() != nil {
-				aliveGo++
-			}
-		}
-		for _, p := range channelStructs {
-			if p.Value() != nil {
-				aliveGo++
-			}
-		}
-		aliveGTK = total - int(finalized.Load())
+		aliveGo, aliveGTK = w.alive()
 		if aliveGo <= tolerance && aliveGTK <= tolerance {
 			return
 		}
 	}
-	t.Fatalf("after %d rebuilds %d of %d old rows are still held in Go and %d are not finalized in GTK (tolerance %d)",
-		rebuilds, aliveGo, total, aliveGTK, tolerance)
+	t.Fatalf("after %d reconnects %d of %d old rows are still held in Go and %d are not finalized in GTK (tolerance %d)",
+		reconnects, aliveGo, w.total, aliveGTK, tolerance)
+}
+
+// After disconnecting, the tree itself has the old rows freed (with
+// garbage collections in steps, see release) and then stops: nothing in
+// the test runs a collection.
+func TestGTKDisconnectReleasesTheOldRows(t *testing.T) {
+	needGTK(t)
+	const channels, users = 30, 100
+	tree, b := buildLeakTree(t, channels, users)
+
+	var w rowWatch
+	onMain(func() { w.watchAll(tree) })
+	b.Emit(bus.Disconnected{})
+	var inGTK, round int
+	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
+		_, inGTK = w.alive()
+		onMain(func() { round = tree.releaseRound })
+		if inGTK == 0 && round == 0 {
+			return
+		}
+	}
+	t.Fatalf("5 s after disconnecting %d of %d rows are not finalized; release round %d (0: stopped)", inGTK, w.total, round)
 }

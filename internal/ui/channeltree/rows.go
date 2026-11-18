@@ -46,6 +46,23 @@ type channelRowWidgets struct {
 	users   int  // users in the channel
 	current bool // one is in this channel oneself
 	text    rowText
+
+	// box holds the row's content and its indent; content wraps it (see
+	// rowContent) and carries the tooltip.
+	box     *gtk.Box
+	content *gtk.Box
+	depth   int
+	// shown is what update last showed, so that an unchanged channel is
+	// left alone.
+	shown    channelShown
+	hasShown bool
+}
+
+// channelShown is what a channel row shows of its channel.
+type channelShown struct {
+	name           string
+	users          int
+	kids, expanded bool
 }
 
 type userRowWidgets struct {
@@ -61,6 +78,12 @@ type userRowWidgets struct {
 	user  bus.UserInfo
 	local localAudio
 	text  rowText
+
+	box   *gtk.Box // the row's content, with its indent
+	depth int
+	// movable is whether the handle offers dragging (see
+	// refreshDragHandles); movableSet once it was set.
+	movable, movableSet bool
 }
 
 // rowText is what a row tells assistive technologies: its name and, as
@@ -183,21 +206,16 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	box.Append(expander())
 	box.Append(r.here)
 	box.Append(r.count)
-	applyIndent(box, depthOf(m, id))
+	r.box = box
+	r.depth = -1
+	r.setDepth(depthOf(m, id))
 
-	content := rowContent(box)
-	content.SetTooltipText(tr("Double-click to join"))
+	r.content = rowContent(box)
 	r.root = gtk.NewListBoxRow()
-	r.root.SetChild(content)
+	r.root.SetChild(r.content)
 	r.root.SetActivatable(true)
 	r.root.SetSelectable(true)
-	current := id == m.selfChannel() && m.hasSelf()
-	r.current = current
-	r.here.SetVisible(current)
-	if current {
-		r.root.AddCSSClass("current-channel")
-		content.SetTooltipText(tr("You are in this channel"))
-	}
+	r.showCurrent(id == m.selfChannel() && m.hasSelf())
 	if menu != nil {
 		contextMenu(r.root, menu)
 	}
@@ -255,7 +273,9 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	for _, k := range []string{iconSpeaking, iconPrioritySpeaker, iconRecording, iconMuted, iconDeafened} {
 		box.Append(r.icons[k])
 	}
-	applyIndent(box, depthOf(m, u.Channel))
+	r.box = box
+	r.depth = -1
+	r.setDepth(depthOf(m, u.Channel))
 
 	r.root = gtk.NewListBoxRow()
 	r.root.SetChild(rowContent(box))
@@ -316,9 +336,38 @@ func onFocusLeave(row *gtk.ListBoxRow, f func()) {
 	row.AddController(c)
 }
 
-func applyIndent(box *gtk.Box, depth int) {
-	if depth > 0 {
-		box.SetMarginStart(indentPerDepthPx * depth)
+// setDepth indents the row for its depth in the tree.
+func (r *channelRowWidgets) setDepth(depth int) {
+	if r.depth != depth {
+		r.depth = depth
+		r.box.SetMarginStart(indentPerDepthPx * depth)
+	}
+}
+
+func (r *userRowWidgets) setDepth(depth int) {
+	if r.depth != depth {
+		r.depth = depth
+		r.box.SetMarginStart(indentPerDepthPx * depth)
+	}
+}
+
+// setCurrent marks the channel one is in oneself.
+func (r *channelRowWidgets) setCurrent(current bool) {
+	if r.current != current {
+		r.showCurrent(current)
+		r.announce()
+	}
+}
+
+func (r *channelRowWidgets) showCurrent(current bool) {
+	r.current = current
+	r.here.SetVisible(current)
+	if current {
+		r.root.AddCSSClass("current-channel")
+		r.content.SetTooltipText(tr("You are in this channel"))
+	} else {
+		r.root.RemoveCSSClass("current-channel")
+		r.content.SetTooltipText(tr("Double-click to join"))
 	}
 }
 
@@ -336,10 +385,15 @@ func depthOf(m *treeModel, channelID uint32) int {
 }
 
 func (r *channelRowWidgets) update(n *channelNode) {
+	hasKids := len(n.children) > 0 || len(n.users) > 0
+	shown := channelShown{name: n.info.Name, users: len(n.users), kids: hasKids, expanded: n.expanded}
+	if r.hasShown && shown == r.shown {
+		return
+	}
+	r.shown, r.hasShown = shown, true
 	r.name.SetText(n.info.Name)
 	// Without children the chevron keeps its place (invisible, not
 	// clickable), so sibling channel names line up.
-	hasKids := len(n.children) > 0 || len(n.users) > 0
 	r.chevron.SetOpacity(boolOpacity(hasKids))
 	r.chevron.SetCanTarget(hasKids)
 	if n.expanded {
@@ -350,14 +404,7 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	// Assistive technologies hear "expanded" or "collapsed" only where
 	// there is something to open.
 	if hasKids {
-		// GTK reads "boolean or undefined" states as an int (-1 is
-		// undefined); a boolean GValue would read as false.
-		open := int32(0)
-		if n.expanded {
-			open = 1
-		}
-		r.root.UpdateState([]gtk.AccessibleState{gtk.AccessibleStateExpanded},
-			[]coreglib.Value{*coreglib.NewValue(open)})
+		r.setExpandedState(n.expanded)
 	} else {
 		r.root.ResetState(gtk.AccessibleStateExpanded)
 	}
@@ -371,6 +418,17 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	r.announce()
 }
 
+func (r *channelRowWidgets) setExpandedState(expanded bool) {
+	// GTK reads "boolean or undefined" states as an int (-1 is
+	// undefined); a boolean GValue would read as false.
+	open := int32(0)
+	if expanded {
+		open = 1
+	}
+	r.root.UpdateState([]gtk.AccessibleState{gtk.AccessibleStateExpanded},
+		[]coreglib.Value{*coreglib.NewValue(open)})
+}
+
 func (r *channelRowWidgets) announce() {
 	r.text.apply(r.root, r.name.Text(), func(unread int) string {
 		return channelDescription(r.users, r.current, unread)
@@ -378,6 +436,9 @@ func (r *channelRowWidgets) announce() {
 }
 
 func (r *channelRowWidgets) setUnread(n int) {
+	if n == r.text.unread {
+		return
+	}
 	showUnread(r.badge, n)
 	r.text.unread = n
 	r.announce()
@@ -426,6 +487,9 @@ func (r *userRowWidgets) announce() {
 }
 
 func (r *userRowWidgets) setUnread(n int) {
+	if n == r.text.unread {
+		return
+	}
 	showUnread(r.badge, n)
 	r.text.unread = n
 	r.announce()

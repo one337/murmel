@@ -2,6 +2,7 @@ package channeltree
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
@@ -68,9 +69,8 @@ type Tree struct {
 	// selection: that is no new chat target.
 	restoring bool
 	// handlePressed is set while a mouse button is down on a drag handle.
-	// A rebuild would replace the row under it and break the drag that
-	// may follow, so it waits (like during a drag and while a menu is
-	// open).
+	// A rebuild may take out the row under it and break the drag that may
+	// follow, so it waits (like during a drag and while a menu is open).
 	handlePressed bool
 	// holdScroll keeps the list at heldScroll after a rebuild until the
 	// new rows have a size (see keepHeldScroll).
@@ -82,6 +82,14 @@ type Tree struct {
 	// revealSelf: one's own channel changed; the next rebuild scrolls
 	// one's own row into view.
 	revealSelf bool
+	// replaceAll: connected or disconnected; the next rebuild replaces
+	// every row.
+	replaceAll bool
+	// releasing counts the widgets of replaced rows not freed yet;
+	// releaseRound, the garbage collections run for them (see release).
+	releasing    int
+	releaseGen   int
+	releaseRound int
 }
 
 // openMenu is the shown context menu, of a channel or (user) of a user.
@@ -227,6 +235,10 @@ func (t *Tree) applyUnread() {
 // only the directly affected row widget is refreshed.
 func (t *Tree) handle(ev bus.Event) {
 	had, from := t.model.hasSelf(), t.model.selfChannel()
+	switch ev.(type) {
+	case bus.Connected, bus.Disconnected:
+		t.replaceAll = true
+	}
 	if t.model.apply(ev) {
 		// One's own channel changed (one moved or was moved): the next
 		// rebuild opens it and shows one's own row.
@@ -288,11 +300,10 @@ func (t *Tree) scheduleRebuild() {
 	}
 }
 
-// flushRebuild shows a pending structural change now. A rebuild replaces
-// every row: it would end a drag, break the drag a press on a handle may
-// start, and take an open context menu (attached to its row) off the
-// screen. So it waits until the drop, the release of the button or the
-// menu closing.
+// flushRebuild shows a pending structural change now. A rebuild may take
+// out or replace the row a drag, a press on a handle (which may start a
+// drag) or an open context menu (attached to its row) depends on, so it
+// waits until the drop, the release of the button or the menu closing.
 func (t *Tree) flushRebuild() {
 	if !t.rebuildPending || t.handlePressed || t.menu != nil {
 		return
@@ -305,27 +316,143 @@ func (t *Tree) flushRebuild() {
 	t.rebuild()
 }
 
-// rebuild clears the list and reconstructs it from the model walk order,
-// keeping focus, selection and scroll position (see restoreListState).
+// rebuild brings the rows in line with the model's walk order. Rows that
+// stay keep their widgets, and with them the focus and what assistive
+// technologies were told: a user coming or going elsewhere does not touch
+// the focused row. Rows that went are removed, new ones are inserted at
+// their place, and rows that moved are taken out and put back at their new
+// place (all but the longest run that is still in order). After connecting
+// or disconnecting every row is replaced: the same session or channel ID
+// may then be someone or something else. Focus, selection and what is on
+// screen are kept as before (see restoreListState).
 func (t *Tree) rebuild() {
 	t.rebuildPending = false
 	defer func() { t.lastRebuild = time.Now() }()
 	state := t.saveListState()
-	for _, r := range t.channelRows {
-		t.list.Remove(r.root)
-	}
-	for _, r := range t.userRows {
-		t.list.Remove(r.root)
-	}
-	t.channelRows = map[uint32]*channelRowWidgets{}
-	t.userRows = map[uint32]*userRowWidgets{}
 
-	for _, e := range t.model.walk() {
-		t.list.Append(t.newRowFor(e))
+	walk := t.model.walk()
+	want := make(map[rowID]int, len(walk))
+	for i, e := range walk {
+		want[e.rowID()] = i
+	}
+	var kept []rowID
+	var keptAt []int
+	var gone []gtk.Widgetter
+	for _, id := range t.listOrder() {
+		if i, ok := want[id]; ok && !t.replaceAll {
+			kept = append(kept, id)
+			keptAt = append(keptAt, i)
+			continue
+		}
+		gone = append(gone, t.removeRow(id))
+	}
+	if t.replaceAll {
+		t.replaceAll = false
+		t.release(gone)
+	}
+	inPlace := make(map[rowID]bool, len(kept))
+	for k, stays := range inOrder(keptAt) {
+		if stays {
+			inPlace[kept[k]] = true
+		} else {
+			t.list.Remove(t.rowFor(kept[k]))
+		}
+	}
+	// The rows still in the list are in walk order: each entry is either
+	// the next of them or is inserted before it.
+	for i, e := range walk {
+		id := e.rowID()
+		if !inPlace[id] {
+			row := t.rowFor(id)
+			if row == nil {
+				t.list.Insert(t.newRowFor(e), i)
+			} else {
+				t.list.Insert(row, i)
+			}
+		}
+		t.refreshRow(e)
 	}
 	t.refreshDragHandles()
 	t.applyUnread()
 	t.restoreListState(state)
+}
+
+// rowID names the row of a walk entry.
+func (e entry) rowID() rowID { return rowID{user: e.kind != entryChannel, id: e.id} }
+
+// listOrder lists the rows in the order the list shows them.
+func (t *Tree) listOrder() []rowID {
+	ids := make(map[uintptr]rowID, len(t.channelRows)+len(t.userRows))
+	for id, r := range t.channelRows {
+		ids[coreglib.InternObject(r.root).Native()] = rowID{id: id}
+	}
+	for session, r := range t.userRows {
+		ids[coreglib.InternObject(r.root).Native()] = rowID{user: true, id: session}
+	}
+	order := make([]rowID, 0, len(ids))
+	for c := t.list.FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
+		if id, ok := ids[coreglib.InternObject(c).Native()]; ok {
+			order = append(order, id)
+		}
+	}
+	return order
+}
+
+// removeRow takes a row out of the list and forgets it; it returns the row.
+func (t *Tree) removeRow(id rowID) gtk.Widgetter {
+	if id.user {
+		r := t.userRows[id.id]
+		t.list.Remove(r.root)
+		delete(t.userRows, id.id)
+		return r.handle
+	}
+	r := t.channelRows[id.id]
+	t.list.Remove(r.root)
+	delete(t.channelRows, id.id)
+	return r.name
+}
+
+// refreshRow brings a row's indent and channel state in line with the
+// model (a no-op where nothing changed).
+func (t *Tree) refreshRow(e entry) {
+	if e.kind != entryChannel {
+		// A user row is indented like its channel's row; the chevron's
+		// invisible twin in it does the rest.
+		t.userRows[e.id].setDepth(e.depth - 1)
+		return
+	}
+	r := t.channelRows[e.id]
+	r.setDepth(e.depth)
+	r.setCurrent(e.id == t.model.selfChannel() && t.model.hasSelf())
+	r.update(t.model.channels[e.id])
+}
+
+// inOrder marks the longest run of positions that is in increasing order
+// (the rows that can stay where they are).
+func inOrder(pos []int) []bool {
+	// tails[k] is the index in pos ending the best run of length k+1.
+	tails := []int{}
+	prev := make([]int, len(pos))
+	for i, p := range pos {
+		k := sort.Search(len(tails), func(j int) bool { return pos[tails[j]] >= p })
+		if k > 0 {
+			prev[i] = tails[k-1]
+		} else {
+			prev[i] = -1
+		}
+		if k == len(tails) {
+			tails = append(tails, i)
+		} else {
+			tails[k] = i
+		}
+	}
+	out := make([]bool, len(pos))
+	if len(tails) > 0 {
+		for i := tails[len(tails)-1]; i >= 0; i = prev[i] {
+			out[i] = true
+		}
+	}
+	return out
 }
 
 // newRowFor builds the row for one walk entry and registers it.

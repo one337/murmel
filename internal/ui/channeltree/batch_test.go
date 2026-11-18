@@ -65,11 +65,10 @@ func inOnePass(b *bus.Bus, evs []bus.Event, probe func()) {
 	<-done
 }
 
-// countRebuilds counts the rows the list takes in from now on (GTK runs
-// the filter function once for every inserted row; the tree sets none) and
-// returns a func that reports how many rebuilds that makes: rows inserted
-// divided by perRebuild, the rows one rebuild inserts.
-func countRebuilds(tree *Tree) func(perRebuild int) float64 {
+// countInserted counts the rows the list takes in from now on (GTK runs
+// the filter function once for every inserted row; the tree sets none);
+// the returned func stops counting and reports the number.
+func countInserted(tree *Tree) func() int {
 	var mu sync.Mutex
 	n := 0
 	onMain(func() {
@@ -84,7 +83,7 @@ func countRebuilds(tree *Tree) func(perRebuild int) float64 {
 		n = 0
 		mu.Unlock()
 	})
-	return func(perRebuild int) float64 {
+	return func() int {
 		var rows int
 		onMain(func() {
 			tree.list.SetFilterFunc(nil)
@@ -92,7 +91,43 @@ func countRebuilds(tree *Tree) func(perRebuild int) float64 {
 			rows = n
 			mu.Unlock()
 		})
-		return float64(rows) / float64(perRebuild)
+		return rows
+	}
+}
+
+// countRebuilds counts the rebuilds from now on by watching lastRebuild,
+// which every rebuild sets; two rebuilds are at least rebuildInterval
+// apart, far more than the 5 ms between looks. The returned func stops
+// counting and reports the number.
+func countRebuilds(tree *Tree) func() int {
+	var last time.Time
+	onMain(func() { last = tree.lastRebuild })
+	n := 0
+	look := func() {
+		if !tree.lastRebuild.Equal(last) {
+			n++
+			last = tree.lastRebuild
+		}
+	}
+	stop := make(chan chan int)
+	go func() {
+		tick := time.NewTicker(5 * time.Millisecond)
+		defer tick.Stop()
+		for {
+			select {
+			case reply := <-stop:
+				onMain(look)
+				reply <- n
+				return
+			case <-tick.C:
+				onMain(look)
+			}
+		}
+	}()
+	return func() int {
+		reply := make(chan int)
+		stop <- reply
+		return <-reply
 	}
 }
 
@@ -162,13 +197,13 @@ func TestGTKStructuralEventsAreBatched(t *testing.T) {
 	})
 	waitFor(t, "the batched rebuild", func() bool { return !tree.rebuildPending && !tree.rebuildScheduled })
 	time.Sleep(3 * rebuildInterval) // a second rebuild would show here
-	rebuilds := stop(1 + channels + users - 20)
+	rebuilds := stop()
 
 	if rowsDuring != users || !pending {
 		t.Errorf("after the last event: %d user rows and pending %v, want the old %d rows and a pending rebuild", rowsDuring, pending, users)
 	}
 	if rebuilds != 1 {
-		t.Errorf("25 structural events in one pass caused %.1f rebuilds, want 1", rebuilds)
+		t.Errorf("25 structural events in one pass caused %d rebuilds, want 1", rebuilds)
 	}
 	onMain(func() {
 		if len(tree.userRows) != users-20 {
@@ -201,14 +236,12 @@ func TestGTKSpreadEventsAreThrottled(t *testing.T) {
 	})
 	elapsed := time.Since(start)
 	time.Sleep(3 * rebuildInterval)
-	// A rebuild inserts between 111 and 131 rows here: count by the
-	// largest, so the estimate errs towards fewer rebuilds only slightly.
-	rebuilds := stop(1 + 30 + 100)
+	rebuilds := stop()
 
-	limit := float64(elapsed/rebuildInterval) + 2
-	t.Logf("20 events over %v: %.1f rebuilds", elapsed.Round(time.Millisecond), rebuilds)
+	limit := int(elapsed/rebuildInterval) + 2
+	t.Logf("20 events over %v: %d rebuilds", elapsed.Round(time.Millisecond), rebuilds)
 	if rebuilds > limit || rebuilds > 15 {
-		t.Errorf("20 events over %v caused %.1f rebuilds, want at most %.0f", elapsed.Round(time.Millisecond), rebuilds, min(limit, 15))
+		t.Errorf("20 events over %v caused %d rebuilds, want at most %d", elapsed.Round(time.Millisecond), rebuilds, min(limit, 15))
 	}
 	checkListMatchesModel(t, tree)
 }

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 09:13+0100\n"
+"POT-Creation-Date: 2026-11-18 10:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -783,11 +783,11 @@ msgid "You are in this channel"
 msgstr ""
 
 #: internal/ui/channeltree/rows.go
-msgid "Double-click to join"
+msgid "Drag into another channel"
 msgstr ""
 
 #: internal/ui/channeltree/rows.go
-msgid "Drag into another channel"
+msgid "Double-click to join"
 msgstr ""
 
 #: internal/ui/channeltree/rows.go

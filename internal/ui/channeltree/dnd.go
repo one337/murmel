@@ -64,6 +64,10 @@ func (t *Tree) askPermissions(ids ...uint32) {
 func (t *Tree) refreshDragHandles() {
 	for session, r := range t.userRows {
 		movable := canDragUser(t.model, session)
+		if r.movableSet && r.movable == movable {
+			continue
+		}
+		r.movable, r.movableSet = movable, true
 		if movable {
 			r.handle.AddCSSClass("movable")
 			r.handle.SetCursorFromName("grab")
@@ -78,7 +82,7 @@ func (t *Tree) refreshDragHandles() {
 // dragUser makes r's handle drag the user, and asks for the permissions
 // the handle depends on when the pointer comes near. The closures find the
 // row by its session when they run: holding r would keep the row alive
-// after a rebuild (see internal/ui/weakref).
+// after it is removed (see internal/ui/weakref).
 func (t *Tree) dragUser(r *userRowWidgets, session uint32) {
 	hover := gtk.NewEventControllerMotion()
 	hover.ConnectEnter(func(float64, float64) {
