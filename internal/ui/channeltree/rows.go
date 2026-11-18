@@ -643,13 +643,15 @@ func localVolumeSlider(volume float64, set func(float64)) gtk.Widgetter {
 	scale.AddMark(100, gtk.PosBottom, "")
 	scale.SetDrawValue(true)
 	scale.SetValuePos(gtk.PosRight)
-	scale.SetFormatValueFunc(func(_ *gtk.Scale, v float64) string {
-		return fmt.Sprintf("%d %%", int(v+0.5))
-	})
+	scale.SetFormatValueFunc(func(_ *gtk.Scale, v float64) string { return volumeText(v) })
 	scale.SetSizeRequest(200, -1)
 	self := weakref.New(scale)
 	scale.ConnectValueChanged(func() {
-		self.Do(func(scale *gtk.Scale) { set(scale.Value() / 100) })
+		self.Do(func(scale *gtk.Scale) {
+			scale.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyValueText},
+				[]coreglib.Value{*coreglib.NewValue(volumeText(scale.Value()))})
+			set(scale.Value() / 100)
+		})
 	})
 	// Up and Down go to the menu entry above or below, as everywhere else
 	// in the menu; Left and Right (Page Up/Down, Home, End) set the value.
@@ -661,13 +663,17 @@ func localVolumeSlider(volume float64, set func(float64)) gtk.Widgetter {
 		return handled
 	})
 	scale.AddController(keys)
-	// Screen readers name the slider by its title.
-	scale.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyLabel},
-		[]coreglib.Value{*coreglib.NewValue(title.Text())})
+	// Screen readers name the slider by its title and read its value as it
+	// is shown.
+	scale.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyLabel, gtk.AccessiblePropertyValueText},
+		[]coreglib.Value{*coreglib.NewValue(title.Text()), *coreglib.NewValue(volumeText(scale.Value()))})
 	box.Append(title)
 	box.Append(scale)
 	return box
 }
+
+// volumeText is the slider's value (0..200) as it is shown.
+func volumeText(v float64) string { return fmt.Sprintf("%d %%", int(v+0.5)) }
 
 // sliderKey moves the focus from the volume slider to the menu entry
 // above or below it on Up or Down.

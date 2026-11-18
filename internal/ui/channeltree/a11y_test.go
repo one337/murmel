@@ -125,6 +125,9 @@ func TestGTKVolumeSliderIsLabelled(t *testing.T) {
 		if !gtk.TestAccessibleHasProperty(scale, gtk.AccessiblePropertyLabel) {
 			t.Error("the volume slider has no accessible name")
 		}
+		if !gtk.TestAccessibleHasProperty(scale, gtk.AccessiblePropertyValueText) {
+			t.Error("the volume slider has no value text")
+		}
 		pop.Popdown()
 	})
 }
