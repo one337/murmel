@@ -14,15 +14,19 @@ import (
 // rows replaced on connecting or disconnecting (hundreds on a big server)
 // would hold their memory until then and be freed all at once, blocking
 // the main loop. release runs collections for them in small steps until
-// they are freed.
+// they are freed. Under load some rows stay reachable in Go for a while
+// although GTK no longer holds them; release then gives up once no row
+// was freed for releaseStallRounds, and the collector frees them later.
 const (
-	releaseStepMs    = 50
-	releaseMaxRounds = 40
+	releaseStepMs      = 50
+	releaseStallRounds = 40  // 2 s without another row freed
+	releaseMaxRounds   = 400 // 20 s at most
 )
 
 // release frees the given widgets of replaced rows (the most deeply nested
 // one the tree holds of each row) in steps, see above. It stops when they
-// are freed, after releaseMaxRounds at the latest.
+// are freed, when none was freed for releaseStallRounds, and after
+// releaseMaxRounds at the latest.
 func (t *Tree) release(leaves []gtk.Widgetter) {
 	if len(leaves) == 0 {
 		return
@@ -41,14 +45,21 @@ func (t *Tree) release(leaves []gtk.Widgetter) {
 			})
 		})
 	}
+	t.releaseLeft, t.releaseIdle = t.releasing, 0
 	if t.releaseRound > 0 {
 		return // already running
 	}
 	t.releaseRound = 1
 	go runtime.GC()
 	glib.TimeoutAdd(releaseStepMs, func() bool {
-		if t.releasing <= 0 || t.releaseRound >= releaseMaxRounds {
+		if t.releasing < t.releaseLeft {
+			t.releaseLeft, t.releaseIdle = t.releasing, 0
+		} else {
+			t.releaseIdle++
+		}
+		if t.releasing <= 0 || t.releaseIdle >= releaseStallRounds || t.releaseRound >= releaseMaxRounds {
 			t.releasing, t.releaseRound = 0, 0
+			t.releaseLeft, t.releaseIdle = 0, 0
 			t.releaseGen++
 			return false
 		}

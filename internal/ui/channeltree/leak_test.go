@@ -190,24 +190,82 @@ func TestGTKReplacedRowsAreFreed(t *testing.T) {
 		reconnects, aliveGo, w.total, aliveGTK, tolerance)
 }
 
-// After disconnecting, the tree itself has the old rows freed (with
-// garbage collections in steps, see release) and then stops: nothing in
-// the test runs a collection.
+// After disconnecting, the tree runs garbage collections for the old rows
+// (see release) and stops by itself, having freed at least some of them;
+// nothing in the test runs a collection until then. Under load some rows
+// stay reachable in Go for a while, so the rest need only be freed by
+// later collections.
 func TestGTKDisconnectReleasesTheOldRows(t *testing.T) {
 	needGTK(t)
 	const channels, users = 30, 100
 	tree, b := buildLeakTree(t, channels, users)
 
 	var w rowWatch
-	onMain(func() { w.watchAll(tree) })
+	var gen int
+	onMain(func() {
+		w.watchAll(tree)
+		gen = tree.releaseGen
+	})
 	b.Emit(bus.Disconnected{})
-	var inGTK, round int
-	for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
-		_, inGTK = w.alive()
-		onMain(func() { round = tree.releaseRound })
-		if inGTK == 0 && round == 0 {
-			return
-		}
+	limit := time.Duration(releaseMaxRounds*releaseStepMs)*time.Millisecond + 5*time.Second
+	stopped := false
+	for deadline := time.Now().Add(limit); !stopped && time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
+		onMain(func() { stopped = tree.releaseGen != gen && tree.releaseRound == 0 })
 	}
-	t.Fatalf("5 s after disconnecting %d of %d rows are not finalized; release round %d (0: stopped)", inGTK, w.total, round)
+	if !stopped {
+		t.Fatalf("the release did not stop within %v", limit)
+	}
+	_, inGTK := w.alive()
+	t.Logf("the release freed %d of %d rows", w.total-inGTK, w.total)
+	if inGTK == w.total {
+		t.Errorf("the release stopped without freeing any of the %d rows", w.total)
+	}
+
+	for deadline := time.Now().Add(10 * time.Second); inGTK > 0 && time.Now().Before(deadline); {
+		collect()
+		_, inGTK = w.alive()
+	}
+	if inGTK > 0 {
+		t.Errorf("%d of %d rows are not finalized after further collections", inGTK, w.total)
+	}
+}
+
+// A row that stays held does not keep the release running: it stops once
+// no row was freed for a while, long before its upper limit.
+func TestGTKReleaseGivesUpOnHeldRows(t *testing.T) {
+	needGTK(t)
+	const channels, users = 5, 20
+	tree, b := buildLeakTree(t, channels, users)
+
+	var w rowWatch
+	var held *userRowWidgets
+	var gen int
+	onMain(func() {
+		w.watchAll(tree)
+		held = tree.userRows[3]
+		gen = tree.releaseGen
+	})
+	start := time.Now()
+	b.Emit(bus.Disconnected{})
+	stopped := false
+	for deadline := time.Now().Add(10 * time.Second); !stopped && time.Now().Before(deadline); time.Sleep(20 * time.Millisecond) {
+		onMain(func() { stopped = tree.releaseGen != gen && tree.releaseRound == 0 })
+	}
+	took := time.Since(start)
+	if limit := time.Duration(releaseMaxRounds*releaseStepMs) * time.Millisecond / 2; !stopped || took > limit {
+		t.Fatalf("with a row held the release stopped %v after disconnecting (stopped %v), want well within %v", took, stopped, limit)
+	}
+	if _, inGTK := w.alive(); inGTK == 0 {
+		t.Error("the held row was finalized")
+	}
+
+	runtime.KeepAlive(held) // held until here
+	inGTK := w.total
+	for deadline := time.Now().Add(10 * time.Second); inGTK > 0 && time.Now().Before(deadline); {
+		collect()
+		_, inGTK = w.alive()
+	}
+	if inGTK > 0 {
+		t.Errorf("%d of %d rows are not finalized after letting go", inGTK, w.total)
+	}
 }

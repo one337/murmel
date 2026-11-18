@@ -86,10 +86,13 @@ type Tree struct {
 	// every row.
 	replaceAll bool
 	// releasing counts the widgets of replaced rows not freed yet;
-	// releaseRound, the garbage collections run for them (see release).
+	// releaseRound, the garbage collections run for them, releaseIdle
+	// those since the last one was freed (see release).
 	releasing    int
 	releaseGen   int
 	releaseRound int
+	releaseLeft  int
+	releaseIdle  int
 }
 
 // openMenu is the shown context menu, of a channel or (user) of a user.
