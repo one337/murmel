@@ -1,9 +1,12 @@
 package channeltree
 
 import (
+	"fmt"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
@@ -88,24 +91,64 @@ func TestGTKSpeakingKeepsTheDescription(t *testing.T) {
 
 // New messages do not change the focused row's description; it follows
 // when the focus leaves. Rows without the focus follow at once.
+//
+// The row holds its count only while it has the input focus, which needs
+// an active window; under Xvfb without a window manager the window may
+// lose it for a moment. A pass in which that happened proves nothing and
+// is repeated (logged).
 func TestGTKUnreadWaitsForTheFocusToLeave(t *testing.T) {
 	needGTK(t)
-	tree, b, _, entry := focusTree(t, 5, 40)
-	focusRow(t, tree, rowID{user: true, id: 20})
-	b.Emit(bus.UnreadChanged{Session: 20, Count: 2})
-	b.Emit(bus.UnreadChanged{Session: 0, Count: 3})
-	time.Sleep(2 * rebuildInterval)
+	tree, b, win, entry := focusTree(t, 5, 40)
+	id := rowID{user: true, id: 20}
+	var lost atomic.Bool
 	onMain(func() {
-		if got := tree.userRows[20].text.desc; got != "" {
-			t.Errorf("focused row described as %q while it has the focus", got)
-		}
-		if got := tree.channelRows[2].text.desc; got != "8 users, you are here, 3 unread messages" {
-			t.Errorf("own channel (no focus) described as %q", got)
-		}
+		c := gtk.NewEventControllerFocus()
+		c.ConnectLeave(func() { lost.Store(true) })
+		tree.rowFor(id).AddController(c)
+		coreglib.InternObject(win).NotifyProperty("is-active", func() {
+			if !win.IsActive() {
+				lost.Store(true)
+			}
+		})
 	})
+
+	const passes = 3
+	n := 0
+	for pass := 1; ; pass++ {
+		focusRow(t, tree, id)
+		waitFor(t, "the row to have the input focus", func() bool {
+			return win.IsActive() && tree.rowFor(id).HasFocus()
+		})
+		lost.Store(false)
+		var before string
+		onMain(func() { before = tree.userRows[20].text.desc })
+		n = pass + 1
+		channel := fmt.Sprintf("8 users, you are here, %d unread messages", n+1)
+		b.Emit(bus.UnreadChanged{Session: 20, Count: n})
+		b.Emit(bus.UnreadChanged{Session: 0, Count: n + 1})
+		// Both events are handled once the row without the focus shows its count.
+		waitFor(t, "the own channel's count", func() bool {
+			return tree.channelRows[2].text.desc == channel
+		})
+		if lost.Load() {
+			if pass == passes {
+				t.Fatalf("the window or the row lost the focus in all %d passes", passes)
+			}
+			t.Logf("pass %d: the window or the row lost the focus meanwhile; repeated", pass)
+			continue
+		}
+		onMain(func() {
+			if got := tree.userRows[20].text.desc; got != before {
+				t.Errorf("focused row described as %q while it has the focus, want %q as before", got, before)
+			}
+		})
+		break
+	}
+
 	onMain(func() { entry.GrabFocus() })
+	want := fmt.Sprintf("%d unread messages", n)
 	waitFor(t, "the unread count after the focus left", func() bool {
-		return tree.userRows[20].text.desc == "2 unread messages"
+		return tree.userRows[20].text.desc == want
 	})
 }
 
