@@ -136,8 +136,9 @@ func TestGTKOneJoinInsertsOneRow(t *testing.T) {
 	checkListMatchesModel(t, tree)
 }
 
-// within reports whether channel id is top or lies below it.
-func within(m *treeModel, id, top uint32) bool {
+// within reports whether channel id is top or lies below it, with parent
+// giving each channel's parent.
+func within(parent func(uint32) uint32, id, top uint32) bool {
 	for {
 		if id == top {
 			return true
@@ -145,7 +146,7 @@ func within(m *treeModel, id, top uint32) bool {
 		if isRoot(id) {
 			return false
 		}
-		id = m.parentOf(id)
+		id = parent(id)
 	}
 }
 
@@ -171,6 +172,15 @@ func TestGTKRandomChangesKeepTheList(t *testing.T) {
 				chans = append(chans, id)
 			}
 			pick := func(l []uint32) uint32 { return l[rng.IntN(len(l))] }
+			// The moves of this pass count already: two moves checked only
+			// against the model could put channels below each other.
+			moved := map[uint32]uint32{}
+			parent := func(id uint32) uint32 {
+				if p, ok := moved[id]; ok {
+					return p
+				}
+				return tree.model.parentOf(id)
+			}
 			for range 1 + rng.IntN(6) {
 				switch rng.IntN(8) {
 				case 0:
@@ -198,10 +208,11 @@ func TestGTKRandomChangesKeepTheList(t *testing.T) {
 					evs = append(evs, bus.ChannelUpdated{Channel: info})
 				case 7:
 					id, to := pick(chans), pick(chans)
-					if !isRoot(id) && !within(tree.model, to, id) {
+					if !isRoot(id) && !within(parent, to, id) {
 						info := tree.model.channels[id].info
 						info.ParentID = to
 						evs = append(evs, bus.ChannelUpdated{Channel: info})
+						moved[id] = to
 					}
 				}
 			}
