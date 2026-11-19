@@ -565,7 +565,9 @@ func (c *Controller) onDialError(err error, p *dialParams, a attempt) {
 		// Mumble 1.6 checks a password sent by a name registered with a
 		// certificate as that account's password, so the server password
 		// from the form makes the login fail although registered users do
-		// not need it. Try once more without it.
+		// not need it. Try once more without it. This is a server bug
+		// (mumble-voip/mumble#7495); only 1.6 servers without its fix
+		// need the second attempt.
 		if ev.Reason == bus.RejectUserCredentials && p.identity != nil && p.password != "" && !p.droppedPassword {
 			slog.Info("registered name refused with password: retrying without it")
 			retry := *p
