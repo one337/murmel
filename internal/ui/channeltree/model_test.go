@@ -121,3 +121,37 @@ func TestCollapsedChannelHidesUsers(t *testing.T) {
 		t.Fatalf("expanded walk = %+v", got)
 	}
 }
+
+// A channel moved elsewhere is shown at its new place only, with what
+// is below it one level deeper.
+func TestChannelMovedLeavesItsOldPlace(t *testing.T) {
+	m := newTreeModel()
+	m.apply(bus.Connected{
+		Channels: []bus.ChannelInfo{
+			ch(0, 0, "Root", 0),
+			ch(1, 0, "Lobby", 0),
+			ch(2, 0, "Games", 1),
+			ch(3, 1, "Sub", 0),
+		},
+		Users: []bus.UserInfo{{Session: 7, Name: "simon", Channel: 3}},
+	})
+	if !m.apply(bus.ChannelUpdated{Channel: ch(1, 2, "Lobby", 0)}) {
+		t.Fatal("the move did not change the tree")
+	}
+	got := m.walk()
+	want := []entry{
+		{entryChannel, 0, 0},
+		{entryChannel, 2, 1},
+		{entryChannel, 1, 2},
+		{entryChannel, 3, 3},
+		{entryUser, 7, 4},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("walk = %+v, want %+v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("walk[%d] = %+v, want %+v (full: %+v)", i, got[i], want[i], got)
+		}
+	}
+}

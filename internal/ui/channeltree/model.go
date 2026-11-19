@@ -98,16 +98,17 @@ func (m *treeModel) apply(ev bus.Event) bool {
 		if !ok {
 			return m.addChannel(e.Channel)
 		}
-		moved := node.info.ParentID != e.Channel.ParentID
-		node.info = e.Channel
-		if moved {
-			old := m.parentOf(e.Channel.ID)
+		old := node.info.ParentID
+		if old != e.Channel.ParentID {
+			// Taken from its old parent before info names the new one.
 			m.detachChannel(e.Channel.ID)
+			node.info = e.Channel
 			m.attachChannel(e.Channel.ID)
 			m.sortChildren(old)
 			m.sortChildren(e.Channel.ParentID)
 			return true
 		}
+		node.info = e.Channel
 		if e.Changed.Has(bus.ChannelChangePosition) || e.Changed.Has(bus.ChannelChangeName) {
 			if !isRoot(e.Channel.ID) {
 				m.sortChildren(e.Channel.ParentID)

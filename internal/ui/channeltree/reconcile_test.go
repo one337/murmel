@@ -136,8 +136,22 @@ func TestGTKOneJoinInsertsOneRow(t *testing.T) {
 	checkListMatchesModel(t, tree)
 }
 
-// Many random changes, each pass checked: the list shows the model's walk
-// order, with the right indents and one's own channel marked.
+// within reports whether channel id is top or lies below it.
+func within(m *treeModel, id, top uint32) bool {
+	for {
+		if id == top {
+			return true
+		}
+		if isRoot(id) {
+			return false
+		}
+		id = m.parentOf(id)
+	}
+}
+
+// Many random changes (channels moved elsewhere among them), each pass
+// checked: the list shows the model's walk order, with the right indents
+// and one's own channel marked.
 func TestGTKRandomChangesKeepTheList(t *testing.T) {
 	needGTK(t)
 	const channels, users = 12, 40
@@ -158,7 +172,7 @@ func TestGTKRandomChangesKeepTheList(t *testing.T) {
 			}
 			pick := func(l []uint32) uint32 { return l[rng.IntN(len(l))] }
 			for range 1 + rng.IntN(6) {
-				switch rng.IntN(7) {
+				switch rng.IntN(8) {
 				case 0:
 					nextSession++
 					evs = append(evs, bus.UserAdded{User: bus.UserInfo{Session: nextSession, Name: fmt.Sprintf("u%d", nextSession), Channel: pick(chans)}})
@@ -182,6 +196,13 @@ func TestGTKRandomChangesKeepTheList(t *testing.T) {
 					info := n.info
 					info.Name = fmt.Sprintf("r%d", rng.IntN(100))
 					evs = append(evs, bus.ChannelUpdated{Channel: info})
+				case 7:
+					id, to := pick(chans), pick(chans)
+					if !isRoot(id) && !within(tree.model, to, id) {
+						info := tree.model.channels[id].info
+						info.ParentID = to
+						evs = append(evs, bus.ChannelUpdated{Channel: info})
+					}
 				}
 			}
 		})
