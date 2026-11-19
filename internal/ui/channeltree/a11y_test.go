@@ -116,9 +116,7 @@ func TestGTKUnreadWaitsForTheFocusToLeave(t *testing.T) {
 	n := 0
 	for pass := 1; ; pass++ {
 		focusRow(t, tree, id)
-		waitFor(t, "the row to have the input focus", func() bool {
-			return win.IsActive() && tree.rowFor(id).HasFocus()
-		})
+		waitForFocus(t, tree, win, id)
 		lost.Store(false)
 		var before string
 		onMain(func() { before = tree.userRows[20].text.desc })
@@ -150,6 +148,33 @@ func TestGTKUnreadWaitsForTheFocusToLeave(t *testing.T) {
 	waitFor(t, "the unread count after the focus left", func() bool {
 		return tree.userRows[20].text.desc == want
 	})
+}
+
+// waitForFocus waits until the window is active and the row has the input
+// focus. Without a window manager the X focus goes to the window shown last,
+// which may be another test program's on the same display; every 2 s without
+// the focus the window is shown and the row focused again (logged).
+func waitForFocus(t *testing.T, tree *Tree, win *gtk.Window, id rowID) {
+	t.Helper()
+	start := time.Now()
+	again := start.Add(2 * time.Second)
+	var active, focus bool
+	for deadline := start.Add(10 * time.Second); time.Now().Before(deadline); time.Sleep(10 * time.Millisecond) {
+		onMain(func() { active, focus = win.IsActive(), tree.rowFor(id).HasFocus() })
+		if active && focus {
+			return
+		}
+		if time.Now().After(again) {
+			t.Logf("no input focus after %v (window active %v, row focused %v); window shown again",
+				time.Since(start).Round(time.Millisecond), active, focus)
+			onMain(func() {
+				win.Present()
+				tree.rowFor(id).GrabFocus()
+			})
+			again = time.Now().Add(2 * time.Second)
+		}
+	}
+	t.Fatalf("timed out waiting for the row to have the input focus (window active %v, row focused %v)", active, focus)
 }
 
 // The volume slider in the user menu is named for assistive technologies.
