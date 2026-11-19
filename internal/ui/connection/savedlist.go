@@ -20,6 +20,7 @@ import (
 	"io.github/murmel/internal/protocol/gumble"
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/avatarpick"
+	"io.github/murmel/internal/ui/dragicon"
 	"io.github/murmel/internal/ui/secrets"
 	"io.github/murmel/internal/ui/weakref"
 )
@@ -313,6 +314,7 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 	src := gtk.NewDragSource()
 	src.SetActions(gdk.ActionMove)
 	var hotX, hotY float64
+	var icon *dragicon.Icon
 	ws, wr, handleRef := s.self, weak.Make(r), weakref.New(handle)
 	src.ConnectPrepare(func(x, y float64) *gdk.ContentProvider {
 		s, r := ws.Value(), wr.Value()
@@ -344,8 +346,7 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 		copyRow.SetSubtitle(r.row.Subtitle())
 		copyRow.AddPrefix(gtk.NewImageFromIconName("list-drag-handle-symbolic"))
 		copyList.Append(copyRow)
-		icon := gtk.NewDragIconGetForDrag(drag)
-		icon.SetChild(copyList)
+		icon = dragicon.Set(drag, copyList)
 		gdk.BaseDrag(drag).SetHotspot(int(hotX), int(hotY))
 		r.row.AddCSSClass("dragged")
 	})
@@ -354,7 +355,11 @@ func (s *savedList) dragSource(r *savedRow, handle *gtk.Image) {
 		s.dragging = nil
 		s.speed = 0
 	})
-	src.ConnectDragEnd(func(gdk.Dragger, bool) { end() })
+	src.ConnectDragEnd(func(gdk.Dragger, bool) {
+		icon.End()
+		icon = nil
+		end()
+	})
 	handle.AddController(src)
 }
 

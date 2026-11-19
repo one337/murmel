@@ -10,6 +10,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/ui/dragicon"
 )
 
 // Users are moved into other channels by dragging the handle that appears
@@ -94,6 +95,7 @@ func (t *Tree) dragUser(r *userRowWidgets, session uint32) {
 
 	src := gtk.NewDragSource()
 	src.SetActions(gdk.ActionMove)
+	var icon *dragicon.Icon
 	src.ConnectPrepare(func(float64, float64) *gdk.ContentProvider {
 		row, ok := t.userRows[session]
 		if t.drag != nil || !ok || !canDragUser(t.model, session) {
@@ -114,21 +116,25 @@ func (t *Tree) dragUser(r *userRowWidgets, session uint32) {
 			return
 		}
 		u := t.model.users[session]
-		icon := gtk.NewBox(gtk.OrientationHorizontal, 8)
-		icon.AddCSSClass("user-drag-icon")
+		box := gtk.NewBox(gtk.OrientationHorizontal, 8)
+		box.AddCSSClass("user-drag-icon")
 		av := adw.NewAvatar(avatarSizePx, u.Name, true)
 		if img := row.avatar.CustomImage(); img != nil {
 			av.SetCustomImage(img)
 		}
-		icon.Append(av)
-		icon.Append(gtk.NewLabel(u.Name))
-		gtk.NewDragIconGetForDrag(drag).SetChild(icon)
+		box.Append(av)
+		box.Append(gtk.NewLabel(u.Name))
+		icon = dragicon.Set(drag, box)
 		gdk.BaseDrag(drag).SetHotspot(-8, avatarSizePx/2)
 		row.root.AddCSSClass("dragged")
 		t.setRowTooltips(false) // "Double-click to join" would cover the targets
 
 	})
-	src.ConnectDragEnd(func(gdk.Dragger, bool) { t.endDrag() })
+	src.ConnectDragEnd(func(gdk.Dragger, bool) {
+		icon.End()
+		icon = nil
+		t.endDrag()
+	})
 	// From the press on the handle, rebuilds wait (see flushRebuild);
 	// released without a drag, the list catches up at once.
 	src.ConnectBegin(func(*gdk.EventSequence) { t.handlePressed = true })
