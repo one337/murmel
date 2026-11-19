@@ -85,6 +85,8 @@ func (h *logHandler) Handle(ctx context.Context, r slog.Record) error {
 		}
 	} else if level < slog.LevelInfo {
 		return nil
+	} else if level == slog.LevelInfo && isLogWarning(r.Message) {
+		level = slog.LevelWarn
 	}
 
 	h.mu.Lock()
@@ -111,6 +113,17 @@ func (h *logHandler) Handle(ctx context.Context, r slog.Record) error {
 	line.WriteByte('\n')
 	_, err := io.WriteString(h.out, line.String())
 	return err
+}
+
+// isLogWarning reports whether msg is a warning written through the log
+// package, which reaches slog at the info level: "warning: …" or, as
+// gotk4 writes them, "gotk4: warning: …".
+func isLogWarning(msg string) bool {
+	if strings.HasPrefix(msg, "warning:") {
+		return true
+	}
+	prefix, rest, ok := strings.Cut(msg, ": ")
+	return ok && !strings.ContainsAny(prefix, " :") && strings.HasPrefix(rest, "warning:")
 }
 
 // glibPriority returns the syslog priority and domain of a GLib message

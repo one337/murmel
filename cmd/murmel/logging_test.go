@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"log"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -85,5 +86,39 @@ func TestAttrsAndGroupsKeepTheirText(t *testing.T) {
 	})
 	if len(got) != 1 || !strings.HasSuffix(got[0], ` INFO retry server="a b" dial.n=2`) {
 		t.Fatalf("lines = %q", got)
+	}
+}
+
+// Warnings written through the log package (gotk4 writes them that way)
+// arrive at slog's info level; they are shown as WARN.
+func TestLogPackageWarningsAreWarnings(t *testing.T) {
+	var out bytes.Buffer
+	prev, w, flags := slog.Default(), log.Writer(), log.Flags()
+	slog.SetDefault(slog.New(newLogHandler(&out, "")))
+	defer func() {
+		// Setting slog's default back does not undo the log package's
+		// redirection.
+		slog.SetDefault(prev)
+		log.SetOutput(w)
+		log.SetFlags(flags)
+	}()
+	log.Printf("gotk4: warning: object %v cannot be resurrected for generated closure", "0x17fbdb10")
+	log.Printf("warning: something")
+	log.Printf("gotk4: object list updated")
+	log.Printf("connect failed: warning: not a warning prefix")
+	got := strings.Split(strings.TrimSuffix(out.String(), "\n"), "\n")
+	want := []string{
+		" WARN gotk4: warning: object 0x17fbdb10 cannot be resurrected for generated closure",
+		" WARN warning: something",
+		" INFO gotk4: object list updated",
+		" INFO connect failed: warning: not a warning prefix",
+	}
+	if len(got) != len(want) {
+		t.Fatalf("lines = %q", got)
+	}
+	for i := range want {
+		if !strings.HasSuffix(got[i], want[i]) {
+			t.Errorf("line %d = %q, want suffix %q", i, got[i], want[i])
+		}
 	}
 }
