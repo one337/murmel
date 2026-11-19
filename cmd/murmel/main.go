@@ -23,6 +23,7 @@ import (
 )
 
 func main() {
+	slog.SetDefault(slog.New(newLogHandler(os.Stderr, os.Getenv("G_MESSAGES_DEBUG"))))
 	gumble.RegisterMurmelOpusCodec()
 
 	st := settings.New()
