@@ -401,13 +401,10 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	} else {
 		r.chevron.SetIconName(iconExpanderCollapsed)
 	}
-	// Assistive technologies hear "expanded" or "collapsed" only where
-	// there is something to open.
-	if hasKids {
-		r.setExpandedState(n.expanded)
-	} else {
-		r.root.ResetState(gtk.AccessibleStateExpanded)
-	}
+	// Every channel tells assistive technologies whether it is open, an
+	// empty one too: a state that appeared when a user enters would be
+	// announced like a change.
+	r.setExpandedState(n.expanded)
 	if len(n.users) > 0 {
 		r.count.SetText(fmt.Sprintf("%d", len(n.users)))
 		r.count.SetVisible(true)

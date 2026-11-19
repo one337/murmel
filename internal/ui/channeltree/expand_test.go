@@ -230,23 +230,35 @@ func TestGTKRightOnEmptyChannel(t *testing.T) {
 	}
 }
 
-// Channel rows with something to open tell assistive technologies whether
-// they are open; empty channels say nothing about it.
+// Every channel row tells assistive technologies whether it is open, an
+// empty one too, and keeps that state while users come and go.
 func TestGTKChannelRowsAnnounceExpanded(t *testing.T) {
 	needGTK(t)
-	tree, _, _, _ := focusTree(t, 6, 5) // channel 1 has no users
-	onMain(func() {
-		if !gtk.TestAccessibleHasState(tree.channelRows[2].root, gtk.AccessibleStateExpanded) {
-			t.Error("channel 2 (with users) does not announce expanded")
-		}
-		if gtk.TestAccessibleHasState(tree.channelRows[1].root, gtk.AccessibleStateExpanded) {
-			t.Error("the empty channel 1 announces expanded")
-		}
-		tree.toggleExpand(2)
-		if !gtk.TestAccessibleHasState(tree.channelRows[2].root, gtk.AccessibleStateExpanded) {
-			t.Error("the closed channel 2 does not announce its state")
-		}
-	})
+	tree, b, _, _ := focusTree(t, 6, 5) // channel 1 has no users
+	has := func(ch uint32) (ok bool) {
+		onMain(func() { ok = gtk.TestAccessibleHasState(tree.channelRows[ch].root, gtk.AccessibleStateExpanded) })
+		return ok
+	}
+	if !has(2) {
+		t.Error("channel 2 (with users) does not announce expanded")
+	}
+	if !has(1) {
+		t.Error("the empty channel 1 does not announce expanded")
+	}
+	b.Emit(bus.UserAdded{User: bus.UserInfo{Session: 50, Name: "guest", Channel: 1}})
+	waitFor(t, "the user in channel 1", func() bool { return tree.userRows[50] != nil })
+	if !has(1) {
+		t.Error("channel 1 lost its state when a user entered")
+	}
+	b.Emit(bus.UserRemoved{Session: 50})
+	waitFor(t, "the user to leave channel 1", func() bool { return tree.userRows[50] == nil })
+	if !has(1) {
+		t.Error("channel 1 lost its state when the last user left")
+	}
+	onMain(func() { tree.toggleExpand(2) })
+	if !has(2) {
+		t.Error("the closed channel 2 does not announce its state")
+	}
 }
 
 // Rows removed by closing a channel are freed, in Go and in GTK.
