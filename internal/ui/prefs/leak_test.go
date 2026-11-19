@@ -1,8 +1,12 @@
 package prefs
 
 import (
+	"bytes"
+	"log"
 	"os"
 	"runtime"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -206,4 +210,54 @@ func TestGTKOnNotifyWorksAfterGC(t *testing.T) {
 	if got.Load() != 1 {
 		t.Fatalf("the notify callback ran %d times after GC, want 1", got.Load())
 	}
+}
+
+// Preferences opened through Show and closed are freed without their
+// destroy signal reaching Go handlers that gotk4 has already released
+// ("cannot be resurrected for generated closure").
+func TestGTKClosedPreferencesGoQuietly(t *testing.T) {
+	needGTK(t)
+	mgr, err := certs.NewManager(certs.WithDataDir(t.TempDir()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var buf syncBuffer
+	log.SetOutput(&buf)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	st := settings.NewMemory()
+	b := bus.New(nil)
+	win := testWindow(t)
+
+	var w leakWatch
+	for range 5 {
+		var pw *Window
+		onMain(func() {
+			pw = Show(win, st, mgr, nil, b, nil)
+			w.object(pw.PreferencesDialog)
+		})
+		onMain(func() { pw.ForceClose() })
+		pw = nil
+	}
+	w.check(t, "preferences")
+	if n := strings.Count(buf.String(), "cannot be resurrected"); n > 0 {
+		t.Fatalf("%d signals reached released Go handlers:\n%s", n, buf.String())
+	}
+}
+
+// syncBuffer is a bytes.Buffer safe for the log package's concurrent use.
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (b *syncBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+func (b *syncBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
 }

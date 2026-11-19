@@ -87,11 +87,22 @@ func Show(parent gtk.Widgetter, st settings.Settings, m *certs.Manager, player *
 
 // onClose runs f once when the dialog is closed or destroyed, whichever
 // comes first, so listeners are removed on every way the dialog goes away.
+// Both handlers go with the first call: a closed dialog is freed later,
+// when Go no longer holds it, and its destroy signal must not reach Go
+// code then.
 func onClose(d *adw.PreferencesDialog, f func()) {
 	var once sync.Once
-	run := func() { once.Do(f) }
-	d.ConnectClosed(run)
-	d.ConnectDestroy(run)
+	var closed, destroy coreglib.SignalHandle
+	obj := coreglib.InternObject(d)
+	run := func() {
+		once.Do(func() {
+			obj.HandlerDisconnect(closed)
+			obj.HandlerDisconnect(destroy)
+			f()
+		})
+	}
+	closed = d.ConnectClosed(run)
+	destroy = d.ConnectDestroy(run)
 }
 
 // --- Identity page ---------------------------------------------------------
