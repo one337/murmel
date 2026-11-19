@@ -134,7 +134,7 @@ if command -v xvfb-run >/dev/null 2>&1; then
       HOME="$GTKHOME" XDG_CONFIG_HOME="$GTKHOME/config" XDG_DATA_HOME="$GTKHOME/data" \
       XDG_CACHE_HOME="$GTKHOME/cache" XDG_STATE_HOME="$GTKHOME/state" XDG_RUNTIME_DIR="$GTKHOME/run" \
       DBUS_SESSION_BUS_ADDRESS=disabled: GDK_BACKEND=x11 GDK_DEBUG=no-portals GSETTINGS_BACKEND=memory \
-      MESA_SHADER_CACHE_DISABLE=true \
+      MESA_SHADER_CACHE_DISABLE=true G_DEBUG=fatal-criticals \
       GOCACHE="$(go env GOCACHE)" GOMODCACHE="$(go env GOMODCACHE)" GOPATH="$(go env GOPATH)" \
       MURMEL_GTK_TESTS=1 xvfb-run -n $((100 + 10 * i)) -a \
       go test -count=1 -v -run '^TestGTK' "${GTK_TEST_PKGS[$i]}" >"$GTKHOME/test-$i.log" 2>&1 &
