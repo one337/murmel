@@ -113,23 +113,45 @@ else
   fail "GSettings roundtrip"
 fi
 
-# Leak tests need GTK and a display: they run on a virtual X server in a
+# Leak tests need GTK and a display: they run on virtual X servers in a
 # throwaway HOME, without the desktop's D-Bus session or Wayland display.
+# Every package gets its own X server: without a window manager the input
+# focus goes to the window shown last, so test programs sharing a display
+# take it from each other. The packages still run in parallel. -v keeps
+# the tests' log lines (repeated passes, windows shown again) in the output.
 GTK_TEST_PKGS=(./internal/ui/channeltree ./internal/ui/admin ./internal/ui/connection ./internal/ui/prefs ./internal/ui/richtext)
 step "GTK leak tests (xvfb-run)"
 if command -v xvfb-run >/dev/null 2>&1; then
   GTKHOME=$(mktemp -d /tmp/murmel-gtk-XXXXXX)
   mkdir -m 700 "$GTKHOME/run"
-  if env -u WAYLAND_DISPLAY -u DISPLAY \
-    HOME="$GTKHOME" XDG_CONFIG_HOME="$GTKHOME/config" XDG_DATA_HOME="$GTKHOME/data" \
-    XDG_CACHE_HOME="$GTKHOME/cache" XDG_STATE_HOME="$GTKHOME/state" XDG_RUNTIME_DIR="$GTKHOME/run" \
-    DBUS_SESSION_BUS_ADDRESS=disabled: GDK_BACKEND=x11 GDK_DEBUG=no-portals GSETTINGS_BACKEND=memory \
-    MESA_SHADER_CACHE_DISABLE=true \
-    GOCACHE="$(go env GOCACHE)" GOMODCACHE="$(go env GOMODCACHE)" GOPATH="$(go env GOPATH)" \
-    MURMEL_GTK_TESTS=1 xvfb-run -a go test -count=1 -run '^TestGTK' "${GTK_TEST_PKGS[@]}" 2>&1; then
+  gtk_start=$SECONDS
+  gtk_pids=()
+  for i in "${!GTK_TEST_PKGS[@]}"; do
+    # Each search for a free display starts elsewhere (-n before -a:
+    # xvfb-run applies them in order), so parallel runs do not pick the
+    # same one.
+    env -u WAYLAND_DISPLAY -u DISPLAY \
+      HOME="$GTKHOME" XDG_CONFIG_HOME="$GTKHOME/config" XDG_DATA_HOME="$GTKHOME/data" \
+      XDG_CACHE_HOME="$GTKHOME/cache" XDG_STATE_HOME="$GTKHOME/state" XDG_RUNTIME_DIR="$GTKHOME/run" \
+      DBUS_SESSION_BUS_ADDRESS=disabled: GDK_BACKEND=x11 GDK_DEBUG=no-portals GSETTINGS_BACKEND=memory \
+      MESA_SHADER_CACHE_DISABLE=true \
+      GOCACHE="$(go env GOCACHE)" GOMODCACHE="$(go env GOMODCACHE)" GOPATH="$(go env GOPATH)" \
+      MURMEL_GTK_TESTS=1 xvfb-run -n $((100 + 10 * i)) -a \
+      go test -count=1 -v -run '^TestGTK' "${GTK_TEST_PKGS[$i]}" >"$GTKHOME/test-$i.log" 2>&1 &
+    gtk_pids+=($!)
+  done
+  gtk_failed=()
+  for i in "${!GTK_TEST_PKGS[@]}"; do
+    if ! wait "${gtk_pids[$i]}"; then
+      gtk_failed+=("${GTK_TEST_PKGS[$i]}")
+    fi
+    cat "$GTKHOME/test-$i.log"
+  done
+  printf 'GTK tests took %ds\n' $((SECONDS - gtk_start))
+  if [ ${#gtk_failed[@]} -eq 0 ]; then
     pass "GTK leak tests"
   else
-    fail "GTK leak tests"
+    fail "GTK leak tests (${gtk_failed[*]})"
   fi
   rm -rf "$GTKHOME"
 else
