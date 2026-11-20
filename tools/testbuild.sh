@@ -4,7 +4,7 @@
 # ("stable"), and make it the one that starts.
 #
 # The About dialog shows the development version (tools/version.sh, e.g.
-# 0.3.7-dev+5.g0782834). Back to the release:
+# 0.4.0-dev+1.g59710ea). Back to the release:
 #   flatpak make-current --user io.github.one337.murmel stable
 set -euo pipefail
 cd "$(dirname "$0")/.."

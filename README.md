@@ -180,10 +180,10 @@ Flathub; `tools/testbuild.sh` installs them when they are missing.
 
 ### Versions
 
-The About dialog shows the version from `tools/version.sh`: `0.3.7` for a
-build of the release tag, `0.3.7-dev+5.g0782834` for one 5 commits after
-it (at commit `0782834`, `.dirty` with uncommitted changes), and
-`0.3.7-dev` where git is not available.
+The About dialog shows the version from `tools/version.sh`: `0.4.0` for a
+build of the release tag, `0.4.0-dev+1.g59710ea` for a build one
+commit after it (at commit `59710ea`, `.dirty` with uncommitted changes), and
+`0.4.0-dev` where git is not available.
 
 ## Development
 
