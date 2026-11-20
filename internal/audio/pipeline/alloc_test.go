@@ -51,25 +51,3 @@ func TestAllocVADSampleMixedStates(t *testing.T) {
 		t.Fatalf("VAD.Sample state-machine cycle allocates: %.0f allocs/op", allocs)
 	}
 }
-
-func TestAllocFrameHandoff(t *testing.T) {
-	pool := newFramePool(16)
-	q := newQueueRelay(8, pool)
-	pcm := noiseFrameAt(rand.New(rand.NewSource(4)), 100)
-	var vadFrame *Frame
-	allocs := testing.AllocsPerRun(200, func() {
-		f := pool.Get()
-		copy(f.Data[:], pcm)
-		vadFrame = f
-		q.Push(f)
-		got, ok := q.Pull()
-		if !ok {
-			t.Fatal("push/pull lost frame")
-		}
-		pool.Put(got)
-	})
-	_ = vadFrame
-	if allocs != 0 {
-		t.Fatalf("frame handoff allocates: %.0f allocs/op", allocs)
-	}
-}

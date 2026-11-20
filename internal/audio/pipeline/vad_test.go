@@ -252,49 +252,6 @@ func TestVADMinSpeechHold(t *testing.T) {
 	}
 }
 
-func TestVADSetThresholdCalibration(t *testing.T) {
-	v := NewVAD(VADConfig{})
-	rng := rand.New(rand.NewSource(9))
-	feed(v, rng, 30, 100)
-
-	// thresholds are per-frame quantities: Sample once after calibration
-	// so openDB reflects the new margin
-	v.SetThreshold(1.0)
-	v.Sample(noiseFrameAt(rng, 30))
-	highOpen, _ := v.Thresholds()
-	floor := v.NoiseFloor()
-	if highOpen < floor+15.9 || highOpen > floor+16.1 {
-		t.Fatalf("SetThreshold(1.0): open %.1f, want floor+16 (=%.1f)", highOpen, floor+16)
-	}
-
-	v.SetThreshold(0.0)
-	v.Sample(noiseFrameAt(rng, 30))
-	lowOpen, _ := v.Thresholds()
-	// floor+4 ≈ −57 sits below AbsFloor −50, so the clamp binds
-	if lowOpen != -50 {
-		t.Fatalf("SetThreshold(0.0): open %.1f, want AbsFloor clamp at −50", lowOpen)
-	}
-
-	v.SetThreshold(5) // clamped
-	v.Sample(noiseFrameAt(rng, 30))
-	if o, _ := v.Thresholds(); o != highOpen {
-		t.Fatal("SetThreshold not clamped to [0,1]")
-	}
-
-	// soft speech that opens at neutral calibration must stay closed
-	// with the threshold raised
-	v2 := NewVAD(VADConfig{})
-	v2.SetThreshold(1.0)
-	rng2 := rand.New(rand.NewSource(10))
-	feed(v2, rng2, 30, 100)
-	for i := 0; i < 100; i++ {
-		d := v2.Sample(noiseFrameAt(rng2, 100)) // +10.5 dB over floor
-		if d == Start || d == Continue {
-			t.Fatalf("raised threshold still opens on soft audio: %v", d)
-		}
-	}
-}
-
 func TestVADGetLevelMeter(t *testing.T) {
 	v := NewVAD(VADConfig{})
 	rng := rand.New(rand.NewSource(11))

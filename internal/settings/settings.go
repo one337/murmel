@@ -6,6 +6,13 @@ import "log/slog"
 // id in data/io.github.one337.murmel.gschema.xml.
 const SchemaID = "io.github.one337.murmel"
 
+// The range of jitter-target-frames in the schema: audio buffered per
+// speaker before playback, in 10 ms frames.
+const (
+	JitterTargetFramesMin = 2
+	JitterTargetFramesMax = 8
+)
+
 // ServerEntry is one saved server (see Store; the fields keep the names
 // of the former server-list key, "name", "host", "port", "username",
 // "identity-id").

@@ -70,7 +70,7 @@ func runVAD(pcm []int16) (decisions []Decision, transmitted []bool) {
 			transmitted[i] = true
 		}
 		if d == Start {
-			for p := 1; p <= v.PreRollFrames() && i-p >= 0; p++ {
+			for p := 1; p <= len(v.PreRoll()) && i-p >= 0; p++ {
 				transmitted[i-p] = true
 			}
 		}

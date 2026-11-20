@@ -1,5 +1,7 @@
 package pipeline
 
+import "math"
+
 // Level meter scale shared by the VAD threshold, the voice meters and the
 // threshold setting: RMS level in dBFS from LevelFloorDB (silence) to 0.
 const LevelFloorDB = -60.0
@@ -30,4 +32,18 @@ func Clipped(frame []int16) bool {
 		}
 	}
 	return false
+}
+
+// RMS returns the root-mean-square level of a PCM frame in linear
+// amplitude units (0..32768).
+func RMS(frame []int16) float64 {
+	if len(frame) == 0 {
+		return 0
+	}
+	var sum float64
+	for _, s := range frame {
+		v := float64(s)
+		sum += v * v
+	}
+	return math.Sqrt(sum / float64(len(frame)))
 }

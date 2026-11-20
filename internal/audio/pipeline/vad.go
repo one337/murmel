@@ -68,9 +68,6 @@ type VADConfig struct {
 	// PreRollFrames is the pre-roll ring capacity in frames
 	// (≈50 ms = 5). Default OpenDelay worth of frames.
 	PreRollFrames int
-	// ThresholdRange is the dB span the user calibration SetThreshold
-	// slider sweeps (±Range/2 around OpenMargin). Default 12 dB.
-	ThresholdRange float64
 }
 
 func (c VADConfig) withDefaults() VADConfig {
@@ -101,9 +98,6 @@ func (c VADConfig) withDefaults() VADConfig {
 	if c.PreRollFrames == 0 {
 		c.PreRollFrames = int((c.OpenDelay + FrameDuration - 1) / FrameDuration)
 	}
-	if c.ThresholdRange == 0 {
-		c.ThresholdRange = 12
-	}
 	return c
 }
 
@@ -131,12 +125,11 @@ type VAD struct {
 	preIdx  int
 	preN    int
 
-	state      int // 0 idle, 1 opening, 2 speaking
-	aboveRun   int // consecutive frames ≥ open threshold (opening state)
-	episodeAt  int // frame index where the current episode logically began
-	hangover   int // frames below close threshold (speaking state)
-	frameIdx   int
-	userOffset float64 // dB offset from SetThreshold
+	state     int // 0 idle, 1 opening, 2 speaking
+	aboveRun  int // consecutive frames ≥ open threshold (opening state)
+	episodeAt int // frame index where the current episode logically began
+	hangover  int // frames below close threshold (speaking state)
+	frameIdx  int
 	// absolute, when set, replaces the adaptive open threshold with
 	// absOpenDB (SetOpenThresholdDB).
 	absolute  bool
@@ -181,8 +174,7 @@ func (v *VAD) Sample(frame []int16) Decision {
 	if v.absolute {
 		v.openDB = v.absOpenDB
 	} else {
-		margin := v.cfg.OpenMargin + v.userOffset
-		v.openDB = math.Max(v.floorDB+margin, v.cfg.AbsFloor)
+		v.openDB = math.Max(v.floorDB+v.cfg.OpenMargin, v.cfg.AbsFloor)
 	}
 	v.closeDB = v.openDB - v.cfg.Hysteresis
 
@@ -283,12 +275,6 @@ func (v *VAD) PreRoll() [][]int16 {
 	return out
 }
 
-// PreRollFrames returns how many frames the pre-roll ring currently holds.
-func (v *VAD) PreRollFrames() int { return v.preN }
-
-// SetThreshold applies user calibration in [0,1]: 0.5 is neutral, each
-// extreme shifts the open threshold by ±ThresholdRange/2 dB. Values are
-// clamped.
 // SetOpenThresholdDB switches the VAD to an absolute threshold: frames
 // at or above db (dBFS RMS) open an episode, regardless of the noise
 // floor. This is what the user's threshold slider sets — the line drawn
@@ -296,11 +282,6 @@ func (v *VAD) PreRollFrames() int { return v.preN }
 func (v *VAD) SetOpenThresholdDB(db float64) {
 	v.absolute = true
 	v.absOpenDB = db
-}
-
-func (v *VAD) SetThreshold(x float64) {
-	x = math.Min(1, math.Max(0, x))
-	v.userOffset = (x - 0.5) * v.cfg.ThresholdRange
 }
 
 // GetLevel returns the last frame's level in dBFS (for the UI meter).

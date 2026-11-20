@@ -20,7 +20,6 @@ import (
 	"io.github/murmel/internal/audio/device"
 	"io.github/murmel/internal/audio/effects"
 	"io.github/murmel/internal/audio/engine"
-	"io.github/murmel/internal/audio/jitter"
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/certs"
 	"io.github/murmel/internal/settings"
@@ -617,8 +616,8 @@ func audioOutputPage(st settings.Settings) *adw.PreferencesPage {
 
 	// Shown in milliseconds, stored in 10 ms frames.
 	jitterSpin := adw.NewSpinRow(gtk.NewAdjustment(
-		float64(st.JitterTargetFrames()*10), float64(jitter.MinTargetDepth*10),
-		float64(jitter.MaxTargetDepth*10), 10, 10, 0), 10, 0)
+		float64(st.JitterTargetFrames()*10), float64(settings.JitterTargetFramesMin*10),
+		float64(settings.JitterTargetFramesMax*10), 10, 10, 0), 10, 0)
 	jitterSpin.SetTitle(tr("Buffer (ms)"))
 	jitterSpin.SetSubtitle(tr("Raise it if voices stutter on unstable connections; lower values reduce delay. Default: 30 ms"))
 	jitterSpin.SetSnapToTicks(true)
