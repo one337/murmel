@@ -77,6 +77,9 @@ func LogLabel(e LogEvent) string {
 // session, channel resolves channel names.
 func logLines(ev presence.Event, enabled func(LogEvent) bool, self uint32, channel func(uint32) string) []string {
 	name := ev.User.Name
+	if name == "" && ev.User.Session != self && ev.Kind != presence.SelfMoved {
+		return nil // a line about someone needs their name
+	}
 	switch ev.Kind {
 	case presence.SelfMoved:
 		if enabled(LogSelfMove) {

@@ -81,3 +81,29 @@ func TestLogLinesSuppressed(t *testing.T) {
 		}
 	}
 }
+
+// A line about another user needs their name: without one there is none.
+func TestLogLinesWithoutName(t *testing.T) {
+	all := map[string]bool{}
+	for _, e := range LogEvents {
+		all[string(e)] = true
+	}
+	nameless := bus.UserInfo{Session: 7, Channel: 1}
+	muted := nameless
+	muted.Muted, muted.SelfMuted = true, true
+	for _, ev := range []presence.Event{
+		{Kind: presence.UserJoinedChannel, User: nameless, To: 1},
+		{Kind: presence.UserLeftChannel, User: nameless, To: 2},
+		{Kind: presence.UserConnected, User: nameless, InMyChannel: true},
+		{Kind: presence.UserDisconnected, User: nameless, InMyChannel: true},
+		{Kind: presence.UserDisconnected, User: nameless, Reason: "Kicked from the server"},
+		{Kind: presence.UserAudioChanged, User: muted, Before: nameless, InMyChannel: true},
+	} {
+		if got := lines(ev, all); got != "" {
+			t.Errorf("kind %d without a name: %q", ev.Kind, got)
+		}
+	}
+	if got := lines(presence.Event{Kind: presence.SelfMoved, User: bus.UserInfo{Session: 1}, To: 2}, all); got != "You moved to Games" {
+		t.Errorf("own move: %q", got)
+	}
+}

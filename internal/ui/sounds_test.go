@@ -40,7 +40,7 @@ func TestSoundsDefaults(t *testing.T) {
 	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 1, Channel: 5}, Changed: bus.UserChangeChannel})
 	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Channel: 5}, Changed: bus.UserChangeChannel})
 	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Channel: 0}, Changed: bus.UserChangeChannel})
-	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Channel: 0}}) // server join: off by default
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "new", Channel: 0}}) // server join: off by default
 	s.onTextMessage(bus.TextMessage{Sender: 7, UserSessions: []uint32{1}})
 	s.onTextMessage(bus.TextMessage{Sender: 7, ChannelIDs: []uint32{5}})   // channel chat: off by default
 	s.onTextMessage(bus.TextMessage{Sender: 1, UserSessions: []uint32{7}}) // own echo
@@ -58,11 +58,31 @@ func TestSoundsOverridesAndMaster(t *testing.T) {
 		string(effects.UserConnected):     effects.BuiltinChoice("blip-up"),
 		string(effects.UserJoinedChannel): effects.Off,
 	})
-	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Channel: 5}}) // into my channel, channel sound off → server sound
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "new", Channel: 5}}) // into my channel, channel sound off → server sound
 	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Channel: 5}, Changed: bus.UserChangeChannel})
 	s.settings.SetSoundsEnabled(false)
 	pt.OnUserRemoved(bus.UserRemoved{Session: 7})
 	if strings.Join(*played, " ") != "builtin:blip-up" {
 		t.Fatalf("played %v", *played)
+	}
+}
+
+// A user announced before their name sounds like a join once, when the
+// name follows; the users already on the server when we connect make no
+// sound.
+func TestSoundsUserNamedLate(t *testing.T) {
+	s, pt, played := newTestSounds(t)
+	s.connectedAt = time.Now().Add(-time.Minute)
+	*played = nil
+	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "peer", Channel: 0, PrioritySpeaker: true}}) // already there
+	pt.OnUserAdded(bus.UserAdded{User: bus.UserInfo{Session: 9, Channel: 5, Suppressed: true}})
+	if len(*played) != 0 {
+		t.Fatalf("played %v before the name arrived", *played)
+	}
+	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 9, Name: "SuperUser", Channel: 5, Suppressed: true},
+		Changed: bus.UserChangeName | bus.UserChangeChannel})
+	pt.OnUserUpdated(bus.UserUpdated{User: bus.UserInfo{Session: 9, Name: "SuperUser", Channel: 5, Suppressed: true, Recording: true}})
+	if strings.Join(*played, " ") != "builtin:join" {
+		t.Fatalf("played %v, want one join", *played)
 	}
 }

@@ -39,10 +39,16 @@ type Event struct {
 // store is updated before handlers run, so a removed user's name and
 // channel are already gone from it when UserRemoved is handled. The
 // initial sync (users already on the server) produces no events.
+//
+// A server may announce a new user before their name (the server sends
+// their right to speak in the channel first), so a user who arrives
+// without a name is reported as connected once the name follows, in the
+// channel they are in then; one who leaves before that is not reported.
 type Tracker struct {
 	connected bool
 	self      uint32
 	users     map[uint32]bus.UserInfo
+	unnamed   map[uint32]bool
 	listeners []func(Event)
 }
 
@@ -75,6 +81,7 @@ func (t *Tracker) OnConnected(ev bus.Connected) {
 	t.connected = true
 	t.self = ev.SelfSession
 	t.users = make(map[uint32]bus.UserInfo, len(ev.Users))
+	t.unnamed = make(map[uint32]bool)
 	for _, u := range ev.Users {
 		t.users[u.Session] = u
 	}
@@ -87,6 +94,7 @@ func (t *Tracker) OnDisconnected(bus.Disconnected) {
 	}
 	t.connected = false
 	t.users = nil
+	t.unnamed = nil
 	t.emit(Event{Kind: SelfDisconnected})
 }
 
@@ -98,9 +106,17 @@ func (t *Tracker) OnUserAdded(ev bus.UserAdded) {
 	if ev.User.Session == t.self {
 		return
 	}
+	if ev.User.Name == "" {
+		t.unnamed[ev.User.Session] = true
+		return
+	}
+	t.emitConnected(ev.User)
+}
+
+func (t *Tracker) emitConnected(u bus.UserInfo) {
 	mine, ok := t.myChannel()
-	t.emit(Event{Kind: UserConnected, User: ev.User, To: ev.User.Channel,
-		InMyChannel: ok && ev.User.Channel == mine})
+	t.emit(Event{Kind: UserConnected, User: u, To: u.Channel,
+		InMyChannel: ok && u.Channel == mine})
 }
 
 func (t *Tracker) OnUserRemoved(ev bus.UserRemoved) {
@@ -108,8 +124,10 @@ func (t *Tracker) OnUserRemoved(ev bus.UserRemoved) {
 		return
 	}
 	u, known := t.users[ev.Session]
+	unnamed := t.unnamed[ev.Session]
 	delete(t.users, ev.Session)
-	if !known || ev.Session == t.self {
+	delete(t.unnamed, ev.Session)
+	if !known || unnamed || ev.Session == t.self {
 		return
 	}
 	reason := ""
@@ -138,6 +156,13 @@ func (t *Tracker) OnUserUpdated(ev bus.UserUpdated) {
 	prev, known := t.users[ev.User.Session]
 	t.users[ev.User.Session] = ev.User
 	if !known {
+		return
+	}
+	if t.unnamed[ev.User.Session] {
+		if ev.User.Name != "" {
+			delete(t.unnamed, ev.User.Session)
+			t.emitConnected(ev.User)
+		}
 		return
 	}
 	if ev.Changed.Has(bus.UserChangeAudio) {
