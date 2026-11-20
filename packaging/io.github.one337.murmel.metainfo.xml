@@ -99,6 +99,23 @@
   </content_rating>
 
   <releases>
+    <release version="0.4.0" date="2026-11-20">
+      <description>
+        <ul>
+          <li>Switch to another server without disconnecting first; nothing of the previous server is left behind.</li>
+          <li>Certificates: servers with a certificate from a trusted authority connect without the trust prompt, fingerprints are easier to read, after declining a certificate you are asked again next time, and new or exported certificates are stored privately.</li>
+          <li>A saved password is only changed after the server accepts the login, and passwords in mumble:// links are no longer written to the log.</li>
+          <li>The channel list stays calm: users coming and going keep focus, selection and scroll position, your own row is shown when you change channel, and moved channels appear only at their new place.</li>
+          <li>Keyboard and touch: arrow keys move the cursor, Left and Right close and open channels, the Menu key or Shift+F10 opens a row's menu, and a long press opens it on touch screens.</li>
+          <li>Screen readers read user and channel states and the volume slider's value; status icons explain in a tooltip why a user is muted or deafened.</li>
+          <li>Preferences open as a dialog, the main menu groups the connection entries and hides administration entries you lack the rights for, and the port is a number field.</li>
+          <li>Colors follow the light, dark and high-contrast styles and the accent color; times and dates follow your clock and regional settings; the launcher entry is translated.</li>
+          <li>Lower memory use: closed dialogs, old channel rows and chat images are freed, and oversized images from others are not decoded.</li>
+          <li>Opening files on network locations no longer freezes the window.</li>
+          <li>Saved servers and per-user volumes are stored in a new format that older versions cannot read. Saved passwords are not affected.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.3.10" date="2026-11-11">
       <description>
         <ul>
