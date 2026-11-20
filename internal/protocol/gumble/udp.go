@@ -344,17 +344,3 @@ func buildPingPacket(timestamp uint64) []byte {
 	n := varint.Encode(v[:], int64(timestamp))
 	return append(packet, v[:n]...)
 }
-
-// parsePingPacket decodes a ping packet produced by buildPingPacket (the
-// server echoes the same format). ok is false unless the header byte names
-// the ping type and the varint consumes the packet exactly.
-func parsePingPacket(packet []byte) (timestamp int64, ok bool) {
-	if len(packet) < 2 || (packet[0]>>5)&0x7 != udpMessageTypePing {
-		return 0, false
-	}
-	value, n := varint.Decode(packet[1:])
-	if n <= 0 || n != len(packet)-1 {
-		return 0, false
-	}
-	return value, true
-}

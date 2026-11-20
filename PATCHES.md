@@ -371,3 +371,14 @@ code has no name for still reach the listeners with their number.
 for every type the server can send.
 
 **Upstream**: layeh/gumble `gumble/handlers.go` (`handlePermissionDenied` rejects H9K as an invalid message) and `gumble/event.go` (no listener-limit types).
+
+## P18 — Drop helpers the application does not use
+
+**What**: Removed `gumbleutil.ChannelPath` and `gumbleutil.Main` (the
+command line bot helper). `parsePingPacket` (added with P8) moved into
+the test file, its only user.
+
+**Why**: Code without a caller. `ChannelPath` followed the parent chain
+without a limit and would hang on a server that sends a channel loop.
+
+**Upstream**: layeh/gumble `gumbleutil/channel.go` and `gumbleutil/main.go`.
