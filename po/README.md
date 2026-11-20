@@ -1,8 +1,7 @@
 # Translations
 
 Murmel's user interface is written in English and translated with gettext.
-Translations are welcome as pull requests — no account anywhere else is
-needed.
+Translations are welcome as pull requests.
 
 ## Files
 
