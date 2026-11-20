@@ -86,11 +86,16 @@ sudo dnf install murmel
 **NixOS** (requires [flakes](https://wiki.nixos.org/wiki/Flakes)):
 
 ```sh
-nix profile add github:one337/murmel
+nix --extra-experimental-features 'nix-command flakes' profile add github:one337/murmel
 ```
 
+To turn flakes on permanently, set
+`nix.settings.experimental-features = [ "nix-command" "flakes" ];` in your
+NixOS configuration or add `experimental-features = nix-command flakes` to
+`~/.config/nix/nix.conf`; then plain `nix profile …` commands work.
+
 Updates arrive through the Software app, `flatpak update`, `dnf upgrade`
-or `nix profile upgrade murmel`.
+or `nix --extra-experimental-features 'nix-command flakes' profile upgrade murmel`.
 
 > [!NOTE]
 > After the first Flatpak or Nix installation on a system, Murmel may only

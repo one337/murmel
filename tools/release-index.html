@@ -47,8 +47,10 @@ sudo dnf install murmel</pre>
 
   <section>
     <h2>NixOS</h2>
-    <p>Requires <a href="https://wiki.nixos.org/wiki/Flakes">flakes</a>. Updates with <code>nix profile upgrade murmel</code>.</p>
-    <pre>nix profile add github:one337/murmel</pre>
+    <p>Requires <a href="https://wiki.nixos.org/wiki/Flakes">flakes</a>:</p>
+    <pre>nix --extra-experimental-features 'nix-command flakes' profile add github:one337/murmel</pre>
+    <p>Updates with <code>nix --extra-experimental-features 'nix-command flakes' profile upgrade murmel</code>.</p>
+    <p class="muted">To turn flakes on permanently, set <code>nix.settings.experimental-features = [ "nix-command" "flakes" ];</code> in your NixOS configuration or add <code>experimental-features = nix-command flakes</code> to <code>~/.config/nix/nix.conf</code>; then plain <code>nix profile …</code> commands work.</p>
   </section>
 
   <section>
