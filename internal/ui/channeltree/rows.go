@@ -588,15 +588,16 @@ type UserMenuActions struct {
 	LocalAudio    localAudio
 	SetLocalAudio func(localAudio)
 
-	Message  func()
-	Move     func()
-	Mute     func()
-	Deafen   func()
-	Priority func()
-	Kick     func()
-	Ban      func()
-	Register func()
-	Stats    func()
+	Message    func()
+	Move       func()
+	Mute       func()
+	Unsuppress func()
+	Deafen     func()
+	Priority   func()
+	Kick       func()
+	Ban        func()
+	Register   func()
+	Stats      func()
 }
 
 // buildUserMenu assembles the user context menu. Entries are enabled by
@@ -619,6 +620,7 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 	add("message", a.Message)
 	add("move", a.Move)
 	add("mute", a.Mute)
+	add("unsuppress", a.Unsuppress)
 	add("deafen", a.Deafen)
 	add("priority", a.Priority)
 	add("kick", a.Kick)
@@ -629,7 +631,8 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 	refresh := func() {
 		st := userMenuPerms(m, session)
 		for name, ok := range map[string]bool{
-			"message": st.message, "move": st.move, "mute": st.mute, "deafen": st.deafen,
+			"message": st.message, "move": st.move, "mute": st.mute,
+			"unsuppress": st.unsuppress, "deafen": st.deafen,
 			"priority": st.priority, "kick": st.kick, "ban": st.ban,
 			"register": st.register, "stats": st.stats,
 		} {
@@ -676,6 +679,12 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 	menu.AppendSection("", admin)
 	menu = admin
 	menu.Append(tr("Move to my channel"), "ctx.move")
+	// Shown only while the user is suppressed (and one may lift it).
+	// TRANSLATORS: User menu entry: lets a user speak whom the channel's
+	// permissions keep silent, until they change channels.
+	unsuppress := gio.NewMenuItem(tr("Allow speaking"), "ctx.unsuppress")
+	unsuppress.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
+	menu.AppendItem(unsuppress)
 	menu.Append(muteLabel, "ctx.mute")
 	menu.Append(deafenLabel, "ctx.deafen")
 	menu.Append(tr("Priority speaker"), "ctx.priority")

@@ -74,7 +74,7 @@ func channelMenuPerms(m *treeModel, id uint32) channelMenuState {
 
 // userMenuState is which user menu entries are enabled.
 type userMenuState struct {
-	message, move, mute, deafen, priority, kick, ban, register, stats bool
+	message, move, mute, unsuppress, deafen, priority, kick, ban, register, stats bool
 }
 
 func userMenuPerms(m *treeModel, session uint32) userMenuState {
@@ -82,10 +82,14 @@ func userMenuPerms(m *treeModel, session uint32) userMenuState {
 	if !ok {
 		return userMenuState{}
 	}
+	// Letting a suppressed user speak takes MuteDeafen in their channel,
+	// also for oneself.
+	unsuppress := u.Suppressed && m.allowed(u.Channel, gumble.PermissionMuteDeafen)
 	if session == m.self {
 		// Registering binds the account to the client certificate: not
 		// possible without one, nor for the (already registered) SuperUser.
 		return userMenuState{
+			unsuppress: unsuppress,
 			register: u.UserID == 0 && u.HasCertificate && !m.isSuperUser() &&
 				m.allowed(0, gumble.PermissionRegisterSelf),
 			stats: true,
@@ -97,15 +101,16 @@ func userMenuPerms(m *treeModel, session uint32) userMenuState {
 	}
 	muteDeafen := m.allowed(u.Channel, gumble.PermissionMuteDeafen)
 	return userMenuState{
-		message:  true,
-		move:     !inMyChannel && m.allowed(u.Channel, gumble.PermissionMove),
-		mute:     muteDeafen,
-		deafen:   muteDeafen,
-		priority: muteDeafen,
-		kick:     m.allowed(0, gumble.PermissionKick),
-		ban:      m.allowed(0, gumble.PermissionBan),
-		register: u.UserID == 0 && u.HasCertificate && m.allowed(0, gumble.PermissionRegister),
-		stats:    true,
+		message:    true,
+		move:       !inMyChannel && m.allowed(u.Channel, gumble.PermissionMove),
+		mute:       muteDeafen,
+		unsuppress: unsuppress,
+		deafen:     muteDeafen,
+		priority:   muteDeafen,
+		kick:       m.allowed(0, gumble.PermissionKick),
+		ban:        m.allowed(0, gumble.PermissionBan),
+		register:   u.UserID == 0 && u.HasCertificate && m.allowed(0, gumble.PermissionRegister),
+		stats:      true,
 	}
 }
 

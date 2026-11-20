@@ -660,10 +660,11 @@ func (t *Tree) userMenu(session uint32, at gdk.Rectangle, keyboard bool) {
 
 		LocalAudio: t.localAudioOf(session),
 
-		Message: func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) },
-		Move:    func() { t.b.Emit(bus.UserMoveRequested{Session: session}) },
-		Mute:    func() { t.b.Emit(bus.UserMuteRequested{Session: session, Muted: !isMuted}) },
-		Deafen:  func() { t.b.Emit(bus.UserDeafenRequested{Session: session, Deafened: !isDeafened}) },
+		Message:    func() { t.b.Emit(bus.ChatTargetChanged{Session: session}) },
+		Move:       func() { t.b.Emit(bus.UserMoveRequested{Session: session}) },
+		Mute:       func() { t.b.Emit(bus.UserMuteRequested{Session: session, Muted: !isMuted}) },
+		Unsuppress: func() { t.b.Emit(bus.UserUnsuppressRequested{Session: session}) },
+		Deafen:     func() { t.b.Emit(bus.UserDeafenRequested{Session: session, Deafened: !isDeafened}) },
 		Priority: func() {
 			priority := true
 			if hasUser {

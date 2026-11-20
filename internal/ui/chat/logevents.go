@@ -140,8 +140,8 @@ func audioLines(before, after bus.UserInfo, enabled func(LogEvent) bool, isSelf 
 		tr("%s was deafened by the server"), tr("%s was undeafened by the server"),
 		tr("You were deafened by the server"), tr("You were undeafened by the server"))
 	add(before.Suppressed != after.Suppressed, after.Suppressed, LogServerMute,
-		tr("%s was suppressed"), tr("%s is no longer suppressed"),
-		tr("You were suppressed"), tr("You are no longer suppressed"))
+		tr("%s may not speak here"), tr("%s may speak again"),
+		tr("You may not speak here"), tr("You may speak again"))
 	add(before.SelfMuted != after.SelfMuted, after.SelfMuted, LogSelfMute,
 		tr("%s muted themselves"), tr("%s unmuted themselves"),
 		tr("You muted yourself"), tr("You unmuted yourself"))

@@ -56,3 +56,28 @@ func TestLogLinesOverrides(t *testing.T) {
 		t.Errorf("self audio: %q", got)
 	}
 }
+
+// Being suppressed is told in the words of the user menu entry that lifts
+// it, for others and for oneself.
+func TestLogLinesSuppressed(t *testing.T) {
+	anna := bus.UserInfo{Session: 7, Name: "anna", Channel: 1}
+	silent := anna
+	silent.Suppressed = true
+	me := bus.UserInfo{Session: 1, Name: "me", Channel: 1}
+	meSilent := me
+	meSilent.Suppressed = true
+	for _, tt := range []struct {
+		before, after bus.UserInfo
+		want          string
+	}{
+		{anna, silent, "anna may not speak here"},
+		{silent, anna, "anna may speak again"},
+		{me, meSilent, "You may not speak here"},
+		{meSilent, me, "You may speak again"},
+	} {
+		ev := presence.Event{Kind: presence.UserAudioChanged, User: tt.after, Before: tt.before, InMyChannel: true}
+		if got := lines(ev, nil); got != tt.want {
+			t.Errorf("suppressed %v → %v: got %q, want %q", tt.before.Suppressed, tt.after.Suppressed, got, tt.want)
+		}
+	}
+}

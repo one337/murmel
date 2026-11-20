@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 10:52+0100\n"
+"POT-Creation-Date: 2026-11-18 16:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -845,6 +845,12 @@ msgstr ""
 msgid "Move to my channel"
 msgstr ""
 
+#. TRANSLATORS: User menu entry: lets a user speak whom the channel's
+#. permissions keep silent, until they change channels.
+#: internal/ui/channeltree/rows.go
+msgid "Allow speaking"
+msgstr ""
+
 #: internal/ui/channeltree/rows.go
 msgid "Priority speaker"
 msgstr ""
@@ -1023,20 +1029,20 @@ msgstr ""
 
 #: internal/ui/chat/logevents.go
 #, go-format
-msgid "%s was suppressed"
+msgid "%s may not speak here"
 msgstr ""
 
 #: internal/ui/chat/logevents.go
 #, go-format
-msgid "%s is no longer suppressed"
+msgid "%s may speak again"
 msgstr ""
 
 #: internal/ui/chat/logevents.go
-msgid "You were suppressed"
+msgid "You may not speak here"
 msgstr ""
 
 #: internal/ui/chat/logevents.go
-msgid "You are no longer suppressed"
+msgid "You may speak again"
 msgstr ""
 
 #: internal/ui/chat/logevents.go

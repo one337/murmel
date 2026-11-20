@@ -58,6 +58,13 @@ type UserMuteRequested struct {
 	Muted   bool
 }
 
+// UserUnsuppressRequested asks the controller to let a user speak who is
+// suppressed in their channel. The server suppresses again on the next
+// channel change.
+type UserUnsuppressRequested struct {
+	Session uint32
+}
+
 // UserDeafenRequested asks the controller to server-deafen or un-deafen.
 type UserDeafenRequested struct {
 	Session  uint32
@@ -211,6 +218,7 @@ func (SelfMuteToggle) isBusEvent()              {}
 func (SelfDeafenToggle) isBusEvent()            {}
 func (UserMoveRequested) isBusEvent()           {}
 func (UserMuteRequested) isBusEvent()           {}
+func (UserUnsuppressRequested) isBusEvent()     {}
 func (UserDeafenRequested) isBusEvent()         {}
 func (UserPriorityRequested) isBusEvent()       {}
 func (UserRegisterRequested) isBusEvent()       {}

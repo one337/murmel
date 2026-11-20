@@ -125,6 +125,7 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 	bus.SubscribeCtx(ctx, appBus, c.onSelfDeafenToggle)
 	bus.SubscribeCtx(ctx, appBus, c.onUserMoveRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onUserMuteRequested)
+	bus.SubscribeCtx(ctx, appBus, c.onUserUnsuppressRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onUserDeafenRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onUserPriorityRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onUserRegisterRequested)
@@ -951,6 +952,14 @@ func (c *Controller) onUserMuteRequested(ev bus.UserMuteRequested) {
 	c.withClient(func(client *gumble.Client) {
 		if u := client.Users[ev.Session]; u != nil {
 			u.SetMuted(ev.Muted)
+		}
+	})
+}
+
+func (c *Controller) onUserUnsuppressRequested(ev bus.UserUnsuppressRequested) {
+	c.withClient(func(client *gumble.Client) {
+		if u := client.Users[ev.Session]; u != nil {
+			u.SetSuppressed(false)
 		}
 	})
 }

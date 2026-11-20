@@ -101,6 +101,36 @@ func TestAdminPermissions(t *testing.T) {
 	}
 }
 
+// "Allow speaking" is offered only for a suppressed user, and only with
+// MuteDeafen in that user's channel; for oneself as well.
+func TestUnsuppressPermissions(t *testing.T) {
+	muteDeafen := p(gumble.PermissionEnter, gumble.PermissionMuteDeafen)
+	plain := p(gumble.PermissionEnter)
+	for _, tt := range []struct {
+		name           string
+		root, sub      *int
+		session        uint32
+		suppressed     bool
+		wantUnsuppress bool
+	}{
+		{"suppressed, MuteDeafen in their channel", plain, muteDeafen, 7, true, true},
+		{"not suppressed", plain, muteDeafen, 7, false, false},
+		{"suppressed, no MuteDeafen in their channel", muteDeafen, plain, 7, true, false},
+		{"suppressed, permissions unknown", nil, nil, 7, true, false},
+		{"oneself suppressed, MuteDeafen in one's channel", muteDeafen, plain, 1, true, true},
+		{"oneself suppressed, no MuteDeafen", plain, muteDeafen, 1, true, false},
+		{"oneself not suppressed", muteDeafen, muteDeafen, 1, false, false},
+	} {
+		m := permModel(tt.root, tt.sub)
+		u := m.users[tt.session]
+		u.Suppressed = tt.suppressed
+		m.users[tt.session] = u
+		if got := userMenuPerms(m, tt.session).unsuppress; got != tt.wantUnsuppress {
+			t.Errorf("%s: unsuppress %v, want %v", tt.name, got, tt.wantUnsuppress)
+		}
+	}
+}
+
 func TestPermissionChannels(t *testing.T) {
 	m := permModel(nil, nil)
 	if got := permissionChannels(m, 0, 7); len(got) != 2 || got[0] != 0 || got[1] != 5 {
