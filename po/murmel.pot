@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 16:36+0100\n"
+"POT-Creation-Date: 2026-11-20 16:00+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,73 +32,6 @@ msgstr ""
 
 #: internal/ui/about.go
 msgid "CC0 1.0 (public domain), for two user icons."
-msgstr ""
-
-#. TRANSLATORS: Permission: edit the channel's groups and permissions.
-#: internal/ui/admin/aclmodel.go
-msgid "Write ACL"
-msgstr ""
-
-#. TRANSLATORS: Permission: pass through the channel to its sub-channels.
-#: internal/ui/admin/aclmodel.go
-msgid "Traverse"
-msgstr ""
-
-#. TRANSLATORS: Permission: enter (join) the channel.
-#: internal/ui/admin/aclmodel.go
-msgid "Enter"
-msgstr ""
-
-#. TRANSLATORS: Permission: talk in the channel.
-#: internal/ui/admin/aclmodel.go
-msgid "Speak"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Whisper"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Mute/Deafen"
-msgstr ""
-
-#. TRANSLATORS: Permission: move other users between channels.
-#: internal/ui/admin/aclmodel.go
-msgid "Move"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Make Channel"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Make Temporary Channel"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Link Channel"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Text Message"
-msgstr ""
-
-#. TRANSLATORS: Button: kick (remove) the user from the server.
-#: internal/ui/admin/aclmodel.go internal/ui/admin/kick.go
-msgid "Kick"
-msgstr ""
-
-#. TRANSLATORS: Button: ban the user from the server.
-#: internal/ui/admin/aclmodel.go internal/ui/admin/ban.go
-msgid "Ban"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Register User"
-msgstr ""
-
-#: internal/ui/admin/aclmodel.go
-msgid "Register Self"
 msgstr ""
 
 #. TRANSLATORS: %s is a comma-separated list of permission names.
@@ -294,6 +227,11 @@ msgstr ""
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
 #: internal/ui/prefs/window.go internal/ui/window.go
 msgid "Cancel"
+msgstr ""
+
+#. TRANSLATORS: Button: ban the user from the server.
+#: internal/ui/admin/ban.go internal/ui/permname/permname.go
+msgid "Ban"
 msgstr ""
 
 #: internal/ui/admin/banlist.go internal/ui/admin/channeledit.go
@@ -524,6 +462,11 @@ msgstr ""
 
 #: internal/ui/admin/kick.go
 msgid "The user will be disconnected and may reconnect immediately."
+msgstr ""
+
+#. TRANSLATORS: Button: kick (remove) the user from the server.
+#: internal/ui/admin/kick.go internal/ui/permname/permname.go
+msgid "Kick"
 msgstr ""
 
 #: internal/ui/admin/reply.go internal/ui/admin/stats.go
@@ -1638,6 +1581,63 @@ msgstr ""
 #: internal/ui/notifications.go
 #, go-format
 msgid "Moved to %s"
+msgstr ""
+
+#. TRANSLATORS: Permission: edit the channel's groups and permissions.
+#: internal/ui/permname/permname.go
+msgid "Write ACL"
+msgstr ""
+
+#. TRANSLATORS: Permission: pass through the channel to its sub-channels.
+#: internal/ui/permname/permname.go
+msgid "Traverse"
+msgstr ""
+
+#. TRANSLATORS: Permission: enter (join) the channel.
+#: internal/ui/permname/permname.go
+msgid "Enter"
+msgstr ""
+
+#. TRANSLATORS: Permission: talk in the channel.
+#: internal/ui/permname/permname.go
+msgid "Speak"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Whisper"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Mute/Deafen"
+msgstr ""
+
+#. TRANSLATORS: Permission: move other users between channels.
+#: internal/ui/permname/permname.go
+msgid "Move"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Make Channel"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Make Temporary Channel"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Link Channel"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Text Message"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Register User"
+msgstr ""
+
+#: internal/ui/permname/permname.go
+msgid "Register Self"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go

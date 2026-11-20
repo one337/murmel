@@ -9,43 +9,35 @@ import (
 
 	"io.github/murmel/internal/bus"
 	"io.github/murmel/internal/protocol/gumble"
+	"io.github/murmel/internal/ui/permname"
 )
 
 // aclPerm is one permission the editor offers.
 type aclPerm struct {
 	bit  int
-	name func() string
 	root bool // only meaningful on the root channel
 }
 
-// aclPerms lists the permissions in Mumble's order. Names are functions so
-// they are translated when shown.
-//
-// TRANSLATORS (for the permission names below): these are Mumble channel
-// permissions, shown as rows with Inherit/Allow/Deny. "Enter" means
-// entering the channel, "Traverse" passing through it to sub-channels,
-// "Move" moving other users, "Write ACL" editing the channel's permissions.
+// name is the permission's translated name.
+func (p aclPerm) name() string { return permname.Name(gumble.Permission(p.bit)) }
+
+// aclPerms lists the permissions in Mumble's order.
 var aclPerms = []aclPerm{
-	// TRANSLATORS: Permission: edit the channel's groups and permissions.
-	{int(gumble.PermissionWrite), func() string { return tr("Write ACL") }, false},
-	// TRANSLATORS: Permission: pass through the channel to its sub-channels.
-	{int(gumble.PermissionTraverse), func() string { return tr("Traverse") }, false},
-	// TRANSLATORS: Permission: enter (join) the channel.
-	{int(gumble.PermissionEnter), func() string { return tr("Enter") }, false},
-	// TRANSLATORS: Permission: talk in the channel.
-	{int(gumble.PermissionSpeak), func() string { return tr("Speak") }, false},
-	{int(gumble.PermissionWhisper), func() string { return tr("Whisper") }, false},
-	{int(gumble.PermissionMuteDeafen), func() string { return tr("Mute/Deafen") }, false},
-	// TRANSLATORS: Permission: move other users between channels.
-	{int(gumble.PermissionMove), func() string { return tr("Move") }, false},
-	{int(gumble.PermissionMakeChannel), func() string { return tr("Make Channel") }, false},
-	{int(gumble.PermissionMakeTemporaryChannel), func() string { return tr("Make Temporary Channel") }, false},
-	{int(gumble.PermissionLinkChannel), func() string { return tr("Link Channel") }, false},
-	{int(gumble.PermissionTextMessage), func() string { return tr("Text Message") }, false},
-	{int(gumble.PermissionKick), func() string { return tr("Kick") }, true},
-	{int(gumble.PermissionBan), func() string { return tr("Ban") }, true},
-	{int(gumble.PermissionRegister), func() string { return tr("Register User") }, true},
-	{int(gumble.PermissionRegisterSelf), func() string { return tr("Register Self") }, true},
+	{int(gumble.PermissionWrite), false},
+	{int(gumble.PermissionTraverse), false},
+	{int(gumble.PermissionEnter), false},
+	{int(gumble.PermissionSpeak), false},
+	{int(gumble.PermissionWhisper), false},
+	{int(gumble.PermissionMuteDeafen), false},
+	{int(gumble.PermissionMove), false},
+	{int(gumble.PermissionMakeChannel), false},
+	{int(gumble.PermissionMakeTemporaryChannel), false},
+	{int(gumble.PermissionLinkChannel), false},
+	{int(gumble.PermissionTextMessage), false},
+	{int(gumble.PermissionKick), true},
+	{int(gumble.PermissionBan), true},
+	{int(gumble.PermissionRegister), true},
+	{int(gumble.PermissionRegisterSelf), true},
 }
 
 // builtinGroups are the groups Mumble computes itself.
