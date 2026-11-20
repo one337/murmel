@@ -281,3 +281,24 @@ func TestGTKLockLineWrapsInANarrowWindow(t *testing.T) {
 		t.Errorf("line text %q, want %q", text, want)
 	}
 }
+
+// A recipient who goes offline locks the field with the same line; when
+// they come back it opens again.
+func TestGTKPrivateChatLockedWhileTheRecipientIsOffline(t *testing.T) {
+	needGTK(t)
+	v, b, _, _ := lockWindow(t, 600, perms(textAllowed), perms(textAllowed))
+	var dm *conversation
+	onMain(func() {
+		key := keyForUser(bus.UserInfo{Session: 7, Name: "anna"})
+		v.openDM(key, "anna")
+		dm = v.dms[key]
+	})
+	conv := func() *conversation { return dm }
+	waitLock(t, "recipient online", conv, "")
+
+	b.Emit(bus.UserRemoved{Session: 7})
+	waitLock(t, "recipient offline", conv, "anna is offline.")
+
+	b.Emit(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "anna", Channel: 5}})
+	waitLock(t, "recipient back", conv, "")
+}

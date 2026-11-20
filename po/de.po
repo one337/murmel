@@ -1192,8 +1192,9 @@ msgid "offline"
 msgstr "offline"
 
 #: internal/ui/chat/view.go
-msgid "The user is offline"
-msgstr "Der Benutzer ist offline"
+#, go-format
+msgid "%s is offline."
+msgstr "%s ist offline."
 
 #: internal/ui/chat/view.go internal/ui/connection/connectform.go
 msgid "Server"

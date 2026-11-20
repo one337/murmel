@@ -68,11 +68,8 @@ type composer struct {
 	send       func(htmlText, plain string)
 
 	// Attached image (data: URI) and its preview strip.
-	// offline and locked turn the field off: offline with a reason only in
-	// its tooltip, locked with the reason in a line above it.
-	offline       bool
-	offlineReason string
-	locked        string
+	// locked is why the field is off, shown in a line above it; "" when on.
+	locked string
 
 	image      string
 	attachment *gtk.Box
@@ -364,32 +361,17 @@ func (c *composer) SetHTMLAllowed(on bool) {
 // its text for local display.
 func (c *composer) SetSend(f func(html, plain string)) { c.send = f }
 
-// SetEnabled turns the field on or off (offline conversation partner).
-func (c *composer) SetEnabled(on bool, reason string) {
-	c.offline, c.offlineReason = !on, reason
-	c.applyLock()
-}
-
-// SetLocked locks the field where the server would refuse the message,
-// with the reason shown above it and given as the field's description;
-// "" unlocks it.
+// SetLocked locks the field where no message can be sent (the server
+// would refuse it, or the recipient is offline), with the reason shown
+// above it and given as the field's description; "" unlocks it.
 func (c *composer) SetLocked(reason string) {
 	c.locked = reason
-	c.applyLock()
-}
-
-func (c *composer) applyLock() {
-	on := !c.offline && c.locked == ""
+	on := reason == ""
 	c.view.SetEditable(on)
 	c.view.SetCursorVisible(on)
 	c.toolbar.SetSensitive(on)
 	c.hint.SetText(c.locked)
 	c.hint.SetVisible(c.locked != "")
-	if c.offline {
-		c.view.SetTooltipText(c.offlineReason)
-	} else {
-		c.view.SetTooltipText(tr("Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"))
-	}
 	if c.locked != "" {
 		c.view.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyDescription},
 			[]coreglib.Value{*coreglib.NewValue(c.locked)})

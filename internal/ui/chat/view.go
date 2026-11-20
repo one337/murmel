@@ -486,7 +486,6 @@ func (v *View) refreshDM(key convKey, c *conversation) {
 	if session, ok := sessionFor(st, key); ok {
 		u := st.Users[session]
 		c.setTitle(u.Name, "")
-		c.composer.SetEnabled(true, "")
 		reason := ""
 		if !v.mayWrite(st, u.Channel) {
 			reason = fmt.Sprintf(tr("%s is in a channel where you may not write."), u.Name)
@@ -494,9 +493,8 @@ func (v *View) refreshDM(key convKey, c *conversation) {
 		v.lock(c, reason)
 		return
 	}
-	v.lock(c, "")
 	c.setTitle(c.title.Title(), tr("offline"))
-	c.composer.SetEnabled(false, tr("The user is offline"))
+	v.lock(c, fmt.Sprintf(tr("%s is offline."), c.title.Title()))
 }
 
 // mayWrite tells whether the server lets the local user send text to
