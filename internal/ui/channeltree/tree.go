@@ -415,13 +415,19 @@ func (t *Tree) removeRow(id rowID) gtk.Widgetter {
 	return r.name
 }
 
-// refreshRow brings a row's indent and channel state in line with the
-// model (a no-op where nothing changed).
+// refreshRow brings a row's indent and state in line with the model (a
+// no-op where nothing changed). A kept row may have missed changes that
+// came with a move, e.g. being suppressed in the new channel.
 func (t *Tree) refreshRow(e entry) {
 	if e.kind != entryChannel {
+		r := t.userRows[e.id]
 		// A user row is indented like its channel's row; the chevron's
 		// invisible twin in it does the rest.
-		t.userRows[e.id].setDepth(e.depth - 1)
+		r.setDepth(e.depth - 1)
+		if u, ok := t.model.users[e.id]; ok {
+			r.update(u, t.model.speaking[e.id])
+			t.applyAvatar(r, u)
+		}
 		return
 	}
 	r := t.channelRows[e.id]

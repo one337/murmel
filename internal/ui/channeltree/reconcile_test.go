@@ -60,9 +60,24 @@ func checkRows(t *testing.T, tree *Tree) {
 				if got := r.count.Text(); r.count.Visible() != (count != "") || (count != "" && got != count) {
 					t.Errorf("channel %d shows %q users (shown %v), want %q", e.id, got, r.count.Visible(), count)
 				}
+				if want := channelDescription(len(n.users), current, r.text.shownUnread); r.text.desc != want {
+					t.Errorf("channel %d described as %q, want %q", e.id, r.text.desc, want)
+				}
 			} else {
-				box = tree.userRows[e.id].box
+				r := tree.userRows[e.id]
+				box = r.box
 				depth--
+				// A kept row shows the user as the model has them, also
+				// after changes that came with a move.
+				u := tree.model.users[e.id]
+				muted := u.Muted || u.SelfMuted || u.Suppressed
+				if r.name.Text() != u.Name || r.text.name != u.Name || r.icons[iconMuted].Visible() != muted {
+					t.Errorf("user %d shown as %q (accessible %q, muted icon %v), want %q (muted %v)",
+						e.id, r.name.Text(), r.text.name, r.icons[iconMuted].Visible(), u.Name, muted)
+				}
+				if want := userDescription(u, r.local, r.text.shownUnread); r.text.desc != want {
+					t.Errorf("user %d described as %q, want %q", e.id, r.text.desc, want)
+				}
 			}
 			if got := box.MarginStart(); got != indentPerDepthPx*depth {
 				t.Errorf("%+v indented by %d, want %d", e, got, indentPerDepthPx*depth)
@@ -191,9 +206,20 @@ func TestGTKRandomChangesKeepTheList(t *testing.T) {
 						evs = append(evs, bus.UserRemoved{Session: s})
 					}
 				case 2, 3:
+					// A move can bring other changes with it (suppressed
+					// in the new channel, a new name).
 					u := tree.model.users[pick(sessions)]
 					u.Channel = pick(chans)
-					evs = append(evs, bus.UserUpdated{User: u})
+					changed := bus.UserChangeChannel
+					if rng.IntN(2) == 0 {
+						u.Suppressed = !u.Suppressed
+						changed |= bus.UserChangeAudio
+					}
+					if rng.IntN(4) == 0 {
+						u.Name = fmt.Sprintf("n%d", rng.IntN(100))
+						changed |= bus.UserChangeName
+					}
+					evs = append(evs, bus.UserUpdated{User: u, Changed: changed})
 				case 4:
 					nextChannel++
 					evs = append(evs, bus.ChannelAdded{Channel: bus.ChannelInfo{ID: nextChannel, ParentID: pick(chans), Name: fmt.Sprintf("c%d", rng.IntN(100))}})
