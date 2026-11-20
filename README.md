@@ -94,7 +94,7 @@ or `nix profile upgrade murmel`.
 
 > [!NOTE]
 > After the first Flatpak or Nix installation on a system, Murmel may only
-> appear in the app grid after logging in again.
+> appear in the app grid after you log out and back in.
 
 ## Building from source
 
