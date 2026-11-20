@@ -2,8 +2,8 @@
 // GSettings/GSchema.
 //
 // This package is the typed accessor layer over the application's GSchema
-// keys (data/io.github.one337.murmel.gschema.xml). It is the ONLY
-// internal package allowed to import gio/gtk — this exemption is by design
+// keys (data/io.github.one337.murmel.gschema.xml). It is the only
+// package outside internal/ui allowed to import gio/gtk — this exemption is by design
 // and documented in internal/layer_test.go, whose scope covers only
 // internal/protocol and internal/audio.
 //

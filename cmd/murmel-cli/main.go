@@ -1,6 +1,6 @@
 // Command murmel-cli is a thin console client over the vendored gumble
-// fork, used as the Task-3 interop gate against the pinned Murmur 1.5 QA
-// harness. Every subcommand is a self-contained connection that prints a
+// fork, for checking it against a Mumble server such as the test server
+// in tools/harness. Every subcommand is a self-contained connection that prints a
 // single JSON object to stdout and exits 0 on success.
 //
 //	murmel-cli connect --addr localhost:64738 --cert client.pem

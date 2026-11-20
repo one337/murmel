@@ -48,10 +48,10 @@ log, are the record.
   libopus) as codec type 4 via the verbatim `RegisterAudioCodec` registry.
   `audiocodec.go` (registry + `AudioCodec`/`AudioEncoder`/`AudioDecoder`
   interfaces) is untouched upstream code; the wrapper satisfies the interfaces
-  structurally. This commit additionally folds the interim
-  `internal/protocol/gumble/PATCHES.md` ledger (added by 9937f55) into this
-  root ledger and points `doc.go`'s codec section at the explicit registration
-  instead of the dropped import side effect.
+  structurally. The patch list that first lived in
+  `internal/protocol/gumble/PATCHES.md` moved into this file, and `doc.go`'s
+  codec section points at the explicit registration instead of the dropped
+  import side effect.
 - **Why**: drop the unmaintained gopus dependency from the main module while
   keeping the codec-registry interface stable as the drop-in hook for
   `internal/audio/opus` and any future codec implementation.
@@ -230,8 +230,9 @@ log, are the record.
   bytes the framing golden tests pin), and the UDPTunnel receive handler was
   split into `handleVoicePacket` — the same parse the UDP receive loop
   feeds decrypted datagrams into. Exposed: `Client.VoiceTransport()`
-  ("udp"/"tcp") and `Client.UDPVoiceStats()` (pings/voice/resync/fallback
-  counters) for QA evidence and later UI display.
+  ("udp"/"tcp", shown in the connection info) and `Client.UDPVoiceStats()`
+  (pings/voice/resync/fallback counters, written to the log and printed by
+  murmel-cli).
 - **Why**: UDP is Mumble's primary voice path — TCP-tunneling every 10 ms
   frame adds head-of-line latency and collapses under minor loss; native
   UDP with automatic fallback gives the GNOME client official-client

@@ -26,8 +26,9 @@ const (
 	rowLog
 )
 
-// rowStyle is the widget payload of one scrollback entry. All text is set
-// with SetText on markup-disabled labels; sanitization happened upstream.
+// rowStyle is the widget payload of one scrollback entry. A message with
+// HTML is rendered by richtext (see the package comment); every other
+// text is set with SetText.
 type rowStyle struct {
 	kind    rowKind
 	sender  string

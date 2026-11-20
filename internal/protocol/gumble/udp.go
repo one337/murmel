@@ -71,8 +71,7 @@ type udpTransport struct {
 	client *Client
 	conn   net.Conn
 
-	// timing knobs; package defaults, overridable in-package for tests
-	// (the QA-bound tests keep the real values).
+	// timing knobs, set from the package defaults
 	pingEvery       time.Duration
 	handshakeWindow time.Duration
 	goodWindow      time.Duration

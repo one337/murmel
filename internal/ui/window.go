@@ -32,7 +32,7 @@ const (
 	sidebarWidthFraction = 0.3
 )
 
-// Slot is a mount point where a later task installs its region widget:
+// Slot is a mount point where cmd/murmel installs a region widget:
 // the sidebar slot is filled by the channel tree, the chat slot by
 // the conversation view. The shell ships placeholder content in each
 // slot; Set replaces it. Main loop only.
