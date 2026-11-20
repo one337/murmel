@@ -162,9 +162,9 @@ rpmbuild --rebuild build-srpm/murmel-*.src.rpm   # result in ~/rpmbuild/RPMS/
 
 ### Flatpak
 
-This needs `flatpak-builder` (from the distribution) and Flathub as a
-remote of your user installation; a system-wide Flathub alone is not
-enough:
+This needs `flatpak-builder`, from the distribution or as
+`org.flatpak.Builder` from Flathub, and Flathub as a remote of your user
+installation; a system-wide Flathub alone is not enough:
 
 ```sh
 flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo

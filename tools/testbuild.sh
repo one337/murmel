@@ -13,7 +13,10 @@ rm -f build-version
 version=$(tools/version.sh)
 echo "$version" >build-version
 trap 'rm -f build-version' EXIT
-flatpak-builder --user --install --force-clean --default-branch=master \
+# flatpak-builder from the distribution, otherwise the one from Flathub.
+builder=(flatpak-builder)
+command -v flatpak-builder >/dev/null || builder=(flatpak run org.flatpak.Builder)
+"${builder[@]}" --user --install --force-clean --default-branch=master \
 	--install-deps-from=flathub build-flatpak packaging/$APP_ID.json
 flatpak make-current --user $APP_ID master
 echo "testbuild: installed $APP_ID $version (branch master)"
