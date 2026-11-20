@@ -232,23 +232,9 @@ func cmdJoin(c *commonFlags, args []string) error {
 	}
 
 	var tree []string
-	var walk func(ch *gumble.Channel, indent string)
-	walk = func(ch *gumble.Channel, indent string) {
-		tree = append(tree, indent+ch.Name)
-		var names []string
-		kids := make(map[string]*gumble.Channel)
-		for _, sub := range ch.Children {
-			names = append(names, sub.Name)
-			kids[sub.Name] = sub
-		}
-		sort.Strings(names)
-		for _, name := range names {
-			walk(kids[name], indent+"  ")
-		}
-	}
 	client.Do(func() {
 		if root := client.Channels[0]; root != nil {
-			walk(root, "")
+			tree = channelTree(root)
 		}
 	})
 
@@ -499,4 +485,32 @@ func (c *collector) snapshot() collectorSnapshot {
 	texts := make([]receivedText, len(c.texts))
 	copy(texts, c.texts)
 	return collectorSnapshot{packets: c.packets, samples: c.samples, byUser: byUser, texts: texts}
+}
+
+// channelTree lists the channels below root, one per line, indented by
+// depth and sorted by name. Each channel is listed once: a server that
+// sends a channel loop does not make it run forever.
+func channelTree(root *gumble.Channel) []string {
+	var tree []string
+	seen := map[*gumble.Channel]bool{}
+	var walk func(ch *gumble.Channel, indent string)
+	walk = func(ch *gumble.Channel, indent string) {
+		if seen[ch] {
+			return
+		}
+		seen[ch] = true
+		tree = append(tree, indent+ch.Name)
+		var names []string
+		kids := make(map[string]*gumble.Channel)
+		for _, sub := range ch.Children {
+			names = append(names, sub.Name)
+			kids[sub.Name] = sub
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			walk(kids[name], indent+"  ")
+		}
+	}
+	walk(root, "")
+	return tree
 }
