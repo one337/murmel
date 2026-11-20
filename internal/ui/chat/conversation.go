@@ -2,6 +2,7 @@ package chat
 
 import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 )
 
@@ -23,6 +24,8 @@ type conversation struct {
 	// pin keeps the view scrolled to the bottom across allocation-driven
 	// adjustment changes while the user is anchored there.
 	pin bool
+	// scrollQueued: a jump to the bottom waits for the next frame.
+	scrollQueued bool
 }
 
 func newConversation(tag, title, emptyText string) *conversation {
@@ -50,7 +53,7 @@ func newConversation(tag, title, emptyText string) *conversation {
 	})
 	adj.ConnectChanged(func() {
 		if c.pin {
-			c.scrollToBottom()
+			c.scrollToBottomSoon()
 		}
 	})
 
@@ -128,7 +131,9 @@ func (c *conversation) setTitle(title, subtitle string) {
 // pinned to the bottom while anchored. fromOthers reveals the
 // jump-to-latest button when the user scrolled up.
 func (c *conversation) append(st rowStyle, fromOthers bool) {
-	wasAnchored := c.atBottom()
+	// Pinned counts too: rows that came before the pending jump to the
+	// bottom have already made the list taller.
+	wasAnchored := c.pin || c.atBottom()
 	row := newRow(st)
 	c.list.Append(row.row)
 	if dropped, ok := c.hist.push(row); ok {
@@ -136,7 +141,7 @@ func (c *conversation) append(st rowStyle, fromOthers bool) {
 	}
 	c.pin = wasAnchored
 	if wasAnchored {
-		c.scrollToBottom()
+		c.scrollToBottomSoon()
 	} else if fromOthers {
 		c.jump.SetRevealChild(true)
 	}
@@ -166,6 +171,25 @@ func (c *conversation) atBottom() bool {
 func (c *conversation) scrollToBottom() {
 	adj := c.scroll.VAdjustment()
 	adj.SetValue(adj.Upper() - adj.PageSize())
+}
+
+// scrollToBottomSoon jumps to the bottom at the start of the next frame,
+// once for any number of calls before it. The adjustment reports a taller
+// list while the viewport is being allocated; a value set then is not
+// applied until the next layout, which left the newest row below the
+// visible area. While the window is not shown, the jump waits for it.
+func (c *conversation) scrollToBottomSoon() {
+	if c.scrollQueued {
+		return
+	}
+	c.scrollQueued = true
+	c.scroll.AddTickCallback(func(gtk.Widgetter, gdk.FrameClocker) bool {
+		c.scrollQueued = false
+		if c.pin {
+			c.scrollToBottom()
+		}
+		return false
+	})
 }
 
 // withComposerBar puts the composer under content. The margin around the

@@ -66,6 +66,12 @@ func onMain(f func()) {
 // chatWindow shows a chat view connected to a server with a channel
 // "Quiet" and a user "anna" besides oneself.
 func chatWindow(t *testing.T) (*View, *bus.Bus) {
+	v, b, _ := chatWindowWith(t)
+	return v, b
+}
+
+// chatWindowWith is chatWindow that also returns the window.
+func chatWindowWith(t *testing.T) (*View, *bus.Bus, *gtk.Window) {
 	t.Helper()
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -85,7 +91,7 @@ func chatWindow(t *testing.T) (*View, *bus.Bus) {
 		Users:    []bus.UserInfo{{Session: 1, Name: "me"}, {Session: 7, Name: "anna", Channel: 4}},
 	})
 	waitUntil(t, "the connection", func() bool { return v.bus.State().SelfSession == 1 })
-	return v, b
+	return v, b, win
 }
 
 func waitUntil(t *testing.T, what string, cond func() bool) {
