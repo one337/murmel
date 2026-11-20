@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 22:35+0100\n"
+"POT-Creation-Date: 2026-11-20 22:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -836,6 +836,10 @@ msgid "Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"
 msgstr ""
 
 #: internal/ui/chat/composer.go
+msgid "Message"
+msgstr ""
+
+#: internal/ui/chat/composer.go
 msgid "Attach an image"
 msgstr ""
 
@@ -853,6 +857,10 @@ msgstr ""
 
 #: internal/ui/chat/composer.go
 msgid "Attach Image"
+msgstr ""
+
+#: internal/ui/chat/composer.go
+msgid "Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"
 msgstr ""
 
 #: internal/ui/chat/composer.go

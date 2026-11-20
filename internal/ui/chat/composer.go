@@ -109,6 +109,11 @@ func newComposer() *composer {
 	c.view.SetRightMargin(12)
 	c.view.AddCSSClass("composer-view")
 	c.view.SetTooltipText(tr("Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"))
+	// Screen readers get a short name and the keys as the description
+	// (without a name of its own, GTK names the field after its tooltip).
+	c.view.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyLabel},
+		[]coreglib.Value{*coreglib.NewValue(tr("Message"))})
+	c.describe()
 
 	keys := gtk.NewEventControllerKey()
 	keys.ConnectKeyPressed(func(keyval, _ uint, state gdk.ModifierType) bool {
@@ -363,7 +368,8 @@ func (c *composer) SetSend(f func(html, plain string)) { c.send = f }
 
 // SetLocked locks the field where no message can be sent (the server
 // would refuse it, or the recipient is offline), with the reason shown
-// above it and given as the field's description; "" unlocks it.
+// above it and given as the field's description instead of the keys;
+// "" unlocks it.
 func (c *composer) SetLocked(reason string) {
 	c.locked = reason
 	on := reason == ""
@@ -372,13 +378,19 @@ func (c *composer) SetLocked(reason string) {
 	c.toolbar.SetSensitive(on)
 	c.hint.SetText(c.locked)
 	c.hint.SetVisible(c.locked != "")
-	if c.locked != "" {
-		c.view.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyDescription},
-			[]coreglib.Value{*coreglib.NewValue(c.locked)})
-	} else {
-		c.view.ResetProperty(gtk.AccessiblePropertyDescription)
-	}
+	c.describe()
 	c.update()
+}
+
+// describe gives screen readers the reason the field is locked, or else
+// the keys it takes.
+func (c *composer) describe() {
+	d := c.locked
+	if d == "" {
+		d = tr("Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format")
+	}
+	c.view.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyDescription},
+		[]coreglib.Value{*coreglib.NewValue(d)})
 }
 
 // SetMaxMessageLength applies the server-announced cap.

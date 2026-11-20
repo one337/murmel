@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 18:08+0100\n"
+"POT-Creation-Date: 2026-11-20 22:47+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -856,6 +856,10 @@ msgstr ""
 "Strg+B / Strg+I formatieren"
 
 #: internal/ui/chat/composer.go
+msgid "Message"
+msgstr "Nachricht"
+
+#: internal/ui/chat/composer.go
 msgid "Attach an image"
 msgstr "Bild anhängen"
 
@@ -874,6 +878,10 @@ msgstr "Nachricht senden"
 #: internal/ui/chat/composer.go
 msgid "Attach Image"
 msgstr "Bild anhängen"
+
+#: internal/ui/chat/composer.go
+msgid "Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"
+msgstr "Eingabetaste sendet, Umschalt+Eingabe fügt eine Zeile ein, Strg+B / Strg+I formatieren"
 
 #: internal/ui/chat/composer.go
 msgid "[image]"

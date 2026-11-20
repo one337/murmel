@@ -98,13 +98,14 @@ func waitLock(t *testing.T, what string, c func() *conversation, wantHint string
 		t.Fatalf("%s: line %q, editable %v; want line %q", what, hint, editable, wantHint)
 	}
 	// The line is the field's description (its text is checked with a
-	// screen reader probe: GTK offers no way to read it here).
+	// screen reader probe: GTK offers no way to read it here); unlocked,
+	// the description lists the keys.
 	var described bool
 	onMain(func() {
 		described = gtk.TestAccessibleHasProperty(c().composer.view, gtk.AccessiblePropertyDescription)
 	})
-	if described != (wantHint != "") {
-		t.Errorf("%s: the field has a description: %v, want %v", what, described, wantHint != "")
+	if !described {
+		t.Errorf("%s: the field has no description", what)
 	}
 }
 
@@ -301,4 +302,26 @@ func TestGTKPrivateChatLockedWhileTheRecipientIsOffline(t *testing.T) {
 
 	b.Emit(bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "anna", Channel: 5}})
 	waitLock(t, "recipient back", conv, "")
+}
+
+// The field has a short name of its own for screen readers, not its
+// tooltip, in every state.
+func TestGTKMessageFieldHasAName(t *testing.T) {
+	needGTK(t)
+	v, b, _, _ := lockWindow(t, 600, perms(textAllowed), perms(textAllowed))
+	named := func() bool {
+		var ok bool
+		onMain(func() { ok = gtk.TestAccessibleHasProperty(v.channel.composer.view, gtk.AccessiblePropertyLabel) })
+		return ok
+	}
+	waitLock(t, "allowed", func() *conversation { return v.channel }, "")
+	if !named() {
+		t.Error("the open field has no name of its own")
+	}
+	b.Emit(bus.ChannelUpdated{Channel: bus.ChannelInfo{ID: 4, Name: "Quiet", Permissions: perms(textRefused)},
+		Changed: bus.ChannelChangePermission})
+	waitLock(t, "locked", func() *conversation { return v.channel }, channelLocked)
+	if !named() {
+		t.Error("the locked field has no name of its own")
+	}
 }
