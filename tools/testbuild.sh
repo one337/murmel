@@ -14,6 +14,6 @@ version=$(tools/version.sh)
 echo "$version" >build-version
 trap 'rm -f build-version' EXIT
 flatpak-builder --user --install --force-clean --default-branch=master \
-	build-flatpak packaging/$APP_ID.json
+	--install-deps-from=flathub build-flatpak packaging/$APP_ID.json
 flatpak make-current --user $APP_ID master
 echo "testbuild: installed $APP_ID $version (branch master)"

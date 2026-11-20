@@ -159,7 +159,12 @@ rpmbuild --rebuild build-srpm/murmel-*.src.rpm   # result in ~/rpmbuild/RPMS/
 
 ### Flatpak
 
+This needs `flatpak-builder` (from the distribution) and Flathub as a
+remote of your user installation; a system-wide Flathub alone is not
+enough:
+
 ```sh
+flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 tools/testbuild.sh
 ```
 
@@ -168,7 +173,7 @@ current user as the branch `master`, next to a release install (`stable`),
 and makes it the one that starts;
 `flatpak make-current --user io.github.one337.murmel stable` switches back.
 The manifest uses the GNOME 51 runtime and the Go SDK extension from
-Flathub.
+Flathub; `tools/testbuild.sh` installs them when they are missing.
 
 ### Versions
 
