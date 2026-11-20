@@ -42,6 +42,8 @@ const counterShowFraction = 0.8
 // italic. The message is sent as Mumble HTML (<b>, <i>, <br>).
 type composer struct {
 	root    *gtk.Box
+	frame   *gtk.Box
+	hint    *gtk.Label
 	view    *gtk.TextView
 	buffer  *gtk.TextBuffer
 	counter *gtk.Label
@@ -66,6 +68,12 @@ type composer struct {
 	send       func(htmlText, plain string)
 
 	// Attached image (data: URI) and its preview strip.
+	// offline and locked turn the field off: offline with a reason only in
+	// its tooltip, locked with the reason in a line above it.
+	offline       bool
+	offlineReason string
+	locked        string
+
 	image      string
 	attachment *gtk.Box
 	thumb      *gtk.Picture
@@ -198,11 +206,26 @@ func newComposer() *composer {
 	c.toolbar.Append(c.counter)
 	c.toolbar.Append(c.sendBtn)
 
+	c.frame = gtk.NewBox(gtk.OrientationVertical, 0)
+	c.frame.AddCSSClass("composer-frame")
+	c.frame.Append(c.attachment)
+	c.frame.Append(scroll)
+	c.frame.Append(c.toolbar)
+
+	// Why the field is locked, right above it.
+	c.hint = gtk.NewLabel("")
+	c.hint.SetWrap(true)
+	c.hint.SetWrapMode(pango.WrapWordChar)
+	c.hint.SetXAlign(0)
+	c.hint.SetMarginStart(20)
+	c.hint.SetMarginEnd(20)
+	c.hint.SetMarginTop(6)
+	c.hint.SetMarginBottom(6)
+	c.hint.SetVisible(false)
+
 	c.root = gtk.NewBox(gtk.OrientationVertical, 0)
-	c.root.AddCSSClass("composer-frame")
-	c.root.Append(c.attachment)
-	c.root.Append(scroll)
-	c.root.Append(c.toolbar)
+	c.root.Append(c.hint)
+	c.root.Append(c.frame)
 
 	// Clicking anywhere in the frame focuses the text.
 	click := gtk.NewGestureClick()
@@ -343,13 +366,35 @@ func (c *composer) SetSend(f func(html, plain string)) { c.send = f }
 
 // SetEnabled turns the field on or off (offline conversation partner).
 func (c *composer) SetEnabled(on bool, reason string) {
+	c.offline, c.offlineReason = !on, reason
+	c.applyLock()
+}
+
+// SetLocked locks the field where the server would refuse the message,
+// with the reason shown above it and given as the field's description;
+// "" unlocks it.
+func (c *composer) SetLocked(reason string) {
+	c.locked = reason
+	c.applyLock()
+}
+
+func (c *composer) applyLock() {
+	on := !c.offline && c.locked == ""
 	c.view.SetEditable(on)
 	c.view.SetCursorVisible(on)
 	c.toolbar.SetSensitive(on)
-	if on {
-		c.view.SetTooltipText(tr("Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"))
+	c.hint.SetText(c.locked)
+	c.hint.SetVisible(c.locked != "")
+	if c.offline {
+		c.view.SetTooltipText(c.offlineReason)
 	} else {
-		c.view.SetTooltipText(reason)
+		c.view.SetTooltipText(tr("Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"))
+	}
+	if c.locked != "" {
+		c.view.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyDescription},
+			[]coreglib.Value{*coreglib.NewValue(c.locked)})
+	} else {
+		c.view.ResetProperty(gtk.AccessiblePropertyDescription)
 	}
 	c.update()
 }

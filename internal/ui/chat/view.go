@@ -12,6 +12,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"io.github/murmel/internal/bus"
+	"io.github/murmel/internal/protocol/gumble"
 	"io.github/murmel/internal/settings"
 	"io.github/murmel/internal/ui/clock"
 	"io.github/murmel/internal/ui/presence"
@@ -45,6 +46,9 @@ type View struct {
 	// requestedDescription remembers channels whose description was
 	// fetched, so a missing one is asked for once.
 	requestedDescription map[uint32]bool
+	// requestedPermission remembers channels whose permissions were asked
+	// for and have not arrived yet.
+	requestedPermission map[uint32]bool
 	// Server limits applied to every composer.
 	maxLen      int
 	imageLimit  int
@@ -241,6 +245,7 @@ func (v *View) subscribe(ctx context.Context) {
 		v.unread = map[convKey]int{}
 		v.channelUnread = 0
 		v.requestedDescription = nil
+		v.requestedPermission = nil
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(bus.UserAdded) { v.refreshTitles() })
 	bus.SubscribeCtx(ctx, v.bus, func(bus.UserRemoved) { v.refreshTitles() })
@@ -443,6 +448,11 @@ func (v *View) refreshTitles() {
 	}
 	v.channel.setTitle(name, "")
 	v.refreshDescription(st)
+	reason := ""
+	if me, ok := st.Users[st.SelfSession]; ok && st.SelfSession != 0 && !v.mayWrite(st, me.Channel) {
+		reason = tr("You may not send messages in this channel.")
+	}
+	v.lock(v.channel, reason)
 	for key, c := range v.dms {
 		v.refreshDM(key, c)
 	}
@@ -474,12 +484,56 @@ func (v *View) refreshDescription(st bus.State) {
 func (v *View) refreshDM(key convKey, c *conversation) {
 	st := v.bus.State()
 	if session, ok := sessionFor(st, key); ok {
-		c.setTitle(st.Users[session].Name, "")
+		u := st.Users[session]
+		c.setTitle(u.Name, "")
 		c.composer.SetEnabled(true, "")
+		reason := ""
+		if !v.mayWrite(st, u.Channel) {
+			reason = fmt.Sprintf(tr("%s is in a channel where you may not write."), u.Name)
+		}
+		v.lock(c, reason)
 		return
 	}
+	v.lock(c, "")
 	c.setTitle(c.title.Title(), tr("offline"))
 	c.composer.SetEnabled(false, tr("The user is offline"))
+}
+
+// mayWrite tells whether the server lets the local user send text to
+// channel id (a channel message there, or a private message to someone
+// in it): only known permissions without Write and Text Message refuse.
+// Unknown permissions are asked for.
+func (v *View) mayWrite(st bus.State, id uint32) bool {
+	ch, ok := st.Channels[id]
+	if !ok {
+		return true
+	}
+	if ch.Permissions == nil {
+		if !v.requestedPermission[id] {
+			if v.requestedPermission == nil {
+				v.requestedPermission = map[uint32]bool{}
+			}
+			v.requestedPermission[id] = true
+			v.bus.Emit(bus.ChannelPermissionRequested{ChannelID: id})
+		}
+		return true
+	}
+	delete(v.requestedPermission, id) // asked again after the server drops them
+	return gumble.Permission(*ch.Permissions)&(gumble.PermissionWrite|gumble.PermissionTextMessage) != 0
+}
+
+// lock locks or unlocks a conversation's field. Locking the focused field
+// is also announced: the line above it is not read out by itself.
+func (v *View) lock(c *conversation, reason string) (announced bool) {
+	if reason == c.composer.locked {
+		return false
+	}
+	c.composer.SetLocked(reason)
+	if reason == "" || !c.composer.view.HasFocus() {
+		return false
+	}
+	v.nav.Announce(reason, gtk.AccessibleAnnouncementPriorityMedium)
+	return true
 }
 
 // userName resolves a session to a display name.

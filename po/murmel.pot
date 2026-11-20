@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 18:08+0100\n"
+"POT-Creation-Date: 2026-11-20 18:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1154,6 +1154,15 @@ msgstr ""
 
 #: internal/ui/chat/view.go
 msgid "Not connected."
+msgstr ""
+
+#: internal/ui/chat/view.go
+msgid "You may not send messages in this channel."
+msgstr ""
+
+#: internal/ui/chat/view.go
+#, go-format
+msgid "%s is in a channel where you may not write."
 msgstr ""
 
 #: internal/ui/chat/view.go

@@ -1179,6 +1179,15 @@ msgid "Not connected."
 msgstr "Nicht verbunden."
 
 #: internal/ui/chat/view.go
+msgid "You may not send messages in this channel."
+msgstr "In diesem Kanal darfst du nicht schreiben."
+
+#: internal/ui/chat/view.go
+#, go-format
+msgid "%s is in a channel where you may not write."
+msgstr "%s ist in einem Kanal, in dem du nicht schreiben darfst."
+
+#: internal/ui/chat/view.go
 msgid "offline"
 msgstr "offline"
 
