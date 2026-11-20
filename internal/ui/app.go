@@ -152,19 +152,9 @@ func (a *App) Context() context.Context { return a.ctx }
 func (a *App) Window() *Window { return a.window }
 
 // WindowActive reports whether the main window currently has focus. Used by
-// the notifier to gate PM notifications, and by the QA harness to verify the
-// focus gate is observable.
+// the notifier to gate PM notifications.
 func (a *App) WindowActive() bool {
 	return a.window != nil && a.window.IsActive()
-}
-
-// HideWindowForQA is a QA-only helper: lowers (unrealises) the window so the
-// notifier's "window is unfocused" gate can be exercised in the headless Xvfb
-// harness where there is no window manager to take focus away.
-func (a *App) HideWindowForQA() {
-	if a.window != nil {
-		a.window.Unrealize()
-	}
 }
 
 func (a *App) ensureWindow() {

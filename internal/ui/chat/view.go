@@ -3,7 +3,6 @@ package chat
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
@@ -120,39 +119,9 @@ func (v *View) onPresence(ev presence.Event) {
 // Root returns the region's top widget for the window's chat slot.
 func (v *View) Root() gtk.Widgetter { return v.nav }
 
-// SetSender swaps the outgoing seam.
-func (v *View) SetSender(s Sender) { v.sender = s }
-
 // AddChannelHeaderWidget packs w at the start of the channel chat's
 // header (the window's narrow-layout mute toggle).
 func (v *View) AddChannelHeaderWidget(w gtk.Widgetter) { v.channel.header.PackStart(w) }
-
-// RowCount reports the channel chat's retained scrollback (QA hook).
-func (v *View) RowCount() int { return v.channel.hist.len() }
-
-// InjectCompose types text into the channel composer and submits it — the
-// QA harness drives the real send path with this.
-func (v *View) InjectCompose(text string) {
-	v.channel.composer.buffer.SetText(text)
-	v.channel.composer.Submit()
-}
-
-// InjectImage attaches an image file to the channel composer and sends it
-// with text — the QA harness drives the real attach and send path.
-func (v *View) InjectImage(path, text string) error {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	uri, err := encodeImage(data, v.channel.composer.imageLimit)
-	if err != nil {
-		return err
-	}
-	v.channel.composer.setImage(uri)
-	v.channel.composer.buffer.SetText(text)
-	v.channel.composer.Submit()
-	return nil
-}
 
 // OpenConversation shows the private conversation with session (e.g. from
 // a message notification).

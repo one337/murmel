@@ -402,9 +402,6 @@ func (c *composer) SetMaxMessageLength(n int) {
 	c.update()
 }
 
-// MaxMessageLength is the currently enforced cap.
-func (c *composer) MaxMessageLength() int { return c.maxLen }
-
 // Submit sends the message and clears the field when it is non-empty and
 // within the server's limit.
 func (c *composer) Submit() {

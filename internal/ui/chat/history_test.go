@@ -84,3 +84,12 @@ func TestHistoryClear(t *testing.T) {
 		t.Fatalf("after clear: last %d %v len %d", last, ok, h.len())
 	}
 }
+
+func (h *history[T]) len() int { return len(h.items) }
+
+func (h *history[T]) last() (item T, ok bool) {
+	if len(h.items) == 0 {
+		return item, false
+	}
+	return h.items[len(h.items)-1], true
+}

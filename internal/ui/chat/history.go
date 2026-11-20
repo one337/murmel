@@ -28,18 +28,9 @@ func (h *history[T]) push(item T) (dropped T, droppedOK bool) {
 	return dropped, droppedOK
 }
 
-func (h *history[T]) len() int { return len(h.items) }
-
 // clear empties the buffer and returns what it held.
 func (h *history[T]) clear() []T {
 	items := h.items
 	h.items = make([]T, 0, h.limit)
 	return items
-}
-
-func (h *history[T]) last() (item T, ok bool) {
-	if len(h.items) == 0 {
-		return item, false
-	}
-	return h.items[len(h.items)-1], true
 }
