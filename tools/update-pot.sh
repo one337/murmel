@@ -33,12 +33,13 @@ xgettext \
   data/io.github.one337.murmel.desktop.in 2>/dev/null
 
 # Writing the real template also brings every translation up to date:
-# new messages are added empty, changed ones keep their old translation
-# marked fuzzy (shown in English until reviewed), removed ones become
-# obsolete (#~). Existing translations are kept.
+# new and changed messages are added empty, removed ones become obsolete
+# (#~). Existing translations are kept. No fuzzy matching: it fills a new
+# message with the translation of a similar one, which is easily taken
+# over by mistake (with a format argument the message does not have).
 if [ "$out" = "po/murmel.pot" ]; then
   for po in po/*.po; do
     [ -e "$po" ] || continue
-    msgmerge --quiet --update --backup=none "$po" "$out"
+    msgmerge --quiet --update --no-fuzzy-matching --backup=none "$po" "$out"
   done
 fi

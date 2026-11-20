@@ -894,8 +894,6 @@ msgstr "Nachricht zu lang"
 #: internal/ui/chat/deny.go
 msgid "The SuperUser cannot be changed."
 msgstr "Der SuperUser lässt sich nicht ändern."
-"Der Server konnte nicht erreicht werden:\n"
-"%s"
 
 #: internal/ui/chat/deny.go
 msgid "Invalid channel name."

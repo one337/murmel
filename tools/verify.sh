@@ -191,6 +191,13 @@ for po in po/*.po; do
   printf '  %s: %s\n' "$(basename "$po" .po)" "$(msgfmt --statistics -o /dev/null "$po" 2>&1)"
 done
 
+step "i18n: translations keep the format arguments"
+if go test ./internal/ui -run 'TestTranslationsKeepTheFormatArguments|TestFormatArgs|TestFormatMismatches' 2>&1; then
+  pass "every translation uses the format arguments of its original"
+else
+  fail "a translation lost or gained a format argument (see above)"
+fi
+
 step "desktop file: desktop-file-validate"
 TMPDESKTOP=$(mktemp -d /tmp/murmel-desktop-XXXXXX)
 if msgfmt --desktop --template data/io.github.one337.murmel.desktop.in -d po \
