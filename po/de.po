@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 16:00+0100\n"
+"POT-Creation-Date: 2026-11-20 18:08+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -887,6 +887,102 @@ msgstr "Zur neuesten springen"
 msgid "Scroll to the newest message"
 msgstr "Zur neuesten Nachricht scrollen"
 
+#: internal/ui/chat/deny.go
+msgid "message too long"
+msgstr "Nachricht zu lang"
+
+#: internal/ui/chat/deny.go
+msgid "The SuperUser cannot be changed."
+msgstr "Der SuperUser lässt sich nicht ändern."
+"Der Server konnte nicht erreicht werden:\n"
+"%s"
+
+#: internal/ui/chat/deny.go
+msgid "Invalid channel name."
+msgstr "Ungültiger Kanalname."
+
+#: internal/ui/chat/deny.go
+msgid "Invalid user name."
+msgstr "Ungültiger Benutzername."
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Invalid user name: %s"
+msgstr "Ungültiger Benutzername: %s"
+
+#: internal/ui/chat/deny.go
+msgid "Not allowed in a temporary channel."
+msgstr "In einem temporären Kanal nicht erlaubt."
+
+#: internal/ui/chat/deny.go
+msgid "The channel is full."
+msgstr "Der Kanal ist voll."
+
+#: internal/ui/chat/deny.go
+msgid "Channels cannot be nested any deeper on this server."
+msgstr "Kanäle lassen sich auf diesem Server nicht tiefer verschachteln."
+
+#: internal/ui/chat/deny.go
+msgid "This server allows no more channels."
+msgstr "Dieser Server erlaubt keine weiteren Kanäle."
+
+#: internal/ui/chat/deny.go
+msgid "This channel allows no more listeners."
+msgstr "Dieser Kanal erlaubt keine weiteren Zuhörer."
+
+#: internal/ui/chat/deny.go
+msgid "You cannot listen to any more channels."
+msgstr "Du kannst keinen weiteren Kanälen zuhören."
+
+#. TRANSLATORS: The server's answer to the text message "Open the pod
+#. bay doors, HAL." in the root channel; the reply from the film.
+#: internal/ui/chat/deny.go
+msgid "I'm sorry, Dave. I'm afraid I can't do that."
+msgstr "Tut mir leid, Dave. Ich fürchte, das kann ich nicht tun."
+
+#: internal/ui/chat/deny.go
+msgid "Refused by the server."
+msgstr "Vom Server abgelehnt."
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Refused by the server: %s"
+msgstr "Vom Server abgelehnt: %s"
+
+#: internal/ui/chat/deny.go internal/ui/chat/view.go
+msgid "another channel"
+msgstr "einen anderen Kanal"
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "You are not allowed to do that in %s."
+msgstr "Das darfst du in %s nicht."
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "You do not have the “%s” permission in %s."
+msgstr "Dir fehlt das Recht „%s“ in %s."
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Another user is not allowed to do that in %s."
+msgstr "Ein anderer Nutzer darf das in %s nicht."
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Another user does not have the “%s” permission in %s."
+msgstr "Einem anderen Nutzer fehlt das Recht „%s“ in %s."
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "%s is not allowed to do that in %s."
+msgstr "%s darf das in %s nicht."
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "%s does not have the “%s” permission in %s."
+msgstr "%s fehlt das Recht „%s“ in %s."
+
 #: internal/ui/chat/logevents.go
 msgid "User joins your channel"
 msgstr "Jemand betritt deinen Kanal"
@@ -1066,10 +1162,6 @@ msgid "No messages yet"
 msgstr "Noch keine Nachrichten"
 
 #: internal/ui/chat/view.go
-msgid "another channel"
-msgstr "einen anderen Kanal"
-
-#: internal/ui/chat/view.go
 msgid "Welcome message"
 msgstr "Willkommensnachricht"
 
@@ -1105,10 +1197,6 @@ msgstr "Unbekannter Benutzer"
 #: internal/ui/chat/view.go
 msgid "You"
 msgstr "Du"
-
-#: internal/ui/chat/view.go
-msgid "message too long"
-msgstr "Nachricht zu lang"
 
 #: internal/ui/connection/connectform.go
 msgid "Port"

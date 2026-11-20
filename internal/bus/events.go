@@ -282,12 +282,19 @@ const (
 	DenyChannelFull
 	DenyNestingLimit
 	DenyChannelCountLimit
+	DenyChannelListenerLimit
+	DenyUserListenerLimit
+	// DenyH9K answers a joke text message to the root channel.
+	DenyH9K
+	// DenyUnknown is a kind of refusal this version does not know.
+	DenyUnknown
 )
 
 // PermissionDenied is emitted when the server denied an action.
 type PermissionDenied struct {
 	Reason DenyReason
-	// Text is a human-readable reason ("" if none).
+	// Text is a human-readable reason ("" if none); for DenyInvalidUserName
+	// the refused name.
 	Text string
 	// ChannelID is the affected channel (0 if none).
 	ChannelID uint32

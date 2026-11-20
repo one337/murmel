@@ -247,6 +247,21 @@ func TestBridgePermissionDenied(t *testing.T) {
 	if ev.Reason != DenyText || ev.ChannelID != 0 || ev.Session != 0 {
 		t.Fatalf("nil channel/user must map to 0: %+v", ev)
 	}
+
+	for _, tt := range []struct {
+		in   gumble.PermissionDeniedType
+		want DenyReason
+	}{
+		{gumble.PermissionDeniedH9K, DenyH9K},
+		{gumble.PermissionDeniedChannelListenerLimit, DenyChannelListenerLimit},
+		{gumble.PermissionDeniedUserListenerLimit, DenyUserListenerLimit},
+		{99, DenyUnknown}, // from a newer server
+	} {
+		bridge.OnPermissionDenied(&gumble.PermissionDeniedEvent{Type: tt.in})
+		if ev := waitEvent[PermissionDenied](t, ch, "PermissionDenied"); ev.Reason != tt.want {
+			t.Errorf("type %d mapped to %d, want %d", tt.in, ev.Reason, tt.want)
+		}
+	}
 }
 
 func TestBridgeServerConfig(t *testing.T) {

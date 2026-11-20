@@ -203,10 +203,14 @@ func (v *View) subscribe(ctx context.Context) {
 		v.nav.PopToTag(channelTag)
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(ev bus.PermissionDenied) {
-		if ev.Reason == bus.DenyText || ev.Reason == bus.DenyTextTooLong {
-			v.visible().append(rowStyle{kind: rowError, at: time.Now(),
-				content: errorRowText(denyText(ev))}, false)
+		text, ok := denialText(ev, v.bus.State())
+		if !ok {
+			return
 		}
+		v.visible().append(rowStyle{kind: rowError, at: time.Now(), content: text}, false)
+		// Also told where the focus is not in the chat: a new row is not
+		// read out by itself.
+		v.nav.Announce(text, gtk.AccessibleAnnouncementPriorityMedium)
 	})
 	// A new connection or leaving the server starts a fresh chat; an
 	// automatic reconnect keeps it.
@@ -495,15 +499,4 @@ func selfName(st bus.State) string {
 		return u.Name
 	}
 	return tr("You")
-}
-
-// denyText renders a send-denial for the error row.
-func denyText(ev bus.PermissionDenied) string {
-	if ev.Text != "" {
-		return ev.Text
-	}
-	if ev.Reason == bus.DenyTextTooLong {
-		return tr("message too long")
-	}
-	return ""
 }

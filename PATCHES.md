@@ -357,3 +357,17 @@ connecting, the earlier attempt must not log in afterwards: with the same
 registered account the server would drop the newer session as a ghost.
 
 **Upstream**: layeh/gumble `gumble/client.go` (`DialWithDialer` uses `tls.DialWithDialer` and has no way to cancel).
+
+## P17 — Pass on every kind of refusal
+
+**What**: `handlePermissionDenied` no longer drops refusals of type H9K.
+New `PermissionDeniedType` constants: `PermissionDeniedH9K`,
+`PermissionDeniedChannelListenerLimit` (12) and
+`PermissionDeniedUserListenerLimit` (13); the generated protocol code
+predates the listener limits, so the two are plain numbers. Types this
+code has no name for still reach the listeners with their number.
+
+**Why**: The application tells the user why the server refused an action,
+for every type the server can send.
+
+**Upstream**: layeh/gumble `gumble/handlers.go` (`handlePermissionDenied` rejects H9K as an invalid message) and `gumble/event.go` (no listener-limit types).

@@ -145,6 +145,12 @@ const (
 	PermissionDeniedChannelFull        PermissionDeniedType = PermissionDeniedType(MumbleProto.PermissionDenied_ChannelFull)
 	PermissionDeniedNestingLimit       PermissionDeniedType = PermissionDeniedType(MumbleProto.PermissionDenied_NestingLimit)
 	PermissionDeniedChannelCountLimit  PermissionDeniedType = PermissionDeniedType(MumbleProto.PermissionDenied_ChannelCountLimit)
+	// PermissionDeniedH9K answers a text message the server treats as a joke.
+	PermissionDeniedH9K PermissionDeniedType = PermissionDeniedType(MumbleProto.PermissionDenied_H9K)
+	// The listener limits came with Mumble 1.4; the generated protocol code
+	// has no names for them.
+	PermissionDeniedChannelListenerLimit PermissionDeniedType = 12
+	PermissionDeniedUserListenerLimit    PermissionDeniedType = 13
 )
 
 // Has returns true if the PermissionDeniedType has changeType part of its

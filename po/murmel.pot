@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 16:00+0100\n"
+"POT-Creation-Date: 2026-11-20 18:08+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -867,6 +867,100 @@ msgstr ""
 msgid "Scroll to the newest message"
 msgstr ""
 
+#: internal/ui/chat/deny.go
+msgid "message too long"
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "The SuperUser cannot be changed."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "Invalid channel name."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "Invalid user name."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Invalid user name: %s"
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "Not allowed in a temporary channel."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "The channel is full."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "Channels cannot be nested any deeper on this server."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "This server allows no more channels."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "This channel allows no more listeners."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "You cannot listen to any more channels."
+msgstr ""
+
+#. TRANSLATORS: The server's answer to the text message "Open the pod
+#. bay doors, HAL." in the root channel; the reply from the film.
+#: internal/ui/chat/deny.go
+msgid "I'm sorry, Dave. I'm afraid I can't do that."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+msgid "Refused by the server."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Refused by the server: %s"
+msgstr ""
+
+#: internal/ui/chat/deny.go internal/ui/chat/view.go
+msgid "another channel"
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "You are not allowed to do that in %s."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "You do not have the “%s” permission in %s."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Another user is not allowed to do that in %s."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "Another user does not have the “%s” permission in %s."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "%s is not allowed to do that in %s."
+msgstr ""
+
+#: internal/ui/chat/deny.go
+#, go-format
+msgid "%s does not have the “%s” permission in %s."
+msgstr ""
+
 #: internal/ui/chat/logevents.go
 msgid "User joins your channel"
 msgstr ""
@@ -1046,10 +1140,6 @@ msgid "No messages yet"
 msgstr ""
 
 #: internal/ui/chat/view.go
-msgid "another channel"
-msgstr ""
-
-#: internal/ui/chat/view.go
 msgid "Welcome message"
 msgstr ""
 
@@ -1084,10 +1174,6 @@ msgstr ""
 
 #: internal/ui/chat/view.go
 msgid "You"
-msgstr ""
-
-#: internal/ui/chat/view.go
-msgid "message too long"
 msgstr ""
 
 #: internal/ui/connection/connectform.go

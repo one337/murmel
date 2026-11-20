@@ -323,8 +323,16 @@ func denyReason(t gumble.PermissionDeniedType) DenyReason {
 		return DenyNestingLimit
 	case gumble.PermissionDeniedChannelCountLimit:
 		return DenyChannelCountLimit
-	default:
+	case gumble.PermissionDeniedChannelListenerLimit:
+		return DenyChannelListenerLimit
+	case gumble.PermissionDeniedUserListenerLimit:
+		return DenyUserListenerLimit
+	case gumble.PermissionDeniedH9K:
+		return DenyH9K
+	case gumble.PermissionDeniedOther:
 		return DenyText
+	default:
+		return DenyUnknown
 	}
 }
 

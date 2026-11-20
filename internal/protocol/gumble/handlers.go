@@ -749,7 +749,7 @@ func (c *Client) handlePermissionDenied(buffer []byte) error {
 		return err
 	}
 
-	if packet.Type == nil || *packet.Type == MumbleProto.PermissionDenied_H9K {
+	if packet.Type == nil {
 		return errInvalidProtobuf
 	}
 
