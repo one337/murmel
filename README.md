@@ -95,9 +95,9 @@ or `nix profile upgrade murmel`.
 
 ## Building from source
 
-Murmel needs a current GNOME stack (GTK 4.22 and Libadwaita 1.9 or
-newer, as in Fedora 45 or NixOS 26.05), Go 1.27 or newer and WebRTC audio
-processing 2.x.
+Murmel needs a current GNOME stack (GTK 4.24 and Libadwaita 1.10 or
+newer, as in Fedora 45), Go 1.27 or newer and WebRTC audio processing
+2.x.
 Where the distribution is older, the [Flatpak](#flatpak) build is the
 easier way. At runtime it uses PulseAudio or PipeWire (with
 `pipewire-pulse`).

@@ -1,6 +1,7 @@
 # GTK stack versions
 
-Working, verified combination for the Murmel UI (validated 2026-11-04).
+Working, verified combination for the Murmel UI (validated 2026-11-20 on
+Fedora 45, as in CI).
 
 ## Go modules
 
@@ -23,8 +24,12 @@ roots. Import paths are unchanged (`.../gotk4/pkg/gtk/v4`,
 
 | Library | Version |
 |---|---|
-| `gtk4` | 4.22.5 |
-| `libadwaita-1` | 1.9.4 |
+| `gtk4` | 4.24.1 |
+| `libadwaita-1` | 1.10.0 |
+
+GTK 4.22.5 with Libadwaita 1.9.4 (Fedora 44, NixOS 26.05) builds, but three
+GTK tests fail there: the user menu in the channel tree and the freeing of
+the connect dialog behave differently.
 
 ## API notes for this pair
 
