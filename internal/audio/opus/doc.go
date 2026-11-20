@@ -27,11 +27,8 @@
 // # Registration
 //
 // Upstream gumble's own opus package registers itself into a global registry
-// via init(). This package is side-effect free instead: call RegisterInto with
-// a gumble-compatible registry to plug the codec in for Opus type 4 (see
-// RegisterInto). Glue code that imports a gumble implementation adapts the
-// local interfaces with zero conversion, since all method signatures use only
-// built-in types.
+// via init(). This package is side-effect free instead: the vendored gumble
+// registers the codec for Opus type 4 itself (RegisterMurmelOpusCodec).
 package opus
 
 // Codec type 4 in Mumble's codec registry (gumble audioCodecIDOpus).

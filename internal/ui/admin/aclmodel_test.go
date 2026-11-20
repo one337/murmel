@@ -42,9 +42,6 @@ func TestGroupNamesAndCatalog(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("userCatalog = %v, want %v", got, want)
 	}
-	if id, _, ok := findUser(got, " EVE "); !ok || id != 5 {
-		t.Fatalf("findUser = %d %v", id, ok)
-	}
 }
 
 // Only groups the channel defines or changes are written back.

@@ -7,36 +7,6 @@ import (
 	hrabanopus "gopkg.in/hraban/opus.v2"
 )
 
-// AudioEncoder mirrors gumble.AudioEncoder (audiocodec.go) exactly.
-type AudioEncoder interface {
-	ID() int
-	Encode(pcm []int16, frameSize, maxDataBytes int) ([]byte, error)
-	Reset()
-}
-
-// AudioDecoder mirrors gumble.AudioDecoder (audiocodec.go) exactly.
-type AudioDecoder interface {
-	ID() int
-	Decode(data []byte, frameSize int) ([]int16, error)
-	Reset()
-}
-
-// AudioCodec mirrors gumble.AudioCodec: a generator for encoder/decoder
-// pairs, registered once per codec ID.
-type AudioCodec interface {
-	ID() int
-	NewEncoder() AudioEncoder
-	NewDecoder() AudioDecoder
-}
-
-// CodecRegistry mirrors gumble's package-level registration hook
-// (gumble.RegisterAudioCodec(id int, codec gumble.AudioCodec)) as an
-// interface so registration can be routed into either upstream gumble or
-// the vendored fork without this package importing either.
-type CodecRegistry interface {
-	RegisterAudioCodec(id int, codec AudioCodec)
-}
-
 // Encoder encodes mono 48 kHz PCM to Opus packets (VOIP application).
 // It satisfies gumble.AudioEncoder.
 //
@@ -221,44 +191,4 @@ func (d *Decoder) Reset() {
 	if nd, err := hrabanopus.NewDecoder(SampleRate, Channels); err == nil {
 		d.dec = nd
 	}
-}
-
-// generator is the AudioCodec implementation handed to registries.
-type generator struct{}
-
-// Codec is the Opus (type 4) codec generator, ready for registration via
-// RegisterInto. It mirrors upstream gumble/opus's Codec generator but does
-// not self-register.
-var Codec AudioCodec = generator{}
-
-func (generator) ID() int { return CodecID }
-
-func (generator) NewEncoder() AudioEncoder {
-	enc, err := NewEncoder()
-	if err != nil {
-		return nil
-	}
-	return enc
-}
-
-func (generator) NewDecoder() AudioDecoder {
-	dec, err := NewDecoder()
-	if err != nil {
-		return nil
-	}
-	return dec
-}
-
-// RegisterInto plugs the Opus codec (type 4) into the given registry, e.g.
-// gumble's global codec table or the vendored fork's equivalent. It is the
-// only registration path: importing this package never mutates any global
-// state. Callers using gumble adapt like so:
-//
-//	gumble.RegisterAudioCodec(opus.CodecID, gumbleCodec{opus.Codec})
-//
-// where gumbleCodec re-exports NewEncoder/NewDecoder with gumble's interface
-// return types (the concrete Encoder/Decoder need no wrapping — they satisfy
-// gumble.AudioEncoder/gumble.AudioDecoder structurally).
-func RegisterInto(r CodecRegistry) {
-	r.RegisterAudioCodec(CodecID, Codec)
 }

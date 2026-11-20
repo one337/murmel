@@ -32,9 +32,6 @@ func TestEveryDefaultIsValid(t *testing.T) {
 		if !valid(Default(ev)) {
 			t.Errorf("%s: invalid default %q", ev, Default(ev))
 		}
-		if _, err := Load(BuiltinChoice(SuggestedBuiltin(ev))); err != nil {
-			t.Errorf("%s: suggested builtin: %v", ev, err)
-		}
 	}
 }
 

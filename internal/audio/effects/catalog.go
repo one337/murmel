@@ -81,35 +81,12 @@ var defaults = map[Event]string{
 	PushToTalkRelease: Off,
 }
 
-// DefaultBuiltin is the built-in sound offered first for an event whose
-// default is Off.
-var defaultBuiltin = map[Event]string{
-	UserConnected:    "blip-up",
-	UserDisconnected: "blip-down",
-	ChannelMessage:   "tick",
-	// The push-to-talk clicks: a short rise when sending starts, a fall
-	// when it ends.
-	PushToTalkPressed: "blip-up",
-	PushToTalkRelease: "blip-down",
-}
-
 // Default returns the default choice for ev.
 func Default(ev Event) string {
 	if v, ok := defaults[ev]; ok {
 		return v
 	}
 	return Off
-}
-
-// SuggestedBuiltin is the built-in sound that fits ev best.
-func SuggestedBuiltin(ev Event) string {
-	if id, ok := BuiltinID(defaults[ev]); ok {
-		return id
-	}
-	if id, ok := defaultBuiltin[ev]; ok {
-		return id
-	}
-	return Builtins[0]
 }
 
 // Choice returns the effective choice for ev given the stored overrides.

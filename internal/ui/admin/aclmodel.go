@@ -158,17 +158,6 @@ func userCatalog(acl *bus.ACLFetched, online map[uint32]bus.UserInfo, registered
 	return out
 }
 
-// findUser resolves a name (case-insensitive) in the catalog.
-func findUser(users map[uint32]string, name string) (uint32, string, bool) {
-	name = strings.TrimSpace(name)
-	for id, n := range users {
-		if strings.EqualFold(n, name) {
-			return id, n, true
-		}
-	}
-	return 0, "", false
-}
-
 func hasUser(list []bus.ACLUserInfo, id uint32) bool {
 	return slices.ContainsFunc(list, func(u bus.ACLUserInfo) bool { return u.UserID == id })
 }

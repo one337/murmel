@@ -13,10 +13,6 @@ import (
 var (
 	_ gumble.AudioEncoder = (*Encoder)(nil)
 	_ gumble.AudioDecoder = (*Decoder)(nil)
-
-	_ AudioEncoder = (*Encoder)(nil)
-	_ AudioDecoder = (*Decoder)(nil)
-	_ AudioCodec   = generator{}
 )
 
 // --- test helpers -----------------------------------------------------------
@@ -457,56 +453,4 @@ func TestReset(t *testing.T) {
 	if r := rms(pcm); r < 0.5*(testAmplitude/math.Sqrt2) {
 		t.Errorf("post-reset decode RMS %.1f too low", r)
 	}
-}
-
-// --- registration seam ---------------------------------------------------------
-
-// fakeRegistry mirrors gumble's codec registration surface
-// (RegisterAudioCodec(id int, codec AudioCodec)) for testing the seam.
-type fakeRegistry struct {
-	id    int
-	codec AudioCodec
-}
-
-func (f *fakeRegistry) RegisterAudioCodec(id int, codec AudioCodec) {
-	f.id = id
-	f.codec = codec
-}
-
-func TestRegisterInto(t *testing.T) {
-	var f fakeRegistry
-	RegisterInto(&f)
-	if f.id != CodecID {
-		t.Errorf("registered id = %d, want %d", f.id, CodecID)
-	}
-	if f.codec == nil {
-		t.Fatal("no codec registered")
-	}
-	if got := f.codec.ID(); got != CodecID {
-		t.Errorf("codec.ID() = %d, want %d", got, CodecID)
-	}
-	enc := f.codec.NewEncoder()
-	if enc == nil {
-		t.Fatal("NewEncoder() = nil")
-	}
-	dec := f.codec.NewDecoder()
-	if dec == nil {
-		t.Fatal("NewDecoder() = nil")
-	}
-	packet, err := enc.Encode(sineFrame(440, FrameSize, 0), FrameSize, 127)
-	if err != nil {
-		t.Fatalf("generator encoder: %v", err)
-	}
-	pcm, err := dec.Decode(packet, FrameSize)
-	if err != nil {
-		t.Fatalf("generator decoder: %v", err)
-	}
-	if len(pcm) != FrameSize {
-		t.Fatalf("generator decode: %d samples", len(pcm))
-	}
-	// Generator encoder/decoder must satisfy the gumble-shaped interfaces.
-	var (
-		_ gumble.AudioEncoder = enc
-		_ gumble.AudioDecoder = dec
-	)
 }
