@@ -34,6 +34,9 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
   images; unread markers, notifications and configurable event sounds
 - **Channels at a glance** – channel tree with avatars and speaking
   indicators, descriptions with cover images, drag and drop support
+- **Keyboard and screen reader** – move through the channel tree with the
+  arrow keys, open a row's menu with the Menu key or Shift+F10; screen
+  readers announce user and channel states
 - **Connections and identities** – save servers and sort them as you like,
   passwords stored securely, `mumble://` links; create, import and back up
   your certificates right in the app
