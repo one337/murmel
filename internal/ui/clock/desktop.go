@@ -2,20 +2,26 @@ package clock
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
+
+	"io.github/murmel/internal/ui/portal"
 )
 
 const (
-	portalName      = "org.freedesktop.portal.Desktop"
-	portalPath      = "/org/freedesktop/portal/desktop"
 	ifSettings      = "org.freedesktop.portal.Settings"
 	interfaceSchema = "org.gnome.desktop.interface"
 	clockFormatKey  = "clock-format"
 	portalTimeout   = 5 * time.Second
+)
+
+var (
+	errNoPortal = errors.New("no settings portal")
+	errNoKey    = errors.New("the settings portal has no clock-format")
 )
 
 // desktopSettings keeps the GSettings fallback (and its signal) alive.
@@ -40,7 +46,7 @@ func watchDesktop(set func(string)) {
 				watchGSettings(set)
 				return
 			}
-			conn.SignalSubscribe(portalName, ifSettings, "SettingChanged", portalPath, interfaceSchema,
+			conn.SignalSubscribe(portal.Name, ifSettings, "SettingChanged", portal.Path, interfaceSchema,
 				gio.DBusSignalFlagsNone, func(_ *gio.DBusConnection, _, _, _, _ string, params *glib.Variant) {
 					if params.ChildValue(1).String() == clockFormatKey {
 						set(unwrap(params.ChildValue(2)).String())
@@ -51,26 +57,44 @@ func watchDesktop(set func(string)) {
 	}()
 }
 
-// readPortal asks the Settings portal for clock-format (ReadOne, or Read
-// on portals older than version 2).
+// readPortal asks the Settings portal for clock-format. ReadAll exists in
+// every version of the interface and leaves out what the portal does not
+// know instead of failing.
 func readPortal(ctx context.Context, conn *gio.DBusConnection) (string, error) {
-	args := glib.NewVariantTuple([]*glib.Variant{
-		glib.NewVariantString(interfaceSchema), glib.NewVariantString(clockFormatKey),
-	})
-	timeout := int(portalTimeout / time.Millisecond)
-	reply, err := conn.CallSync(ctx, portalName, portalPath, ifSettings, "ReadOne",
-		args, glib.NewVariantType("(v)"), gio.DBusCallFlagsNone, timeout)
-	if err != nil {
-		reply, err = conn.CallSync(ctx, portalName, portalPath, ifSettings, "Read",
-			args, glib.NewVariantType("(v)"), gio.DBusCallFlagsNone, timeout)
-		if err != nil {
-			return "", err
-		}
+	if portal.Version(ctx, conn, ifSettings) == 0 {
+		return "", errNoPortal
 	}
-	return unwrap(reply.ChildValue(0)).String(), nil
+	namespaces := glib.NewVariantArray(glib.NewVariantType("s"),
+		[]*glib.Variant{glib.NewVariantString(interfaceSchema)})
+	reply, err := conn.CallSync(ctx, portal.Name, portal.Path, ifSettings, "ReadAll",
+		glib.NewVariantTuple([]*glib.Variant{namespaces}), glib.NewVariantType("(a{sa{sv}})"),
+		gio.DBusCallFlagsNone, int(portalTimeout/time.Millisecond))
+	if err != nil {
+		return "", err
+	}
+	keys := lookup(reply.ChildValue(0), interfaceSchema)
+	if keys == nil {
+		return "", errNoKey
+	}
+	v := lookup(keys, clockFormatKey)
+	if v == nil {
+		return "", errNoKey
+	}
+	return unwrap(v).String(), nil
 }
 
-// unwrap strips the variant boxes around a value (Read boxes it twice).
+// lookup returns the value of key in the dictionary dict, or nil.
+func lookup(dict *glib.Variant, key string) *glib.Variant {
+	for i := uint(0); i < dict.NChildren(); i++ {
+		entry := dict.ChildValue(i)
+		if entry.ChildValue(0).String() == key {
+			return entry.ChildValue(1)
+		}
+	}
+	return nil
+}
+
+// unwrap strips the variant boxes the portal puts around a value.
 func unwrap(v *glib.Variant) *glib.Variant {
 	for v.IsOfType(glib.NewVariantType("v")) {
 		v = v.Variant()

@@ -25,6 +25,8 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
+
+	"io.github/murmel/internal/ui/portal"
 )
 
 // Shortcut IDs, as registered with the portal.
@@ -49,8 +51,8 @@ type Binding struct {
 }
 
 const (
-	portalName   = "org.freedesktop.portal.Desktop"
-	portalPath   = "/org/freedesktop/portal/desktop"
+	portalName   = portal.Name
+	portalPath   = portal.Path
 	ifShortcuts  = "org.freedesktop.portal.GlobalShortcuts"
 	ifRequest    = "org.freedesktop.portal.Request"
 	ifRegistry   = "org.freedesktop.host.portal.Registry"
@@ -101,13 +103,11 @@ func Available(ctx context.Context) bool {
 }
 
 func portalVersion(ctx context.Context, conn *gio.DBusConnection) (uint32, error) {
-	reply, err := conn.CallSync(ctx, portalName, portalPath, "org.freedesktop.DBus.Properties", "Get",
-		glib.NewVariantTuple([]*glib.Variant{glib.NewVariantString(ifShortcuts), glib.NewVariantString("version")}),
-		glib.NewVariantType("(v)"), gio.DBusCallFlagsNone, int(callTimeout/time.Millisecond))
-	if err != nil {
+	v := portal.Version(ctx, conn, ifShortcuts)
+	if v == 0 {
 		return 0, ErrUnavailable
 	}
-	return reply.ChildValue(0).Variant().Uint32(), nil
+	return v, nil
 }
 
 // Bind opens the session (once) and registers the shortcuts. The first
@@ -198,7 +198,7 @@ func (p *Portal) open(ctx context.Context) error {
 	if p.version, err = portalVersion(ctx, conn); err != nil {
 		return err
 	}
-	if _, err := os.Stat("/.flatpak-info"); err != nil {
+	if _, err := os.Stat("/.flatpak-info"); err != nil && portal.Version(ctx, conn, ifRegistry) > 0 {
 		// Outside Flatpak the portal cannot tell which app is asking.
 		if _, err := conn.CallSync(ctx, portalName, portalPath, ifRegistry, "Register",
 			glib.NewVariantTuple([]*glib.Variant{glib.NewVariantString(p.appID), dict(nil)}),
