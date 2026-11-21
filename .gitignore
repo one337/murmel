@@ -36,3 +36,6 @@ go.work.sum
 web/
 build-release/
 tools/release.local.conf
+
+# go mod vendor brings along files the module does not track
+/vendor/github.com/leonelquinteros/gotext/*.md
