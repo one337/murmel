@@ -1,6 +1,6 @@
 module io.github/murmel/internal/certs/testdata/regbot
 
-// TEST-ONLY throwaway module for the T7 murmur registration scenario.
+// TEST-ONLY throwaway module for the registration test client.
 // Nested in testdata so the parent module ignores it entirely.
 
 go 1.26

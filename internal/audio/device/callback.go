@@ -1,8 +1,7 @@
 package device
 
-// data is the malgo duplex callback, invoked on the audio thread. Task-12
-// discipline, statically enforced by grep on this file: the body only
-// memcpys between the device buffers, two fixed staging buffers and the
+// data is the malgo duplex callback, invoked on the audio thread. The body
+// only memcpys between the device buffers, two fixed staging buffers and the
 // pre-allocated rings, plus one atomic counter for underflow stats.
 //
 // The backend decides the callback size: PeriodSizeInFrames is only a

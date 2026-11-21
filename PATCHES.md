@@ -37,7 +37,7 @@ log, are the record.
 
 ---
 
-## P1 — Replace gopus codec registration with explicit codec seam
+## P1 — Replace gopus codec registration with an explicit registration
 
 - **What**: upstream's Opus registration lived in the separate
   `layeh.com/gumble/opus` subpackage — an `init()` registering a gopus-backed
@@ -95,7 +95,7 @@ log, are the record.
   dropped instead of blocking the read loop; `Client.AudioDropped()` counts
   the drops. The codec is resolved on the read loop at enqueue time because
   `c.audioCodec` is written by `handleCodecVersion` on that goroutine. The
-  P1 codec seam is unaffected — the registry still routes to
+  P1 registration is unaffected — the registry still routes to
   `internal/audio/opus` via `RegisterMurmelOpusCodec`.
 - **Why**: voice decode (cgo libopus) and consumer back-pressure must never
   stall control-channel processing; this is the precondition for the GTK app

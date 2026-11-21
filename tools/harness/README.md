@@ -210,7 +210,7 @@ ImageMagick `import`, kills the process group, and checks the PNG is > 10 KB.
   `import` also exits 3.
 - Exit codes: `0` OK · `1` crash/blank screenshot · `2` usage · `3` missing tool.
 - The launched binary runs with `GDK_BACKEND=x11` and an empty
-  `WAYLAND_DISPLAY` (fix for ISSUE-002: on Wayland hosts the inherited
+  `WAYLAND_DISPLAY` (on Wayland hosts the inherited
   `WAYLAND_DISPLAY` made GTK apps attach to the host compositor instead of
   the Xvfb screen, producing 263-byte blank screenshots). No window manager
   is needed — GTK4/libadwaita draw their own decorations.

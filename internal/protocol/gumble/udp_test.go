@@ -1,8 +1,7 @@
-// Tests for the native UDP voice transport (udp.go). The two QA-bound
-// tests — TestUDPCryptResync and TestUDPFallback — keep the production
-// timing constants (1 s ping cadence, 3 s handshake window, 5 s good
-// window) so they also prove the plan's bounds: recovery after resync
-// and fallback within 5 s of a blackholed socket.
+// Tests for the native UDP voice transport (udp.go). TestUDPCryptResync
+// and TestUDPFallback keep the production timing constants (1 s ping
+// cadence, 3 s handshake window, 5 s good window), so they check recovery
+// after a resync and fallback within 5 s of a blackholed socket.
 package gumble
 
 import (

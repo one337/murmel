@@ -88,7 +88,7 @@ fi
 #
 # GDK_BACKEND=x11 + clearing WAYLAND_DISPLAY: on Wayland hosts the inherited
 # WAYLAND_DISPLAY makes GTK apps attach to the host compositor instead of the
-# Xvfb screen, producing blank (263-byte) screenshots. This was ISSUE-002.
+# Xvfb screen, producing blank (263-byte) screenshots.
 GDK_BACKEND=x11 WAYLAND_DISPLAY= setsid sh -c "exec $binary" &
 child_pgid=$!
 

@@ -345,9 +345,8 @@ func TestConcurrentPlaybackConservation(t *testing.T) {
 	}
 }
 
-// TestInitNoDevice is the headless-safety gate: on a host without a
-// sound server (or audio libraries), context init, GetDevices and Open
-// must all fail with clean Go errors — no panic, cgo abort or hang. On
+// TestInitNoDevice checks that on a host without a sound server (or
+// audio libraries), context init, GetDevices and Open all fail with clean Go errors — no panic, cgo abort or hang. On
 // hosts with live audio it skips (real devices are verified by hand).
 func TestInitNoDevice(t *testing.T) {
 	if testing.Short() {
@@ -370,7 +369,7 @@ func TestInitNoDevice(t *testing.T) {
 	}
 	ctx.Uninit()
 	ctx.Free()
-	t.Skip("audio backends available; headless failure path runs in CI (evidence: task-12-headless-init.txt)")
+	t.Skip("audio backends available; the failure path runs where none are")
 }
 
 func TestGetDevicesListsOrFails(t *testing.T) {

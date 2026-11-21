@@ -26,7 +26,7 @@ data/gschemas.compiled
 go.work
 go.work.sum
 
-# build artifacts (local QA binaries)
+# build artifacts (local test binaries)
 /target/
 
 # Version for Flatpak builds (tools/testbuild.sh, tools/release.sh)

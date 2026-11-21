@@ -72,7 +72,7 @@ type Options struct {
 	// Bitrate is the wanted Opus bitrate in bit/s (0 = opus.BitrateDefault).
 	// The server's bandwidth limit may lower it, see EffectiveBitrate.
 	Bitrate int
-	// Open overrides how the audio endpoint is opened (tests, QA tools);
+	// Open overrides how the audio endpoint is opened (tests and test tools);
 	// nil opens the named system devices. playbackPeriod is the requested
 	// playback buffer granularity (see device.Config.PlaybackPeriod).
 	Open func(capture, playback string, playbackPeriod time.Duration) (IO, error)

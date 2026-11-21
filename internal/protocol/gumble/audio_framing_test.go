@@ -130,7 +130,7 @@ func framingConn(t *testing.T) (client *Client, packets <-chan rawPacket) {
 
 // framingEncoderConn is framingConn with an Opus encoder attached, for tests
 // that drive the AudioBuffer.writeAudio codec path instead of the raw
-// Conn.WriteAudio framing seam.
+// Conn.WriteAudio framing.
 func framingEncoderConn(t *testing.T) (client *Client, packets <-chan rawPacket) {
 	t.Helper()
 	client, packets = framingConn(t)
@@ -549,7 +549,7 @@ func TestWriteAudioVoiceTargetByte(t *testing.T) {
 }
 
 // TestWriteAudioRejectsEmptyBuffer pins the zero-payload rejection: the
-// codec seam refuses an empty AudioBuffer and nothing reaches the wire.
+// codec path refuses an empty AudioBuffer and nothing reaches the wire.
 func TestWriteAudioRejectsEmptyBuffer(t *testing.T) {
 	client, packets := framingEncoderConn(t)
 

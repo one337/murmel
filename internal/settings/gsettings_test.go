@@ -49,8 +49,8 @@ func ensureGSettings(t *testing.T) *GSettings {
 }
 
 // TestGSettingsRoundtrip drives every schema key through default → set →
-// get → reset against real GSettings (memory backend), per the QA scenario:
-// set vad-threshold=0.7, read back, reset, read default.
+// get → reset against real GSettings (memory backend), e.g. set
+// vad-threshold=0.7, read back, reset, read the default.
 func TestGSettingsRoundtrip(t *testing.T) {
 	g := ensureGSettings(t)
 
@@ -69,7 +69,7 @@ func TestGSettingsRoundtrip(t *testing.T) {
 		}
 	}
 
-	// QA scenario steps, verbatim values.
+	// Default and set values.
 	if g.VADThreshold() != 0.35 {
 		t.Errorf("vad-threshold default = %v, want 0.35", g.VADThreshold())
 	}

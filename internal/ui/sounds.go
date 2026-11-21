@@ -22,8 +22,8 @@ type eventSounds struct {
 	connectedAt time.Time
 	connected   bool
 	pttHeld     bool
-	// play is the output seam: production plays through the effects
-	// player on the configured output device.
+	// play plays a sound through the effects player on the configured
+	// output device; tests replace it.
 	play func(choice string)
 }
 

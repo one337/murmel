@@ -138,7 +138,7 @@ func dial(c *commonFlags) (*gumble.Client, error) {
 	config.Username = c.name
 	config.UDPVoice = c.udp
 
-	tlsConfig := &tls.Config{InsecureSkipVerify: true} //nolint:gosec // QA server uses a self-signed certificate
+	tlsConfig := &tls.Config{InsecureSkipVerify: true} //nolint:gosec // test servers use self-signed certificates
 	if c.cert != "" {
 		cert, err := tls.LoadX509KeyPair(c.cert, c.cert)
 		if err != nil {

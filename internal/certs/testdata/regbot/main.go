@@ -1,8 +1,8 @@
 // Command regbot registers and verifies Mumble client identities against a
-// live murmur server, dialing through the Murmel certs package's TLSConfig
-// seam (client cert + TOFU).
+// live murmur server, dialing with the Murmel certs package's TLSConfig
+// (client cert + TOFU).
 //
-// TEST-ONLY throwaway harness client for the registration QA scenario.
+// TEST-ONLY test client for registering identities on a test server.
 // Not part of any build; lives under testdata so the go tool ignores it.
 //
 // -cert selects an identity slot inside -datadir: the first run generates and

@@ -41,8 +41,8 @@ const previewMaxRunes = 120
 // the window is not in the foreground; whether notifications show at all
 // is the desktop's setting. Channel messages never notify.
 //
-// Everything GTK-touching is funnelled through the sendNotification /
-// windowActive seams so the decision logic is testable without a display.
+// sendNotification and windowActive are functions so tests can replace them
+// without a display.
 type notifier struct {
 	app      *App
 	settings settings.Settings
@@ -60,7 +60,8 @@ type notifier struct {
 	wasDropped bool
 }
 
-// newNotifier builds the notifier with its production seams. It subscribes
+// newNotifier builds the notifier with the production sendNotification and
+// windowActive. It subscribes
 // immediately; handlers consult the app/window state lazily, so creating it
 // before the first window is fine.
 func newNotifier(app *App) *notifier {
@@ -199,7 +200,7 @@ func (n *notifier) channelLabel(format string, id uint32) string {
 	return ""
 }
 
-// sendViaGio is the production sendNotification seam: a gio.Notification
+// sendViaGio is the production sendNotification: a gio.Notification
 // (Flatpak-portal compatible — no libnotify) with the app icon and, for
 // PMs, a default action that focuses the window and opens the chat.
 func (n *notifier) sendViaGio(id, title, body, target string) {
@@ -268,7 +269,7 @@ func messagePreview(msg string) string {
 }
 
 // openChat routes a notification activation: focus the window, then hand
-// the sender session to the chat seam (OnOpenChat). Without a chat view the
+// the sender session to the chat view (OnOpenChat). Without a chat view the
 // request is only logged.
 func (a *App) openChat(session uint32) {
 	slog.Info("open chat requested", "session", session)

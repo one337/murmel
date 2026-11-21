@@ -17,7 +17,7 @@ import (
 	"io.github/murmel/internal/ui/richtext"
 )
 
-// Sender is the outgoing-chat seam. The connection controller implements it over the live gumble
+// Sender sends chat messages. The connection controller implements it over the live gumble
 // connection (User.Send / Channel.Send); a nil Sender means no connection.
 type Sender interface {
 	// SendText delivers message (HTML). session != 0 addresses that user

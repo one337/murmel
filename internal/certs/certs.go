@@ -1,7 +1,7 @@
 // Package certs implements Mumble client identity management: self-signed
 // RSA certificate generation (CN = username), PEM import/export, a TOFU
-// (trust-on-first-use) known-servers store, and the tls.Config seam used by
-// the connection layer.
+// (trust-on-first-use) known-servers store, and the tls.Config the
+// connection layer dials with.
 package certs
 
 import (

@@ -34,23 +34,22 @@ type App struct {
 
 	window *Window
 
-	// connectRequested is the connect seam: set via OnConnect to open the
-	// connect dialog, pre-filled from the request. Until then requests are
-	// only logged.
+	// connectRequested opens the connect dialog, pre-filled from the request
+	// (set via OnConnect). Until then requests are only logged.
 	connectRequested func(req ConnectRequest)
 
-	// prefsRequested is the preferences seam: set via OnPreferences to open the
-	// preferences window. Until wired the action is a no-op.
+	// prefsRequested opens the preferences window (set via OnPreferences).
+	// Until then the action does nothing.
 	prefsRequested func()
 
-	// banListRequested is the admin seam: opens the server ban list dialog.
+	// banListRequested opens the server ban list dialog (set via OnBanList).
 	banListRequested func()
 
-	// userListRequested is the admin seam: opens the registered users dialog.
+	// userListRequested opens the registered users dialog (set via OnUserList).
 	userListRequested func()
 
-	// onOpenChat is the chat seam: set via OnOpenChat to open a user's
-	// conversation. Activating a PM notification routes here.
+	// onOpenChat opens a user's conversation (set via OnOpenChat).
+	// Activating a PM notification routes here.
 	onOpenChat func(session uint32)
 
 	// notifier implements the desktop notifications.
@@ -134,7 +133,7 @@ func (a *App) OnBanList(f func()) { a.banListRequested = f }
 // main.go points this at admin.ShowUserList(win, bus).
 func (a *App) OnUserList(f func()) { a.userListRequested = f }
 
-// RequestConnect routes a connect request into the connect seam. Main loop only.
+// RequestConnect hands a connect request to the connect dialog. Main loop only.
 func (a *App) RequestConnect(req ConnectRequest) {
 	slog.Info("connect requested", "host", req.Host, "port", req.Port)
 	if a.connectRequested != nil {
