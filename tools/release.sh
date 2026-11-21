@@ -7,6 +7,9 @@
 #                                  and the latest bundle (e.g. after changing
 #                                  WEB_URL in tools/release.conf), then upload
 #   tools/release.sh --upload      only upload web/ to the server
+#   tools/release.sh --page        only rebuild the website in web/ from
+#                                  tools/web/ (no signing key needed); run
+#                                  --upload afterwards to publish it
 #   tools/release.sh --rebuild     rebuild and publish the current, already
 #                                  tagged version (e.g. after a packaging fix)
 #
@@ -21,8 +24,9 @@
 #   io.github.one337.murmel.flatpakref one-click install file
 #   murmel.gpg                         public signing key
 #   downloads/murmel-<version>.flatpak single-file bundles
-#   index.html                         install instructions
-#   screenshots/                       screenshots referenced by the metainfo
+#   index.html, style.css, script.js   website with install instructions
+#   assets/murmel.svg                  logo of the website
+#   screenshots/                       screenshots (metainfo and website)
 #   media/                             software center copies (thumbnails)
 #
 # Release notes default to the feat/fix commit subjects since the last
@@ -49,7 +53,7 @@ GPG_ARGS=(--gpg-sign="$GPG_KEY" --gpg-homedir="$GPG_HOME")
 
 die() { printf 'release: %s\n' "$*" >&2; exit 1; }
 
-[ -d "$GPG_HOME" ] || die "signing key home $GPG_HOME missing"
+[ "${1:-}" = --page ] || [ -d "$GPG_HOME" ] || die "signing key home $GPG_HOME missing"
 WEB_URL="${WEB_URL%/}/"
 
 # xml_escape escapes text for XML element content.
@@ -130,16 +134,26 @@ EOR
 	# A copy, not a symlink: FTP uploads and some hosts drop symlinks.
 	cp -f "$WEB/downloads/murmel-$version.flatpak" "$WEB/downloads/murmel-latest.flatpak"
 
-	sed -e "s|@URL@|$WEB_URL|g" -e "s|@VERSION@|$version|g" -e "s|@APP_ID@|$APP_ID|g" \
-		tools/release-index.html > "$WEB/index.html"
-
-	# Screenshots referenced by the metainfo (software centers load them
-	# from the website).
-	if [ -d assets/screenshots ]; then
-		mkdir -p "$WEB/screenshots"
-		cp -r assets/screenshots/. "$WEB/screenshots/"
-	fi
+	write_page
 	echo "release: web/ descriptors written for $version ($WEB_URL)"
+}
+
+# write_page builds the website from tools/web/ into web/ and fills its
+# placeholders. The screenshots are copied as a whole (the metainfo points
+# software centers at them); the page shows the newest set.
+write_page() {
+	local version shots
+	version=$(latest_version)
+	shots=$(ls assets/screenshots | sort -V | tail -n 1)
+	[ -n "$shots" ] || die "no screenshots in assets/screenshots"
+	mkdir -p "$WEB/assets" "$WEB/screenshots"
+	sed -e "s|@URL@|$WEB_URL|g" -e "s|@VERSION@|$version|g" -e "s|@APP_ID@|$APP_ID|g" \
+		-e "s|@SHOTS@|$shots|g" tools/web/index.html > "$WEB/index.html"
+	! grep -q '@[A-Z_]\+@' "$WEB/index.html" || die "web/index.html has an unfilled placeholder"
+	cp tools/web/style.css tools/web/script.js "$WEB/"
+	cp assets/murmel.svg "$WEB/assets/murmel.svg"
+	cp -r assets/screenshots/. "$WEB/screenshots/"
+	echo "release: web/ website written for $version (screenshots $shots)"
 }
 
 # upload mirrors web/ to the GVfs-mounted SFTP target, remounting it when
@@ -168,12 +182,14 @@ upload() {
 		--include='/repo/refs/***' --include='/repo/config'
 		--include='/downloads/' --include='/downloads/murmel-latest.flatpak'
 		--include='/*.flatpakrepo' --include='/*.flatpakref' --include='/murmel.gpg' --include='/index.html'
+		--include='/style.css' --include='/script.js' --include='/assets/' --include='/assets/murmel.svg'
 	)
 	# 1. Immutable content, compared by size.
 	rsync "${base[@]}" --size-only \
 		--exclude='/repo/summary*' --exclude='/repo/summaries/' --exclude='/repo/refs/' --exclude='/repo/config' \
 		--exclude='/downloads/murmel-latest.flatpak' \
 		--exclude='/*.flatpakrepo' --exclude='/*.flatpakref' --exclude='/murmel.gpg' --exclude='/index.html' \
+		--exclude='/style.css' --exclude='/script.js' --exclude='/assets/murmel.svg' \
 		"$WEB/" "$dest/"
 	# 2. Mutable files, always copied.
 	rsync "${base[@]}" --ignore-times "${mutable[@]}" --exclude='*' "$WEB/" "$dest/"
@@ -256,6 +272,10 @@ case "${1:-}" in
 --upload)
 	[ -d "$REPO" ] || die "no $REPO yet; run a release first"
 	upload
+	exit 0
+	;;
+--page)
+	write_page
 	exit 0
 	;;
 esac

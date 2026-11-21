@@ -33,7 +33,7 @@ go.work.sum
 /build-version
 
 # Release output (upload web/ to the server) and local release settings
-web/
+/web/
 build-release/
 tools/release.local.conf
 
