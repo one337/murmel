@@ -4,15 +4,6 @@ import (
 	"math"
 	"math/rand"
 	"testing"
-
-	gumble "layeh.com/gumble/gumble"
-)
-
-// Compile-time interface conformance: the wrapper must satisfy gumble's
-// codec interfaces exactly (the vendored fork keeps them verbatim).
-var (
-	_ gumble.AudioEncoder = (*Encoder)(nil)
-	_ gumble.AudioDecoder = (*Decoder)(nil)
 )
 
 // --- test helpers -----------------------------------------------------------

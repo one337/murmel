@@ -12,7 +12,6 @@ require (
 	golang.org/x/image v0.48.0
 	golang.org/x/net v0.62.0
 	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
-	layeh.com/gumble v0.0.0-20221205141517-d1df60a3cc14
 )
 
 require (

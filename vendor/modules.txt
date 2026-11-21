@@ -59,9 +59,4 @@ golang.org/x/text/unicode/norm
 # gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302 => ./third_party/hraban-opus
 ## explicit; go 1.17
 gopkg.in/hraban/opus.v2
-# layeh.com/gumble v0.0.0-20221205141517-d1df60a3cc14
-## explicit; go 1.12
-layeh.com/gumble/gumble
-layeh.com/gumble/gumble/MumbleProto
-layeh.com/gumble/gumble/varint
 # gopkg.in/hraban/opus.v2 => ./third_party/hraban-opus

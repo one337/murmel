@@ -1,5 +1,6 @@
 // Package opus wraps gopkg.in/hraban/opus.v2 (system libopus via cgo) behind
-// the codec interface used by gumble (layeh.com/gumble/gumble audiocodec.go):
+// the codec interface of the gumble fork (internal/protocol/gumble,
+// audiocodec.go):
 //
 //	AudioEncoder: ID() int
 //	              Encode(pcm []int16, frameSize, maxDataBytes int) ([]byte, error)
