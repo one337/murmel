@@ -22,7 +22,8 @@
       "GOFLAGS": "-mod=vendor",
       "GONOSUMCHECK": "*",
       "GONOSUMDB": "*",
-      "CGO_ENABLED": "1"
+      "CGO_ENABLED": "1",
+      "GOEXPERIMENT": "nodwarf5"
     }
   },
   "cleanup": [
