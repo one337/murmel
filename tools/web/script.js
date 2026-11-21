@@ -20,6 +20,9 @@
     });
   });
 
+  // On small screens and touch devices the links open the full-size image,
+  // where the browser can zoom; the viewer is for wide screens with a mouse.
+  var wide=window.matchMedia("(min-width: 48rem) and (pointer: fine)");
   var dlg=document.getElementById("lightbox");
   if(!dlg||!dlg.showModal)return;
   var big=document.createElement("img"),cap=dlg.querySelector(".lb-cap");
@@ -30,12 +33,15 @@
   function show(i){
     cur=(i+items.length)%items.length;
     var img=items[cur].querySelector("img");
-    big.src=img.currentSrc||img.src;
+    big.src=items[cur].href;
     big.alt=img.alt;
     var fc=items[cur].parentElement.querySelector("figcaption");
     cap.textContent=fc?fc.textContent:img.alt;
   }
-  items.forEach(function(b,i){b.addEventListener("click",function(){show(i);dlg.showModal();});});
+  items.forEach(function(a,i){a.addEventListener("click",function(e){
+    if(!wide.matches)return;
+    e.preventDefault();show(i);dlg.showModal();
+  });});
   dlg.querySelector(".lb-close").addEventListener("click",function(){dlg.close();});
   dlg.querySelector(".prev").addEventListener("click",function(e){e.stopPropagation();show(cur-1);});
   dlg.querySelector(".next").addEventListener("click",function(e){e.stopPropagation();show(cur+1);});
