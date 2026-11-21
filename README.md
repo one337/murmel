@@ -81,7 +81,7 @@ sudo dnf copr enable one337/murmel
 sudo dnf install murmel
 ```
 
-**NixOS**: Murmel is a Nix [flake](https://wiki.nixos.org/wiki/Flakes).
+**NixOS and Nix**: Murmel is a Nix [flake](https://wiki.nixos.org/wiki/Flakes).
 Install it into your user profile:
 
 ```sh

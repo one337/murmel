@@ -1,5 +1,5 @@
 
-:root{--bg:#fbf9f6;--fg:#241b14;--muted:#6d5f52;--card:#fff;--line:#e6ddd2;--btn-line:#8f8070;--accent:#b44e09;--accent-fg:#fff;--code-bg:#1f1a16;--code-fg:#f3e9dc;--mono:ui-monospace,"JetBrains Mono","Fira Code",Menlo,Consolas,monospace}
+:root{color-scheme:light dark;--bg:#fbf9f6;--fg:#241b14;--muted:#6d5f52;--card:#fff;--line:#e6ddd2;--btn-line:#8f8070;--accent:#b44e09;--accent-fg:#fff;--code-bg:#1f1a16;--code-fg:#f3e9dc;--mono:ui-monospace,"JetBrains Mono","Fira Code",Menlo,Consolas,monospace}
 @media (prefers-color-scheme:dark){:root{--bg:#171310;--fg:#f1e8de;--muted:#b0a291;--card:#201a16;--line:#34291f;--btn-line:#7a6a5a;--accent:#f0902f;--accent-fg:#1a1006;--code-bg:#0f0c0a}}
 *{box-sizing:border-box}html{scroll-padding-top:4.5rem}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Cantarell,sans-serif}
@@ -30,10 +30,10 @@ h1,h2,h3{line-height:1.2}h2{font-size:1.7rem;margin:3rem 0 1rem}h3{font-size:1.1
 .shots img{width:100%;height:auto;display:block}
 .shots figcaption{text-align:center;color:var(--muted);font-size:.9rem;margin-top:.4rem}
 
-.code{position:relative;margin:.8rem 0}
-.code pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:10px;padding:1rem 4.5rem 1rem 1.1rem;overflow-x:auto;font:.88rem/1.6 var(--mono)}
+.code{color-scheme:dark;display:flex;align-items:center;gap:.5rem;margin:.8rem 0;padding-right:.6rem;background:var(--code-bg);border-radius:10px}
+.code pre{flex:1;min-width:0;margin:0;background:none;color:var(--code-fg);padding:1rem 1.1rem;overflow-x:auto;font:.88rem/1.6 var(--mono)}
 .code code{background:none;padding:0;font-size:inherit;color:inherit}
-.copy{position:absolute;top:.5rem;right:.5rem;font:.75rem var(--mono);color:var(--code-fg);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:.2rem .55rem;cursor:pointer}
+.copy{flex:none;font:.75rem var(--mono);color:var(--code-fg);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:6px;padding:.2rem .55rem;cursor:pointer}
 .copy:hover{background:rgba(255,255,255,.18)}.copy.done{color:#8be28b}
 .card ul{margin:.5rem 0 0;padding-left:1.3rem}.card li{margin:.3rem 0}
 .skip{position:absolute;left:1rem;top:-3rem;z-index:20;padding:.5rem 1rem;border-radius:8px;background:var(--accent);color:var(--accent-fg);font-weight:600}.skip:focus{top:.5rem}
