@@ -17,7 +17,8 @@ var blockElements = map[string]bool{
 }
 
 // PlainText returns the text of message HTML or of Pango markup: tags are
-// dropped, entities decoded, and <br> and block elements start a new line.
+// dropped, entities decoded, and <br> and the start and end of a block
+// element start a new line.
 // Text after markup the decoder cannot read is left out.
 func PlainText(markup string) string {
 	if markup == "" {
@@ -43,6 +44,11 @@ func PlainText(markup string) string {
 			}
 		case xml.StartElement:
 			if t.Name.Local == "br" || (blockElements[t.Name.Local] && !atBreak) {
+				b.WriteByte('\n')
+				atBreak = true
+			}
+		case xml.EndElement:
+			if blockElements[t.Name.Local] && !atBreak {
 				b.WriteByte('\n')
 				atBreak = true
 			}

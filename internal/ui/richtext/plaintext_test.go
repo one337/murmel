@@ -26,7 +26,9 @@ func TestPlainTextStripsTagsAndEntities(t *testing.T) {
 		{"italic and underline stripped", "<i>it</i> <u>un</u>", "it un"},
 		{"span with style stripped", `<span style="color:red">r</span>`, "r"},
 		{"br becomes newline", "a<br>b", "a\nb"},
-		{"paragraph becomes newline", "<p>a</p><p>b</p>", "\na\nb"},
+		{"paragraph becomes newline", "<p>a</p><p>b</p>", "\na\nb\n"},
+		{"text after a block starts a new line", "<p>a</p>b", "\na\nb"},
+		{"text after a quote starts a new line", "<blockquote>q</blockquote>r", "\nq\nr"},
 		{"unclosed tag tolerated", "<b>bold", "bold"},
 		// Tag stripped, inner text survives as INERT characters: rows
 		// render via SetText on markup-disabled labels, so "alert(1)"

@@ -173,6 +173,7 @@ func TestMessagePreview(t *testing.T) {
 		{"empty", "", ""},
 		{"only tags", "<br/><hr>", ""},
 		{"line breaks separate words", "a<br>b<p>c</p><div>d</div>", "a b c d"},
+		{"text after a block is a new word", "<p>Absatz zwei</p>Zeile", "Absatz zwei Zeile"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
