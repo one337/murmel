@@ -7,7 +7,7 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
 
-	"io.github/murmel/internal/ui/gfileio"
+	"github.com/one337/murmel/internal/ui/gfileio"
 )
 
 // defaultImageMessageLength is murmur's default limit for messages that

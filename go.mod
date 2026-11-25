@@ -1,4 +1,4 @@
-module io.github/murmel
+module github.com/one337/murmel
 
 go 1.27
 

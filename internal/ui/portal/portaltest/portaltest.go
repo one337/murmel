@@ -14,7 +14,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/ui/portal"
+	"github.com/one337/murmel/internal/ui/portal"
 )
 
 // Run runs the tests of m on a private session bus: a dbus-daemon that can

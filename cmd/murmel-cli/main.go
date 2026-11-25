@@ -28,8 +28,8 @@ import (
 	"sync"
 	"time"
 
-	"io.github/murmel/internal/protocol/gumble"
-	"io.github/murmel/internal/protocol/gumbleutil"
+	"github.com/one337/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumbleutil"
 )
 
 const (

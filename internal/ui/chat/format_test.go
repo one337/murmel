@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 func TestSpansToHTML(t *testing.T) {

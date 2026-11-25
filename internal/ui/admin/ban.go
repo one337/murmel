@@ -6,7 +6,7 @@ import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // ShowBan presents a confirmation dialog for banning a user. On confirmation

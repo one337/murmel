@@ -6,7 +6,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // The rows tell assistive technologies their state as text: the name is

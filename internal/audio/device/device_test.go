@@ -12,8 +12,8 @@ import (
 
 	"github.com/gen2brain/malgo"
 
-	"io.github/murmel/internal/audio/pipeline"
-	"io.github/murmel/internal/audio/ring"
+	"github.com/one337/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/ring"
 )
 
 // newRingDevice wires a Device to fresh rings without touching malgo;

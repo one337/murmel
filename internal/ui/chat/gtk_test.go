@@ -12,8 +12,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // The GTK tests need GTK and a display. tools/verify.sh runs them under

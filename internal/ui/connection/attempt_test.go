@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 func newAttemptController(t *testing.T) *Controller {

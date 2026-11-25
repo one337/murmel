@@ -1,6 +1,6 @@
 package engine
 
-import "io.github/murmel/internal/audio/pipeline"
+import "github.com/one337/murmel/internal/audio/pipeline"
 
 // TransmitMode decides when the microphone is sent.
 type TransmitMode int32

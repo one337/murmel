@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"strings"
 
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // PlainText returns the Message string without HTML tags or entities.

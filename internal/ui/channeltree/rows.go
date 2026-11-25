@@ -12,8 +12,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 const (

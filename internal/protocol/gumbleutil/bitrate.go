@@ -3,7 +3,7 @@ package gumbleutil
 import (
 	"time"
 
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 var autoBitrate = &Listener{

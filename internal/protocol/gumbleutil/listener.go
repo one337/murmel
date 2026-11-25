@@ -1,7 +1,7 @@
 package gumbleutil
 
 import (
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // Listener is a struct that implements the gumble.EventListener interface. The

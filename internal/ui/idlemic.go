@@ -6,11 +6,11 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/audio/apm"
-	"io.github/murmel/internal/audio/levelmon"
-	"io.github/murmel/internal/audio/pipeline"
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
+	"github.com/one337/murmel/internal/audio/apm"
+	"github.com/one337/murmel/internal/audio/levelmon"
+	"github.com/one337/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
 )
 
 // idleHoldWindows keeps "voice detected" up for 300 ms (10 × 30 ms) after

@@ -8,7 +8,7 @@ import (
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // find returns the first widget below w (w included) of type T.

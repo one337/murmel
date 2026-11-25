@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"io.github/murmel/internal/audio/effects"
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/presence"
+	"github.com/one337/murmel/internal/audio/effects"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/presence"
 )
 
 func newTestSounds(t *testing.T) (*eventSounds, *presence.Tracker, *[]string) {

@@ -3,8 +3,8 @@ package admin
 import (
 	"strings"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // Mumble has no channel password of its own; clients encode it in the ACL

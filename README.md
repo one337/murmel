@@ -161,7 +161,7 @@ offline; the first one compiles the GTK bindings and takes several minutes.
 To only build the binary:
 
 ```sh
-go build -mod=vendor -ldflags "-X io.github/murmel/internal/ui.Version=$(tools/version.sh)" -o murmel ./cmd/murmel
+go build -mod=vendor -ldflags "-X github.com/one337/murmel/internal/ui.Version=$(tools/version.sh)" -o murmel ./cmd/murmel
 ```
 
 Without the installed settings schema (or `GSETTINGS_SCHEMA_DIR` pointed at

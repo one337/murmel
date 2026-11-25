@@ -3,8 +3,8 @@ package chat
 import (
 	"fmt"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/ui/presence"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/ui/presence"
 )
 
 // LogEvent is a kind of log line in the channel chat. The string is the

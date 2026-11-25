@@ -9,8 +9,8 @@ import (
 
 	"github.com/gen2brain/malgo"
 
-	"io.github/murmel/internal/audio/pipeline"
-	"io.github/murmel/internal/audio/ring"
+	"github.com/one337/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/ring"
 )
 
 // Compile-time proof that Device satisfies both halves of the pipeline's

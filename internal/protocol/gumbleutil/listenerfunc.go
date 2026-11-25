@@ -1,7 +1,7 @@
 package gumbleutil
 
 import (
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // ListenerFunc is a single listener function that implements the

@@ -9,8 +9,8 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // sentRecorder records the messages handed to the server.

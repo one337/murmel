@@ -7,9 +7,9 @@ import (
 
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/shortcuts"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/shortcuts"
 )
 
 // globalShortcuts connects Murmel's global shortcuts (push-to-talk, mute,

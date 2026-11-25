@@ -14,10 +14,10 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/audio/effects"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/gfileio"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/audio/effects"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/gfileio"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 // eventLabel is the preferences title of each sound event.

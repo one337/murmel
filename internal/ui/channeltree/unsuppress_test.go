@@ -7,8 +7,8 @@ import (
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // menuEntryShown reports whether the menu shows an entry labelled label.

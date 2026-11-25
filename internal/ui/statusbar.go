@@ -9,10 +9,10 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
-	"io.github/murmel/internal/audio/device"
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/levelmeter"
+	"github.com/one337/murmel/internal/audio/device"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/levelmeter"
 )
 
 const (

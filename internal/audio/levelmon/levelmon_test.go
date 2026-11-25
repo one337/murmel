@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"io.github/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/pipeline"
 )
 
 type fakeSource struct {

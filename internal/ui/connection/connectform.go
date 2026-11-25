@@ -13,13 +13,13 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/certs"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui"
-	"io.github/murmel/internal/ui/avatarpick"
-	"io.github/murmel/internal/ui/identities"
-	"io.github/murmel/internal/ui/secrets"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui"
+	"github.com/one337/murmel/internal/ui/avatarpick"
+	"github.com/one337/murmel/internal/ui/identities"
+	"github.com/one337/murmel/internal/ui/secrets"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 // connectForm is the form of the connect dialog: the server and account

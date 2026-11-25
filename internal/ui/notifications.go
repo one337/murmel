@@ -11,9 +11,9 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/presence"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/presence"
 )
 
 // Notification identifiers. PM notifications use one id per sender so a

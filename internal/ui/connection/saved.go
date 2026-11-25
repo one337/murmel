@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui"
 )
 
 // savedName is the display name of a saved connection: username@address,

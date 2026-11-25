@@ -7,8 +7,8 @@ import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 // Pages of the channel editor (ShowChannelEditor's page argument).

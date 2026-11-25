@@ -3,7 +3,7 @@ package ui
 import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // Bus handlers run on the GLib main loop. The bus package itself stays

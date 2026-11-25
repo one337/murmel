@@ -8,7 +8,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // bufferSize is the event channel capacity mandated by the plan. It is large

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
-	"io.github/murmel/internal/protocol/crypt"
-	"io.github/murmel/internal/protocol/gumble/MumbleProto"
+	"github.com/one337/murmel/internal/protocol/crypt"
+	"github.com/one337/murmel/internal/protocol/gumble/MumbleProto"
 )
 
 // cryptSetupMaterial returns a fresh key/nonce triple plus a reference

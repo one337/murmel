@@ -3,7 +3,7 @@ package connection
 import (
 	"testing"
 
-	"io.github/murmel/internal/settings"
+	"github.com/one337/murmel/internal/settings"
 )
 
 func TestSavedName(t *testing.T) {

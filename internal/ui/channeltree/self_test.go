@@ -7,7 +7,7 @@ import (
 
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // The local user is session 1 (connectedEvent), in channel 2.

@@ -4,12 +4,12 @@ import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/settings"
+	"github.com/one337/murmel/internal/settings"
 )
 
 // Version is the release version, set at build time:
 //
-//	go build -ldflags "-X io.github/murmel/internal/ui.Version=$(cat VERSION)"
+//	go build -ldflags "-X github.com/one337/murmel/internal/ui.Version=$(cat VERSION)"
 var Version = "dev"
 
 const (

@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/ui/presence"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/ui/presence"
 )
 
 func lines(ev presence.Event, stored map[string]bool) string {

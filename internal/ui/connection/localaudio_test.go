@@ -3,8 +3,8 @@ package connection
 import (
 	"testing"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
 )
 
 func TestUserAudioKey(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 // Options tunes how blocks become widgets.

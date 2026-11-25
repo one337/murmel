@@ -19,12 +19,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"io.github/murmel/internal/audio/apm"
-	"io.github/murmel/internal/audio/device"
-	"io.github/murmel/internal/audio/opus"
-	"io.github/murmel/internal/audio/pipeline"
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/audio/apm"
+	"github.com/one337/murmel/internal/audio/device"
+	"github.com/one337/murmel/internal/audio/opus"
+	"github.com/one337/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // levelEveryFrames is the InputLevel cadence: one event per 3 frames

@@ -1,7 +1,7 @@
 package gumbleutil
 
 import (
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // UserGroups fetches the group names the given user belongs to in the given

@@ -9,8 +9,8 @@ import (
 	"log/slog"
 	"sync"
 
-	"io.github/murmel/internal/audio/device"
-	"io.github/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/device"
+	"github.com/one337/murmel/internal/audio/pipeline"
 )
 
 // windowFrames is the report cadence: one Level per 3 frames (30 ms).

@@ -1,7 +1,7 @@
 package connection
 
 import (
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // forwardBus re-emits every event type the gumble bridge can produce from

@@ -15,10 +15,10 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
-	"io.github/murmel/internal/ui/chat"
-	"io.github/murmel/internal/ui/gfileio"
-	"io.github/murmel/internal/ui/richtext"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/ui/chat"
+	"github.com/one337/murmel/internal/ui/gfileio"
+	"github.com/one337/murmel/internal/ui/richtext"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 const (

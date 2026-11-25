@@ -1,6 +1,6 @@
 package channeltree
 
-import "io.github/murmel/internal/protocol/gumble"
+import "github.com/one337/murmel/internal/protocol/gumble"
 
 // Context menu permissions, evaluated like the official client: channel
 // actions against the local user's permissions in that channel; kick, ban

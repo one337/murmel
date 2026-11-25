@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"io.github/murmel/internal/protocol/gumble/varint"
+	"github.com/one337/murmel/internal/protocol/gumble/varint"
 )
 
 // Framing contract locked by this file (Mumble UDP/TCP voice packets, cross-

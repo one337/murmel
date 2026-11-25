@@ -3,7 +3,7 @@ package channeltree
 import (
 	"testing"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 func ch(id, parent uint32, name string, pos int32) bus.ChannelInfo {

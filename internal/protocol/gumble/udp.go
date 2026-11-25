@@ -23,8 +23,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"io.github/murmel/internal/protocol/crypt"
-	"io.github/murmel/internal/protocol/gumble/varint"
+	"github.com/one337/murmel/internal/protocol/crypt"
+	"github.com/one337/murmel/internal/protocol/gumble/varint"
 )
 
 // Legacy UDP message types (header byte >> 5).

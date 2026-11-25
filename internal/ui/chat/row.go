@@ -7,8 +7,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
-	"io.github/murmel/internal/ui/clock"
-	"io.github/murmel/internal/ui/richtext"
+	"github.com/one337/murmel/internal/ui/clock"
+	"github.com/one337/murmel/internal/ui/richtext"
 )
 
 // rowKind distinguishes message rows from system rows (errors, notices).

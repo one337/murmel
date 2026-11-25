@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"io.github/murmel/internal/ui/portal/portaltest"
+	"github.com/one337/murmel/internal/ui/portal/portaltest"
 )
 
 func TestMain(m *testing.M) { os.Exit(portaltest.Run(m)) }

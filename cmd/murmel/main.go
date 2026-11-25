@@ -10,16 +10,16 @@ import (
 	"log/slog"
 	"os"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/certs"
-	"io.github/murmel/internal/protocol/gumble"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui"
-	"io.github/murmel/internal/ui/admin"
-	"io.github/murmel/internal/ui/channeltree"
-	"io.github/murmel/internal/ui/chat"
-	"io.github/murmel/internal/ui/connection"
-	"io.github/murmel/internal/ui/prefs"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui"
+	"github.com/one337/murmel/internal/ui/admin"
+	"github.com/one337/murmel/internal/ui/channeltree"
+	"github.com/one337/murmel/internal/ui/chat"
+	"github.com/one337/murmel/internal/ui/connection"
+	"github.com/one337/murmel/internal/ui/prefs"
 )
 
 func main() {

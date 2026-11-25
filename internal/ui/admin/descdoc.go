@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"io.github/murmel/internal/ui/richtext"
+	"github.com/one337/murmel/internal/ui/richtext"
 )
 
 // The description editor works on a small document model: what its

@@ -32,8 +32,8 @@ func TestLayerBoundary(t *testing.T) {
 		if line == "" {
 			continue
 		}
-		if strings.HasPrefix(line, "io.github/murmel/internal/protocol") ||
-			strings.HasPrefix(line, "io.github/murmel/internal/audio") {
+		if strings.HasPrefix(line, "github.com/one337/murmel/internal/protocol") ||
+			strings.HasPrefix(line, "github.com/one337/murmel/internal/audio") {
 			continue
 		}
 		deps = append(deps, line)

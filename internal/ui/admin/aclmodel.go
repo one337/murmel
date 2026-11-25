@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
-	"io.github/murmel/internal/ui/permname"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/ui/permname"
 )
 
 // aclPerm is one permission the editor offers.

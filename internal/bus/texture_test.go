@@ -3,7 +3,7 @@ package bus
 import (
 	"testing"
 
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // TestCopyUserTexture: an avatar announced only by hash is pending until

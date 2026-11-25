@@ -3,9 +3,9 @@ package chat
 import (
 	"fmt"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
-	"io.github/murmel/internal/ui/permname"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/ui/permname"
 )
 
 // denialText explains a refusal from the server for the chat, or returns

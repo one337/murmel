@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"io.github/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/pipeline"
 )
 
 // run feeds seconds of audio from gen through a processor and returns the

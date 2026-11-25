@@ -14,7 +14,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/ui/resources"
+	"github.com/one337/murmel/internal/ui/resources"
 )
 
 // withMainLoop runs a GLib main loop for the test, so done callbacks run.

@@ -10,8 +10,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/certs"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 const createDialogWidth = 420

@@ -26,7 +26,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/ui/portal"
+	"github.com/one337/murmel/internal/ui/portal"
 )
 
 // Shortcut IDs, as registered with the portal.

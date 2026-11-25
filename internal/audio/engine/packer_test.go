@@ -3,7 +3,7 @@ package engine
 import (
 	"testing"
 
-	"io.github/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/pipeline"
 )
 
 func frameOf(v int16) []int16 {

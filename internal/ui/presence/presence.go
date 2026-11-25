@@ -3,7 +3,7 @@ package presence
 import (
 	"context"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // Kind classifies a presence change relevant to the local user.

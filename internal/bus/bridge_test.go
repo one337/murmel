@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // newBridgeBus wires a bus (synchronous idleAdd) to a hand-built fork client

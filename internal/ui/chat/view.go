@@ -10,12 +10,12 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/clock"
-	"io.github/murmel/internal/ui/presence"
-	"io.github/murmel/internal/ui/richtext"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/clock"
+	"github.com/one337/murmel/internal/ui/presence"
+	"github.com/one337/murmel/internal/ui/richtext"
 )
 
 // maxRows is the scrollback cap per conversation: beyond it the oldest row

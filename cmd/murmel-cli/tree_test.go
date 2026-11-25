@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // The tree lists each channel once, sorted and indented, also when the

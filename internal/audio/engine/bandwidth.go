@@ -1,6 +1,6 @@
 package engine
 
-import "io.github/murmel/internal/audio/opus"
+import "github.com/one337/murmel/internal/audio/opus"
 
 // PacketOverheadBytes is the network cost of one voice packet beyond the
 // Opus payload: IPv4 (20) + UDP (8) + OCB2-AES crypt header (4) + Mumble

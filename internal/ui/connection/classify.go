@@ -10,8 +10,8 @@ import (
 
 	"crypto/tls"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/certs"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/certs"
 )
 
 // errorClass selects which distinct error dialog a connection failure

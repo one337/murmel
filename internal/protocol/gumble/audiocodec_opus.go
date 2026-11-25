@@ -1,7 +1,7 @@
 package gumble
 
 import (
-	adwopus "io.github/murmel/internal/audio/opus"
+	adwopus "github.com/one337/murmel/internal/audio/opus"
 )
 
 // RegisterMurmelOpusCodec wires the project's own Opus wrapper

@@ -6,7 +6,7 @@ import (
 	"net"
 	"sort"
 
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // attachGumbleBridge attaches a translating listener to client.Config so

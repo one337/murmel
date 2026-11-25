@@ -3,7 +3,7 @@ package presence
 import (
 	"testing"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 func connectedTracker() (*Tracker, *[]Event) {

@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/presence"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/presence"
 )
 
 func newTestNotifier(t *testing.T) (*notifier, *[]string) {

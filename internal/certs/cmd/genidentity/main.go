@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"io.github/murmel/internal/certs"
+	"github.com/one337/murmel/internal/certs"
 )
 
 func main() {

@@ -17,12 +17,12 @@ import (
 	"github.com/diamondburned/gotk4/pkg/graphene"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/protocol/gumble"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/avatarpick"
-	"io.github/murmel/internal/ui/dragicon"
-	"io.github/murmel/internal/ui/secrets"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/avatarpick"
+	"github.com/one337/murmel/internal/ui/dragicon"
+	"github.com/one337/murmel/internal/ui/secrets"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 // savedAutoScrollEdgePx is the band at the top and bottom of the saved

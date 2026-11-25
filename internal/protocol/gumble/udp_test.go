@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"io.github/murmel/internal/protocol/crypt"
-	"io.github/murmel/internal/protocol/gumble/MumbleProto"
-	"io.github/murmel/internal/protocol/gumble/varint"
+	"github.com/one337/murmel/internal/protocol/crypt"
+	"github.com/one337/murmel/internal/protocol/gumble/MumbleProto"
+	"github.com/one337/murmel/internal/protocol/gumble/varint"
 )
 
 // fakeMurmurUDP is a loopback stand-in for Murmur's UDP endpoint. It owns

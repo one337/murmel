@@ -3,7 +3,7 @@ package connection
 import (
 	"strings"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // Local volume and mute of other users: only for oneself, remembered per

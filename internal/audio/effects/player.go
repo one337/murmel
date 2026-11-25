@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"io.github/murmel/internal/audio/device"
+	"github.com/one337/murmel/internal/audio/device"
 )
 
 const (

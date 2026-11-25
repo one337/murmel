@@ -8,7 +8,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
-	"io.github/murmel/internal/ui/portal/portaltest"
+	"github.com/one337/murmel/internal/ui/portal/portaltest"
 )
 
 func TestMain(m *testing.M) { os.Exit(portaltest.Run(m)) }

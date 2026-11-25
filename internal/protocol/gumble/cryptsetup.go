@@ -20,8 +20,8 @@ import (
 	"sync"
 
 	"github.com/golang/protobuf/proto"
-	"io.github/murmel/internal/protocol/crypt"
-	"io.github/murmel/internal/protocol/gumble/MumbleProto"
+	"github.com/one337/murmel/internal/protocol/crypt"
+	"github.com/one337/murmel/internal/protocol/gumble/MumbleProto"
 )
 
 // lockedCrypt is a mutex-guarded crypt.CryptState. The rolling OCB2 nonces

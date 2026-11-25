@@ -2,7 +2,7 @@
 // permission editor lists them and as refusals from the server mention them.
 package permname
 
-import "io.github/murmel/internal/protocol/gumble"
+import "github.com/one337/murmel/internal/protocol/gumble"
 
 // Name returns the translated name of permission p, "" for a permission
 // without a name here.

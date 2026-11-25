@@ -3,8 +3,8 @@ package channeltree
 import (
 	"testing"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 func permModel(rootPerm, chanPerm *int) *treeModel {

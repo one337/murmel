@@ -3,7 +3,7 @@ package ui
 import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 
-	"io.github/murmel/internal/settings"
+	"github.com/one337/murmel/internal/settings"
 )
 
 // applyColorScheme sets Libadwaita's style from the color-scheme setting

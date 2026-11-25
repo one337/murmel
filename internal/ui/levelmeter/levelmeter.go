@@ -17,12 +17,12 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/audio/apm"
-	"io.github/murmel/internal/audio/levelmon"
-	"io.github/murmel/internal/audio/pipeline"
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui/weakref"
+	"github.com/one337/murmel/internal/audio/apm"
+	"github.com/one337/murmel/internal/audio/levelmon"
+	"github.com/one337/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/weakref"
 )
 
 const (

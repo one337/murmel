@@ -3,8 +3,8 @@ package channeltree
 import (
 	"sort"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // channelNode is one channel with its ordered child channels and users.

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gen2brain/malgo"
 
-	"io.github/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/pipeline"
 )
 
 // The stream format is the pipeline voice format by construction — the

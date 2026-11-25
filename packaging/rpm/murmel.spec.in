@@ -79,7 +79,7 @@ export CGO_CFLAGS="%{optflags}"
 export CGO_CXXFLAGS="%{optflags}"
 export CGO_LDFLAGS="%{build_ldflags}"
 go build -buildmode=pie \
-    -ldflags "-linkmode=external -B gobuildid -X io.github/murmel/internal/ui.Version=%{display_version}" \
+    -ldflags "-linkmode=external -B gobuildid -X github.com/one337/murmel/internal/ui.Version=%{display_version}" \
     -o %{name} ./cmd/murmel
 
 %install

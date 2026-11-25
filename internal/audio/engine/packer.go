@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"io.github/murmel/internal/audio/pipeline"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 // packer joins captured 10 ms frames into outgoing packets of frames × 10

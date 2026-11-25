@@ -92,7 +92,7 @@ if [ -n "$build" ]; then
 	version=$(tools/version.sh)
 	echo "install.sh: building murmel $version"
 	go build -mod=vendor -trimpath \
-		-ldflags "-X io.github/murmel/internal/ui.Version=$version" \
+		-ldflags "-X github.com/one337/murmel/internal/ui.Version=$version" \
 		-o murmel ./cmd/murmel
 fi
 [ -x murmel ] || { echo "install.sh: ./murmel not built" >&2; exit 1; }

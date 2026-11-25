@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // userRowState returns what user session's row shows: whether the muted

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"io.github/murmel/internal/audio/effects"
+	"github.com/one337/murmel/internal/audio/effects"
 )
 
 func TestCopySoundKeepsNamesApart(t *testing.T) {

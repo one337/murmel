@@ -19,7 +19,7 @@ import (
 	"sync"
 	"unsafe"
 
-	"io.github/murmel/internal/audio/pipeline"
+	"github.com/one337/murmel/internal/audio/pipeline"
 )
 
 // NoiseLevel is the noise suppression strength.

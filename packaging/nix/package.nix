@@ -26,7 +26,7 @@
   # The Go dependencies are vendored in the repository.
   vendorHash = null;
   subPackages = [ "cmd/murmel" ];
-  ldflags = [ "-X io.github/murmel/internal/ui.Version=${version}" ];
+  ldflags = [ "-X github.com/one337/murmel/internal/ui.Version=${version}" ];
 
   nativeBuildInputs = [
     pkg-config

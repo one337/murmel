@@ -3,7 +3,7 @@ package chat
 import (
 	"strconv"
 
-	"io.github/murmel/internal/bus"
+	"github.com/one337/murmel/internal/bus"
 )
 
 // convKey identifies a private conversation across reconnects: registered

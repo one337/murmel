@@ -14,10 +14,10 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/certs"
-	"io.github/murmel/internal/settings"
-	"io.github/murmel/internal/ui"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui"
 )
 
 // The leak tests need GTK and a display. tools/verify.sh runs them under

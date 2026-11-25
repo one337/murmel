@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"io.github/murmel/internal/protocol/gumble/varint"
+	"github.com/one337/murmel/internal/protocol/gumble/varint"
 )
 
 // voiceFrame is one UDPTunnel voice packet as observed on the wire.

@@ -11,9 +11,9 @@ import (
 
 	"crypto/tls"
 
-	"io.github/murmel/internal/bus"
-	"io.github/murmel/internal/certs"
-	"io.github/murmel/internal/protocol/gumble"
+	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/protocol/gumble"
 )
 
 func TestClassifyRejectTypes(t *testing.T) {
