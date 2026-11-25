@@ -60,7 +60,7 @@ func newConversation(tag, title, emptyText string) *conversation {
 	jumpBtn := gtk.NewButtonWithLabel(tr("Jump to latest"))
 	jumpBtn.AddCSSClass("suggested-action")
 	jumpBtn.AddCSSClass("pill")
-	jumpBtn.SetTooltipText(tr("Scroll to the newest message"))
+	jumpBtn.SetTooltipText(tr("Scroll to the newest line"))
 	jumpBtn.ConnectClicked(func() {
 		c.pin = true
 		c.scrollToBottom()
@@ -128,9 +128,9 @@ func (c *conversation) setTitle(title, subtitle string) {
 }
 
 // append adds one row, enforces the scrollback cap and keeps the view
-// pinned to the bottom while anchored. fromOthers reveals the
-// jump-to-latest button when the user scrolled up.
-func (c *conversation) append(st rowStyle, fromOthers bool) {
+// pinned to the bottom while anchored. Scrolled up, the view stays where
+// it is and the jump to the latest is offered.
+func (c *conversation) append(st rowStyle) {
 	// Pinned counts too: rows that came before the pending jump to the
 	// bottom have already made the list taller.
 	wasAnchored := c.pin || c.atBottom()
@@ -142,9 +142,17 @@ func (c *conversation) append(st rowStyle, fromOthers bool) {
 	c.pin = wasAnchored
 	if wasAnchored {
 		c.scrollToBottomSoon()
-	} else if fromOthers {
+	} else {
 		c.jump.SetRevealChild(true)
 	}
+}
+
+// appendOwn adds one's own message: the view goes to the bottom with it
+// and stays there.
+func (c *conversation) appendOwn(st rowStyle) {
+	c.pin = true
+	c.jump.SetRevealChild(false)
+	c.append(st)
 }
 
 // clear removes every message.

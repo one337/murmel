@@ -192,7 +192,7 @@ func TestGTKErrorRowsAreLogLines(t *testing.T) {
 		Changed: bus.UserChangeChannel})
 	b.Emit(bus.PermissionDenied{Reason: bus.DenyChannelFull})
 	waitUntil(t, "the rows", func() bool { return len(v.channel.hist.items) >= 2 })
-	onMain(func() { v.channel.append(rowStyle{kind: rowError, at: time.Now(), content: errorRowText("")}, false) })
+	onMain(func() { v.channel.append(rowStyle{kind: rowError, at: time.Now(), content: errorRowText("")}) })
 	type shape struct {
 		vertical bool
 		log, err bool

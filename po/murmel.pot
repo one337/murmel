@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 23:17+0100\n"
+"POT-Creation-Date: 2026-11-25 11:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -872,7 +872,7 @@ msgid "Jump to latest"
 msgstr ""
 
 #: internal/ui/chat/conversation.go
-msgid "Scroll to the newest message"
+msgid "Scroll to the newest line"
 msgstr ""
 
 #: internal/ui/chat/deny.go

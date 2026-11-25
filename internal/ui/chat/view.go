@@ -112,7 +112,7 @@ func (v *View) onPresence(ev presence.Event) {
 		return tr("another channel")
 	}
 	for _, line := range logLines(ev, enabled, st.SelfSession, name) {
-		v.channel.append(rowStyle{kind: rowLog, at: time.Now(), content: line}, false)
+		v.channel.append(rowStyle{kind: rowLog, at: time.Now(), content: line})
 	}
 }
 
@@ -180,7 +180,7 @@ func (v *View) subscribe(ctx context.Context) {
 		if !ok {
 			return
 		}
-		v.visible().append(rowStyle{kind: rowError, at: time.Now(), content: text}, false)
+		v.visible().append(rowStyle{kind: rowError, at: time.Now(), content: text})
 		// Also told where the focus is not in the chat: a new row is not
 		// read out by itself.
 		v.nav.Announce(text, gtk.AccessibleAnnouncementPriorityMedium)
@@ -204,7 +204,7 @@ func (v *View) subscribe(ctx context.Context) {
 		v.lastWelcome = ev.Welcome
 		if !repeated && len(richtext.Parse(ev.Welcome)) > 0 {
 			v.channel.append(rowStyle{kind: rowServer, sender: tr("Welcome message"),
-				at: time.Now(), content: PlainText(ev.Welcome), html: ev.Welcome}, true)
+				at: time.Now(), content: PlainText(ev.Welcome), html: ev.Welcome})
 		}
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(bus.Disconnected) {
@@ -238,7 +238,7 @@ func (v *View) onTextMessage(ev bus.TextMessage) {
 		}
 		key := keyForUser(u)
 		c := v.dm(key, u.Name)
-		c.append(rowStyle{kind: rowMessage, sender: u.Name, at: time.Now(), content: content, html: ev.Message}, true)
+		c.append(rowStyle{kind: rowMessage, sender: u.Name, at: time.Now(), content: content, html: ev.Message})
 		if !v.isRead(c) {
 			v.unread[key]++
 			v.bus.Emit(bus.UnreadChanged{Session: ev.Sender, Count: v.unread[key]})
@@ -250,7 +250,7 @@ func (v *View) onTextMessage(ev bus.TextMessage) {
 		kind = rowServer // session 0 is never a user: the server itself
 	}
 	v.channel.append(rowStyle{kind: kind, sender: v.userName(ev.Sender), at: time.Now(),
-		content: content, html: ev.Message}, true)
+		content: content, html: ev.Message})
 	if !v.isRead(v.channel) {
 		v.channelUnread++
 		v.bus.Emit(bus.UnreadChanged{Session: 0, Count: v.channelUnread})
@@ -298,7 +298,7 @@ func (v *View) dm(key convKey, name string) *conversation {
 		session, ok := sessionFor(v.bus.State(), key)
 		if !ok {
 			c.append(rowStyle{kind: rowError, at: time.Now(),
-				content: errorRowText(tr("the user is offline"))}, false)
+				content: errorRowText(tr("the user is offline"))})
 			return
 		}
 		v.send(c, session, html, plain)
@@ -326,7 +326,7 @@ func (v *View) openDM(key convKey, name string) {
 func (v *View) send(c *conversation, session uint32, html, plain string) {
 	if v.sender == nil {
 		c.append(rowStyle{kind: rowError, at: time.Now(),
-			content: errorRowText(tr("Not connected."))}, false)
+			content: errorRowText(tr("Not connected."))})
 		return
 	}
 	st := v.bus.State()
@@ -336,11 +336,11 @@ func (v *View) send(c *conversation, session uint32, html, plain string) {
 	}
 	if err := v.sender.SendText(channelID, session, html); err != nil {
 		c.append(rowStyle{kind: rowError, at: time.Now(),
-			content: errorRowText(err.Error())}, false)
+			content: errorRowText(err.Error())})
 		return
 	}
-	c.append(rowStyle{kind: rowMessage, sender: selfName(st), at: time.Now(),
-		content: plain, html: html}, false)
+	c.appendOwn(rowStyle{kind: rowMessage, sender: selfName(st), at: time.Now(),
+		content: plain, html: html})
 }
 
 // all lists every conversation.
