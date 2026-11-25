@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 19:03+0100\n"
+"POT-Creation-Date: 2026-11-25 22:24+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -233,8 +233,8 @@ msgstr "Der Benutzer wird dauerhaft vom Server gebannt."
 #: internal/ui/admin/ban.go internal/ui/admin/channel.go
 #: internal/ui/admin/channeledit.go internal/ui/admin/kick.go
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
-#: internal/ui/identities/importdlg.go internal/ui/prefs/window.go
-#: internal/ui/window.go
+#: internal/ui/identities/exportdlg.go internal/ui/identities/importdlg.go
+#: internal/ui/prefs/window.go internal/ui/window.go
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -363,7 +363,7 @@ msgid "0 = no limit beyond the server's own"
 msgstr "0 = keine Grenze außer der des Servers"
 
 #: internal/ui/admin/channeledit.go internal/ui/connection/controller.go
-#: internal/ui/identities/importdlg.go
+#: internal/ui/identities/exportdlg.go internal/ui/identities/importdlg.go
 msgid "Password"
 msgstr "Passwort"
 
@@ -1238,7 +1238,9 @@ msgstr "Benutzerzertifikat"
 msgid ""
 "Import a certificate, for example a backup from the official Mumble client "
 "(.p12)"
-msgstr "Zertifikat importieren, zum Beispiel eine Sicherung aus dem offiziellen Mumble-Client (.p12)"
+msgstr ""
+"Zertifikat importieren, zum Beispiel eine Sicherung aus dem offiziellen "
+"Mumble-Client (.p12)"
 
 #: internal/ui/connection/connectform.go internal/ui/prefs/window.go
 msgid "Create a new certificate"
@@ -1649,17 +1651,60 @@ msgstr "Sichern …"
 msgid "Backup Failed"
 msgstr "Sicherung fehlgeschlagen"
 
-#: internal/ui/identities/files.go
-msgid "PEM Certificates"
-msgstr "PEM-Zertifikate"
+#: internal/ui/identities/exportdlg.go
+msgid "Repeat Password"
+msgstr "Passwort wiederholen"
 
-#: internal/ui/identities/files.go
-msgid "All Files"
-msgstr "Alle Dateien"
+#: internal/ui/identities/exportdlg.go
+msgid ""
+"The backup contains your private key, protected by this password. Keep the "
+"file and the password in a safe place. The official Mumble client can import "
+"it."
+msgstr "Die Sicherung enthält deinen privaten Schlüssel, geschützt durch dieses Passwort. Bewahre Datei und Passwort sicher auf. Der offizielle Mumble-Client kann die Sicherung importieren."
+
+#: internal/ui/identities/exportdlg.go
+msgid ""
+"The official Mumble client cannot import this certificate: it accepts RSA "
+"keys only."
+msgstr "Der offizielle Mumble-Client kann dieses Zertifikat nicht importieren: Er nimmt nur RSA-Schlüssel an."
+
+#: internal/ui/identities/exportdlg.go
+msgid "Save…"
+msgstr "Speichern …"
+
+#: internal/ui/identities/exportdlg.go internal/ui/identities/files.go
+msgid "Back Up Certificate"
+msgstr "Zertifikat sichern"
+
+#: internal/ui/identities/exportdlg.go
+msgid "The passwords do not match."
+msgstr "Die Passwörter stimmen nicht überein."
+
+#: internal/ui/identities/exportdlg.go
+msgid "Encrypting the backup…"
+msgstr "Sicherung wird verschlüsselt …"
+
+#: internal/ui/identities/exportdlg.go
+msgid ""
+"The password contains characters a certificate file cannot hold, such as "
+"emoji. Choose another password."
+msgstr "Das Passwort enthält Zeichen, die eine Zertifikatsdatei nicht aufnehmen kann, etwa Emoji. Wähle ein anderes Passwort."
+
+#: internal/ui/identities/exportdlg.go
+msgid "Enter a password to protect the backup."
+msgstr "Gib ein Passwort ein, das die Sicherung schützt."
+
+#: internal/ui/identities/exportdlg.go
+msgid "The backup could not be created."
+msgstr "Die Sicherung konnte nicht erstellt werden."
 
 #: internal/ui/identities/files.go internal/ui/prefs/window.go
 msgid "Certificates"
 msgstr "Zertifikate"
+
+#: internal/ui/identities/files.go
+msgid "All Files"
+msgstr "Alle Dateien"
 
 #: internal/ui/identities/files.go internal/ui/identities/importdlg.go
 msgid "Import Certificate"
@@ -1670,8 +1715,8 @@ msgid "Certificate Import Failed"
 msgstr "Zertifikat-Import fehlgeschlagen"
 
 #: internal/ui/identities/files.go
-msgid "Export Identity"
-msgstr "Identität exportieren"
+msgid "PKCS #12 Certificates"
+msgstr "PKCS-#12-Zertifikate"
 
 #: internal/ui/identities/files.go
 msgid "Backup May Be Readable by Others"
@@ -1707,7 +1752,9 @@ msgstr "E-Mail"
 msgid ""
 "The name is shown in Murmel only. Servers recognize registered accounts by "
 "the certificate."
-msgstr "Der Name ist nur in Murmel zu sehen. Server erkennen registrierte Konten am Zertifikat."
+msgstr ""
+"Der Name ist nur in Murmel zu sehen. Server erkennen registrierte Konten am "
+"Zertifikat."
 
 #: internal/ui/identities/importdlg.go
 msgid "Unlock"
@@ -1723,7 +1770,8 @@ msgstr "Datei wird geöffnet …"
 
 #: internal/ui/identities/importdlg.go
 msgid "Wrong password. If it is correct, the file may be damaged."
-msgstr "Falsches Passwort. Falls es stimmt, ist die Datei womöglich beschädigt."
+msgstr ""
+"Falsches Passwort. Falls es stimmt, ist die Datei womöglich beschädigt."
 
 #: internal/ui/identities/importdlg.go
 msgid "Importing the certificate…"
@@ -1733,18 +1781,25 @@ msgstr "Zertifikat wird importiert …"
 msgid ""
 "This file is not a certificate Murmel can read. Use a PKCS #12 file "
 "(.p12, .pfx) or a PEM file with certificate and private key."
-msgstr "Diese Datei ist kein Zertifikat, das Murmel lesen kann. Verwende eine PKCS-#12-Datei (.p12, .pfx) oder eine PEM-Datei mit Zertifikat und privatem Schlüssel."
+msgstr ""
+"Diese Datei ist kein Zertifikat, das Murmel lesen kann. Verwende eine PKCS-"
+"#12-Datei (.p12, .pfx) oder eine PEM-Datei mit Zertifikat und privatem "
+"Schlüssel."
 
 #: internal/ui/identities/importdlg.go
 msgid ""
 "This file asks for an unusually costly password check and was not opened."
-msgstr "Diese Datei verlangt eine ungewöhnlich aufwendige Passwortprüfung und wurde nicht geöffnet."
+msgstr ""
+"Diese Datei verlangt eine ungewöhnlich aufwendige Passwortprüfung und wurde "
+"nicht geöffnet."
 
 #: internal/ui/identities/importdlg.go
 msgid ""
 "The file contains no private key. Export the certificate together with its "
 "private key."
-msgstr "Die Datei enthält keinen privaten Schlüssel. Exportiere das Zertifikat zusammen mit seinem privaten Schlüssel."
+msgstr ""
+"Die Datei enthält keinen privaten Schlüssel. Exportiere das Zertifikat "
+"zusammen mit seinem privaten Schlüssel."
 
 #: internal/ui/identities/importdlg.go
 msgid "The file contains no certificate."
@@ -1755,7 +1810,10 @@ msgid ""
 "Murmel cannot read the certificate in this file. Export it again from the "
 "program it comes from, without a password or with a current encryption "
 "method."
-msgstr "Murmel kann das Zertifikat in dieser Datei nicht lesen. Exportiere es erneut aus dem Programm, aus dem es stammt – ohne Passwort oder mit einem aktuellen Verschlüsselungsverfahren."
+msgstr ""
+"Murmel kann das Zertifikat in dieser Datei nicht lesen. Exportiere es erneut "
+"aus dem Programm, aus dem es stammt – ohne Passwort oder mit einem aktuellen "
+"Verschlüsselungsverfahren."
 
 #: internal/ui/identities/importdlg.go
 msgid "The private key in the file does not belong to its certificate."
@@ -2084,8 +2142,8 @@ msgid "Created %s"
 msgstr "Erstellt am %s"
 
 #: internal/ui/prefs/window.go
-msgid "Export (back up) as PEM, including the private key"
-msgstr "Als PEM exportieren (sichern), einschließlich privatem Schlüssel"
+msgid "Back up as a password-protected .p12 file, including the private key"
+msgstr "Als passwortgeschützte .p12-Datei sichern, mit privatem Schlüssel"
 
 #: internal/ui/prefs/window.go
 msgid "Delete certificate"
@@ -2670,6 +2728,15 @@ msgstr "Sprachchat auf Mumble-Servern"
 #: data/io.github.one337.murmel.desktop.in
 msgid "Mumble;Voice;Chat;VoIP;Talk;"
 msgstr "Mumble;Sprache;Chat;VoIP;Sprechen;Sprachchat;"
+
+#~ msgid "PEM Certificates"
+#~ msgstr "PEM-Zertifikate"
+
+#~ msgid "Export Identity"
+#~ msgstr "Identität exportieren"
+
+#~ msgid "Export (back up) as PEM, including the private key"
+#~ msgstr "Als PEM exportieren (sichern), einschließlich privatem Schlüssel"
 
 #~ msgid "Import certificate (PEM file with certificate and private key)"
 #~ msgstr ""

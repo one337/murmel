@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -50,25 +49,6 @@ func (m *Manager) ImportFiles(name, certPath, keyPath string) (*Identity, error)
 		pemData = append(append([]byte{}, certData...), keyData...)
 	}
 	return m.ImportPEM(name, pemData)
-}
-
-// ExportPEM returns the identity as a single concatenated PEM blob
-// (certificate chain, then private key) suitable for backup or migration.
-func (m *Manager) ExportPEM(id string) ([]byte, error) {
-	ident, err := m.Load(id)
-	if err != nil {
-		return nil, err
-	}
-	certPEM, err := os.ReadFile(filepath.Join(m.identityDir(id), "cert.pem"))
-	if err != nil {
-		return nil, err
-	}
-	keyDER, err := x509MarshalPrivateKey(ident.PrivateKey)
-	if err != nil {
-		return nil, err
-	}
-	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER})
-	return append(append([]byte{}, certPEM...), keyPEM...), nil
 }
 
 func (m *Manager) importParsed(name string, certDERs [][]byte, key crypto.PrivateKey) (*Identity, error) {

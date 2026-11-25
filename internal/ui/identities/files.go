@@ -2,6 +2,7 @@ package identities
 
 import (
 	"context"
+	"crypto/rsa"
 	"errors"
 	"log/slog"
 	"os"
@@ -15,22 +16,6 @@ import (
 	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/gfileio"
 )
-
-func pemFilters() (*gio.ListStore, *gtk.FileFilter) {
-	pem := gtk.NewFileFilter()
-	pem.SetName(i18n.Tr("PEM Certificates"))
-	pem.AddSuffix("pem")
-	pem.AddSuffix("crt")
-	pem.AddSuffix("key")
-	pem.AddMIMEType("application/x-pem-file")
-	all := gtk.NewFileFilter()
-	all.SetName(i18n.Tr("All Files"))
-	all.AddPattern("*")
-	filters := gio.NewListStore(gtk.GTypeFileFilter)
-	filters.Append(pem.Object)
-	filters.Append(all.Object)
-	return filters, pem
-}
 
 // importFilters offers the files an identity can be imported from:
 // PKCS #12 (the official Mumble client's backups) and PEM.
@@ -124,19 +109,45 @@ func importFailed(owner gtk.Widgetter, msg string) {
 	alert.Present(owner)
 }
 
-// Export saves the identity's certificate and private key as one PEM
-// file, readable only by the user where the location allows. owner is the
-// widget that asked; closing it abandons the export. done runs on the main
-// loop; exposed reports that Murmel could not make sure the file is
-// private (see WarnExposedBackup).
+// backupFilters offers the backup's format: PKCS #12, which the official
+// Mumble client imports.
+func backupFilters() (*gio.ListStore, *gtk.FileFilter) {
+	p12 := gtk.NewFileFilter()
+	p12.SetName(i18n.Tr("PKCS #12 Certificates"))
+	p12.AddSuffix("p12")
+	p12.AddSuffix("pfx")
+	p12.AddMIMEType("application/x-pkcs12")
+	filters := gio.NewListStore(gtk.GTypeFileFilter)
+	filters.Append(p12.Object)
+	return filters, p12
+}
+
+// Export backs up the identity as a PKCS #12 file protected by a password
+// the user chooses, readable only by the user where the location allows.
+// owner is the widget that asked; closing it abandons the export. done
+// runs on the main loop; exposed reports that Murmel could not make sure
+// the file is private (see WarnExposedBackup).
 func Export(owner gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta, done func(exposed bool, err error)) {
-	filters, pem := pemFilters()
+	ident, err := m.Load(meta.ID)
+	if err != nil {
+		done(false, err)
+		return
+	}
+	_, isRSA := ident.PrivateKey.(*rsa.PrivateKey)
+	d := newExportDialog(m, meta, isRSA, func(data []byte) { saveBackup(owner, meta, data, done) })
+	d.dialog.Present(owner)
+	d.pw.GrabFocus()
+}
+
+// saveBackup asks where to save the encrypted backup data and writes it.
+func saveBackup(owner gtk.Widgetter, meta certs.IdentityMeta, data []byte, done func(exposed bool, err error)) {
+	filters, p12 := backupFilters()
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(i18n.Tr("Export Identity"))
+	fd.SetTitle(i18n.Tr("Back Up Certificate"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
-	fd.SetDefaultFilter(pem)
-	fd.SetInitialName(meta.Name + ".pem")
+	fd.SetDefaultFilter(p12)
+	fd.SetInitialName(meta.Name + ".p12")
 	fd.Save(context.Background(), gfileio.WindowOf(owner), func(res gio.AsyncResulter) {
 		file, err := fd.SaveFinish(res)
 		if err != nil || file == nil {
@@ -145,9 +156,9 @@ func Export(owner gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta, done
 		ctx := gfileio.ForWidget(owner)
 		path := file.Path()
 		go func() {
-			data, err := m.ExportPEM(meta.ID)
 			var mode os.FileMode
-			if err == nil && path != "" {
+			var err error
+			if path != "" {
 				if err = writePrivateFile(path, data); err == nil {
 					mode, err = fileMode(path)
 				}

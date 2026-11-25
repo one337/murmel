@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 19:03+0100\n"
+"POT-Creation-Date: 2026-11-25 22:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -225,8 +225,8 @@ msgstr ""
 #: internal/ui/admin/ban.go internal/ui/admin/channel.go
 #: internal/ui/admin/channeledit.go internal/ui/admin/kick.go
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
-#: internal/ui/identities/importdlg.go internal/ui/prefs/window.go
-#: internal/ui/window.go
+#: internal/ui/identities/exportdlg.go internal/ui/identities/importdlg.go
+#: internal/ui/prefs/window.go internal/ui/window.go
 msgid "Cancel"
 msgstr ""
 
@@ -354,7 +354,7 @@ msgid "0 = no limit beyond the server's own"
 msgstr ""
 
 #: internal/ui/admin/channeledit.go internal/ui/connection/controller.go
-#: internal/ui/identities/importdlg.go
+#: internal/ui/identities/exportdlg.go internal/ui/identities/importdlg.go
 msgid "Password"
 msgstr ""
 
@@ -1582,16 +1582,59 @@ msgstr ""
 msgid "Backup Failed"
 msgstr ""
 
-#: internal/ui/identities/files.go
-msgid "PEM Certificates"
+#: internal/ui/identities/exportdlg.go
+msgid "Repeat Password"
 msgstr ""
 
-#: internal/ui/identities/files.go
-msgid "All Files"
+#: internal/ui/identities/exportdlg.go
+msgid ""
+"The backup contains your private key, protected by this password. Keep the "
+"file and the password in a safe place. The official Mumble client can import "
+"it."
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go
+msgid ""
+"The official Mumble client cannot import this certificate: it accepts RSA "
+"keys only."
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go
+msgid "Save…"
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go internal/ui/identities/files.go
+msgid "Back Up Certificate"
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go
+msgid "The passwords do not match."
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go
+msgid "Encrypting the backup…"
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go
+msgid ""
+"The password contains characters a certificate file cannot hold, such as "
+"emoji. Choose another password."
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go
+msgid "Enter a password to protect the backup."
+msgstr ""
+
+#: internal/ui/identities/exportdlg.go
+msgid "The backup could not be created."
 msgstr ""
 
 #: internal/ui/identities/files.go internal/ui/prefs/window.go
 msgid "Certificates"
+msgstr ""
+
+#: internal/ui/identities/files.go
+msgid "All Files"
 msgstr ""
 
 #: internal/ui/identities/files.go internal/ui/identities/importdlg.go
@@ -1603,7 +1646,7 @@ msgid "Certificate Import Failed"
 msgstr ""
 
 #: internal/ui/identities/files.go
-msgid "Export Identity"
+msgid "PKCS #12 Certificates"
 msgstr ""
 
 #: internal/ui/identities/files.go
@@ -2006,7 +2049,7 @@ msgid "Created %s"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Export (back up) as PEM, including the private key"
+msgid "Back up as a password-protected .p12 file, including the private key"
 msgstr ""
 
 #: internal/ui/prefs/window.go

@@ -13,6 +13,20 @@ import (
 	"testing/cryptotest"
 )
 
+// identityPEM returns the stored certificate chain and private key of
+// identity id as one PEM blob.
+func identityPEM(m *Manager, id string) ([]byte, error) {
+	cert, err := os.ReadFile(filepath.Join(m.identityDir(id), "cert.pem"))
+	if err != nil {
+		return nil, err
+	}
+	key, err := os.ReadFile(filepath.Join(m.identityDir(id), "key.pem"))
+	if err != nil {
+		return nil, err
+	}
+	return append(cert, key...), nil
+}
+
 func TestExportImportRoundtripConcatenated(t *testing.T) {
 	m := newTestManager(t)
 
@@ -21,9 +35,9 @@ func TestExportImportRoundtripConcatenated(t *testing.T) {
 		t.Fatalf("Generate: %v", err)
 	}
 
-	blob, err := m.ExportPEM(id.Meta.ID)
+	blob, err := identityPEM(m, id.Meta.ID)
 	if err != nil {
-		t.Fatalf("ExportPEM: %v", err)
+		t.Fatalf("identityPEM: %v", err)
 	}
 	if !bytes.Contains(blob, []byte("BEGIN CERTIFICATE")) {
 		t.Error("export missing CERTIFICATE block")
@@ -54,7 +68,7 @@ func TestImportSeparateCertAndKeyFiles(t *testing.T) {
 	m := newTestManager(t)
 	id, _ := m.Generate("SepFiles", "")
 
-	blob, err := m.ExportPEM(id.Meta.ID)
+	blob, err := identityPEM(m, id.Meta.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -94,7 +108,7 @@ func TestImportSeparateCertAndKeyFiles(t *testing.T) {
 func TestImportConcatenatedFileViaImportFiles(t *testing.T) {
 	m := newTestManager(t)
 	id, _ := m.Generate("OneFile", "")
-	blob, _ := m.ExportPEM(id.Meta.ID)
+	blob, _ := identityPEM(m, id.Meta.ID)
 
 	dir := t.TempDir()
 	combined := filepath.Join(dir, "mumble-export.pem")
@@ -141,7 +155,7 @@ func TestImportFailureLeavesNoFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	blob, err := m.ExportPEM(src.Meta.ID)
+	blob, err := identityPEM(m, src.Meta.ID)
 	if err != nil {
 		t.Fatal(err)
 	}

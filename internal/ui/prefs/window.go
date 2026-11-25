@@ -321,7 +321,7 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	export := gtk.NewButtonFromIconName("document-save-symbolic")
 	export.AddCSSClass("flat")
 	export.SetVAlign(gtk.AlignCenter)
-	export.SetTooltipText(i18n.Tr("Export (back up) as PEM, including the private key"))
+	export.SetTooltipText(i18n.Tr("Back up as a password-protected .p12 file, including the private key"))
 	export.ConnectClicked(c.on(func(c *certList) {
 		c.pw.Do(func(pw *adw.PreferencesDialog) {
 			identities.Export(pw, c.m, meta, func(exposed bool, err error) {
