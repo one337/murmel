@@ -205,7 +205,7 @@ func (v *View) subscribe(ctx context.Context) {
 		v.lastWelcome = ev.Welcome
 		if !repeated && len(richtext.Parse(ev.Welcome)) > 0 {
 			v.channel.append(rowStyle{kind: rowServer, sender: i18n.Tr("Welcome message"),
-				at: time.Now(), content: PlainText(ev.Welcome), html: ev.Welcome})
+				at: time.Now(), content: richtext.PlainText(ev.Welcome), html: ev.Welcome})
 		}
 	})
 	bus.SubscribeCtx(ctx, v.bus, func(bus.Disconnected) {
@@ -230,7 +230,7 @@ func (v *View) onTextMessage(ev bus.TextMessage) {
 	if len(richtext.Parse(ev.Message)) == 0 {
 		return // nothing visible (empty or only unsupported content)
 	}
-	content := PlainText(ev.Message)
+	content := richtext.PlainText(ev.Message)
 	st := v.bus.State()
 	if ev.Sender != 0 && isPrivate(ev, st.SelfSession) {
 		u, ok := st.Users[ev.Sender]

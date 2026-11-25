@@ -393,3 +393,13 @@ the path from P0. No other line changed.
 **Why**: The module path names the repository the code lives in.
 
 **Upstream**: none, the import paths are the fork's own.
+
+## P20 — Drop the plain-text helper
+
+**What**: Removed `gumbleutil.PlainText` (`gumbleutil/textmessage.go`).
+
+**Why**: The application turns message HTML into plain text with its own
+function, which also serves the notification preview and the rich-text
+fallback; the helper had no caller left.
+
+**Upstream**: layeh/gumble `gumbleutil/textmessage.go`.

@@ -1,7 +1,6 @@
 package richtext
 
 import (
-	"html"
 	"regexp"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
@@ -56,7 +55,7 @@ func paragraph(markup string, opt Options) *gtk.Label {
 	// Pango's parser does not know <a> (GtkLabel handles links itself),
 	// so links are taken out for the check only.
 	if _, _, _, err := pango.ParseMarkup(linkTags.ReplaceAllString(markup, ""), 0); err != nil {
-		l.SetText(html.UnescapeString(stripTags(markup)))
+		l.SetText(PlainText(markup))
 	} else {
 		l.SetMarkup(markup)
 	}
@@ -147,20 +146,3 @@ func showFull(parent gtk.Widgetter, tex *gdk.Texture) {
 
 // linkTags matches <a …> and </a>.
 var linkTags = regexp.MustCompile(`</?a\b[^>]*>`)
-
-// stripTags removes markup tags (fallback for rejected markup).
-func stripTags(m string) string {
-	out := make([]rune, 0, len(m))
-	in := false
-	for _, r := range m {
-		switch {
-		case r == '<':
-			in = true
-		case r == '>':
-			in = false
-		case !in:
-			out = append(out, r)
-		}
-	}
-	return string(out)
-}

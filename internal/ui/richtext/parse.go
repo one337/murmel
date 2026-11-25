@@ -330,20 +330,9 @@ func attr(t xml.StartElement, name string) string {
 	return ""
 }
 
-// visible reports whether markup contains any text outside its tags.
+// visible reports whether markup holds text other than spaces and line breaks.
 func visible(markup string) bool {
-	inTag := false
-	for _, r := range markup {
-		switch {
-		case r == '<':
-			inTag = true
-		case r == '>':
-			inTag = false
-		case !inTag && r != ' ' && r != '\n':
-			return true
-		}
-	}
-	return false
+	return strings.ContainsFunc(PlainText(markup), func(r rune) bool { return r != ' ' && r != '\n' })
 }
 
 // DecodeDataURI decodes a data: image URI (see decodeDataURI).

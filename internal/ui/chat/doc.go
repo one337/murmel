@@ -19,7 +19,7 @@
 //     plain text (richtext.paragraph).
 //
 // Rows without HTML (log lines, errors) set their text with SetText; the
-// plain text of a message (PlainText) is kept with its row.
+// plain text of a message (richtext.PlainText) is kept with its row.
 //
 // History is session-only with a bounded scrollback (maxRows); the view
 // auto-scrolls to the newest row while the user is anchored at the bottom

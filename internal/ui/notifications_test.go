@@ -172,6 +172,7 @@ func TestMessagePreview(t *testing.T) {
 		{"unclosed tag", "<i>italic", "italic"},
 		{"empty", "", ""},
 		{"only tags", "<br/><hr>", ""},
+		{"line breaks separate words", "a<br>b<p>c</p><div>d</div>", "a b c d"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

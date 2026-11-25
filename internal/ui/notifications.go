@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"html"
 	"log/slog"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui/presence"
+	"github.com/one337/murmel/internal/ui/richtext"
 )
 
 // Notification identifiers. PM notifications use one id per sender so a
@@ -236,29 +236,10 @@ func isPrivateMessage(ev bus.TextMessage, self uint32) bool {
 }
 
 // messagePreview renders a chat message as a single-line notification body:
-// HTML tags stripped, entities decoded, whitespace collapsed, truncated to
+// its plain text with whitespace and line breaks collapsed, truncated to
 // previewMaxRunes at a rune boundary.
 func messagePreview(msg string) string {
-	var b strings.Builder
-	b.Grow(min(len(msg), previewMaxRunes*4))
-
-	inTag := false
-	for _, r := range msg {
-		switch {
-		case r == '<':
-			inTag = true
-		case r == '>':
-			if inTag {
-				inTag = false
-			} else {
-				b.WriteRune(r)
-			}
-		case !inTag:
-			b.WriteRune(r)
-		}
-	}
-
-	preview := strings.Join(strings.Fields(html.UnescapeString(b.String())), " ")
+	preview := strings.Join(strings.Fields(richtext.PlainText(msg)), " ")
 	if preview == "" {
 		return ""
 	}
