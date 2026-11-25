@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 
@@ -279,22 +278,7 @@ func (c *composer) applyTyping(from, to int) {
 // pickImage lets the user choose an image file and attaches it, scaled
 // and compressed to fit the server's image limit.
 func (c *composer) pickImage() {
-	filter := gtk.NewFileFilter()
-	filter.SetName(i18n.Tr("Images"))
-	filter.AddPixbufFormats()
-	filters := gio.NewListStore(gtk.GTypeFileFilter)
-	filters.Append(filter.Object)
-	fd := gtk.NewFileDialog()
-	fd.SetTitle(i18n.Tr("Attach Image"))
-	fd.SetModal(true)
-	fd.SetFilters(filters)
-	fd.SetDefaultFilter(filter)
-	parent := gfileio.WindowOf(c.root)
-	fd.Open(context.Background(), parent, func(res gio.AsyncResulter) {
-		file, err := fd.OpenFinish(res)
-		if err != nil || file == nil {
-			return
-		}
+	gfileio.OpenImage(c.root, i18n.Tr("Attach Image"), func(file *gio.File) {
 		name, limit := file.Basename(), c.imageLimit
 		c.imageBtn.SetSensitive(false)
 		ctx := gfileio.ForWidget(c.root)

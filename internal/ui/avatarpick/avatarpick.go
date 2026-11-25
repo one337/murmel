@@ -5,7 +5,6 @@
 package avatarpick
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -216,21 +215,7 @@ func (s *rowState) choose() {
 	if !ok {
 		return
 	}
-	filter := gtk.NewFileFilter()
-	filter.SetName(i18n.Tr("Images"))
-	filter.AddPixbufFormats()
-	filters := gio.NewListStore(gtk.GTypeFileFilter)
-	filters.Append(filter.Object)
-	fd := gtk.NewFileDialog()
-	fd.SetTitle(i18n.Tr("Choose Avatar"))
-	fd.SetModal(true)
-	fd.SetFilters(filters)
-	fd.SetDefaultFilter(filter)
-	fd.Open(context.Background(), gfileio.WindowOf(row), func(res gio.AsyncResulter) {
-		file, err := fd.OpenFinish(res)
-		if err != nil || file == nil {
-			return // cancelled
-		}
+	gfileio.OpenImage(row, i18n.Tr("Choose Avatar"), func(file *gio.File) {
 		row, ok := s.row.Get()
 		if !ok {
 			return

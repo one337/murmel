@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"context"
 	"log/slog"
 	"strings"
 	"weak"
@@ -558,21 +557,7 @@ func (e *descEditor) removeLinks(start, end *gtk.TextIter) {
 // --- images ----------------------------------------------------------------
 
 func (e *descEditor) pickImage() {
-	filter := gtk.NewFileFilter()
-	filter.SetName(i18n.Tr("Images"))
-	filter.AddPixbufFormats()
-	filters := gio.NewListStore(gtk.GTypeFileFilter)
-	filters.Append(filter.Object)
-	fd := gtk.NewFileDialog()
-	fd.SetTitle(i18n.Tr("Insert Image"))
-	fd.SetModal(true)
-	fd.SetFilters(filters)
-	fd.SetDefaultFilter(filter)
-	fd.Open(context.Background(), gfileio.WindowOf(e.root), func(res gio.AsyncResulter) {
-		file, err := fd.OpenFinish(res)
-		if err != nil || file == nil {
-			return
-		}
+	gfileio.OpenImage(e.root, i18n.Tr("Insert Image"), func(file *gio.File) {
 		name := file.Basename()
 		budget := e.limit - len(e.HTML())
 		e.status.SetText(i18n.Tr("Preparing image…"))

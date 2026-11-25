@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 11:33+0100\n"
+"POT-Creation-Date: 2026-11-25 12:10+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -441,11 +441,6 @@ msgstr "Wähle zuerst den Text aus, der verlinkt werden soll."
 #: internal/ui/admin/descedit.go
 msgid "Link"
 msgstr "Link"
-
-#: internal/ui/admin/descedit.go internal/ui/avatarpick/avatarpick.go
-#: internal/ui/chat/composer.go
-msgid "Images"
-msgstr "Bilder"
 
 #: internal/ui/admin/descedit.go
 msgid "Insert Image"
@@ -1563,6 +1558,10 @@ msgstr "Verbindung vergessen"
 #: internal/ui/connection/savedlist.go
 msgid "More"
 msgstr "Mehr"
+
+#: internal/ui/gfileio/dialog.go
+msgid "Images"
+msgstr "Bilder"
 
 #: internal/ui/gfileio/gfileio.go
 msgid "The file is too large."
