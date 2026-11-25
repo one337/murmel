@@ -15,8 +15,11 @@
 #
 # A release ends by uploading web/ to the server configured in
 # tools/release.conf (an SFTP location mounted via GVfs).
-# Pushing the tag (git push origin refs/tags/v<version>) then starts the
-# Copr build and creates the GitHub release (.github/workflows/).
+# A release also moves the branch stable, which Nix users install from, to
+# the new tag (fast-forward only). Push main first, then the tag together
+# with stable (git push origin refs/tags/v<version> refs/heads/stable);
+# the tag starts the Copr build and creates the GitHub release
+# (.github/workflows/).
 #
 # web/ afterwards holds everything to upload (rsync it as a whole):
 #   repo/                              signed OSTree Flatpak repository
@@ -98,6 +101,21 @@ PY
 }
 
 latest_version() { cat VERSION; }
+
+# stable points at the newest release and only ever moves forward.
+check_stable() {
+	git rev-parse -q --verify refs/heads/stable >/dev/null || die "no branch stable"
+	git merge-base --is-ancestor stable HEAD ||
+		die "stable is not an ancestor of HEAD, so it cannot move forward to this release"
+}
+
+advance_stable() {
+	local old new
+	old=$(git rev-parse refs/heads/stable)
+	new=$(git rev-parse "v$1^{commit}")
+	git merge-base --is-ancestor "$old" "$new" || die "stable cannot move forward to v$1"
+	git update-ref -m "release: v$1" refs/heads/stable "$new" "$old"
+}
 
 write_descriptors() {
 	local version key_b64
@@ -285,6 +303,7 @@ version=${1:-}
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "usage: tools/release.sh <x.y.z> | --refs-only"
 [ -z "$(git status --porcelain)" ] || die "git tree not clean; commit first"
 git rev-parse -q --verify "refs/tags/v$version" >/dev/null && die "tag v$version exists"
+check_stable
 
 echo "$version" > VERSION
 bump_metainfo "$version"
@@ -293,6 +312,7 @@ appstreamcli validate --no-net "$METAINFO" >/dev/null 2>&1 ||
 git add VERSION "$METAINFO"
 git commit -q -m "chore(release): v$version"
 git tag -a "v$version" -m "Murmel $version"
+advance_stable "$version"
 
 build_and_publish
 echo "release: v$version done"
