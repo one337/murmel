@@ -81,9 +81,13 @@ func TestFit(t *testing.T) {
 		{800, 600, 400, 0, 400, 300},
 		{800, 600, 400, 200, 266, 200},
 		{100, 50, 400, 300, 100, 50},
+		{1, 197, 2, 2, 1, 2},
+		{1600, 1200, 800, 800, 800, 600},
+		{1200, 1600, 800, 800, 600, 800},
+		{300, 200, 800, 800, 300, 200},
 	} {
-		if w, h := fit(tt.w, tt.h, tt.mw, tt.mh); w != tt.ww || h != tt.wh {
-			t.Errorf("fit(%d,%d,%d,%d) = %d,%d, want %d,%d", tt.w, tt.h, tt.mw, tt.mh, w, h, tt.ww, tt.wh)
+		if w, h := Fit(tt.w, tt.h, tt.mw, tt.mh); w != tt.ww || h != tt.wh {
+			t.Errorf("Fit(%d,%d,%d,%d) = %d,%d, want %d,%d", tt.w, tt.h, tt.mw, tt.mh, w, h, tt.ww, tt.wh)
 		}
 	}
 }

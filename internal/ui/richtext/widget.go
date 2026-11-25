@@ -82,7 +82,7 @@ func picture(data []byte, opt Options) gtk.Widgetter {
 	if err != nil || tex == nil {
 		return nil
 	}
-	w, h := fit(tex.Width(), tex.Height(), opt.MaxImageWidth, opt.MaxImageHeight)
+	w, h := Fit(tex.Width(), tex.Height(), opt.MaxImageWidth, opt.MaxImageHeight)
 	pic := gtk.NewPictureForPaintable(tex)
 	pic.SetContentFit(gtk.ContentFitContain)
 	pic.SetCanShrink(true)
@@ -110,19 +110,21 @@ func picture(data []byte, opt Options) gtk.Widgetter {
 	return frame
 }
 
-// fit scales w×h down into maxW×maxH (0 = unbounded).
-func fit(w, h, maxW, maxH int) (int, int) {
+// Fit scales w×h down into maxW×maxH (0 = unbounded), keeping the aspect
+// ratio and never enlarging. The scale is an exact fraction, so a side that
+// just fits is not cut short by rounding.
+func Fit(w, h, maxW, maxH int) (int, int) {
 	if w <= 0 || h <= 0 {
 		return w, h
 	}
-	scale := 1.0
+	num, den := 1, 1
 	if maxW > 0 && w > maxW {
-		scale = float64(maxW) / float64(w)
+		num, den = maxW, w
 	}
-	if maxH > 0 && float64(h)*scale > float64(maxH) {
-		scale = float64(maxH) / float64(h)
+	if maxH > 0 && h*num > maxH*den {
+		num, den = maxH, h
 	}
-	return max(1, int(float64(w)*scale)), max(1, int(float64(h)*scale))
+	return max(1, w*num/den), max(1, h*num/den)
 }
 
 // showFull opens the image in a dialog at up to the window size.
@@ -136,7 +138,7 @@ func showFull(parent gtk.Widgetter, tex *gdk.Texture) {
 	tv.SetContent(pic)
 	d := adw.NewDialog()
 	d.SetTitle("")
-	w, h := fit(tex.Width(), tex.Height(), 1200, 900)
+	w, h := Fit(tex.Width(), tex.Height(), 1200, 900)
 	d.SetContentWidth(max(w, 200))
 	d.SetContentHeight(max(h+46, 150))
 	d.SetChild(tv)

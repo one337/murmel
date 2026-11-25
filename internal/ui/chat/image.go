@@ -8,6 +8,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
 
 	"github.com/one337/murmel/internal/ui/gfileio"
+	"github.com/one337/murmel/internal/ui/richtext"
 )
 
 // defaultImageMessageLength is murmur's default limit for messages that
@@ -31,7 +32,7 @@ func encodeImage(data []byte, limit int) (string, error) {
 	}
 	budget := limit - imageMarkupOverhead
 	for _, side := range []int{800, 640, 480, 360, 240, 160} {
-		w, h := scaleTo(src.Width(), src.Height(), side)
+		w, h := richtext.Fit(src.Width(), src.Height(), side, side)
 		scaled := flatten(src, w, h)
 		for _, q := range []int{85, 70, 55, 40} {
 			data, err := scaled.SaveToBufferv("jpeg", []string{"quality"}, []string{strconv.Itoa(q)})
@@ -45,17 +46,6 @@ func encodeImage(data []byte, limit int) (string, error) {
 		}
 	}
 	return "", errImageTooLarge
-}
-
-// scaleTo fits w×h into side×side (never enlarging).
-func scaleTo(w, h, side int) (int, int) {
-	if w <= side && h <= side {
-		return w, h
-	}
-	if w >= h {
-		return side, max(1, h*side/w)
-	}
-	return max(1, w*side/h), side
 }
 
 // flatten scales src to w×h onto an opaque white background.

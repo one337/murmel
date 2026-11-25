@@ -62,18 +62,6 @@ func TestConversationKeys(t *testing.T) {
 	}
 }
 
-func TestScaleTo(t *testing.T) {
-	for _, tt := range []struct{ w, h, side, ww, wh int }{
-		{1600, 1200, 800, 800, 600},
-		{1200, 1600, 800, 600, 800},
-		{300, 200, 800, 300, 200},
-	} {
-		if w, h := scaleTo(tt.w, tt.h, tt.side); w != tt.ww || h != tt.wh {
-			t.Errorf("scaleTo(%d,%d,%d) = %d,%d", tt.w, tt.h, tt.side, w, h)
-		}
-	}
-}
-
 // testScreenshot writes a screenshot-sized PNG with gradients and noise,
 // so it neither fits the limits as-is nor compresses trivially.
 func testScreenshot(t *testing.T) string {
