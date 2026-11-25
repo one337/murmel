@@ -26,6 +26,7 @@
 #   downloads/murmel-<version>.flatpak single-file bundles
 #   index.html, style.css, script.js   website with install instructions
 #   assets/murmel.svg                  logo of the website
+#   .htaccess                          content types of the files above (Apache)
 #   screenshots/                       screenshots (metainfo and website)
 #   media/                             software center copies (thumbnails)
 #
@@ -150,7 +151,7 @@ write_page() {
 	sed -e "s|@URL@|$WEB_URL|g" -e "s|@VERSION@|$version|g" -e "s|@APP_ID@|$APP_ID|g" \
 		-e "s|@SHOTS@|$shots|g" tools/web/index.html > "$WEB/index.html"
 	! grep -q '@[A-Z_]\+@' "$WEB/index.html" || die "web/index.html has an unfilled placeholder"
-	cp tools/web/style.css tools/web/script.js "$WEB/"
+	cp tools/web/style.css tools/web/script.js tools/web/.htaccess "$WEB/"
 	cp assets/murmel.svg "$WEB/assets/murmel.svg"
 	cp -r assets/screenshots/. "$WEB/screenshots/"
 	echo "release: web/ website written for $version (screenshots $shots)"
@@ -182,14 +183,14 @@ upload() {
 		--include='/repo/refs/***' --include='/repo/config'
 		--include='/downloads/' --include='/downloads/murmel-latest.flatpak'
 		--include='/*.flatpakrepo' --include='/*.flatpakref' --include='/murmel.gpg' --include='/index.html'
-		--include='/style.css' --include='/script.js' --include='/assets/' --include='/assets/murmel.svg'
+		--include='/style.css' --include='/script.js' --include='/.htaccess' --include='/assets/' --include='/assets/murmel.svg'
 	)
 	# 1. Immutable content, compared by size.
 	rsync "${base[@]}" --size-only \
 		--exclude='/repo/summary*' --exclude='/repo/summaries/' --exclude='/repo/refs/' --exclude='/repo/config' \
 		--exclude='/downloads/murmel-latest.flatpak' \
 		--exclude='/*.flatpakrepo' --exclude='/*.flatpakref' --exclude='/murmel.gpg' --exclude='/index.html' \
-		--exclude='/style.css' --exclude='/script.js' --exclude='/assets/murmel.svg' \
+		--exclude='/style.css' --exclude='/script.js' --exclude='/.htaccess' --exclude='/assets/murmel.svg' \
 		"$WEB/" "$dest/"
 	# 2. Mutable files, always copied.
 	rsync "${base[@]}" --ignore-times "${mutable[@]}" --exclude='*' "$WEB/" "$dest/"

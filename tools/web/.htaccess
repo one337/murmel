@@ -1,0 +1,6 @@
+# Content types Apache does not know: browsers otherwise show these files
+# as text instead of offering them to Flatpak or for download.
+AddType application/vnd.flatpak.ref .flatpakref
+AddType application/vnd.flatpak.repo .flatpakrepo
+AddType application/vnd.flatpak .flatpak
+AddType application/pgp-keys .gpg
