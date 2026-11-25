@@ -44,8 +44,8 @@
         {
           "type": "git",
           "url": "https://github.com/one337/murmel.git",
-          "tag": "v0.4.0",
-          "commit": "2d6ac41d2f7d032c863f3eaf8a8c3c66f926740d"
+          "tag": "v0.5.0",
+          "commit": "d48bd89fc65b768aa820b90499e645ffd2a0db0c"
         }
       ]
     }
