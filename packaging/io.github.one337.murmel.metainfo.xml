@@ -99,6 +99,19 @@
   </content_rating>
 
   <releases>
+    <release version="0.5.0" date="2026-11-25">
+      <description>
+        <ul>
+          <li>Moderators can let someone speak in a channel where they otherwise may not, with "Allow speaking" in the user menu; the chat notes when someone may not speak or may speak again.</li>
+          <li>When the server refuses something, the chat says why, and screen readers announce it.</li>
+          <li>Where you may not write, the message field is locked and a line above it says why; this also applies to private chats with someone in such a channel or who has gone offline.</li>
+          <li>The newest chat line is always visible, even if the window was hidden when it arrived.</li>
+          <li>Users joining the server always appear in the chat with their name, without stray join or move lines.</li>
+          <li>A user who is moved to another channel shows their current state there in the channel list.</li>
+          <li>Screen readers call the message field "Message" and read its keyboard shortcuts.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.4.0" date="2026-11-20">
       <description>
         <ul>
