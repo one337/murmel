@@ -17,6 +17,7 @@ var textSetterMethods = map[string]bool{
 	"SetSubtitle":        true,
 	"SetDescription":     true,
 	"SetBody":            true,
+	"SetComments":        true,
 	"SetTooltipText":     true,
 	"SetPlaceholderText": true,
 	"SetLabel":           true,
