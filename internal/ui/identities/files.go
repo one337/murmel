@@ -12,18 +12,19 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/gfileio"
 )
 
 func pemFilters() (*gio.ListStore, *gtk.FileFilter) {
 	pem := gtk.NewFileFilter()
-	pem.SetName(tr("PEM Certificates"))
+	pem.SetName(i18n.Tr("PEM Certificates"))
 	pem.AddSuffix("pem")
 	pem.AddSuffix("crt")
 	pem.AddSuffix("key")
 	pem.AddMIMEType("application/x-pem-file")
 	all := gtk.NewFileFilter()
-	all.SetName(tr("All Files"))
+	all.SetName(i18n.Tr("All Files"))
 	all.AddPattern("*")
 	filters := gio.NewListStore(gtk.GTypeFileFilter)
 	filters.Append(pem.Object)
@@ -37,7 +38,7 @@ func pemFilters() (*gio.ListStore, *gtk.FileFilter) {
 func Import(owner gtk.Widgetter, m *certs.Manager, done func(certs.IdentityMeta), failed func(error)) {
 	filters, pem := pemFilters()
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(tr("Import Identity"))
+	fd.SetTitle(i18n.Tr("Import Identity"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(pem)
@@ -87,7 +88,7 @@ func ImportFile(ctx context.Context, m *certs.Manager, file *gio.File, done func
 func Export(owner gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta, done func(exposed bool, err error)) {
 	filters, pem := pemFilters()
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(tr("Export Identity"))
+	fd.SetTitle(i18n.Tr("Export Identity"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(pem)
@@ -124,9 +125,9 @@ func Export(owner gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta, done
 // WarnExposedBackup tells over parent that a backup may be readable by
 // others: shown when Murmel could not make sure it is private.
 func WarnExposedBackup(parent gtk.Widgetter) {
-	alert := adw.NewAlertDialog(tr("Backup May Be Readable by Others"),
-		tr("The backup contains your private key. Murmel could not restrict access to the file at this location. Keep it where only you have access."))
-	alert.AddResponse("ok", tr("OK"))
+	alert := adw.NewAlertDialog(i18n.Tr("Backup May Be Readable by Others"),
+		i18n.Tr("The backup contains your private key. Murmel could not restrict access to the file at this location. Keep it where only you have access."))
+	alert.AddResponse("ok", i18n.Tr("OK"))
 	alert.SetDefaultResponse("ok")
 	alert.SetCloseResponse("ok")
 	alert.Present(parent)

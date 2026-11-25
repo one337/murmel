@@ -217,8 +217,8 @@ go test -mod=vendor ./...
   documented in [PATCHES.md](PATCHES.md).
 - `tools/harness` contains a local Mumble server setup and test bots for
   end-to-end voice tests, see its README.
-- UI strings go through `tr()`; regenerate `po/murmel.pot` with
-  `tools/update-pot.sh`.
+- UI strings go through `i18n.Tr()` (package `internal/i18n`); regenerate
+  `po/murmel.pot` with `tools/update-pot.sh`.
 - `tools/sounds/gen.py` synthesizes the built-in event sounds.
 
 ### Releases

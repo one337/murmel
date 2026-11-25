@@ -187,11 +187,3 @@ func hasTranslation(dir, lang string) bool {
 	}
 	return false
 }
-
-// tr marks a user-facing string as translatable and returns its translation.
-//
-// Extract all marked strings with tools/update-pot.sh.
-//
-// Technical strings stay outside tr by design: icon names, CSS classes,
-// action names, stack child names, log messages, and URL fragments.
-func tr(s string) string { return gotext.Get(s) }

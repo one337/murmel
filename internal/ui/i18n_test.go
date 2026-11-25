@@ -11,7 +11,7 @@ import (
 )
 
 // textSetterMethods is the set of GTK/Adwaita method names that set
-// user-visible text; their string arguments must be wrapped in tr().
+// user-visible text; their string arguments must be wrapped in i18n.Tr().
 var textSetterMethods = map[string]bool{
 	"SetTitle":           true,
 	"SetSubtitle":        true,
@@ -27,7 +27,7 @@ var textSetterMethods = map[string]bool{
 }
 
 // technicalStringPrefixes are known non-translatable string patterns that
-// may appear as literal arguments to the above methods without tr() wrapping.
+// may appear as literal arguments to the above methods without i18n.Tr() wrapping.
 var technicalAllowlist = []string{
 	"-symbolic", // icon names
 	"app.",      // action names
@@ -45,7 +45,7 @@ var technicalAllowlist = []string{
 }
 
 // TestNoHardcodedStrings verifies that every user-visible string literal
-// passed to a GTK text-setter is wrapped in tr(). It AST-scans all non-test
+// passed to a GTK text-setter is wrapped in i18n.Tr(). It AST-scans all non-test
 // .go files under internal/ui/.
 func TestNoHardcodedStrings(t *testing.T) {
 	root := filepath.Join("..", "..")
@@ -102,7 +102,7 @@ func TestNoHardcodedStrings(t *testing.T) {
 			}
 			pos := fset.Position(call.Pos())
 			violations = append(violations,
-				rel+":"+pos.String()+": literal "+lit.Value+" passed to "+methodName+" without tr()")
+				rel+":"+pos.String()+": literal "+lit.Value+" passed to "+methodName+" without i18n.Tr()")
 			return true
 		})
 		return nil

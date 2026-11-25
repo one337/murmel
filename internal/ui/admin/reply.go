@@ -7,6 +7,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 )
 
 // subscribeWhileOpen subscribes handler until dialog closes. A handler must
@@ -37,7 +38,7 @@ func awaitReply[T bus.Event](dialog *adw.Dialog, b *bus.Bus, list *gtk.ListBox, 
 		}
 		done = true
 		list.Remove(loading)
-		text := tr("You do not have permission to view this on this server.")
+		text := i18n.Tr("You do not have permission to view this on this server.")
 		if ev.Text != "" {
 			text = ev.Text
 		}

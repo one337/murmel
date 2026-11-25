@@ -11,6 +11,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/protocol/gumble"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui/clock"
@@ -73,7 +74,7 @@ func NewView(ctx context.Context, b *bus.Bus, sender Sender) *View {
 		htmlAllowed:  true,
 		windowActive: func() bool { return true },
 	}
-	v.channel = newConversation(channelTag, tr("Channel"), tr("No messages yet"))
+	v.channel = newConversation(channelTag, i18n.Tr("Channel"), i18n.Tr("No messages yet"))
 	v.channel.composer.SetSend(func(html, plain string) { v.send(v.channel, 0, html, plain) })
 
 	v.nav = adw.NewNavigationView()
@@ -109,7 +110,7 @@ func (v *View) onPresence(ev presence.Event) {
 		if ch, ok := st.Channels[id]; ok {
 			return ch.Name
 		}
-		return tr("another channel")
+		return i18n.Tr("another channel")
 	}
 	for _, line := range logLines(ev, enabled, st.SelfSession, name) {
 		v.channel.append(rowStyle{kind: rowLog, at: time.Now(), content: line})
@@ -203,7 +204,7 @@ func (v *View) subscribe(ctx context.Context) {
 		v.resuming = false
 		v.lastWelcome = ev.Welcome
 		if !repeated && len(richtext.Parse(ev.Welcome)) > 0 {
-			v.channel.append(rowStyle{kind: rowServer, sender: tr("Welcome message"),
+			v.channel.append(rowStyle{kind: rowServer, sender: i18n.Tr("Welcome message"),
 				at: time.Now(), content: PlainText(ev.Welcome), html: ev.Welcome})
 		}
 	})
@@ -292,13 +293,13 @@ func (v *View) dm(key convKey, name string) *conversation {
 		return c
 	}
 	c := newConversation("dm:"+string(key), name,
-		fmt.Sprintf(tr("Private conversation with %s"), name))
+		fmt.Sprintf(i18n.Tr("Private conversation with %s"), name))
 	v.configure(c)
 	c.composer.SetSend(func(html, plain string) {
 		session, ok := sessionFor(v.bus.State(), key)
 		if !ok {
 			c.append(rowStyle{kind: rowError, at: time.Now(),
-				content: errorRowText(tr("the user is offline"))})
+				content: errorRowText(i18n.Tr("the user is offline"))})
 			return
 		}
 		v.send(c, session, html, plain)
@@ -326,7 +327,7 @@ func (v *View) openDM(key convKey, name string) {
 func (v *View) send(c *conversation, session uint32, html, plain string) {
 	if v.sender == nil {
 		c.append(rowStyle{kind: rowError, at: time.Now(),
-			content: errorRowText(tr("Not connected."))})
+			content: errorRowText(i18n.Tr("Not connected."))})
 		return
 	}
 	st := v.bus.State()
@@ -411,7 +412,7 @@ func (v *View) markVisibleRead() {
 // updates every private conversation's online state.
 func (v *View) refreshTitles() {
 	st := v.bus.State()
-	name := tr("Channel")
+	name := i18n.Tr("Channel")
 	if ch, ok := st.Channels[st.Users[st.SelfSession].Channel]; ok && st.SelfSession != 0 {
 		name = "#" + ch.Name
 	}
@@ -419,7 +420,7 @@ func (v *View) refreshTitles() {
 	v.refreshDescription(st)
 	reason := ""
 	if me, ok := st.Users[st.SelfSession]; ok && st.SelfSession != 0 && !v.mayWrite(st, me.Channel) {
-		reason = tr("You may not send messages in this channel.")
+		reason = i18n.Tr("You may not send messages in this channel.")
 	}
 	v.lock(v.channel, reason)
 	for key, c := range v.dms {
@@ -457,13 +458,13 @@ func (v *View) refreshDM(key convKey, c *conversation) {
 		c.setTitle(u.Name, "")
 		reason := ""
 		if !v.mayWrite(st, u.Channel) {
-			reason = fmt.Sprintf(tr("%s is in a channel where you may not write."), u.Name)
+			reason = fmt.Sprintf(i18n.Tr("%s is in a channel where you may not write."), u.Name)
 		}
 		v.lock(c, reason)
 		return
 	}
-	c.setTitle(c.title.Title(), tr("offline"))
-	v.lock(c, fmt.Sprintf(tr("%s is offline."), c.title.Title()))
+	c.setTitle(c.title.Title(), i18n.Tr("offline"))
+	v.lock(c, fmt.Sprintf(i18n.Tr("%s is offline."), c.title.Title()))
 }
 
 // mayWrite tells whether the server lets the local user send text to
@@ -506,12 +507,12 @@ func (v *View) lock(c *conversation, reason string) (announced bool) {
 // userName resolves a session to a display name.
 func (v *View) userName(session uint32) string {
 	if session == 0 {
-		return tr("Server")
+		return i18n.Tr("Server")
 	}
 	if u, ok := v.bus.State().Users[session]; ok && u.Name != "" {
 		return u.Name
 	}
-	return tr("Unknown user")
+	return i18n.Tr("Unknown user")
 }
 
 // selfName returns the local user's display name.
@@ -519,5 +520,5 @@ func selfName(st bus.State) string {
 	if u, ok := st.Users[st.SelfSession]; ok && u.Name != "" {
 		return u.Name
 	}
-	return tr("You")
+	return i18n.Tr("You")
 }

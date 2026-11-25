@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/protocol/gumble"
 	"github.com/one337/murmel/internal/ui/permname"
 )
@@ -102,14 +103,14 @@ func ruleSummary(r bus.ACLRuleInfo) string {
 	var parts []string
 	if len(allow) > 0 {
 		// TRANSLATORS: %s is a comma-separated list of permission names.
-		parts = append(parts, fmt.Sprintf(tr("Allows %s"), strings.Join(allow, ", ")))
+		parts = append(parts, fmt.Sprintf(i18n.Tr("Allows %s"), strings.Join(allow, ", ")))
 	}
 	if len(deny) > 0 {
 		// TRANSLATORS: %s is a comma-separated list of permission names.
-		parts = append(parts, fmt.Sprintf(tr("Denies %s"), strings.Join(deny, ", ")))
+		parts = append(parts, fmt.Sprintf(i18n.Tr("Denies %s"), strings.Join(deny, ", ")))
 	}
 	if len(parts) == 0 {
-		return tr("Changes nothing")
+		return i18n.Tr("Changes nothing")
 	}
 	return strings.Join(parts, " · ")
 }

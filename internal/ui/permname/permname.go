@@ -2,7 +2,11 @@
 // permission editor lists them and as refusals from the server mention them.
 package permname
 
-import "github.com/one337/murmel/internal/protocol/gumble"
+import (
+	"github.com/one337/murmel/internal/protocol/gumble"
+
+	"github.com/one337/murmel/internal/i18n"
+)
 
 // Name returns the translated name of permission p, "" for a permission
 // without a name here.
@@ -15,39 +19,39 @@ func Name(p gumble.Permission) string {
 	switch p {
 	case gumble.PermissionWrite:
 		// TRANSLATORS: Permission: edit the channel's groups and permissions.
-		return tr("Write ACL")
+		return i18n.Tr("Write ACL")
 	case gumble.PermissionTraverse:
 		// TRANSLATORS: Permission: pass through the channel to its sub-channels.
-		return tr("Traverse")
+		return i18n.Tr("Traverse")
 	case gumble.PermissionEnter:
 		// TRANSLATORS: Permission: enter (join) the channel.
-		return tr("Enter")
+		return i18n.Tr("Enter")
 	case gumble.PermissionSpeak:
 		// TRANSLATORS: Permission: talk in the channel.
-		return tr("Speak")
+		return i18n.Tr("Speak")
 	case gumble.PermissionWhisper:
-		return tr("Whisper")
+		return i18n.Tr("Whisper")
 	case gumble.PermissionMuteDeafen:
-		return tr("Mute/Deafen")
+		return i18n.Tr("Mute/Deafen")
 	case gumble.PermissionMove:
 		// TRANSLATORS: Permission: move other users between channels.
-		return tr("Move")
+		return i18n.Tr("Move")
 	case gumble.PermissionMakeChannel:
-		return tr("Make Channel")
+		return i18n.Tr("Make Channel")
 	case gumble.PermissionMakeTemporaryChannel:
-		return tr("Make Temporary Channel")
+		return i18n.Tr("Make Temporary Channel")
 	case gumble.PermissionLinkChannel:
-		return tr("Link Channel")
+		return i18n.Tr("Link Channel")
 	case gumble.PermissionTextMessage:
-		return tr("Text Message")
+		return i18n.Tr("Text Message")
 	case gumble.PermissionKick:
-		return tr("Kick")
+		return i18n.Tr("Kick")
 	case gumble.PermissionBan:
-		return tr("Ban")
+		return i18n.Tr("Ban")
 	case gumble.PermissionRegister:
-		return tr("Register User")
+		return i18n.Tr("Register User")
 	case gumble.PermissionRegisterSelf:
-		return tr("Register Self")
+		return i18n.Tr("Register Self")
 	}
 	return ""
 }

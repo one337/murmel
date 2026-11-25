@@ -11,6 +11,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/admin"
 )
 
@@ -139,7 +140,7 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 	t.list.AddCSSClass("navigation-sidebar")
 	// Single click selects the chat target; double-click (or Enter) joins.
 	t.list.SetActivateOnSingleClick(false)
-	placeholder := gtk.NewLabel(tr("Not connected"))
+	placeholder := gtk.NewLabel(i18n.Tr("Not connected"))
 	placeholder.AddCSSClass("dim-label")
 	t.list.SetPlaceholder(placeholder)
 	t.list.ConnectRowActivated(func(row *gtk.ListBoxRow) { t.onActivate(row) })

@@ -7,6 +7,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
 
@@ -37,13 +38,13 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 	loadingRow.SetActivatable(false)
 	listbox.Append(loadingRow)
 
-	closeBtn := gtk.NewButtonWithLabel(tr("Close"))
+	closeBtn := gtk.NewButtonWithLabel(i18n.Tr("Close"))
 
 	hdr := adw.NewHeaderBar()
 	hdr.SetShowEndTitleButtons(false)
 	hdr.SetShowStartTitleButtons(false)
 	hdr.PackStart(closeBtn)
-	title := adw.NewWindowTitle(tr("Registered Users"), "")
+	title := adw.NewWindowTitle(i18n.Tr("Registered Users"), "")
 	hdr.SetTitleWidget(title)
 
 	content := gtk.NewBox(gtk.OrientationVertical, 12)
@@ -58,7 +59,7 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 	toolbar.SetContent(content)
 
 	dialog := adw.NewDialog()
-	dialog.SetTitle(tr("Registered Users"))
+	dialog.SetTitle(i18n.Tr("Registered Users"))
 	dialog.SetContentWidth(480)
 	dialog.SetContentHeight(400)
 	dialog.SetChild(toolbar)
@@ -70,7 +71,7 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 			emptyRow := gtk.NewListBoxRow()
 			emptyRow.SetSelectable(false)
 			emptyRow.SetActivatable(false)
-			lbl := gtk.NewLabel(tr("No registered users"))
+			lbl := gtk.NewLabel(i18n.Tr("No registered users"))
 			lbl.AddCSSClass("dim-label")
 			lbl.SetMarginTop(24)
 			lbl.SetMarginBottom(24)
@@ -84,11 +85,11 @@ func ShowUserList(parent gtk.Widgetter, b *bus.Bus) {
 			row := adw.NewActionRow()
 			row.SetUseMarkup(false) // names come from the server
 			row.SetTitle(u.Name)
-			row.SetSubtitle(fmt.Sprintf(tr("ID: %d"), u.UserID))
+			row.SetSubtitle(fmt.Sprintf(i18n.Tr("ID: %d"), u.UserID))
 
 			deregBtn := gtk.NewButtonFromIconName("user-trash-symbolic")
 			deregBtn.AddCSSClass("flat")
-			deregBtn.SetTooltipText(tr("Deregister user"))
+			deregBtn.SetTooltipText(i18n.Tr("Deregister user"))
 			rowRef := weakref.New(row)
 			deregBtn.ConnectClicked(func() {
 				b.Emit(bus.UserUnregisterRequested{UserID: userID})

@@ -218,7 +218,7 @@ step "i18n: TestNoHardcodedStrings"
 if go test ./internal/ui -run TestNoHardcodedStrings 2>&1; then
   pass "no hardcoded UI strings"
 else
-  fail "hardcoded strings found (wrap them in tr())"
+  fail "hardcoded strings found (wrap them in i18n.Tr())"
 fi
 
 step "i18n: POT file up-to-date"

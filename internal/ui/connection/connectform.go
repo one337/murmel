@@ -14,6 +14,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui"
 	"github.com/one337/murmel/internal/ui/avatarpick"
@@ -76,15 +77,15 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 
 	// --- Server group
 	f.host = adw.NewEntryRow()
-	f.host.SetTitle(tr("Address"))
+	f.host.SetTitle(i18n.Tr("Address"))
 	f.host.SetText(req.Host)
 
 	f.port = adw.NewSpinRow(gtk.NewAdjustment(float64(f.reqPort), 1, 65535, 1, 100, 0), 1, 0)
-	f.port.SetTitle(tr("Port"))
+	f.port.SetTitle(i18n.Tr("Port"))
 	f.port.SetNumeric(true)
 
 	f.password = adw.NewPasswordEntryRow()
-	f.password.SetTitle(tr("Server Password"))
+	f.password.SetTitle(i18n.Tr("Server Password"))
 	f.password.SetText(req.Password)
 	f.password.ConnectChanged(with(func(f *connectForm) {
 		if !f.settingPassword {
@@ -93,14 +94,14 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	}))
 
 	f.server = adw.NewPreferencesGroup()
-	f.server.SetTitle(tr("Server"))
+	f.server.SetTitle(i18n.Tr("Server"))
 	f.server.Add(f.host)
 	f.server.Add(f.port)
 	f.server.Add(f.password)
 
 	// --- Account group
 	f.user = adw.NewEntryRow()
-	f.user.SetTitle(tr("Username"))
+	f.user.SetTitle(i18n.Tr("Username"))
 	f.user.SetText(req.Username)
 
 	// Certificate picker: "None" + stored idList. The import row below
@@ -111,12 +112,12 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	if err != nil {
 		slog.Warn("connect: certificates not listed", "err", err)
 	}
-	f.identityStore = gtk.NewStringList([]string{tr("None (anonymous)")})
+	f.identityStore = gtk.NewStringList([]string{i18n.Tr("None (anonymous)")})
 	for _, id := range f.idList {
 		f.identityStore.Append(id.Name)
 	}
 	f.identityRow = adw.NewComboRow()
-	f.identityRow.SetTitle(tr("User Certificate"))
+	f.identityRow.SetTitle(i18n.Tr("User Certificate"))
 	f.identityRow.SetModel(f.identityStore)
 	f.identityNote("")
 	coreglib.InternObject(f.identityRow).NotifyProperty("selected", with(func(f *connectForm) { f.identityNote("") }))
@@ -126,7 +127,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	importBtn := gtk.NewButtonFromIconName("document-open-symbolic")
 	importBtn.AddCSSClass("flat")
 	importBtn.SetVAlign(gtk.AlignCenter)
-	importBtn.SetTooltipText(tr("Import certificate (PEM file with certificate and private key)"))
+	importBtn.SetTooltipText(i18n.Tr("Import certificate (PEM file with certificate and private key)"))
 	importBtn.ConnectClicked(with(func(f *connectForm) {
 		dialogRef.Do(func(dialog *adw.Dialog) { c.pickCertificateFile(dialog, f.addIdentity) })
 	}))
@@ -135,7 +136,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	createBtn := gtk.NewButtonFromIconName("list-add-symbolic")
 	createBtn.AddCSSClass("flat")
 	createBtn.SetVAlign(gtk.AlignCenter)
-	createBtn.SetTooltipText(tr("Create a new certificate"))
+	createBtn.SetTooltipText(i18n.Tr("Create a new certificate"))
 	createBtn.ConnectClicked(with(func(f *connectForm) {
 		dialogRef.Do(func(dialog *adw.Dialog) {
 			identities.ShowCreate(dialog, c.certs, strings.TrimSpace(f.user.Text()), f.addIdentity)
@@ -145,7 +146,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 
 	// --- Save switch: the name preview follows the form.
 	f.saveRow = adw.NewSwitchRow()
-	f.saveRow.SetTitle(tr("Save Connection"))
+	f.saveRow.SetTitle(i18n.Tr("Save Connection"))
 	f.saveRow.SetActive(true)
 	updateSaveName := with((*connectForm).updateSaveName)
 	f.host.ConnectChanged(updateSaveName)
@@ -157,11 +158,11 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	// (Preferences) is sent.
 	f.avatars = c.avatarStore()
 	f.defaultAvatar = f.avatars.Load(avatarpick.DefaultKey)
-	unset := tr("Optional")
+	unset := i18n.Tr("Optional")
 	if f.defaultAvatar != nil {
-		unset = tr("Optional — otherwise your default avatar is used")
+		unset = i18n.Tr("Optional — otherwise your default avatar is used")
 	}
-	f.avatarRow = avatarpick.NewRow(tr("Avatar"), req.Username, unset, func([]byte) {
+	f.avatarRow = avatarpick.NewRow(i18n.Tr("Avatar"), req.Username, unset, func([]byte) {
 		with(func(f *connectForm) { f.avatarChanged = true })()
 	})
 	f.avatarRow.SetFallback(f.defaultAvatar)
@@ -171,7 +172,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	f.user.ConnectChanged(with(func(f *connectForm) { f.avatarRow.SetName(f.user.Text()) }))
 
 	f.account = adw.NewPreferencesGroup()
-	f.account.SetTitle(tr("Account"))
+	f.account.SetTitle(i18n.Tr("Account"))
 	f.account.Add(f.user)
 	f.account.Add(f.avatarRow)
 	f.account.Add(f.identityRow)
@@ -192,7 +193,7 @@ func (f *connectForm) setPassword(pw string) {
 // that the stored certificates could not be read, if so.
 func (f *connectForm) identityNote(problem string) {
 	if problem == "" && !f.listed {
-		problem = tr("Your certificates could not be read.")
+		problem = i18n.Tr("Your certificates could not be read.")
 	}
 	f.identityRow.SetSubtitle(problem)
 	if problem != "" {
@@ -244,10 +245,10 @@ func (f *connectForm) formPort() int {
 
 func (f *connectForm) updateSaveName() {
 	if strings.TrimSpace(f.host.Text()) == "" {
-		f.saveRow.SetSubtitle(tr("Saved as username@address"))
+		f.saveRow.SetSubtitle(i18n.Tr("Saved as username@address"))
 		return
 	}
-	f.saveRow.SetSubtitle(fmt.Sprintf(tr("Saved as %s"),
+	f.saveRow.SetSubtitle(fmt.Sprintf(i18n.Tr("Saved as %s"),
 		savedName(strings.TrimSpace(f.user.Text()), strings.TrimSpace(f.host.Text()), f.typedPort())))
 }
 
@@ -307,7 +308,7 @@ func (c *Controller) connectFromForm(dialog *adw.Dialog, f *connectForm) {
 		if err != nil {
 			// Never connect anonymously instead of with the chosen certificate.
 			slog.Warn("connect: certificate not loaded", "id", f.idList[sel-1].ID, "err", err)
-			f.identityNote(tr("This certificate could not be loaded."))
+			f.identityNote(i18n.Tr("This certificate could not be loaded."))
 			return
 		}
 		identity = id

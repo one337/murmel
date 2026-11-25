@@ -22,6 +22,7 @@ import (
 	"github.com/one337/murmel/internal/audio/engine"
 	"github.com/one337/murmel/internal/bus"
 	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui"
 	"github.com/one337/murmel/internal/ui/avatarpick"
@@ -54,7 +55,7 @@ type Shortcuts interface {
 // New constructs the preferences dialog. It does not present itself.
 func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
 	pw := adw.NewPreferencesDialog()
-	pw.SetTitle(tr("Preferences"))
+	pw.SetTitle(i18n.Tr("Preferences"))
 	pw.SetSearchEnabled(false)
 
 	identity, _ := identityPage(st, m, pw)
@@ -110,13 +111,13 @@ func onClose(d *adw.PreferencesDialog, f func()) {
 // certificate list, which lives as long as pw.
 func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesDialog) (*adw.PreferencesPage, *certList) {
 	page := adw.NewPreferencesPage()
-	page.SetTitle(tr("Identity"))
+	page.SetTitle(i18n.Tr("Identity"))
 	page.SetName("identity")
 	page.SetIconName("system-users-symbolic")
 
 	// Default avatar: sent on every connection that has no own avatar.
 	avatars := avatarpick.NewStore(filepath.Join(m.DataDir(), "avatars"))
-	avatarRow := avatarpick.NewRow(tr("Default avatar"), "", tr("Optional — sent to servers for connections without their own avatar"),
+	avatarRow := avatarpick.NewRow(i18n.Tr("Default avatar"), "", i18n.Tr("Optional — sent to servers for connections without their own avatar"),
 		func(data []byte) {
 			if err := avatars.Save(avatarpick.DefaultKey, data); err != nil {
 				slog.Info("prefs: default avatar not saved", "err", err)
@@ -124,7 +125,7 @@ func identityPage(st settings.Settings, m *certs.Manager, pw *adw.PreferencesDia
 		})
 	avatarRow.SetData(avatars.Load(avatarpick.DefaultKey))
 	avatarGroup := adw.NewPreferencesGroup()
-	avatarGroup.SetTitle(tr("Avatar"))
+	avatarGroup.SetTitle(i18n.Tr("Avatar"))
 	avatarGroup.Add(avatarRow)
 	page.Add(avatarGroup)
 
@@ -155,8 +156,8 @@ type certList struct {
 
 func (c *certList) defaultGroup() *adw.PreferencesGroup {
 	c.combo = adw.NewComboRow()
-	c.combo.SetTitle(tr("Default identity"))
-	c.combo.SetSubtitle(tr("Used for new connections"))
+	c.combo.SetTitle(i18n.Tr("Default identity"))
+	c.combo.SetSubtitle(i18n.Tr("Used for new connections"))
 	coreglib.InternObject(c.combo).NotifyProperty("selected", c.on(func(c *certList) {
 		if c.syncing {
 			return
@@ -169,18 +170,18 @@ func (c *certList) defaultGroup() *adw.PreferencesGroup {
 		c.st.SetLastIdentity(c.identities[sel-1].ID)
 	}))
 	g := adw.NewPreferencesGroup()
-	g.SetTitle(tr("Client Certificate"))
+	g.SetTitle(i18n.Tr("Client Certificate"))
 	g.Add(c.combo)
 	return g
 }
 
 func (c *certList) listGroup() *adw.PreferencesGroup {
 	c.group = adw.NewPreferencesGroup()
-	c.group.SetTitle(tr("Certificates"))
-	c.group.SetDescription(tr("Servers recognize registered accounts by their certificate. Keep a backup of the ones you use."))
+	c.group.SetTitle(i18n.Tr("Certificates"))
+	c.group.SetDescription(i18n.Tr("Servers recognize registered accounts by their certificate. Keep a backup of the ones you use."))
 
-	create := gtk.NewButtonWithLabel(tr("Create…"))
-	create.SetTooltipText(tr("Create a new certificate"))
+	create := gtk.NewButtonWithLabel(i18n.Tr("Create…"))
+	create.SetTooltipText(i18n.Tr("Create a new certificate"))
 	ws := c.self
 	create.ConnectClicked(c.on(func(c *certList) {
 		c.pw.Do(func(pw *adw.PreferencesDialog) {
@@ -192,19 +193,19 @@ func (c *certList) listGroup() *adw.PreferencesGroup {
 			})
 		})
 	}))
-	imp := gtk.NewButtonWithLabel(tr("Import…"))
-	imp.SetTooltipText(tr("Load a PEM file with certificate and private key"))
+	imp := gtk.NewButtonWithLabel(i18n.Tr("Import…"))
+	imp.SetTooltipText(i18n.Tr("Load a PEM file with certificate and private key"))
 	imp.ConnectClicked(c.on(func(c *certList) {
 		c.pw.Do(func(pw *adw.PreferencesDialog) {
 			identities.Import(pw, c.m, func(meta certs.IdentityMeta) {
 				if c := ws.Value(); c != nil {
 					c.st.SetLastIdentity(meta.ID)
 					c.refresh()
-					c.toast(fmt.Sprintf(tr("Imported identity %s"), meta.Name))
+					c.toast(fmt.Sprintf(i18n.Tr("Imported identity %s"), meta.Name))
 				}
 			}, func(err error) {
 				if c := ws.Value(); c != nil {
-					c.toast(fmt.Sprintf(tr("Import failed: %v"), err))
+					c.toast(fmt.Sprintf(i18n.Tr("Import failed: %v"), err))
 				}
 			})
 		})
@@ -227,7 +228,7 @@ func (c *certList) refresh() {
 	c.identities = list
 
 	c.syncing = true
-	names := []string{tr("Anonymous")}
+	names := []string{i18n.Tr("Anonymous")}
 	selected := uint(0)
 	for i, meta := range list {
 		names = append(names, meta.Name)
@@ -241,10 +242,10 @@ func (c *certList) refresh() {
 	// Unreadable certificates: the default stays as it is.
 	c.combo.SetSensitive(err == nil)
 	if err != nil {
-		c.combo.SetSubtitle(tr("Your certificates could not be read."))
+		c.combo.SetSubtitle(i18n.Tr("Your certificates could not be read."))
 		c.combo.AddCSSClass("error")
 	} else {
-		c.combo.SetSubtitle(tr("Used for new connections"))
+		c.combo.SetSubtitle(i18n.Tr("Used for new connections"))
 		c.combo.RemoveCSSClass("error")
 	}
 
@@ -255,7 +256,7 @@ func (c *certList) refresh() {
 	if err != nil {
 		unreadable := adw.NewActionRow()
 		unreadable.SetUseMarkup(false) // the error names a path
-		unreadable.SetTitle(tr("Your certificates could not be read."))
+		unreadable.SetTitle(i18n.Tr("Your certificates could not be read."))
 		unreadable.SetSubtitle(err.Error())
 		unreadable.AddPrefix(gtk.NewImageFromIconName("dialog-warning-symbolic"))
 		unreadable.AddCSSClass("error")
@@ -264,8 +265,8 @@ func (c *certList) refresh() {
 	}
 	if len(list) == 0 {
 		empty := adw.NewActionRow()
-		empty.SetTitle(tr("No certificates yet"))
-		empty.SetSubtitle(tr("Without one you connect anonymously and cannot register on servers."))
+		empty.SetTitle(i18n.Tr("No certificates yet"))
+		empty.SetSubtitle(i18n.Tr("Without one you connect anonymously and cannot register on servers."))
 		c.add(empty)
 		return
 	}
@@ -306,7 +307,7 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	row := adw.NewActionRow()
 	row.SetUseMarkup(false) // name and e-mail may come from an imported certificate
 	row.SetTitle(meta.Name)
-	sub := fmt.Sprintf(tr("Created %s"), clock.Date(meta.Created))
+	sub := fmt.Sprintf(i18n.Tr("Created %s"), clock.Date(meta.Created))
 	if ident, err := c.m.Load(meta.ID); err == nil && ident.Certificate != nil {
 		sub += " · " + shortFingerprint(certs.Fingerprint(ident.Certificate))
 	}
@@ -319,7 +320,7 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	export := gtk.NewButtonFromIconName("document-save-symbolic")
 	export.AddCSSClass("flat")
 	export.SetVAlign(gtk.AlignCenter)
-	export.SetTooltipText(tr("Export (back up) as PEM, including the private key"))
+	export.SetTooltipText(i18n.Tr("Export (back up) as PEM, including the private key"))
 	export.ConnectClicked(c.on(func(c *certList) {
 		c.pw.Do(func(pw *adw.PreferencesDialog) {
 			identities.Export(pw, c.m, meta, func(exposed bool, err error) {
@@ -333,7 +334,7 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 	del := gtk.NewButtonFromIconName("user-trash-symbolic")
 	del.AddCSSClass("flat")
 	del.SetVAlign(gtk.AlignCenter)
-	del.SetTooltipText(tr("Delete certificate"))
+	del.SetTooltipText(i18n.Tr("Delete certificate"))
 	del.ConnectClicked(c.on(func(c *certList) { c.confirmDelete(meta) }))
 	row.AddSuffix(export)
 	row.AddSuffix(del)
@@ -343,17 +344,17 @@ func (c *certList) certRow(meta certs.IdentityMeta) *adw.ActionRow {
 // exportResult is the toast after exporting meta.
 func exportResult(meta certs.IdentityMeta, err error) string {
 	if err != nil {
-		return fmt.Sprintf(tr("Export failed: %v"), err)
+		return fmt.Sprintf(i18n.Tr("Export failed: %v"), err)
 	}
-	return fmt.Sprintf(tr("Exported identity %s"), meta.Name)
+	return fmt.Sprintf(i18n.Tr("Exported identity %s"), meta.Name)
 }
 
 func (c *certList) confirmDelete(meta certs.IdentityMeta) {
 	ws := c.self
-	alert := adw.NewAlertDialog(fmt.Sprintf(tr("Delete “%s”?"), meta.Name),
-		tr("Servers on which you registered with this certificate will no longer recognize you. Export it first if you might need it again. This cannot be undone."))
-	alert.AddResponse("cancel", tr("Cancel"))
-	alert.AddResponse("delete", tr("Delete"))
+	alert := adw.NewAlertDialog(fmt.Sprintf(i18n.Tr("Delete “%s”?"), meta.Name),
+		i18n.Tr("Servers on which you registered with this certificate will no longer recognize you. Export it first if you might need it again. This cannot be undone."))
+	alert.AddResponse("cancel", i18n.Tr("Cancel"))
+	alert.AddResponse("delete", i18n.Tr("Delete"))
 	alert.SetResponseAppearance("delete", adw.ResponseDestructive)
 	alert.SetDefaultResponse("cancel")
 	alert.SetCloseResponse("cancel")
@@ -363,14 +364,14 @@ func (c *certList) confirmDelete(meta certs.IdentityMeta) {
 			return
 		}
 		if err := c.m.Delete(meta.ID); err != nil {
-			c.toast(fmt.Sprintf(tr("Delete failed: %v"), err))
+			c.toast(fmt.Sprintf(i18n.Tr("Delete failed: %v"), err))
 			return
 		}
 		if c.st.LastIdentity() == meta.ID {
 			c.st.SetLastIdentity("")
 		}
 		c.refresh()
-		c.toast(fmt.Sprintf(tr("Deleted identity %s"), meta.Name))
+		c.toast(fmt.Sprintf(i18n.Tr("Deleted identity %s"), meta.Name))
 	})
 	c.pw.Do(func(pw *adw.PreferencesDialog) { alert.Present(pw) })
 }
@@ -389,19 +390,19 @@ func shortFingerprint(fp string) string {
 
 func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.PreferencesDialog) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
-	page.SetTitle(tr("Audio Input"))
+	page.SetTitle(i18n.Tr("Audio Input"))
 	page.SetName("audio-input")
 	page.SetIconName("audio-input-microphone-symbolic")
 
 	devGroup := adw.NewPreferencesGroup()
-	devGroup.SetTitle(tr("Capture Device"))
-	devGroup.Add(deviceComboRow(tr("Device"), true, st.AudioInputDevice,
+	devGroup.SetTitle(i18n.Tr("Capture Device"))
+	devGroup.Add(deviceComboRow(i18n.Tr("Device"), true, st.AudioInputDevice,
 		st.SetAudioInputDevice))
 
 	noise := adw.NewComboRow()
-	noise.SetTitle(tr("Noise Suppression"))
-	noise.SetSubtitle(tr("Removes steady background noise such as fans, hum or traffic from your voice"))
-	noise.SetModel(gtk.NewStringList([]string{tr("Off"), tr("Low"), tr("Moderate"), tr("High"), tr("Very High")}))
+	noise.SetTitle(i18n.Tr("Noise Suppression"))
+	noise.SetSubtitle(i18n.Tr("Removes steady background noise such as fans, hum or traffic from your voice"))
+	noise.SetModel(gtk.NewStringList([]string{i18n.Tr("Off"), i18n.Tr("Low"), i18n.Tr("Moderate"), i18n.Tr("High"), i18n.Tr("Very High")}))
 	noise.SetSelected(uint(min(4, max(0, st.NoiseSuppression()))))
 	onNotify(noise, "selected", func(noise *adw.ComboRow) {
 		st.SetNoiseSuppression(int(noise.Selected()))
@@ -409,8 +410,8 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	devGroup.Add(noise)
 
 	echo := adw.NewSwitchRow()
-	echo.SetTitle(tr("Echo Cancellation"))
-	echo.SetSubtitle(tr("For speakers instead of a headset: keeps the others from hearing themselves through your microphone"))
+	echo.SetTitle(i18n.Tr("Echo Cancellation"))
+	echo.SetSubtitle(i18n.Tr("For speakers instead of a headset: keeps the others from hearing themselves through your microphone"))
 	echo.SetActive(st.EchoCancellation())
 	onNotify(echo, "active", func(echo *adw.SwitchRow) {
 		st.SetEchoCancellation(echo.Active())
@@ -420,8 +421,8 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	// When the microphone is sent.
 	modes := []string{"voice-activation", "push-to-talk", "continuous"}
 	modeRow := adw.NewComboRow()
-	modeRow.SetTitle(tr("Transmit"))
-	modeRow.SetModel(gtk.NewStringList([]string{tr("On Voice Activity"), tr("Push-to-Talk"), tr("Continuously")}))
+	modeRow.SetTitle(i18n.Tr("Transmit"))
+	modeRow.SetModel(gtk.NewStringList([]string{i18n.Tr("On Voice Activity"), i18n.Tr("Push-to-Talk"), i18n.Tr("Continuously")}))
 	for i, m := range modes {
 		if m == st.TransmissionMode() {
 			modeRow.SetSelected(uint(i))
@@ -437,9 +438,9 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 		case "push-to-talk":
 			modeRow.SetSubtitle(pushToTalkHint(sc))
 		case "continuous":
-			modeRow.SetSubtitle(tr("All the time, whatever the level"))
+			modeRow.SetSubtitle(i18n.Tr("All the time, whatever the level"))
 		default:
-			modeRow.SetSubtitle(tr("When your voice is louder than the activation threshold"))
+			modeRow.SetSubtitle(i18n.Tr("When your voice is louder than the activation threshold"))
 		}
 	}
 	modeHint()
@@ -447,11 +448,11 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 		onClose(pw, sc.OnChange(modeHint))
 	}
 	modeGroup := adw.NewPreferencesGroup()
-	modeGroup.SetTitle(tr("Sending"))
+	modeGroup.SetTitle(i18n.Tr("Sending"))
 	modeGroup.Add(modeRow)
 
 	vadGroup := adw.NewPreferencesGroup()
-	vadGroup.SetTitle(tr("Voice Detection"))
+	vadGroup.SetTitle(i18n.Tr("Voice Detection"))
 	// The threshold only matters for voice activation.
 	vadGroup.SetVisible(st.TransmissionMode() == "voice-activation")
 	onNotify(modeRow, "selected", func(modeRow *adw.ComboRow) {
@@ -462,13 +463,13 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 		}
 	})
 
-	vadGroup.SetDescription(tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Without a connection the meter tests the selected microphone."))
+	vadGroup.SetDescription(i18n.Tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Without a connection the meter tests the selected microphone."))
 	meterBox := gtk.NewBox(gtk.OrientationVertical, 6)
 	meterBox.SetMarginTop(12)
 	meterBox.SetMarginBottom(12)
 	meterBox.SetMarginStart(12)
 	meterBox.SetMarginEnd(12)
-	title := gtk.NewLabel(tr("Activation Threshold"))
+	title := gtk.NewLabel(i18n.Tr("Activation Threshold"))
 	title.SetXAlign(0)
 	meterBox.Append(title)
 	meterBox.Append(levelmeter.New(st, b).Root())
@@ -480,11 +481,11 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	// Audio per packet: the official client's "Audio per packet" setting.
 	packetSizes := []int{1, 2, 4, 6} // 10 ms frames
 	packetRow := adw.NewComboRow()
-	packetRow.SetTitle(tr("Audio per packet"))
-	packetRow.SetSubtitle(tr("Longer packets need less bandwidth but add delay. Default: 20 ms"))
+	packetRow.SetTitle(i18n.Tr("Audio per packet"))
+	packetRow.SetSubtitle(i18n.Tr("Longer packets need less bandwidth but add delay. Default: 20 ms"))
 	labels := make([]string, len(packetSizes))
 	for i, n := range packetSizes {
-		labels[i] = fmt.Sprintf(tr("%d ms"), n*10)
+		labels[i] = fmt.Sprintf(i18n.Tr("%d ms"), n*10)
 	}
 	packetRow.SetModel(gtk.NewStringList(labels))
 	for i, n := range packetSizes {
@@ -494,7 +495,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 	}
 	// Quality: the Opus bitrate, like the official client's "Quality".
 	quality := adw.NewSpinRow(gtk.NewAdjustment(float64(st.AudioQuality()), 32, 192, 1, 8, 0), 8, 0)
-	quality.SetTitle(tr("Quality (kb/s)"))
+	quality.SetTitle(i18n.Tr("Quality (kb/s)"))
 	qualityRef := weakref.New(quality)
 	updateQualityHint := func() {
 		quality, ok := qualityRef.Get()
@@ -503,7 +504,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 		}
 		total := engine.NetworkBandwidth(st.AudioQuality()*1000, st.AudioPacketFrames())
 		quality.SetSubtitle(fmt.Sprintf(
-			tr("Needs about %.1f kb/s including network overhead. Servers with a lower limit reduce it automatically. Default: 40 kb/s"),
+			i18n.Tr("Needs about %.1f kb/s including network overhead. Servers with a lower limit reduce it automatically. Default: 40 kb/s"),
 			float64(total)/1000))
 	}
 	updateQualityHint()
@@ -519,7 +520,7 @@ func audioInputPage(st settings.Settings, b *bus.Bus, sc Shortcuts, pw *adw.Pref
 		}
 	})
 	txGroup := adw.NewPreferencesGroup()
-	txGroup.SetTitle(tr("Transmission"))
+	txGroup.SetTitle(i18n.Tr("Transmission"))
 	txGroup.Add(quality)
 	txGroup.Add(packetRow)
 
@@ -535,22 +536,22 @@ func pushToTalkHint(sc Shortcuts) string {
 	if sc != nil {
 		for _, b := range sc.Bindings() {
 			if b.ID == shortcuts.PushToTalk && b.Trigger != "" {
-				return fmt.Sprintf(tr("While %s is held"), b.Label())
+				return fmt.Sprintf(i18n.Tr("While %s is held"), b.Label())
 			}
 		}
 		if available, known := sc.Available(); known && !available {
-			return tr("Your desktop offers no global shortcuts, so push-to-talk has no key")
+			return i18n.Tr("Your desktop offers no global shortcuts, so push-to-talk has no key")
 		}
 	}
-	return tr("No key yet: set it up under General → Global Shortcuts")
+	return i18n.Tr("No key yet: set it up under General → Global Shortcuts")
 }
 
 // shortcutsGroup lists the global shortcuts with the keys the desktop
 // assigned, and a button that opens the desktop's dialog to set them.
 func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesDialog) *adw.PreferencesGroup {
 	group := adw.NewPreferencesGroup()
-	group.SetTitle(tr("Global Shortcuts"))
-	group.SetDescription(tr("Work while another window has the focus. The keys are assigned in your desktop's dialog."))
+	group.SetTitle(i18n.Tr("Global Shortcuts"))
+	group.SetDescription(i18n.Tr("Work while another window has the focus. The keys are assigned in your desktop's dialog."))
 	button := gtk.NewButton()
 	button.AddCSSClass("flat")
 	button.SetVAlign(gtk.AlignCenter)
@@ -571,12 +572,12 @@ func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesDialog) *adw.PreferencesGro
 		available, known := sc.Available()
 		switch {
 		case known && !available:
-			group.SetDescription(tr("Your desktop offers no global shortcuts (Global Shortcuts portal)."))
+			group.SetDescription(i18n.Tr("Your desktop offers no global shortcuts (Global Shortcuts portal)."))
 			button.SetVisible(false)
 		case sc.IsSetUp():
-			button.SetLabel(tr("Change…"))
+			button.SetLabel(i18n.Tr("Change…"))
 		default:
-			button.SetLabel(tr("Set Up…"))
+			button.SetLabel(i18n.Tr("Set Up…"))
 		}
 		button.SetSensitive(available && !sc.Busy())
 		keys := map[string]string{}
@@ -589,7 +590,7 @@ func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesDialog) *adw.PreferencesGro
 				l.RemoveCSSClass("dim-label")
 			} else {
 				l.AddCSSClass("dim-label")
-				l.SetText(tr("Not assigned"))
+				l.SetText(i18n.Tr("Not assigned"))
 			}
 		}
 	}
@@ -602,24 +603,24 @@ func shortcutsGroup(sc Shortcuts, pw *adw.PreferencesDialog) *adw.PreferencesGro
 
 func audioOutputPage(st settings.Settings) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
-	page.SetTitle(tr("Audio Output"))
+	page.SetTitle(i18n.Tr("Audio Output"))
 	page.SetName("audio-output")
 	page.SetIconName("audio-speakers-symbolic")
 
 	devGroup := adw.NewPreferencesGroup()
-	devGroup.SetTitle(tr("Playback Device"))
-	devGroup.Add(deviceComboRow(tr("Device"), false, st.AudioOutputDevice,
+	devGroup.SetTitle(i18n.Tr("Playback Device"))
+	devGroup.Add(deviceComboRow(i18n.Tr("Device"), false, st.AudioOutputDevice,
 		st.SetAudioOutputDevice))
 
 	jitterGroup := adw.NewPreferencesGroup()
-	jitterGroup.SetTitle(tr("Jitter Buffer"))
+	jitterGroup.SetTitle(i18n.Tr("Jitter Buffer"))
 
 	// Shown in milliseconds, stored in 10 ms frames.
 	jitterSpin := adw.NewSpinRow(gtk.NewAdjustment(
 		float64(st.JitterTargetFrames()*10), float64(settings.JitterTargetFramesMin*10),
 		float64(settings.JitterTargetFramesMax*10), 10, 10, 0), 10, 0)
-	jitterSpin.SetTitle(tr("Buffer (ms)"))
-	jitterSpin.SetSubtitle(tr("Raise it if voices stutter on unstable connections; lower values reduce delay. Default: 30 ms"))
+	jitterSpin.SetTitle(i18n.Tr("Buffer (ms)"))
+	jitterSpin.SetSubtitle(i18n.Tr("Raise it if voices stutter on unstable connections; lower values reduce delay. Default: 30 ms"))
 	jitterSpin.SetSnapToTicks(true)
 	onNotify(jitterSpin, "value", func(jitterSpin *adw.SpinRow) {
 		st.SetJitterTargetFrames(int(jitterSpin.Value()+5) / 10)
@@ -635,13 +636,13 @@ func audioOutputPage(st settings.Settings) *adw.PreferencesPage {
 
 func chatPage(st settings.Settings) *adw.PreferencesPage {
 	page := adw.NewPreferencesPage()
-	page.SetTitle(tr("Chat"))
+	page.SetTitle(i18n.Tr("Chat"))
 	page.SetName("chat")
 	page.SetIconName("chat-message-new-symbolic")
 
 	group := adw.NewPreferencesGroup()
-	group.SetTitle(tr("Channel Log"))
-	group.SetDescription(tr("Events shown as faded lines between the messages of the channel chat"))
+	group.SetTitle(i18n.Tr("Channel Log"))
+	group.SetDescription(i18n.Tr("Events shown as faded lines between the messages of the channel chat"))
 	for _, e := range chat.LogEvents {
 		row := adw.NewSwitchRow()
 		row.SetTitle(chat.LogLabel(e))
@@ -673,7 +674,7 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 		return identities.WindowOf(pw)
 	}
 	page := adw.NewPreferencesPage()
-	page.SetTitle(tr("General"))
+	page.SetTitle(i18n.Tr("General"))
 	page.SetName("general")
 	page.SetIconName("preferences-other-symbolic")
 
@@ -681,11 +682,11 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 	page.Add(appearanceGroup(st))
 
 	group := adw.NewPreferencesGroup()
-	group.SetTitle(tr("Connection"))
+	group.SetTitle(i18n.Tr("Connection"))
 
 	reconnectRow := adw.NewSwitchRow()
-	reconnectRow.SetTitle(tr("Auto-reconnect"))
-	reconnectRow.SetSubtitle(tr("Reconnect automatically after a connection drop"))
+	reconnectRow.SetTitle(i18n.Tr("Auto-reconnect"))
+	reconnectRow.SetSubtitle(i18n.Tr("Reconnect automatically after a connection drop"))
 	reconnectRow.SetActive(st.AutoReconnect())
 	onNotify(reconnectRow, "active", func(reconnectRow *adw.SwitchRow) {
 		st.SetAutoReconnect(reconnectRow.Active())
@@ -695,8 +696,8 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 	// Which events notify; whether notifications show at all is the
 	// desktop's setting (Settings → Notifications).
 	notifGroup := adw.NewPreferencesGroup()
-	notifGroup.SetTitle(tr("Desktop Notifications"))
-	notifGroup.SetDescription(tr("While Murmel is not in the foreground"))
+	notifGroup.SetTitle(i18n.Tr("Desktop Notifications"))
+	notifGroup.SetDescription(i18n.Tr("While Murmel is not in the foreground"))
 	notify := func(title, subtitle string, get func() bool, set func(bool)) {
 		row := adw.NewSwitchRow()
 		row.SetTitle(title)
@@ -705,17 +706,17 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 		onNotify(row, "active", func(row *adw.SwitchRow) { set(row.Active()) })
 		notifGroup.Add(row)
 	}
-	notify(tr("Private messages"), tr("When someone writes to you directly"),
+	notify(i18n.Tr("Private messages"), i18n.Tr("When someone writes to you directly"),
 		st.NotifyPrivateMessages, st.SetNotifyPrivateMessages)
-	notify(tr("Users in my channel"), tr("When someone joins or leaves your channel"),
+	notify(i18n.Tr("Users in my channel"), i18n.Tr("When someone joins or leaves your channel"),
 		st.NotifyChannelPresence, st.SetNotifyChannelPresence)
-	notify(tr("Users on the server"), tr("When someone connects to or disconnects from the server"),
+	notify(i18n.Tr("Users on the server"), i18n.Tr("When someone connects to or disconnects from the server"),
 		st.NotifyServerPresence, st.SetNotifyServerPresence)
-	notify(tr("Reconnected"), tr("When the connection is restored after a drop"),
+	notify(i18n.Tr("Reconnected"), i18n.Tr("When the connection is restored after a drop"),
 		st.NotifyReconnect, st.SetNotifyReconnect)
 
 	soundGroup := adw.NewPreferencesGroup()
-	soundGroup.SetTitle(tr("Sounds"))
+	soundGroup.SetTitle(i18n.Tr("Sounds"))
 	soundGroup.Add(soundsRow(st, player, parent, pwRef, soundsDir))
 
 	page.Add(group)
@@ -745,7 +746,7 @@ func deviceComboRow(title string, capture bool,
 	row.SetTitle(title)
 
 	var infos []device.Info
-	names := []string{tr("System default")}
+	names := []string{i18n.Tr("System default")}
 
 	if list, err := device.GetDevices(); err == nil {
 		if capture {
@@ -789,9 +790,9 @@ var colorSchemes = []string{"system", "light", "dark"}
 func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
 	row := adw.NewComboRow()
 	// TRANSLATORS: Appearance setting: light, dark or the system's color scheme.
-	row.SetTitle(tr("Style"))
-	row.SetSubtitle(tr("Light or dark; Follow System uses the desktop's setting"))
-	row.SetModel(gtk.NewStringList([]string{tr("Follow System"), tr("Light"), tr("Dark")}))
+	row.SetTitle(i18n.Tr("Style"))
+	row.SetSubtitle(i18n.Tr("Light or dark; Follow System uses the desktop's setting"))
+	row.SetModel(gtk.NewStringList([]string{i18n.Tr("Follow System"), i18n.Tr("Light"), i18n.Tr("Dark")}))
 	for i, v := range colorSchemes {
 		if v == st.ColorScheme() {
 			row.SetSelected(uint(i))
@@ -803,7 +804,7 @@ func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
 		}
 	})
 	group := adw.NewPreferencesGroup()
-	group.SetTitle(tr("Appearance"))
+	group.SetTitle(i18n.Tr("Appearance"))
 	group.Add(row)
 	return group
 }
@@ -812,13 +813,13 @@ func appearanceGroup(st settings.Settings) *adw.PreferencesGroup {
 // English when Murmel has no translation for it). Applies on restart.
 func languageGroup(st settings.Settings, pw *adw.PreferencesDialog) *adw.PreferencesGroup {
 	codes := append([]string{"", "en"}, ui.Languages()...)
-	names := []string{tr("Follow System"), ui.LanguageName("en")}
+	names := []string{i18n.Tr("Follow System"), ui.LanguageName("en")}
 	for _, c := range codes[2:] {
 		names = append(names, ui.LanguageName(c))
 	}
 	row := adw.NewComboRow()
-	row.SetTitle(tr("Language"))
-	row.SetSubtitle(tr("Follow System uses the desktop's language, or English if Murmel has no translation for it"))
+	row.SetTitle(i18n.Tr("Language"))
+	row.SetSubtitle(i18n.Tr("Follow System uses the desktop's language, or English if Murmel has no translation for it"))
 	row.SetModel(gtk.NewStringList(names))
 	for i, c := range codes {
 		if c == st.Language() {
@@ -833,7 +834,7 @@ func languageGroup(st settings.Settings, pw *adw.PreferencesDialog) *adw.Prefere
 		}
 		st.SetLanguage(codes[i])
 		pwRef.Do(func(pw *adw.PreferencesDialog) {
-			pw.AddToast(adw.NewToast(tr("Restart Murmel to use the new language.")))
+			pw.AddToast(adw.NewToast(i18n.Tr("Restart Murmel to use the new language.")))
 		})
 	})
 	group := adw.NewPreferencesGroup()

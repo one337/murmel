@@ -22,6 +22,7 @@ import (
 	"github.com/one337/murmel/internal/audio/engine"
 	"github.com/one337/murmel/internal/bus"
 	"github.com/one337/murmel/internal/certs"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/protocol/gumble"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui"
@@ -190,7 +191,7 @@ func (c *Controller) showConnectDialog(req ui.ConnectRequest) {
 // long as the dialog.
 func (c *Controller) newConnectDialog(req ui.ConnectRequest) (*adw.Dialog, *connectForm, *savedList) {
 	dialog := adw.NewDialog()
-	dialog.SetTitle(tr("Connect to Server"))
+	dialog.SetTitle(i18n.Tr("Connect to Server"))
 	dialog.SetContentWidth(connectDialogWidth)
 
 	dialogCtx, closeDialogCtx := context.WithCancel(c.appCtx)
@@ -228,9 +229,9 @@ func (c *Controller) newConnectDialog(req ui.ConnectRequest) (*adw.Dialog, *conn
 	scroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
 	scroll.SetPropagateNaturalHeight(true)
 
-	connectBtn := gtk.NewButtonWithLabel(tr("Connect"))
+	connectBtn := gtk.NewButtonWithLabel(i18n.Tr("Connect"))
 	connectBtn.AddCSSClass("suggested-action")
-	cancelBtn := gtk.NewButtonWithLabel(tr("Cancel"))
+	cancelBtn := gtk.NewButtonWithLabel(i18n.Tr("Cancel"))
 
 	hdr := adw.NewHeaderBar()
 	hdr.PackStart(cancelBtn)
@@ -251,7 +252,7 @@ func (c *Controller) newConnectDialog(req ui.ConnectRequest) (*adw.Dialog, *conn
 			if port != ui.DefaultPort {
 				shown = net.JoinHostPort(host, strconv.Itoa(port))
 			}
-			banner.SetTitle(fmt.Sprintf(tr("Connected to %s. Connecting to another server ends this connection."), shown))
+			banner.SetTitle(fmt.Sprintf(i18n.Tr("Connected to %s. Connecting to another server ends this connection."), shown))
 		}
 		if saved != nil {
 			saved.markConnected(host, port, user, ok)
@@ -327,13 +328,13 @@ func (c *Controller) saveServer(e settings.ServerEntry, password string) {
 // Import failures are shown as an alert on top of parent.
 func (c *Controller) pickCertificateFile(parent *adw.Dialog, onImported func(certs.IdentityMeta)) {
 	pem := gtk.NewFileFilter()
-	pem.SetName(tr("PEM Certificates"))
+	pem.SetName(i18n.Tr("PEM Certificates"))
 	pem.AddSuffix("pem")
 	pem.AddSuffix("crt")
 	pem.AddSuffix("key")
 	pem.AddMIMEType("application/x-pem-file")
 	all := gtk.NewFileFilter()
-	all.SetName(tr("All Files"))
+	all.SetName(i18n.Tr("All Files"))
 	all.AddPattern("*")
 
 	filters := gio.NewListStore(gtk.GTypeFileFilter)
@@ -341,7 +342,7 @@ func (c *Controller) pickCertificateFile(parent *adw.Dialog, onImported func(cer
 	filters.Append(all.Object)
 
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(tr("Select User Certificate"))
+	fd.SetTitle(i18n.Tr("Select User Certificate"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(pem)
@@ -359,9 +360,9 @@ func (c *Controller) pickCertificateFile(parent *adw.Dialog, onImported func(cer
 		identities.ImportFile(gfileio.ForWidget(parent), c.certs, file, func(ident *certs.Identity, err error) {
 			if err != nil {
 				slog.Info("certificate import failed", "file", file.Basename(), "err", err)
-				alert := adw.NewAlertDialog(tr("Certificate Import Failed"),
-					fmt.Sprintf(tr("The file could not be imported: %v"), err))
-				alert.AddResponse("ok", tr("OK"))
+				alert := adw.NewAlertDialog(i18n.Tr("Certificate Import Failed"),
+					fmt.Sprintf(i18n.Tr("The file could not be imported: %v"), err))
+				alert.AddResponse("ok", i18n.Tr("OK"))
 				alert.Present(parent)
 				return
 			}
@@ -595,20 +596,20 @@ func (c *Controller) onDialError(err error, p *dialParams, a attempt) {
 // with another certificate (or a password) and offers the ways out:
 // change the name or certificate, or log in with the account's password.
 func (c *Controller) promptRegisteredName(p *dialParams, a attempt) {
-	body := fmt.Sprintf(tr("The name %s is registered on this server, and the server does not recognize you as its owner. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username)
+	body := fmt.Sprintf(i18n.Tr("The name %s is registered on this server, and the server does not recognize you as its owner. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username)
 	if p.identity != nil {
-		body = fmt.Sprintf(tr("The name %s is registered on this server with a different certificate than %s. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username, p.identity.Meta.Name)
+		body = fmt.Sprintf(i18n.Tr("The name %s is registered on this server with a different certificate than %s. Connect with the certificate the name was registered with, choose another name, or enter the account's password if it has one."), p.username, p.identity.Meta.Name)
 	}
 	entry := adw.NewPasswordEntryRow()
-	entry.SetTitle(tr("Account password"))
+	entry.SetTitle(i18n.Tr("Account password"))
 	group := adw.NewPreferencesGroup()
 	group.Add(entry)
 
-	alert := adw.NewAlertDialog(tr("Name Already Registered"), body)
+	alert := adw.NewAlertDialog(i18n.Tr("Name Already Registered"), body)
 	alert.SetExtraChild(group)
-	alert.AddResponse("cancel", tr("Cancel"))
-	alert.AddResponse("change", tr("Change Name or Certificate…"))
-	alert.AddResponse("password", tr("Log In with Password"))
+	alert.AddResponse("cancel", i18n.Tr("Cancel"))
+	alert.AddResponse("change", i18n.Tr("Change Name or Certificate…"))
+	alert.AddResponse("password", i18n.Tr("Log In with Password"))
 	alert.SetResponseAppearance("password", adw.ResponseSuggested)
 	alert.SetResponseEnabled("password", false)
 	alert.SetDefaultResponse("change")
@@ -654,21 +655,21 @@ func (c *Controller) promptRegisteredName(p *dialParams, a attempt) {
 // "Remember password" the password goes to the keyring once the server
 // accepts it.
 func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool) {
-	heading := tr("Password Required")
-	body := tr("This server is protected by a password.")
+	heading := i18n.Tr("Password Required")
+	body := i18n.Tr("This server is protected by a password.")
 	if userPassword {
-		body = fmt.Sprintf(tr("The server needs the password for the user %s."), p.username)
+		body = fmt.Sprintf(i18n.Tr("The server needs the password for the user %s."), p.username)
 	}
 	if p.password != "" {
-		heading = tr("Wrong Password")
-		body = tr("The server did not accept the password. Please try again.")
+		heading = i18n.Tr("Wrong Password")
+		body = i18n.Tr("The server did not accept the password. Please try again.")
 	}
 
 	entry := adw.NewPasswordEntryRow()
-	entry.SetTitle(tr("Password"))
+	entry.SetTitle(i18n.Tr("Password"))
 	remember := adw.NewSwitchRow()
-	remember.SetTitle(tr("Remember Password"))
-	remember.SetSubtitle(tr("Stored in your keyring"))
+	remember.SetTitle(i18n.Tr("Remember Password"))
+	remember.SetSubtitle(i18n.Tr("Stored in your keyring"))
 	remember.SetActive(true)
 	group := adw.NewPreferencesGroup()
 	group.Add(entry)
@@ -676,8 +677,8 @@ func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool)
 
 	alert := adw.NewAlertDialog(heading, body)
 	alert.SetExtraChild(group)
-	alert.AddResponse("cancel", tr("Cancel"))
-	alert.AddResponse("connect", tr("Connect"))
+	alert.AddResponse("cancel", i18n.Tr("Cancel"))
+	alert.AddResponse("connect", i18n.Tr("Connect"))
 	alert.SetResponseAppearance("connect", adw.ResponseSuggested)
 	alert.SetDefaultResponse("connect")
 	alert.SetCloseResponse("cancel")
@@ -843,7 +844,7 @@ func (c *Controller) scheduleReconnect(p *dialParams) {
 			c.mu.Lock()
 			a, _ := c.beginAttemptLocked()
 			c.mu.Unlock()
-			c.appBus.Emit(bus.ConnectError{Text: tr("Reconnecting…")})
+			c.appBus.Emit(bus.ConnectError{Text: i18n.Tr("Reconnecting…")})
 			c.appBus.Emit(bus.ConnectionStarting{Reconnect: true})
 			go c.dial(p, a)
 			return false
@@ -1098,10 +1099,10 @@ func (c *Controller) promptMissingCertificate() {
 		c.certPromptOpen = false
 		c.mu.Unlock()
 	}
-	alert := adw.NewAlertDialog(tr("Certificate Required"),
-		tr("The server needs a certificate for this, for example to register your account. Create one now? Murmel then reconnects with it."))
-	alert.AddResponse("cancel", tr("Cancel"))
-	alert.AddResponse("create", tr("Create Certificate…"))
+	alert := adw.NewAlertDialog(i18n.Tr("Certificate Required"),
+		i18n.Tr("The server needs a certificate for this, for example to register your account. Create one now? Murmel then reconnects with it."))
+	alert.AddResponse("cancel", i18n.Tr("Cancel"))
+	alert.AddResponse("create", i18n.Tr("Create Certificate…"))
 	alert.SetResponseAppearance("create", adw.ResponseSuggested)
 	alert.SetDefaultResponse("create")
 	alert.SetCloseResponse("cancel")
@@ -1148,16 +1149,16 @@ func (c *Controller) promptChannelPassword(channelID uint32) {
 		name = ch.Name
 	}
 	entry := adw.NewPasswordEntryRow()
-	entry.SetTitle(tr("Password"))
+	entry.SetTitle(i18n.Tr("Password"))
 	group := adw.NewPreferencesGroup()
 	group.Add(entry)
 
-	alert := adw.NewAlertDialog(tr("Channel Password"),
-		fmt.Sprintf(tr("The channel %s is protected by a password."), name))
+	alert := adw.NewAlertDialog(i18n.Tr("Channel Password"),
+		fmt.Sprintf(i18n.Tr("The channel %s is protected by a password."), name))
 	alert.SetExtraChild(group)
-	alert.AddResponse("cancel", tr("Cancel"))
+	alert.AddResponse("cancel", i18n.Tr("Cancel"))
 	// TRANSLATORS: Button: join the channel with the password entered.
-	alert.AddResponse("join", tr("Join"))
+	alert.AddResponse("join", i18n.Tr("Join"))
 	alert.SetResponseAppearance("join", adw.ResponseSuggested)
 	alert.SetDefaultResponse("join")
 	alert.SetCloseResponse("cancel")
@@ -1417,20 +1418,20 @@ func (c *Controller) showTOFUDialog(a attempt, stored *certs.ServerEntry, presen
 	changed := stored != nil
 	var heading, body string
 	if changed {
-		heading = tr("Server Certificate Changed")
+		heading = i18n.Tr("Server Certificate Changed")
 		body = fmt.Sprintf(
-			tr("The server's certificate has changed.\n\nPreviously trusted fingerprint (since %s):\n%s\n\nNew fingerprint:\n%s\n\nOnly continue if you trust this certificate."),
+			i18n.Tr("The server's certificate has changed.\n\nPreviously trusted fingerprint (since %s):\n%s\n\nNew fingerprint:\n%s\n\nOnly continue if you trust this certificate."),
 			clock.Date(stored.FirstSeen), fingerprintLines(stored.Fingerprint), fingerprintLines(presented.Fingerprint))
 	} else {
-		heading = tr("New Server Certificate")
+		heading = i18n.Tr("New Server Certificate")
 		body = fmt.Sprintf(
-			tr("This server's certificate has not been seen before.\n\nFingerprint:\n%s\n\nTrust and connect?"),
+			i18n.Tr("This server's certificate has not been seen before.\n\nFingerprint:\n%s\n\nTrust and connect?"),
 			fingerprintLines(presented.Fingerprint))
 	}
 
 	alert := adw.NewAlertDialog(heading, body)
-	alert.AddResponse("abort", tr("Cancel"))
-	alert.AddResponse("trust", tr("Trust and Connect"))
+	alert.AddResponse("abort", i18n.Tr("Cancel"))
+	alert.AddResponse("trust", i18n.Tr("Trust and Connect"))
 	alert.SetCloseResponse("abort")
 	if changed {
 		// Enter must not accept a changed certificate.
@@ -1463,27 +1464,27 @@ func (c *Controller) showErrorDialog(class errorClass, err error) {
 	var heading, body string
 	switch class {
 	case classWrongPassword:
-		heading = tr("Authentication Failed")
-		body = tr("The server rejected the password or credentials.")
+		heading = i18n.Tr("Authentication Failed")
+		body = i18n.Tr("The server rejected the password or credentials.")
 	case classBanned:
-		heading = tr("Banned")
-		body = tr("You are banned from this server.")
+		heading = i18n.Tr("Banned")
+		body = i18n.Tr("You are banned from this server.")
 	case classServerFull:
-		heading = tr("Server Full")
-		body = tr("The server has reached its maximum number of users.")
+		heading = i18n.Tr("Server Full")
+		body = i18n.Tr("The server has reached its maximum number of users.")
 	case classTLSFailure:
-		heading = tr("TLS Handshake Failed")
-		body = fmt.Sprintf(tr("Could not establish a secure connection:\n%s"), err.Error())
+		heading = i18n.Tr("TLS Handshake Failed")
+		body = fmt.Sprintf(i18n.Tr("Could not establish a secure connection:\n%s"), err.Error())
 	case classUnreachable:
-		heading = tr("Server Unreachable")
-		body = fmt.Sprintf(tr("The server could not be reached:\n%s"), unreachableDetail(err))
+		heading = i18n.Tr("Server Unreachable")
+		body = fmt.Sprintf(i18n.Tr("The server could not be reached:\n%s"), unreachableDetail(err))
 	default:
-		heading = tr("Connection Failed")
+		heading = i18n.Tr("Connection Failed")
 		body = err.Error()
 	}
 
 	alert := adw.NewAlertDialog(heading, body)
-	alert.AddResponse("ok", tr("OK"))
+	alert.AddResponse("ok", i18n.Tr("OK"))
 	alert.SetDefaultResponse("ok")
 	alert.Present(c.win)
 }

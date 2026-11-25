@@ -12,6 +12,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
 
@@ -97,7 +98,7 @@ func userPicker(icon, tooltip string, users func() map[uint32]string, skip func(
 		}
 		sort.Slice(all, func(i, j int) bool { return strings.ToLower(all[i].name) < strings.ToLower(all[j].name) })
 		if len(all) == 0 {
-			list.Append(messageRow(tr("No matching registered users. Users must be registered on the server; online ones and those from the user list are shown.")))
+			list.Append(messageRow(i18n.Tr("No matching registered users. Users must be registered on the server; online ones and those from the user list are shown.")))
 			return
 		}
 		for _, u := range all {
@@ -193,11 +194,11 @@ func (p *groupsPage) changed() { p.w.dirty = true }
 func (p *groupsPage) render() {
 	clearBox(p.box)
 	groups := adw.NewPreferencesGroup()
-	groups.SetTitle(tr("Groups"))
-	groups.SetDescription(tr("Groups collect registered users. Rules on the Permissions page can refer to them as @name."))
+	groups.SetTitle(i18n.Tr("Groups"))
+	groups.SetDescription(i18n.Tr("Groups collect registered users. Rules on the Permissions page can refer to them as @name."))
 	if len(p.w.groups) == 0 {
 		empty := adw.NewActionRow()
-		empty.SetTitle(tr("No groups in this channel"))
+		empty.SetTitle(i18n.Tr("No groups in this channel"))
 		empty.AddCSSClass("dim-label")
 		groups.Add(empty)
 	}
@@ -207,7 +208,7 @@ func (p *groupsPage) render() {
 	p.box.Append(groups)
 
 	add := adw.NewEntryRow()
-	add.SetTitle(tr("New group name"))
+	add.SetTitle(i18n.Tr("New group name"))
 	add.SetShowApplyButton(true)
 	addRef := weakref.New(add)
 	add.ConnectApply(p.on(func(p *groupsPage) {
@@ -245,9 +246,9 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 			}
 		}
 	}
-	sub := fmt.Sprintf(trn("%d member", "%d members", members), members)
+	sub := fmt.Sprintf(i18n.TrN("%d member", "%d members", members), members)
 	if g.Inherited {
-		sub = tr("Inherited from the parent channel") + " · " + sub
+		sub = i18n.Tr("Inherited from the parent channel") + " · " + sub
 	}
 	exp.SetSubtitle(sub)
 	exp.SetExpanded(p.expanded[g.Name])
@@ -258,7 +259,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	}))
 
 	if !g.Inherited {
-		exp.AddSuffix(iconButton("user-trash-symbolic", tr("Delete group"), p.on(func(p *groupsPage) {
+		exp.AddSuffix(iconButton("user-trash-symbolic", i18n.Tr("Delete group"), p.on(func(p *groupsPage) {
 			p.w.groups = slices.Delete(p.w.groups, i, i+1)
 			p.changed()
 			p.render()
@@ -266,8 +267,8 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	}
 
 	inherit := adw.NewSwitchRow()
-	inherit.SetTitle(tr("Inherit members"))
-	inherit.SetSubtitle(tr("Members of the same group in the parent channel belong to it too"))
+	inherit.SetTitle(i18n.Tr("Inherit members"))
+	inherit.SetSubtitle(i18n.Tr("Members of the same group in the parent channel belong to it too"))
 	inherit.SetActive(g.InheritUsers)
 	onActive(inherit, p.onBool(func(p *groupsPage, on bool) {
 		p.w.groups[i].InheritUsers = on
@@ -277,8 +278,8 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	exp.AddRow(inherit)
 
 	inheritable := adw.NewSwitchRow()
-	inheritable.SetTitle(tr("Inheritable"))
-	inheritable.SetSubtitle(tr("Sub-channels can use this group"))
+	inheritable.SetTitle(i18n.Tr("Inheritable"))
+	inheritable.SetSubtitle(i18n.Tr("Sub-channels can use this group"))
 	inheritable.SetActive(g.Inheritable)
 	onActive(inheritable, p.onBool(func(p *groupsPage, on bool) {
 		p.w.groups[i].Inheritable = on
@@ -292,7 +293,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 		row.SetTitle(p.userName(u))
 		row.AddPrefix(gtk.NewImageFromIconName("avatar-default-symbolic"))
 		id := u.UserID
-		row.AddSuffix(iconButton("list-remove-symbolic", tr("Remove from group"), p.on(func(p *groupsPage) {
+		row.AddSuffix(iconButton("list-remove-symbolic", i18n.Tr("Remove from group"), p.on(func(p *groupsPage) {
 			p.w.groups[i].UsersAdd = withoutUser(p.w.groups[i].UsersAdd, id)
 			p.changed()
 			p.render()
@@ -308,15 +309,15 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 			id := u.UserID
 			excluded := hasUser(g.UsersRemove, id)
 			if excluded {
-				row.SetSubtitle(tr("Inherited, excluded here"))
+				row.SetSubtitle(i18n.Tr("Inherited, excluded here"))
 				row.AddCSSClass("dim-label")
 			} else {
-				row.SetSubtitle(tr("Inherited from the parent channel"))
+				row.SetSubtitle(i18n.Tr("Inherited from the parent channel"))
 			}
 			sw := gtk.NewSwitch()
 			sw.SetActive(!excluded)
 			sw.SetVAlign(gtk.AlignCenter)
-			sw.SetTooltipText(tr("Member in this channel"))
+			sw.SetTooltipText(i18n.Tr("Member in this channel"))
 			onActive(sw, p.onBool(func(p *groupsPage, on bool) {
 				if on {
 					p.w.groups[i].UsersRemove = withoutUser(p.w.groups[i].UsersRemove, id)
@@ -332,9 +333,9 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	}
 
 	addRow := adw.NewActionRow()
-	addRow.SetTitle(tr("Add member…"))
+	addRow.SetTitle(i18n.Tr("Add member…"))
 	ws := p.self
-	addRow.AddSuffix(userPicker("list-add-symbolic", tr("Add member"),
+	addRow.AddSuffix(userPicker("list-add-symbolic", i18n.Tr("Add member"),
 		func() map[uint32]string {
 			if p := ws.Value(); p != nil {
 				return p.w.users
@@ -413,7 +414,7 @@ func (p *permsPage) render() {
 	clearBox(p.box)
 
 	inherit := adw.NewSwitchRow()
-	inherit.SetTitle(tr("Inherit permissions from the parent channel"))
+	inherit.SetTitle(i18n.Tr("Inherit permissions from the parent channel"))
 	inherit.SetActive(p.w.inherits)
 	onActive(inherit, p.onBool(func(p *permsPage, on bool) {
 		p.w.inherits = on
@@ -426,8 +427,8 @@ func (p *permsPage) render() {
 
 	if p.w.inherits && len(p.w.inheritedRules) > 0 {
 		inh := adw.NewPreferencesGroup()
-		inh.SetTitle(tr("Inherited Rules"))
-		inh.SetDescription(tr("Defined in parent channels; they apply before the rules below."))
+		inh.SetTitle(i18n.Tr("Inherited Rules"))
+		inh.SetDescription(i18n.Tr("Defined in parent channels; they apply before the rules below."))
 		for _, r := range p.w.inheritedRules {
 			row := adw.NewActionRow()
 			row.SetUseMarkup(false)
@@ -441,8 +442,8 @@ func (p *permsPage) render() {
 	}
 
 	own := adw.NewPreferencesGroup()
-	own.SetTitle(tr("Rules of This Channel"))
-	own.SetDescription(tr("Applied from top to bottom: a later rule overrides an earlier one. The password on the General page adds its own rules, which are not listed here."))
+	own.SetTitle(i18n.Tr("Rules of This Channel"))
+	own.SetDescription(i18n.Tr("Applied from top to bottom: a later rule overrides an earlier one. The password on the General page adds its own rules, which are not listed here."))
 	own.SetHeaderSuffix(p.addRuleButton())
 	visible := 0
 	for i, r := range p.w.ownRules {
@@ -454,7 +455,7 @@ func (p *permsPage) render() {
 	}
 	if visible == 0 {
 		empty := adw.NewActionRow()
-		empty.SetTitle(tr("No rules in this channel"))
+		empty.SetTitle(i18n.Tr("No rules in this channel"))
 		empty.AddCSSClass("dim-label")
 		own.Add(empty)
 	}
@@ -495,10 +496,10 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 		p.w.dirty = true
 		p.render()
 	}
-	up := gtk.NewButtonWithLabel(tr("Move Up"))
+	up := gtk.NewButtonWithLabel(i18n.Tr("Move Up"))
 	up.SetSensitive(p.neighbour(i, -1) >= 0)
 	up.ConnectClicked(p.on(func(p *permsPage) { move(p, -1) }))
-	down := gtk.NewButtonWithLabel(tr("Move Down"))
+	down := gtk.NewButtonWithLabel(i18n.Tr("Move Down"))
 	down.SetSensitive(p.neighbour(i, 1) >= 0)
 	down.ConnectClicked(p.on(func(p *permsPage) { move(p, 1) }))
 	order := gtk.NewBox(gtk.OrientationHorizontal, 0)
@@ -506,7 +507,7 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	order.SetVAlign(gtk.AlignCenter)
 	order.Append(up)
 	order.Append(down)
-	del := gtk.NewButtonWithLabel(tr("Delete"))
+	del := gtk.NewButtonWithLabel(i18n.Tr("Delete"))
 	del.AddCSSClass("destructive-action")
 	del.SetVAlign(gtk.AlignCenter)
 	del.ConnectClicked(p.on(func(p *permsPage) {
@@ -517,18 +518,18 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	}))
 	manage := adw.NewActionRow()
 	// TRANSLATORS: Position of an ACL rule in the rule list (rules are applied in order).
-	manage.SetTitle(tr("Order"))
-	manage.SetSubtitle(tr("Later rules override earlier ones"))
+	manage.SetTitle(i18n.Tr("Order"))
+	manage.SetSubtitle(i18n.Tr("Later rules override earlier ones"))
 	manage.AddSuffix(order)
 	manage.AddSuffix(del)
 	exp.AddRow(manage)
 
 	here := adw.NewSwitchRow()
-	here.SetTitle(tr("Applies to this channel"))
+	here.SetTitle(i18n.Tr("Applies to this channel"))
 	here.SetActive(r.AppliesCurrent)
 	onActive(here, p.onBool(func(p *permsPage, on bool) { p.w.ownRules[i].AppliesCurrent = on; p.w.dirty = true }))
 	subs := adw.NewSwitchRow()
-	subs.SetTitle(tr("Applies to sub-channels"))
+	subs.SetTitle(i18n.Tr("Applies to sub-channels"))
 	subs.SetActive(r.AppliesChildren)
 	onActive(subs, p.onBool(func(p *permsPage, on bool) { p.w.ownRules[i].AppliesChildren = on; p.w.dirty = true }))
 	exp.AddRow(here)
@@ -568,9 +569,9 @@ func stateSwitch(st permState, set func(permState)) *gtk.Box {
 		class string
 	}{
 		// TRANSLATORS: Inherit, Allow, Deny: the three states of one permission in an ACL rule.
-		{permInherit, tr("Inherit"), ""},
-		{permAllow, tr("Allow"), "success"},
-		{permDeny, tr("Deny"), "error"},
+		{permInherit, i18n.Tr("Inherit"), ""},
+		{permAllow, i18n.Tr("Allow"), "success"},
+		{permDeny, i18n.Tr("Deny"), "error"},
 	} {
 		b := gtk.NewToggleButtonWithLabel(o.label)
 		b.AddCSSClass("small-toggle")
@@ -609,12 +610,12 @@ func stateSwitch(st permState, set func(permState)) *gtk.Box {
 // addRuleButton offers a new rule for a group or a registered user.
 func (p *permsPage) addRuleButton() *gtk.Box {
 	groups := gtk.NewDropDownFromStrings(nil)
-	addGroup := gtk.NewButtonWithLabel(tr("Add"))
+	addGroup := gtk.NewButtonWithLabel(i18n.Tr("Add"))
 	addGroup.AddCSSClass("suggested-action")
 	groupRow := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	groupRow.Append(groups)
 	groupRow.Append(addGroup)
-	glabel := gtk.NewLabel(tr("Rule for a group"))
+	glabel := gtk.NewLabel(i18n.Tr("Rule for a group"))
 	glabel.SetXAlign(0)
 	glabel.AddCSSClass("heading")
 	pbox := gtk.NewBox(gtk.OrientationVertical, 8)
@@ -623,7 +624,7 @@ func (p *permsPage) addRuleButton() *gtk.Box {
 	pop := gtk.NewPopover()
 	pop.SetChild(pbox)
 	groupBtn := gtk.NewMenuButton()
-	groupBtn.SetLabel(tr("Add Group Rule"))
+	groupBtn.SetLabel(i18n.Tr("Add Group Rule"))
 	groupBtn.AddCSSClass("flat")
 	groupBtn.SetPopover(pop)
 	var names []string
@@ -641,7 +642,7 @@ func (p *permsPage) addRuleButton() *gtk.Box {
 		p.addRule(bus.ACLRuleInfo{AppliesCurrent: true, AppliesChildren: true, GroupName: names[sel]})
 	}))
 
-	userBtn := userPicker("avatar-default-symbolic", tr("Add a rule for a registered user"),
+	userBtn := userPicker("avatar-default-symbolic", i18n.Tr("Add a rule for a registered user"),
 		func() map[uint32]string {
 			if p := ws.Value(); p != nil {
 				return p.w.users

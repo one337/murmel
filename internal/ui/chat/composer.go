@@ -13,6 +13,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/gfileio"
 	"github.com/one337/murmel/internal/ui/richtext"
 )
@@ -108,11 +109,11 @@ func newComposer() *composer {
 	c.view.SetLeftMargin(12)
 	c.view.SetRightMargin(12)
 	c.view.AddCSSClass("composer-view")
-	c.view.SetTooltipText(tr("Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"))
+	c.view.SetTooltipText(i18n.Tr("Message — Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"))
 	// Screen readers get a short name and the keys as the description
 	// (without a name of its own, GTK names the field after its tooltip).
 	c.view.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyLabel},
-		[]coreglib.Value{*coreglib.NewValue(tr("Message"))})
+		[]coreglib.Value{*coreglib.NewValue(i18n.Tr("Message"))})
 	c.describe()
 
 	keys := gtk.NewEventControllerKey()
@@ -140,14 +141,14 @@ func newComposer() *composer {
 	scroll.SetMaxContentHeight(composerMaxHeightPx)
 	scroll.SetHExpand(true)
 
-	c.boldBtn = c.formatToggle("format-text-bold-symbolic", tr("Bold (Ctrl+B)"), c.boldTag, func(on bool) { c.typing.bold = on })
-	c.italicBtn = c.formatToggle("format-text-italic-symbolic", tr("Italic (Ctrl+I)"), c.italicTag, func(on bool) { c.typing.italic = on })
+	c.boldBtn = c.formatToggle("format-text-bold-symbolic", i18n.Tr("Bold (Ctrl+B)"), c.boldTag, func(on bool) { c.typing.bold = on })
+	c.italicBtn = c.formatToggle("format-text-italic-symbolic", i18n.Tr("Italic (Ctrl+I)"), c.italicTag, func(on bool) { c.typing.italic = on })
 	c.boldBtn.AddCSSClass("flat")
 	c.italicBtn.AddCSSClass("flat")
 
 	c.imageBtn = gtk.NewButtonFromIconName("insert-image-symbolic")
 	c.imageBtn.AddCSSClass("flat")
-	c.imageBtn.SetTooltipText(tr("Attach an image"))
+	c.imageBtn.SetTooltipText(i18n.Tr("Attach an image"))
 	c.imageBtn.ConnectClicked(c.pickImage)
 
 	// Emoji: GTK's chooser (also on Ctrl+. in the text) in a popover.
@@ -159,7 +160,7 @@ func newComposer() *composer {
 	emojiBtn := gtk.NewMenuButton()
 	emojiBtn.SetIconName("face-smile-symbolic")
 	emojiBtn.AddCSSClass("flat")
-	emojiBtn.SetTooltipText(tr("Insert emoji (Ctrl+.)"))
+	emojiBtn.SetTooltipText(i18n.Tr("Insert emoji (Ctrl+.)"))
 	emojiBtn.SetPopover(&emoji.Popover)
 	emojiBtn.SetDirection(gtk.ArrowUp)
 
@@ -171,7 +172,7 @@ func newComposer() *composer {
 	removeBtn := gtk.NewButtonFromIconName("window-close-symbolic")
 	removeBtn.AddCSSClass("circular")
 	removeBtn.AddCSSClass("osd")
-	removeBtn.SetTooltipText(tr("Remove image"))
+	removeBtn.SetTooltipText(i18n.Tr("Remove image"))
 	removeBtn.SetHAlign(gtk.AlignEnd)
 	removeBtn.SetVAlign(gtk.AlignStart)
 	removeBtn.ConnectClicked(func() { c.setImage("") })
@@ -192,7 +193,7 @@ func newComposer() *composer {
 	c.sendBtn = gtk.NewButtonFromIconName("mail-send-symbolic")
 	c.sendBtn.AddCSSClass("suggested-action")
 	c.sendBtn.AddCSSClass("composer-send")
-	c.sendBtn.SetTooltipText(tr("Send message"))
+	c.sendBtn.SetTooltipText(i18n.Tr("Send message"))
 	c.sendBtn.SetSensitive(false)
 	c.sendBtn.ConnectClicked(func() { c.Submit() })
 
@@ -280,12 +281,12 @@ func (c *composer) applyTyping(from, to int) {
 // and compressed to fit the server's image limit.
 func (c *composer) pickImage() {
 	filter := gtk.NewFileFilter()
-	filter.SetName(tr("Images"))
+	filter.SetName(i18n.Tr("Images"))
 	filter.AddPixbufFormats()
 	filters := gio.NewListStore(gtk.GTypeFileFilter)
 	filters.Append(filter.Object)
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(tr("Attach Image"))
+	fd.SetTitle(i18n.Tr("Attach Image"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(filter)
@@ -387,7 +388,7 @@ func (c *composer) SetLocked(reason string) {
 func (c *composer) describe() {
 	d := c.locked
 	if d == "" {
-		d = tr("Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format")
+		d = i18n.Tr("Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format")
 	}
 	c.view.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyDescription},
 		[]coreglib.Value{*coreglib.NewValue(d)})
@@ -461,7 +462,7 @@ func (c *composer) message() (html, plain string) {
 		// Self-closing: the server checks image messages as XML.
 		html += `<img src="` + c.image + `"/>`
 		if plain == "" {
-			plain = tr("[image]")
+			plain = i18n.Tr("[image]")
 		}
 	}
 	return html, plain

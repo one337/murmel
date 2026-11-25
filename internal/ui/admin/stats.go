@@ -11,6 +11,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 )
 
 // statsRefresh is how often an open statistics dialog asks for new
@@ -38,13 +39,13 @@ func ShowUserStats(parent gtk.Widgetter, b *bus.Bus, session uint32, name string
 	stack.AddNamed(msg, "message")
 
 	hdr := adw.NewHeaderBar()
-	hdr.SetTitleWidget(adw.NewWindowTitle(tr("Statistics"), name))
+	hdr.SetTitleWidget(adw.NewWindowTitle(i18n.Tr("Statistics"), name))
 	toolbar := adw.NewToolbarView()
 	toolbar.AddTopBar(hdr)
 	toolbar.SetContent(stack)
 
 	dialog := adw.NewDialog()
-	dialog.SetTitle(tr("Statistics"))
+	dialog.SetTitle(i18n.Tr("Statistics"))
 	dialog.SetContentWidth(460)
 	dialog.SetContentHeight(560)
 	dialog.SetChild(toolbar)
@@ -63,7 +64,7 @@ func ShowUserStats(parent gtk.Widgetter, b *bus.Bus, session uint32, name string
 		if got {
 			return
 		}
-		text := tr("You do not have permission to view this on this server.")
+		text := i18n.Tr("You do not have permission to view this on this server.")
 		if ev.Text != "" {
 			text = ev.Text
 		}
@@ -111,21 +112,21 @@ func newStatRows(page *adw.PreferencesPage) *statRows {
 		}
 		page.Add(g)
 	}
-	group(tr("Client"),
-		[2]string{"version", tr("Version")},
-		[2]string{"os", tr("Operating system")},
-		[2]string{"opus", tr("Opus codec")},
-		[2]string{"cert", tr("Certificate")})
-	group(tr("Connection"),
-		[2]string{"online", tr("Online for")},
-		[2]string{"idle", tr("Idle for")},
-		[2]string{"bandwidth", tr("Bandwidth")},
-		[2]string{"ip", tr("Address")},
-		[2]string{"tcpping", tr("TCP ping")},
-		[2]string{"udpping", tr("UDP ping")})
-	group(tr("Voice Packets (UDP)"),
-		[2]string{"fromclient", tr("Sent")},
-		[2]string{"fromserver", tr("Received")})
+	group(i18n.Tr("Client"),
+		[2]string{"version", i18n.Tr("Version")},
+		[2]string{"os", i18n.Tr("Operating system")},
+		[2]string{"opus", i18n.Tr("Opus codec")},
+		[2]string{"cert", i18n.Tr("Certificate")})
+	group(i18n.Tr("Connection"),
+		[2]string{"online", i18n.Tr("Online for")},
+		[2]string{"idle", i18n.Tr("Idle for")},
+		[2]string{"bandwidth", i18n.Tr("Bandwidth")},
+		[2]string{"ip", i18n.Tr("Address")},
+		[2]string{"tcpping", i18n.Tr("TCP ping")},
+		[2]string{"udpping", i18n.Tr("UDP ping")})
+	group(i18n.Tr("Voice Packets (UDP)"),
+		[2]string{"fromclient", i18n.Tr("Sent")},
+		[2]string{"fromserver", i18n.Tr("Received")})
 	return r
 }
 
@@ -158,10 +159,10 @@ func (r *statRows) show(ev bus.UserStatsFetched) {
 	if ev.CertificateSubject != "" {
 		if ev.StrongCertificate {
 			// TRANSLATORS: %s is the certificate's subject (a user name).
-			cert = fmt.Sprintf(tr("%s (trusted)"), ev.CertificateSubject)
+			cert = fmt.Sprintf(i18n.Tr("%s (trusted)"), ev.CertificateSubject)
 		} else {
 			// TRANSLATORS: %s is the certificate's subject (a user name).
-			cert = fmt.Sprintf(tr("%s (self-signed)"), ev.CertificateSubject)
+			cert = fmt.Sprintf(i18n.Tr("%s (self-signed)"), ev.CertificateSubject)
 		}
 	}
 	r.set("cert", cert)
@@ -173,7 +174,7 @@ func (r *statRows) show(ev bus.UserStatsFetched) {
 	}
 	r.set("idle", duration(ev.Idle))
 	if ev.Bandwidth > 0 {
-		r.set("bandwidth", fmt.Sprintf(tr("%.1f kb/s"), float64(ev.Bandwidth)/1000))
+		r.set("bandwidth", fmt.Sprintf(i18n.Tr("%.1f kb/s"), float64(ev.Bandwidth)/1000))
 	} else {
 		r.set("bandwidth", "")
 	}
@@ -195,7 +196,7 @@ func (r *statRows) show(ev bus.UserStatsFetched) {
 	// Servers share client details (version, OS, certificate, address)
 	// of other users only with administrators.
 	if ev.Release == "" && ev.OS == "" && ev.Version == "" {
-		r.page.SetDescription(tr("The server shares client details of other users only with administrators."))
+		r.page.SetDescription(i18n.Tr("The server shares client details of other users only with administrators."))
 	} else {
 		r.page.SetDescription("")
 	}
@@ -203,9 +204,9 @@ func (r *statRows) show(ev bus.UserStatsFetched) {
 
 func yesNo(b bool) string {
 	if b {
-		return tr("Yes")
+		return i18n.Tr("Yes")
 	}
-	return tr("No")
+	return i18n.Tr("No")
 }
 
 func duration(d time.Duration) string {
@@ -213,11 +214,11 @@ func duration(d time.Duration) string {
 	h, m, s := int(d.Hours()), int(d.Minutes())%60, int(d.Seconds())%60
 	switch {
 	case h > 0:
-		return fmt.Sprintf(tr("%d h %d min"), h, m)
+		return fmt.Sprintf(i18n.Tr("%d h %d min"), h, m)
 	case m > 0:
-		return fmt.Sprintf(tr("%d min %d s"), m, s)
+		return fmt.Sprintf(i18n.Tr("%d min %d s"), m, s)
 	}
-	return fmt.Sprintf(tr("%d s"), s)
+	return fmt.Sprintf(i18n.Tr("%d s"), s)
 }
 
 func ping(avg, variance float32, count uint32) string {
@@ -225,12 +226,12 @@ func ping(avg, variance float32, count uint32) string {
 		return ""
 	}
 	// The server reports the variance; ± shows the standard deviation.
-	return fmt.Sprintf(tr("%.0f ms ± %.0f ms"), avg, math.Sqrt(float64(variance)))
+	return fmt.Sprintf(i18n.Tr("%.0f ms ± %.0f ms"), avg, math.Sqrt(float64(variance)))
 }
 
 func packets(p bus.PacketStats) string {
 	if p == (bus.PacketStats{}) {
 		return ""
 	}
-	return fmt.Sprintf(tr("%d good · %d late · %d lost"), p.Good, p.Late, p.Lost)
+	return fmt.Sprintf(i18n.Tr("%d good · %d late · %d lost"), p.Good, p.Late, p.Lost)
 }

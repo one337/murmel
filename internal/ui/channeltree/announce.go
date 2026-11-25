@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 )
 
 // The rows tell assistive technologies their state as text: the name is
@@ -33,38 +34,38 @@ func (s userState) text() string {
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name; also the status icon's tooltip, there
 		// with a capital first letter.
-		return tr("deafened themselves")
+		return i18n.Tr("deafened themselves")
 	case stateSelfMuted:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name; also the status icon's tooltip, there
 		// with a capital first letter.
-		return tr("muted themselves")
+		return i18n.Tr("muted themselves")
 	case stateServerDeafened:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name; also the status icon's tooltip, there
 		// with a capital first letter.
-		return tr("deafened on the server")
+		return i18n.Tr("deafened on the server")
 	case stateServerMuted:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name; also the status icon's tooltip, there
 		// with a capital first letter.
-		return tr("muted on the server")
+		return i18n.Tr("muted on the server")
 	case stateSuppressed:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name: the channel does not let the user speak.
 		// Also the status icon's tooltip, there with a capital first letter.
-		return tr("not allowed to speak here")
+		return i18n.Tr("not allowed to speak here")
 	case statePrioritySpeaker:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name; same wording as the "Priority speaker"
 		// menu entry. Also the status icon's tooltip, there with a capital
 		// first letter.
-		return tr("priority speaker")
+		return i18n.Tr("priority speaker")
 	case stateRecording:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name; also the status icon's tooltip, there
 		// with a capital first letter.
-		return tr("recording")
+		return i18n.Tr("recording")
 	}
 	return ""
 }
@@ -123,11 +124,11 @@ func userDescription(u bus.UserInfo, a localAudio, unread int) string {
 	case a.muted:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name.
-		parts = append(parts, tr("muted for you"))
+		parts = append(parts, i18n.Tr("muted for you"))
 	case percent(a.volume) != 100:
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a user's name.
-		parts = append(parts, fmt.Sprintf(tr("volume for you: %d %%"), percent(a.volume)))
+		parts = append(parts, fmt.Sprintf(i18n.Tr("volume for you: %d %%"), percent(a.volume)))
 	}
 	if unread > 0 {
 		parts = append(parts, unreadText(unread))
@@ -142,12 +143,12 @@ func channelDescription(users int, here bool, unread int) string {
 	if users > 0 {
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a channel's name.
-		parts = append(parts, fmt.Sprintf(trn("%d user", "%d users", users), users))
+		parts = append(parts, fmt.Sprintf(i18n.TrN("%d user", "%d users", users), users))
 	}
 	if here {
 		// TRANSLATORS: Part of a comma-separated list that screen readers
 		// read after a channel's name: one is in this channel oneself.
-		parts = append(parts, tr("you are here"))
+		parts = append(parts, i18n.Tr("you are here"))
 	}
 	if unread > 0 {
 		parts = append(parts, unreadText(unread))
@@ -158,5 +159,5 @@ func channelDescription(users int, here bool, unread int) string {
 func unreadText(n int) string {
 	// TRANSLATORS: Part of a comma-separated list that screen readers read
 	// after a user's or channel's name.
-	return fmt.Sprintf(trn("%d unread message", "%d unread messages", n), n)
+	return fmt.Sprintf(i18n.TrN("%d unread message", "%d unread messages", n), n)
 }

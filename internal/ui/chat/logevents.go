@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/presence"
 )
 
@@ -53,21 +54,21 @@ func LogEnabled(stored map[string]bool, e LogEvent) bool {
 func LogLabel(e LogEvent) string {
 	switch e {
 	case LogChannelJoin:
-		return tr("User joins your channel")
+		return i18n.Tr("User joins your channel")
 	case LogChannelLeave:
-		return tr("User leaves your channel")
+		return i18n.Tr("User leaves your channel")
 	case LogSelfMove:
-		return tr("You switch channels")
+		return i18n.Tr("You switch channels")
 	case LogServerConnect:
-		return tr("User connects to the server")
+		return i18n.Tr("User connects to the server")
 	case LogServerDisconnect:
-		return tr("User disconnects from the server")
+		return i18n.Tr("User disconnects from the server")
 	case LogKickBan:
-		return tr("User is kicked or banned")
+		return i18n.Tr("User is kicked or banned")
 	case LogServerMute:
-		return tr("User is muted or deafened by the server")
+		return i18n.Tr("User is muted or deafened by the server")
 	case LogSelfMute:
-		return tr("User mutes or deafens themselves")
+		return i18n.Tr("User mutes or deafens themselves")
 	}
 	return string(e)
 }
@@ -83,40 +84,40 @@ func logLines(ev presence.Event, enabled func(LogEvent) bool, self uint32, chann
 	switch ev.Kind {
 	case presence.SelfConnected:
 		if ev.User.Suppressed && enabled(LogServerMute) {
-			return []string{tr("You may not speak here")}
+			return []string{i18n.Tr("You may not speak here")}
 		}
 	case presence.SelfMoved:
 		if enabled(LogSelfMove) {
-			return []string{fmt.Sprintf(tr("You moved to %s"), channel(ev.To))}
+			return []string{fmt.Sprintf(i18n.Tr("You moved to %s"), channel(ev.To))}
 		}
 	case presence.UserJoinedChannel:
 		if enabled(LogChannelJoin) {
-			return []string{fmt.Sprintf(tr("%s joined the channel"), name)}
+			return []string{fmt.Sprintf(i18n.Tr("%s joined the channel"), name)}
 		}
 	case presence.UserLeftChannel:
 		if enabled(LogChannelLeave) {
-			return []string{fmt.Sprintf(tr("%s moved to %s"), name, channel(ev.To))}
+			return []string{fmt.Sprintf(i18n.Tr("%s moved to %s"), name, channel(ev.To))}
 		}
 	case presence.UserConnected:
 		var out []string
 		switch {
 		case enabled(LogServerConnect):
-			out = append(out, fmt.Sprintf(tr("%s connected to the server"), name))
+			out = append(out, fmt.Sprintf(i18n.Tr("%s connected to the server"), name))
 		case ev.InMyChannel && enabled(LogChannelJoin):
-			out = append(out, fmt.Sprintf(tr("%s joined the channel"), name))
+			out = append(out, fmt.Sprintf(i18n.Tr("%s joined the channel"), name))
 		}
 		if ev.InMyChannel && ev.User.Suppressed && enabled(LogServerMute) {
-			out = append(out, fmt.Sprintf(tr("%s may not speak here"), name))
+			out = append(out, fmt.Sprintf(i18n.Tr("%s may not speak here"), name))
 		}
 		return out
 	case presence.UserDisconnected:
 		switch {
 		case ev.Reason != "" && enabled(LogKickBan):
-			return []string{fmt.Sprintf(tr("%s left the server (%s)"), name, ev.Reason)}
+			return []string{fmt.Sprintf(i18n.Tr("%s left the server (%s)"), name, ev.Reason)}
 		case enabled(LogServerDisconnect):
-			return []string{fmt.Sprintf(tr("%s disconnected from the server"), name)}
+			return []string{fmt.Sprintf(i18n.Tr("%s disconnected from the server"), name)}
 		case ev.InMyChannel && enabled(LogChannelLeave):
-			return []string{fmt.Sprintf(tr("%s left the channel"), name)}
+			return []string{fmt.Sprintf(i18n.Tr("%s left the channel"), name)}
 		}
 	case presence.UserAudioChanged:
 		if !ev.InMyChannel && ev.User.Session != self {
@@ -148,19 +149,19 @@ func audioLines(before, after bus.UserInfo, enabled func(LogEvent) bool, isSelf,
 		}
 	}
 	add(before.Muted != after.Muted, after.Muted, LogServerMute,
-		tr("%s was muted by the server"), tr("%s was unmuted by the server"),
-		tr("You were muted by the server"), tr("You were unmuted by the server"))
+		i18n.Tr("%s was muted by the server"), i18n.Tr("%s was unmuted by the server"),
+		i18n.Tr("You were muted by the server"), i18n.Tr("You were unmuted by the server"))
 	add(before.Deafened != after.Deafened, after.Deafened, LogServerMute,
-		tr("%s was deafened by the server"), tr("%s was undeafened by the server"),
-		tr("You were deafened by the server"), tr("You were undeafened by the server"))
+		i18n.Tr("%s was deafened by the server"), i18n.Tr("%s was undeafened by the server"),
+		i18n.Tr("You were deafened by the server"), i18n.Tr("You were undeafened by the server"))
 	add(before.Suppressed != after.Suppressed && (after.Suppressed || !moved), after.Suppressed, LogServerMute,
-		tr("%s may not speak here"), tr("%s may speak again"),
-		tr("You may not speak here"), tr("You may speak again"))
+		i18n.Tr("%s may not speak here"), i18n.Tr("%s may speak again"),
+		i18n.Tr("You may not speak here"), i18n.Tr("You may speak again"))
 	add(before.SelfMuted != after.SelfMuted, after.SelfMuted, LogSelfMute,
-		tr("%s muted themselves"), tr("%s unmuted themselves"),
-		tr("You muted yourself"), tr("You unmuted yourself"))
+		i18n.Tr("%s muted themselves"), i18n.Tr("%s unmuted themselves"),
+		i18n.Tr("You muted yourself"), i18n.Tr("You unmuted yourself"))
 	add(before.SelfDeafened != after.SelfDeafened, after.SelfDeafened, LogSelfMute,
-		tr("%s deafened themselves"), tr("%s undeafened themselves"),
-		tr("You deafened yourself"), tr("You undeafened yourself"))
+		i18n.Tr("%s deafened themselves"), i18n.Tr("%s undeafened themselves"),
+		i18n.Tr("You deafened yourself"), i18n.Tr("You undeafened yourself"))
 	return out
 }

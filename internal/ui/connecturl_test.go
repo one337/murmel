@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/one337/murmel/internal/i18n"
 )
 
 func TestParseConnectURL(t *testing.T) {
@@ -83,7 +85,7 @@ func TestParseConnectURL(t *testing.T) {
 }
 
 func TestTRReturnsInput(t *testing.T) {
-	if got := tr("Not connected"); got != "Not connected" {
+	if got := i18n.Tr("Not connected"); got != "Not connected" {
 		t.Errorf("tr identity without a translation, got %q", got)
 	}
 }

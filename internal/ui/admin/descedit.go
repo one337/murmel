@@ -15,6 +15,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/chat"
 	"github.com/one337/murmel/internal/ui/gfileio"
 	"github.com/one337/murmel/internal/ui/richtext"
@@ -134,8 +135,8 @@ func newDescEditor(html string, limit int) *descEditor {
 	// --- toolbar
 	toolbar := gtk.NewBox(gtk.OrientationHorizontal, 2)
 	toolbar.AddCSSClass("toolbar")
-	e.boldBtn = e.styleToggle("format-text-bold-symbolic", tr("Bold (Ctrl+B)"), e.bold, func(e *descEditor, on bool) { e.typing.bold = on })
-	e.italicBtn = e.styleToggle("format-text-italic-symbolic", tr("Italic (Ctrl+I)"), e.italic, func(e *descEditor, on bool) { e.typing.italic = on })
+	e.boldBtn = e.styleToggle("format-text-bold-symbolic", i18n.Tr("Bold (Ctrl+B)"), e.bold, func(e *descEditor, on bool) { e.typing.bold = on })
+	e.italicBtn = e.styleToggle("format-text-italic-symbolic", i18n.Tr("Italic (Ctrl+I)"), e.italic, func(e *descEditor, on bool) { e.typing.italic = on })
 	toolbar.Append(e.boldBtn)
 	toolbar.Append(e.italicBtn)
 	toolbar.Append(gtk.NewSeparator(gtk.OrientationVertical))
@@ -144,15 +145,15 @@ func newDescEditor(html string, limit int) *descEditor {
 	hLabel := gtk.NewLabel("")
 	hLabel.SetMarkup("<b>H</b>")
 	headingBtn.SetChild(hLabel)
-	headingBtn.SetTooltipText(tr("Heading"))
+	headingBtn.SetTooltipText(i18n.Tr("Heading"))
 	headingBtn.ConnectClicked(e.on(func(e *descEditor) {
 		e.toggleLines(e.heading)
 		e.view.GrabFocus()
 	}))
 	toolbar.Append(headingBtn)
-	toolbar.Append(e.button("view-list-bullet-symbolic", "view-list-symbolic", tr("Bullet list"), func(e *descEditor) { e.toggleLines(e.item) }))
+	toolbar.Append(e.button("view-list-bullet-symbolic", "view-list-symbolic", i18n.Tr("Bullet list"), func(e *descEditor) { e.toggleLines(e.item) }))
 	toolbar.Append(e.linkButton())
-	toolbar.Append(e.button("insert-image-symbolic", "image-x-generic-symbolic", tr("Insert image…"), (*descEditor).pickImage))
+	toolbar.Append(e.button("insert-image-symbolic", "image-x-generic-symbolic", i18n.Tr("Insert image…"), (*descEditor).pickImage))
 
 	edScroll := gtk.NewScrolledWindow()
 	edScroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
@@ -177,7 +178,7 @@ func newDescEditor(html string, limit int) *descEditor {
 	pvScroll.SetPolicy(gtk.PolicyNever, gtk.PolicyAutomatic)
 	pvScroll.SetChild(e.preview)
 	pvScroll.SetVExpand(true)
-	pvTitle := gtk.NewLabel(tr("Preview"))
+	pvTitle := gtk.NewLabel(i18n.Tr("Preview"))
 	pvTitle.AddCSSClass("heading")
 	pvTitle.SetXAlign(0)
 	pvTitle.SetMarginStart(12)
@@ -196,7 +197,7 @@ func newDescEditor(html string, limit int) *descEditor {
 	panes.Append(editor)
 	panes.Append(preview)
 
-	hint := gtk.NewLabel(tr("An image at the very start that is at least 480 px wide is shown as a banner across the channel header."))
+	hint := gtk.NewLabel(i18n.Tr("An image at the very start that is at least 480 px wide is shown as a banner across the channel header."))
 	hint.AddCSSClass("dim-label")
 	hint.AddCSSClass("caption")
 	hint.SetWrap(true)
@@ -460,10 +461,10 @@ func (e *descEditor) linkButton() *gtk.MenuButton {
 	entry := gtk.NewEntry()
 	entry.SetPlaceholderText("https://")
 	entry.SetWidthChars(30)
-	apply := gtk.NewButtonWithLabel(tr("Apply"))
+	apply := gtk.NewButtonWithLabel(i18n.Tr("Apply"))
 	apply.AddCSSClass("suggested-action")
-	remove := gtk.NewButtonWithLabel(tr("Remove Link"))
-	hint := gtk.NewLabel(tr("Select the text to link first."))
+	remove := gtk.NewButtonWithLabel(i18n.Tr("Remove Link"))
+	hint := gtk.NewLabel(i18n.Tr("Select the text to link first."))
 	hint.AddCSSClass("dim-label")
 	hint.AddCSSClass("caption")
 
@@ -484,7 +485,7 @@ func (e *descEditor) linkButton() *gtk.MenuButton {
 	btn := gtk.NewMenuButton()
 	btn.AddCSSClass("flat")
 	btn.SetChild(themedIcon("insert-link-symbolic", "emblem-symbolic-link"))
-	btn.SetTooltipText(tr("Link"))
+	btn.SetTooltipText(i18n.Tr("Link"))
 	btn.SetPopover(pop)
 
 	popRef, entryRef := weakref.New(pop), weakref.New(entry)
@@ -559,12 +560,12 @@ func (e *descEditor) removeLinks(start, end *gtk.TextIter) {
 
 func (e *descEditor) pickImage() {
 	filter := gtk.NewFileFilter()
-	filter.SetName(tr("Images"))
+	filter.SetName(i18n.Tr("Images"))
 	filter.AddPixbufFormats()
 	filters := gio.NewListStore(gtk.GTypeFileFilter)
 	filters.Append(filter.Object)
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(tr("Insert Image"))
+	fd.SetTitle(i18n.Tr("Insert Image"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(filter)
@@ -575,7 +576,7 @@ func (e *descEditor) pickImage() {
 		}
 		name := file.Basename()
 		budget := e.limit - len(e.HTML())
-		e.status.SetText(tr("Preparing image…"))
+		e.status.SetText(i18n.Tr("Preparing image…"))
 		ctx := gfileio.ForWidget(e.root)
 		gfileio.Load(ctx, file, gfileio.MaxImageBytes, func(data []byte, err error) {
 			if err != nil {
@@ -592,7 +593,7 @@ func (e *descEditor) pickImage() {
 					e.status.SetText("")
 					if err != nil {
 						slog.Info("description: image not inserted", "file", name, "err", err)
-						e.status.SetText(tr("The image does not fit into the description."))
+						e.status.SetText(i18n.Tr("The image does not fit into the description."))
 						return
 					}
 					if data, ok := richtext.DecodeDataURI(uri); ok {
@@ -614,7 +615,7 @@ func (e *descEditor) insertImageAtCursor(data []byte) {
 		e.buffer.Insert(it, "\n")
 	}
 	if !e.insertImage(it, data) {
-		e.status.SetText(tr("This image could not be read."))
+		e.status.SetText(i18n.Tr("This image could not be read."))
 		return
 	}
 	if !it.EndsLine() || it.IsEnd() {
@@ -763,7 +764,7 @@ func (e *descEditor) renderPreview() {
 	}
 	html := e.HTML()
 	if html == "" {
-		empty := gtk.NewLabel(tr("No description"))
+		empty := gtk.NewLabel(i18n.Tr("No description"))
 		empty.AddCSSClass("dim-label")
 		e.preview.Append(empty)
 	} else {
@@ -772,8 +773,8 @@ func (e *descEditor) renderPreview() {
 	e.status.RemoveCSSClass("error")
 	if n := len(html); n > e.limit {
 		e.status.AddCSSClass("error")
-		e.status.SetText(tr("Too long for this server"))
-	} else if e.status.Text() == tr("Too long for this server") {
+		e.status.SetText(i18n.Tr("Too long for this server"))
+	} else if e.status.Text() == i18n.Tr("Too long for this server") {
 		e.status.SetText("")
 	}
 }

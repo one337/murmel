@@ -21,6 +21,7 @@ import (
 	"github.com/one337/murmel/internal/audio/levelmon"
 	"github.com/one337/murmel/internal/audio/pipeline"
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
@@ -77,7 +78,7 @@ func New(st settings.Settings, b *bus.Bus) *Meter {
 	m.area.SetHExpand(true)
 	m.area.SetFocusable(true)
 	m.area.SetCursorFromName("pointer")
-	m.area.SetTooltipText(tr("Drag the handle to set the activation threshold: speech louder than the handle is transmitted. Arrow keys move it by 1 dB."))
+	m.area.SetTooltipText(i18n.Tr("Drag the handle to set the activation threshold: speech louder than the handle is transmitted. Arrow keys move it by 1 dB."))
 	root := gtk.NewBox(gtk.OrientationVertical, 2)
 	m.root = weakref.New(root)
 	m.self = weakref.Owned(root, m)
@@ -267,7 +268,7 @@ func (m *Meter) startMonitor() {
 			}
 			if err != nil {
 				if gen == m.monGen {
-					m.state.SetText(tr("No microphone"))
+					m.state.SetText(i18n.Tr("No microphone"))
 				}
 				return
 			}
@@ -334,14 +335,14 @@ func (m *Meter) track() (left, width float64) {
 }
 
 func (m *Meter) updateLabels() {
-	m.value.SetText(fmt.Sprintf(tr("Threshold: %d dB"), int(math.Round(pipeline.ThresholdDB(m.threshold)))))
+	m.value.SetText(fmt.Sprintf(i18n.Tr("Threshold: %d dB"), int(math.Round(pipeline.ThresholdDB(m.threshold)))))
 	switch {
 	case time.Since(m.clipAt) < peakHold:
-		m.state.SetText(tr("Too loud"))
+		m.state.SetText(i18n.Tr("Too loud"))
 	case m.level >= m.threshold && m.level > 0:
-		m.state.SetText(tr("Speech detected"))
+		m.state.SetText(i18n.Tr("Speech detected"))
 	case m.level > 0:
-		m.state.SetText(tr("Below threshold"))
+		m.state.SetText(i18n.Tr("Below threshold"))
 	default:
 		m.state.SetText("")
 	}

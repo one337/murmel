@@ -10,6 +10,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 )
 
@@ -102,7 +103,7 @@ func newWindow(app *App) *Window {
 	}
 	w.ApplicationWindow = adw.NewApplicationWindow(&app.Application.Application)
 	// TRANSLATORS: the application name, do not translate.
-	w.SetTitle(tr("Murmel"))
+	w.SetTitle(i18n.Tr("Murmel"))
 	w.SetIconName(settings.SchemaID)
 	w.SetSizeRequest(minWindowWidth, minWindowHeight)
 
@@ -113,14 +114,14 @@ func newWindow(app *App) *Window {
 
 	// --- Sidebar page: channel tree with the primary menu in its header.
 	w.chatBtn = gtk.NewButtonFromIconName("go-next-symbolic")
-	w.chatBtn.SetTooltipText(tr("Show chat"))
+	w.chatBtn.SetTooltipText(i18n.Tr("Show chat"))
 	w.chatBtn.SetVisible(false)
 	w.chatBtn.ConnectClicked(func() { w.split.SetShowContent(true) })
 
 	// The header shows the server name as its title and the connection
 	// dot in the top-left corner: as far from the left edge as from the
 	// top, so it lines up vertically with the title (status-dot-corner).
-	w.serverTitle = adw.NewWindowTitle(tr("Murmel"), "")
+	w.serverTitle = adw.NewWindowTitle(i18n.Tr("Murmel"), "")
 	sidebarHeader := adw.NewHeaderBar()
 	sidebarHeader.SetTitleWidget(w.serverTitle)
 	w.status.dotHolder.AddCSSClass("status-dot-corner")
@@ -135,13 +136,13 @@ func newWindow(app *App) *Window {
 	sidebarToolbar.SetContent(w.sidebar.holder)
 	sidebarToolbar.AddBottomBar(w.status.root)
 
-	w.sidebarPage = adw.NewNavigationPage(sidebarToolbar, tr("Murmel"))
+	w.sidebarPage = adw.NewNavigationPage(sidebarToolbar, i18n.Tr("Murmel"))
 	w.sidebarPage.SetTag("sidebar")
 
 	// --- Content page: empty state ↔ chat. The chat brings its own
 	// headers (one per conversation), the empty state gets a plain one.
 	emptyHeader := adw.NewHeaderBar()
-	emptyHeader.SetTitleWidget(adw.NewWindowTitle(tr("Murmel"), ""))
+	emptyHeader.SetTitleWidget(adw.NewWindowTitle(i18n.Tr("Murmel"), ""))
 	emptyToolbar := adw.NewToolbarView()
 	emptyToolbar.AddTopBar(emptyHeader)
 	emptyToolbar.SetContent(newEmptyState(app))
@@ -155,7 +156,7 @@ func newWindow(app *App) *Window {
 	// sidebar's microphone button.
 	w.narrowMute = gtk.NewToggleButton()
 	w.narrowMute.SetIconName("audio-input-microphone-symbolic")
-	w.narrowMute.SetTooltipText(tr("Mute microphone"))
+	w.narrowMute.SetTooltipText(i18n.Tr("Mute microphone"))
 	w.narrowMute.SetVisible(false)
 	syncMute := func(from, to *gtk.ToggleButton) {
 		if to.Active() != from.Active() {
@@ -166,7 +167,7 @@ func newWindow(app *App) *Window {
 	w.status.selfMute.ConnectToggled(func() { syncMute(w.status.selfMute, w.narrowMute) })
 	w.narrowMute.ConnectToggled(func() { syncMute(w.narrowMute, w.status.selfMute) })
 
-	w.contentPage = adw.NewNavigationPage(w.stack, tr("Murmel"))
+	w.contentPage = adw.NewNavigationPage(w.stack, i18n.Tr("Murmel"))
 	w.contentPage.SetTag("content")
 
 	// --- Split view.
@@ -210,15 +211,15 @@ func newPrimaryMenuButton() *gtk.MenuButton {
 	// Quit is no menu entry (GNOME HIG); Ctrl+Q and closing the window
 	// remain.
 	connection := gio.NewMenu()
-	connection.Append(tr("Connect to Server…"), "app.connect")
-	disconnect := gio.NewMenuItem(tr("Disconnect"), "app.disconnect")
+	connection.Append(i18n.Tr("Connect to Server…"), "app.connect")
+	disconnect := gio.NewMenuItem(i18n.Tr("Disconnect"), "app.disconnect")
 	disconnect.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
 	connection.AppendItem(disconnect)
 
 	admin := gio.NewMenu()
 	for _, e := range []struct{ label, action string }{
-		{tr("Ban List"), "app.banlist"},
-		{tr("Registered Users"), "app.userlist"},
+		{i18n.Tr("Ban List"), "app.banlist"},
+		{i18n.Tr("Registered Users"), "app.userlist"},
 	} {
 		item := gio.NewMenuItem(e.label, e.action)
 		item.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
@@ -226,9 +227,9 @@ func newPrimaryMenuButton() *gtk.MenuButton {
 	}
 
 	general := gio.NewMenu()
-	general.Append(tr("Preferences"), "app.preferences")
-	general.Append(tr("Keyboard Shortcuts"), "app.shortcuts")
-	general.Append(tr("About Murmel"), "app.about")
+	general.Append(i18n.Tr("Preferences"), "app.preferences")
+	general.Append(i18n.Tr("Keyboard Shortcuts"), "app.shortcuts")
+	general.Append(i18n.Tr("About Murmel"), "app.about")
 
 	menu := gio.NewMenu()
 	menu.AppendSection("", connection)
@@ -237,7 +238,7 @@ func newPrimaryMenuButton() *gtk.MenuButton {
 
 	btn := gtk.NewMenuButton()
 	btn.SetIconName("open-menu-symbolic")
-	btn.SetTooltipText(tr("Main Menu"))
+	btn.SetTooltipText(i18n.Tr("Main Menu"))
 	btn.SetMenuModel(menu)
 	btn.SetPrimary(true)
 	return btn
@@ -246,10 +247,10 @@ func newPrimaryMenuButton() *gtk.MenuButton {
 // confirmQuit asks before quitting while connected; agreeing leaves the
 // server and closes the window.
 func (w *Window) confirmQuit() {
-	alert := adw.NewAlertDialog(tr("Quit Murmel?"),
-		tr("You are still connected to a server. Quitting ends the connection."))
-	alert.AddResponse("cancel", tr("Cancel"))
-	alert.AddResponse("quit", tr("Quit"))
+	alert := adw.NewAlertDialog(i18n.Tr("Quit Murmel?"),
+		i18n.Tr("You are still connected to a server. Quitting ends the connection."))
+	alert.AddResponse("cancel", i18n.Tr("Cancel"))
+	alert.AddResponse("quit", i18n.Tr("Quit"))
 	alert.SetResponseAppearance("quit", adw.ResponseDestructive)
 	alert.SetDefaultResponse("cancel")
 	alert.SetCloseResponse("cancel")
@@ -300,7 +301,7 @@ func (w *Window) NarrowMuteButton() gtk.Widgetter { return w.narrowMute }
 // setServerTitle shows the server in the sidebar header ("Murmel" while
 // disconnected).
 func (w *Window) setServerTitle(address string) {
-	title := tr("Murmel")
+	title := i18n.Tr("Murmel")
 	if address != "" {
 		title = address
 		if host, _, err := net.SplitHostPort(address); err == nil {
@@ -320,23 +321,23 @@ func (w *Window) showPrimary() {
 }
 
 func newEmptyState(app *App) gtk.Widgetter {
-	connect := gtk.NewButtonWithLabel(tr("Connect…"))
+	connect := gtk.NewButtonWithLabel(i18n.Tr("Connect…"))
 	connect.AddCSSClass("suggested-action")
 	connect.AddCSSClass("pill")
 	connect.SetActionName("app.connect")
 
 	page := adw.NewStatusPage()
 	page.SetIconName(settings.SchemaID)
-	page.SetTitle(tr("Not connected"))
-	page.SetDescription(tr("Join a Mumble server to start talking."))
+	page.SetTitle(i18n.Tr("Not connected"))
+	page.SetDescription(i18n.Tr("Join a Mumble server to start talking."))
 	page.SetChild(connect)
 	return page
 }
 
 func (w *Window) installPlaceholders() {
 	channels := adw.NewStatusPage()
-	channels.SetTitle(tr("Channels"))
-	channels.SetDescription(tr("Connect to a server to browse its channels."))
+	channels.SetTitle(i18n.Tr("Channels"))
+	channels.SetDescription(i18n.Tr("Connect to a server to browse its channels."))
 	w.sidebar.Set(channels)
 }
 
@@ -390,9 +391,9 @@ func (w *Window) subscribe() {
 		}
 	})
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(ev bus.AudioDeviceProblem) {
-		msg := tr("The microphone stopped delivering audio. Choose another input device.")
+		msg := i18n.Tr("The microphone stopped delivering audio. Choose another input device.")
 		if ev.Output {
-			msg = tr("The output device is not playing audio. Choose another output device.")
+			msg = i18n.Tr("The output device is not playing audio. Choose another output device.")
 		}
 		toast := adw.NewToast(msg)
 		toast.SetTimeout(8)

@@ -23,6 +23,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/gfileio"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
@@ -132,12 +133,12 @@ func NewRow(title, name, unset string, onChange func([]byte)) *Row {
 	pick := gtk.NewButtonFromIconName("document-open-symbolic")
 	pick.AddCSSClass("flat")
 	pick.SetVAlign(gtk.AlignCenter)
-	pick.SetTooltipText(tr("Choose image…"))
+	pick.SetTooltipText(i18n.Tr("Choose image…"))
 
 	remove := gtk.NewButtonFromIconName("edit-clear-symbolic")
 	remove.AddCSSClass("flat")
 	remove.SetVAlign(gtk.AlignCenter)
-	remove.SetTooltipText(tr("Remove avatar"))
+	remove.SetTooltipText(i18n.Tr("Remove avatar"))
 
 	s := &rowState{
 		row:      weakref.New(row),
@@ -204,7 +205,7 @@ func (s *rowState) refresh() {
 	s.remove.Do(func(b *gtk.Button) { b.SetVisible(s.data != nil) })
 	s.row.Do(func(row *adw.ActionRow) {
 		if s.data != nil {
-			row.SetSubtitle(tr("Shown to others next to your name"))
+			row.SetSubtitle(i18n.Tr("Shown to others next to your name"))
 		} else {
 			row.SetSubtitle(s.unset)
 		}
@@ -217,12 +218,12 @@ func (s *rowState) choose() {
 		return
 	}
 	filter := gtk.NewFileFilter()
-	filter.SetName(tr("Images"))
+	filter.SetName(i18n.Tr("Images"))
 	filter.AddPixbufFormats()
 	filters := gio.NewListStore(gtk.GTypeFileFilter)
 	filters.Append(filter.Object)
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(tr("Choose Avatar"))
+	fd.SetTitle(i18n.Tr("Choose Avatar"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(filter)
@@ -251,7 +252,7 @@ func (s *rowState) choose() {
 					}
 					if err != nil {
 						slog.Info("avatar: image not usable", "file", name, "err", err)
-						s.row.Do(func(row *adw.ActionRow) { row.SetSubtitle(tr("This image could not be read.")) })
+						s.row.Do(func(row *adw.ActionRow) { row.SetSubtitle(i18n.Tr("This image could not be read.")) })
 						return
 					}
 					s.set(data, true)

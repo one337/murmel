@@ -5,6 +5,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/richtext"
 )
 
@@ -308,7 +309,7 @@ func (i *channelInfo) layout() {
 		i.scroll.SetMaxContentHeight(infoExpandedMaxPx)
 		i.scroll.SetMinContentHeight(-1)
 		i.fade.SetVisible(false)
-		i.toggle.SetChild(toggleLabel(tr("Show less"), "pan-up-symbolic"))
+		i.toggle.SetChild(toggleLabel(i18n.Tr("Show less"), "pan-up-symbolic"))
 	} else {
 		// External: no scrollbar, the content is clipped at the height.
 		i.scroll.SetPolicy(gtk.PolicyNever, gtk.PolicyExternal)
@@ -316,7 +317,7 @@ func (i *channelInfo) layout() {
 		i.scroll.SetMinContentHeight(min(limit, natural))
 		i.scroll.VAdjustment().SetValue(0)
 		i.fade.SetVisible(overflow)
-		i.toggle.SetChild(toggleLabel(tr("Show more"), "pan-down-symbolic"))
+		i.toggle.SetChild(toggleLabel(i18n.Tr("Show more"), "pan-down-symbolic"))
 	}
 }
 
@@ -359,11 +360,11 @@ func (i *channelInfo) layoutHero() {
 	if i.expanded {
 		i.heroSizer.SetSizeRequest(-1, full+toggleH)
 		i.heroText.SetVisible(hasText)
-		i.heroToggle.SetChild(toggleLabel(tr("Show less"), "pan-up-symbolic"))
+		i.heroToggle.SetChild(toggleLabel(i18n.Tr("Show less"), "pan-up-symbolic"))
 	} else {
 		i.heroSizer.SetSizeRequest(-1, min(collapsed, full)+toggleH)
 		i.heroText.SetVisible(false)
-		i.heroToggle.SetChild(toggleLabel(tr("Show more"), "pan-down-symbolic"))
+		i.heroToggle.SetChild(toggleLabel(i18n.Tr("Show more"), "pan-down-symbolic"))
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/clock"
 	"github.com/one337/murmel/internal/ui/richtext"
 )
@@ -76,7 +77,7 @@ func newRow(st rowStyle) *chatRow {
 	header.Append(stamp)
 
 	if st.kind == rowPrivate {
-		tag := gtk.NewLabel(tr("private"))
+		tag := gtk.NewLabel(i18n.Tr("private"))
 		tag.AddCSSClass("caption")
 		tagBox := gtk.NewBox(gtk.OrientationHorizontal, 0)
 		tagBox.SetHExpand(true)
@@ -139,9 +140,9 @@ func rowCSSClass(k rowKind) string {
 // errorRowText formats an inline send-failure row.
 func errorRowText(reason string) string {
 	if reason == "" {
-		return tr("Message not delivered.")
+		return i18n.Tr("Message not delivered.")
 	}
-	return fmt.Sprintf(tr("Message not delivered: %s"), reason)
+	return fmt.Sprintf(i18n.Tr("Message not delivered: %s"), reason)
 }
 
 // newLogRow is a single faded line: time and event text. An error is the

@@ -11,6 +11,7 @@ import (
 
 	"github.com/one337/murmel/internal/audio/device"
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui/levelmeter"
 )
@@ -54,20 +55,20 @@ func newStatusBar(st settings.Settings, b *bus.Bus) *statusBar {
 
 	s.selfMute = gtk.NewToggleButton()
 	s.selfMute.SetIconName(iconMicOn)
-	s.selfMute.SetTooltipText(tr("Mute microphone"))
+	s.selfMute.SetTooltipText(i18n.Tr("Mute microphone"))
 	s.selfMute.ConnectToggled(func() {
 		s.updateSelfMuteIcon()
 	})
 
 	s.selfDeafen = gtk.NewToggleButton()
 	s.selfDeafen.SetIconName(iconHeadphones)
-	s.selfDeafen.SetTooltipText(tr("Deafen"))
+	s.selfDeafen.SetTooltipText(i18n.Tr("Deafen"))
 	s.selfDeafen.ConnectToggled(func() {
 		s.updateSelfDeafenIcon()
 	})
 
-	micMenu := s.newDropdown(tr("Input device"), s.fillInputPopover)
-	outMenu := s.newDropdown(tr("Output device"), s.fillOutputPopover)
+	micMenu := s.newDropdown(i18n.Tr("Input device"), s.fillInputPopover)
+	outMenu := s.newDropdown(i18n.Tr("Output device"), s.fillOutputPopover)
 
 	s.meter = newVoiceMeter()
 	meterBtn := gtk.NewMenuButton()
@@ -76,7 +77,7 @@ func newStatusBar(st settings.Settings, b *bus.Bus) *statusBar {
 	meterBtn.SetDirection(gtk.ArrowUp)
 	meterBtn.SetVAlign(gtk.AlignFill)
 	meterBtn.AddCSSClass("voice-meter-button")
-	meterBtn.SetTooltipText(tr("Voice input: grey = below threshold, green = transmitting, yellow = voice detected but not sent (muted or not connected), red = too loud. Click to set the activation threshold."))
+	meterBtn.SetTooltipText(i18n.Tr("Voice input: grey = below threshold, green = transmitting, yellow = voice detected but not sent (muted or not connected), red = too loud. Click to set the activation threshold."))
 
 	// The dot sits in a padded holder so the tooltip has a comfortable
 	// hover target.
@@ -162,14 +163,14 @@ func (s *statusBar) fillInputPopover(box *gtk.Box) {
 	} else {
 		slog.Info("status bar: listing capture devices failed", "err", err)
 	}
-	box.Append(heading(tr("Input Device")))
+	box.Append(heading(i18n.Tr("Input Device")))
 	box.Append(deviceChoices(infos, s.settings.AudioInputDevice(), s.settings.SetAudioInputDevice))
 }
 
 func (s *statusBar) fillThresholdPopover(box *gtk.Box) {
-	box.Append(heading(tr("Activation Threshold")))
+	box.Append(heading(i18n.Tr("Activation Threshold")))
 	box.Append(levelmeter.New(s.settings, s.bus).Root())
-	hint := gtk.NewLabel(tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Red means the input is too loud."))
+	hint := gtk.NewLabel(i18n.Tr("Speak normally and drag the handle just below your speech level: everything louder than the handle is transmitted. Red means the input is too loud."))
 	hint.SetWrap(true)
 	hint.SetMaxWidthChars(36)
 	hint.SetXAlign(0)
@@ -178,24 +179,24 @@ func (s *statusBar) fillThresholdPopover(box *gtk.Box) {
 	box.Append(hint)
 
 	box.Append(gtk.NewSeparator(gtk.OrientationHorizontal))
-	box.Append(heading(tr("Processing")))
+	box.Append(heading(i18n.Tr("Processing")))
 
-	noise := gtk.NewDropDownFromStrings([]string{tr("Off"), tr("Low"), tr("Moderate"), tr("High"), tr("Very High")})
+	noise := gtk.NewDropDownFromStrings([]string{i18n.Tr("Off"), i18n.Tr("Low"), i18n.Tr("Moderate"), i18n.Tr("High"), i18n.Tr("Very High")})
 	noise.SetSelected(uint(min(4, max(0, s.settings.NoiseSuppression()))))
 	noise.SetVAlign(gtk.AlignCenter)
 	coreglib.InternObject(noise).NotifyProperty("selected", func() {
 		s.settings.SetNoiseSuppression(int(noise.Selected()))
 	})
-	box.Append(settingLine(tr("Noise Suppression"), noise))
+	box.Append(settingLine(i18n.Tr("Noise Suppression"), noise))
 
 	echo := gtk.NewSwitch()
 	echo.SetActive(s.settings.EchoCancellation())
 	echo.SetVAlign(gtk.AlignCenter)
-	echo.SetTooltipText(tr("For speakers instead of a headset"))
+	echo.SetTooltipText(i18n.Tr("For speakers instead of a headset"))
 	coreglib.InternObject(echo).NotifyProperty("active", func() {
 		s.settings.SetEchoCancellation(echo.Active())
 	})
-	box.Append(settingLine(tr("Echo Cancellation"), echo))
+	box.Append(settingLine(i18n.Tr("Echo Cancellation"), echo))
 }
 
 // settingLine is a label with its control right-aligned.
@@ -216,7 +217,7 @@ func (s *statusBar) fillOutputPopover(box *gtk.Box) {
 	} else {
 		slog.Info("status bar: listing playback devices failed", "err", err)
 	}
-	box.Append(heading(tr("Output Device")))
+	box.Append(heading(i18n.Tr("Output Device")))
 	box.Append(deviceChoices(infos, s.settings.AudioOutputDevice(), s.settings.SetAudioOutputDevice))
 }
 
@@ -258,14 +259,14 @@ func deviceChoices(infos []device.Info, current string, store func(string)) gtk.
 		return cb
 	}
 
-	first := add(tr("System default"), "", nil)
+	first := add(i18n.Tr("System default"), "", nil)
 	for _, d := range infos {
 		add(d.Name, d.Name, first)
 	}
 	if !found {
 		// The stored device is gone (unplugged): show it so the user
 		// sees why the default is in use, and can switch away.
-		add(fmt.Sprintf(tr("%s (not available)"), current), current, first)
+		add(fmt.Sprintf(i18n.Tr("%s (not available)"), current), current, first)
 	}
 
 	scroll := gtk.NewScrolledWindow()
@@ -323,38 +324,38 @@ func (s *statusBar) setDot(connected bool, tooltip string) {
 func (s *statusBar) setConnected() {
 	s.connected = true
 	s.idle.stop() // the voice engine captures now
-	s.setDot(true, tr("Connected"))
+	s.setDot(true, i18n.Tr("Connected"))
 }
 
 // setInfo refreshes the connection details shown in the dot's tooltip.
 func (s *statusBar) setInfo(ev bus.ConnectionInfo) {
-	lines := []string{fmt.Sprintf(tr("Connected to %s"), ev.Address)}
+	lines := []string{fmt.Sprintf(i18n.Tr("Connected to %s"), ev.Address)}
 	if ev.Username != "" {
-		lines = append(lines, fmt.Sprintf(tr("User: %s"), ev.Username))
+		lines = append(lines, fmt.Sprintf(i18n.Tr("User: %s"), ev.Username))
 	}
 	if ev.Channel != "" {
-		lines = append(lines, fmt.Sprintf(tr("Channel: %s"), ev.Channel))
+		lines = append(lines, fmt.Sprintf(i18n.Tr("Channel: %s"), ev.Channel))
 	}
 	if ev.ServerVersion != "" {
-		lines = append(lines, fmt.Sprintf(tr("Server: Mumble %s"), ev.ServerVersion))
+		lines = append(lines, fmt.Sprintf(i18n.Tr("Server: Mumble %s"), ev.ServerVersion))
 	}
-	transport := tr("UDP")
+	transport := i18n.Tr("UDP")
 	if ev.Transport != "udp" {
-		transport = tr("TCP (UDP unavailable)")
+		transport = i18n.Tr("TCP (UDP unavailable)")
 	}
-	lines = append(lines, fmt.Sprintf(tr("Voice: %s"), transport))
+	lines = append(lines, fmt.Sprintf(i18n.Tr("Voice: %s"), transport))
 	if ev.Ping > 0 {
-		lines = append(lines, fmt.Sprintf(tr("Ping: %d ms"), ev.Ping.Milliseconds()))
+		lines = append(lines, fmt.Sprintf(i18n.Tr("Ping: %d ms"), ev.Ping.Milliseconds()))
 	}
 	if ev.MaxBandwidth > 0 {
-		lines = append(lines, fmt.Sprintf(tr("Bandwidth limit: %d kbit/s"), ev.MaxBandwidth/1000))
+		lines = append(lines, fmt.Sprintf(i18n.Tr("Bandwidth limit: %d kbit/s"), ev.MaxBandwidth/1000))
 	}
 	s.setDot(true, strings.Join(lines, "\n"))
 }
 
 func (s *statusBar) setDisconnected() {
 	s.connected = false
-	s.setDot(false, tr("Not connected"))
+	s.setDot(false, i18n.Tr("Not connected"))
 	s.meter.reset()
 	s.idle.start()
 }
@@ -364,8 +365,8 @@ func (s *statusBar) setError(text string) {
 	s.meter.reset()
 	s.idle.start()
 	if text == "" {
-		s.setDot(false, tr("Connection failed"))
+		s.setDot(false, i18n.Tr("Connection failed"))
 		return
 	}
-	s.setDot(false, fmt.Sprintf(tr("Connection failed: %s"), text))
+	s.setDot(false, fmt.Sprintf(i18n.Tr("Connection failed: %s"), text))
 }

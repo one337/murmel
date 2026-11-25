@@ -10,6 +10,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 	"github.com/diamondburned/gotk4/pkg/pango"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
 
@@ -64,7 +65,7 @@ func paragraph(markup string, opt Options) *gtk.Label {
 
 // imageNotShown stands in for an image that is refused or cannot be loaded.
 func imageNotShown() gtk.Widgetter {
-	l := gtk.NewLabel(tr("Image not shown"))
+	l := gtk.NewLabel(i18n.Tr("Image not shown"))
 	l.SetXAlign(0)
 	l.AddCSSClass("dim-label")
 	return l

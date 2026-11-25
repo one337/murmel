@@ -12,6 +12,8 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+
+	"github.com/one337/murmel/internal/i18n"
 )
 
 // ErrTooLarge is reported for a file above the caller's size limit.
@@ -95,7 +97,7 @@ func SaveRemote(ctx context.Context, file *gio.File, data []byte, done func(erro
 // Message describes a Load or SaveRemote error for the user.
 func Message(err error) string {
 	if errors.Is(err, ErrTooLarge) {
-		return tr("The file is too large.")
+		return i18n.Tr("The file is too large.")
 	}
 	return err.Error()
 }

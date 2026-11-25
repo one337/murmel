@@ -8,6 +8,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui/shortcuts"
 )
@@ -30,11 +31,11 @@ type globalShortcuts struct {
 
 func shortcutList() []shortcuts.Shortcut {
 	return []shortcuts.Shortcut{
-		{ID: shortcuts.PushToTalk, Description: tr("Push-to-talk")},
-		{ID: shortcuts.ToggleMute, Description: tr("Mute or unmute the microphone")},
-		{ID: shortcuts.ToggleDeafen, Description: tr("Turn the sound off or on")},
-		{ID: shortcuts.PreviousChannel, Description: tr("Move one channel up")},
-		{ID: shortcuts.NextChannel, Description: tr("Move one channel down")},
+		{ID: shortcuts.PushToTalk, Description: i18n.Tr("Push-to-talk")},
+		{ID: shortcuts.ToggleMute, Description: i18n.Tr("Mute or unmute the microphone")},
+		{ID: shortcuts.ToggleDeafen, Description: i18n.Tr("Turn the sound off or on")},
+		{ID: shortcuts.PreviousChannel, Description: i18n.Tr("Move one channel up")},
+		{ID: shortcuts.NextChannel, Description: i18n.Tr("Move one channel down")},
 	}
 }
 

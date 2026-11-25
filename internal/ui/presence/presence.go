@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 )
 
 // Kind classifies a presence change relevant to the local user.
@@ -137,9 +138,9 @@ func (t *Tracker) OnUserRemoved(ev bus.UserRemoved) {
 	reason := ""
 	switch {
 	case ev.Banned:
-		reason = tr("Banned from the server")
+		reason = i18n.Tr("Banned from the server")
 	case ev.Kicked:
-		reason = tr("Kicked from the server")
+		reason = i18n.Tr("Kicked from the server")
 	}
 	if ev.Reason != "" {
 		if reason == "" {

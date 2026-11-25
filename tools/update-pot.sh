@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# update-pot.sh — regenerate the translation template from the tr() calls
+# update-pot.sh — regenerate the translation template from the i18n.Tr() calls
 # in internal/ui and the desktop file.
 #
 # Usage: tools/update-pot.sh [output]   (default: po/murmel.pot)
@@ -11,8 +11,8 @@ cd "$(dirname "$0")/.."
 out=${1:-po/murmel.pot}
 xgettext \
   --language=Go \
-  --keyword=tr \
-  --keyword=trn:1,2 \
+  --keyword=Tr \
+  --keyword=TrN:1,2 \
   --add-comments=TRANSLATORS: \
   --add-location=file \
   --package-name="Murmel" \

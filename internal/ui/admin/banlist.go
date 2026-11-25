@@ -9,6 +9,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
 
@@ -39,17 +40,17 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 	loadingRow.SetActivatable(false)
 	listbox.Append(loadingRow)
 
-	saveBtn := gtk.NewButtonWithLabel(tr("Save"))
+	saveBtn := gtk.NewButtonWithLabel(i18n.Tr("Save"))
 	saveBtn.AddCSSClass("suggested-action")
 	saveBtn.SetSensitive(false)
-	cancelBtn := gtk.NewButtonWithLabel(tr("Close"))
+	cancelBtn := gtk.NewButtonWithLabel(i18n.Tr("Close"))
 
 	hdr := adw.NewHeaderBar()
 	hdr.SetShowEndTitleButtons(false)
 	hdr.SetShowStartTitleButtons(false)
 	hdr.PackStart(cancelBtn)
 	hdr.PackEnd(saveBtn)
-	title := adw.NewWindowTitle(tr("Ban List"), "")
+	title := adw.NewWindowTitle(i18n.Tr("Ban List"), "")
 	hdr.SetTitleWidget(title)
 
 	content := gtk.NewBox(gtk.OrientationVertical, 12)
@@ -64,7 +65,7 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 	toolbar.SetContent(content)
 
 	dialog := adw.NewDialog()
-	dialog.SetTitle(tr("Ban List"))
+	dialog.SetTitle(i18n.Tr("Ban List"))
 	dialog.SetContentWidth(540)
 	dialog.SetContentHeight(400)
 	dialog.SetChild(toolbar)
@@ -84,7 +85,7 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 			emptyRow := gtk.NewListBoxRow()
 			emptyRow.SetSelectable(false)
 			emptyRow.SetActivatable(false)
-			lbl := gtk.NewLabel(tr("No bans"))
+			lbl := gtk.NewLabel(i18n.Tr("No bans"))
 			lbl.AddCSSClass("dim-label")
 			lbl.SetMarginTop(24)
 			lbl.SetMarginBottom(24)
@@ -101,7 +102,7 @@ func ShowBanList(parent gtk.Widgetter, b *bus.Bus) {
 
 			removeBtn := gtk.NewButtonFromIconName("list-remove-symbolic")
 			removeBtn.AddCSSClass("flat")
-			removeBtn.SetTooltipText(tr("Remove ban"))
+			removeBtn.SetTooltipText(i18n.Tr("Remove ban"))
 			rowRef, btnRef := weakref.New(row), weakref.New(removeBtn)
 			removeBtn.ConnectClicked(func() {
 				removed[idx] = true
@@ -144,7 +145,7 @@ func banEntryTitle(e bus.BanEntry) string {
 func banEntrySubtitle(e bus.BanEntry) string {
 	reason := e.Reason
 	if reason == "" {
-		reason = tr("No reason given")
+		reason = i18n.Tr("No reason given")
 	}
 	dur := formatDuration(e.Duration)
 	if dur != "" {
@@ -164,13 +165,13 @@ func formatDuration(d time.Duration) string {
 	switch {
 	case d == 0:
 		// TRANSLATORS: Ban duration: the ban never expires.
-		return tr("Permanent")
+		return i18n.Tr("Permanent")
 	case d < time.Hour:
-		return fmt.Sprintf(tr("%d min"), int(d.Minutes()))
+		return fmt.Sprintf(i18n.Tr("%d min"), int(d.Minutes()))
 	case d < 24*time.Hour:
-		return fmt.Sprintf(tr("%d h"), int(d.Hours()))
+		return fmt.Sprintf(i18n.Tr("%d h"), int(d.Hours()))
 	default:
 		days := int(d.Hours() / 24)
-		return fmt.Sprintf(trn("%d day", "%d days", days), days)
+		return fmt.Sprintf(i18n.TrN("%d day", "%d days", days), days)
 	}
 }

@@ -1,6 +1,10 @@
 package ui
 
-import "github.com/diamondburned/gotk4-adwaita/pkg/adw"
+import (
+	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+
+	"github.com/one337/murmel/internal/i18n"
+)
 
 // showShortcuts presents the keyboard shortcuts overview (Main Menu →
 // Keyboard Shortcuts, Ctrl+?): the app's own shortcuts, which are fixed,
@@ -9,21 +13,21 @@ import "github.com/diamondburned/gotk4-adwaita/pkg/adw"
 func (a *App) showShortcuts() {
 	d := adw.NewShortcutsDialog()
 
-	general := adw.NewShortcutsSection(tr("General"))
-	general.Add(adw.NewShortcutsItem(tr("Show keyboard shortcuts"), "<Control>question"))
-	general.Add(adw.NewShortcutsItem(tr("Open the main menu"), "F10"))
-	general.Add(adw.NewShortcutsItem(tr("Connect to a server"), "<Control>n"))
-	general.Add(adw.NewShortcutsItem(tr("Preferences"), "<Control>comma"))
-	general.Add(adw.NewShortcutsItem(tr("Fullscreen"), "F11"))
-	general.Add(adw.NewShortcutsItem(tr("Quit"), "<Control>q"))
+	general := adw.NewShortcutsSection(i18n.Tr("General"))
+	general.Add(adw.NewShortcutsItem(i18n.Tr("Show keyboard shortcuts"), "<Control>question"))
+	general.Add(adw.NewShortcutsItem(i18n.Tr("Open the main menu"), "F10"))
+	general.Add(adw.NewShortcutsItem(i18n.Tr("Connect to a server"), "<Control>n"))
+	general.Add(adw.NewShortcutsItem(i18n.Tr("Preferences"), "<Control>comma"))
+	general.Add(adw.NewShortcutsItem(i18n.Tr("Fullscreen"), "F11"))
+	general.Add(adw.NewShortcutsItem(i18n.Tr("Quit"), "<Control>q"))
 	d.Add(general)
 
-	messages := adw.NewShortcutsSection(tr("Messages"))
-	messages.Add(adw.NewShortcutsItem(tr("Send the message"), "Return"))
-	messages.Add(adw.NewShortcutsItem(tr("New line"), "<Shift>Return"))
-	messages.Add(adw.NewShortcutsItem(tr("Bold"), "<Control>b"))
-	messages.Add(adw.NewShortcutsItem(tr("Italic"), "<Control>i"))
-	messages.Add(adw.NewShortcutsItem(tr("Insert emoji"), "<Control>period"))
+	messages := adw.NewShortcutsSection(i18n.Tr("Messages"))
+	messages.Add(adw.NewShortcutsItem(i18n.Tr("Send the message"), "Return"))
+	messages.Add(adw.NewShortcutsItem(i18n.Tr("New line"), "<Shift>Return"))
+	messages.Add(adw.NewShortcutsItem(i18n.Tr("Bold"), "<Control>b"))
+	messages.Add(adw.NewShortcutsItem(i18n.Tr("Italic"), "<Control>i"))
+	messages.Add(adw.NewShortcutsItem(i18n.Tr("Insert emoji"), "<Control>period"))
 	d.Add(messages)
 
 	if a.window != nil {
@@ -33,7 +37,7 @@ func (a *App) showShortcuts() {
 			for _, b := range g.Bindings() {
 				keys[b.ID] = b.Accelerators()
 			}
-			global := adw.NewShortcutsSection(tr("Global Shortcuts"))
+			global := adw.NewShortcutsSection(i18n.Tr("Global Shortcuts"))
 			for _, s := range g.Shortcuts() {
 				accel := ""
 				for i, k := range keys[s.ID] {
@@ -44,7 +48,7 @@ func (a *App) showShortcuts() {
 				}
 				item := adw.NewShortcutsItem(s.Description, accel)
 				if accel == "" {
-					item.SetSubtitle(tr("Not assigned – set up in Preferences → General"))
+					item.SetSubtitle(i18n.Tr("Not assigned – set up in Preferences → General"))
 				}
 				global.Add(item)
 			}

@@ -4,6 +4,8 @@ import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
+
+	"github.com/one337/murmel/internal/i18n"
 )
 
 // conversation is one chat page: the channel chat or a private
@@ -57,10 +59,10 @@ func newConversation(tag, title, emptyText string) *conversation {
 		}
 	})
 
-	jumpBtn := gtk.NewButtonWithLabel(tr("Jump to latest"))
+	jumpBtn := gtk.NewButtonWithLabel(i18n.Tr("Jump to latest"))
 	jumpBtn.AddCSSClass("suggested-action")
 	jumpBtn.AddCSSClass("pill")
-	jumpBtn.SetTooltipText(tr("Scroll to the newest line"))
+	jumpBtn.SetTooltipText(i18n.Tr("Scroll to the newest line"))
 	jumpBtn.ConnectClicked(func() {
 		c.pin = true
 		c.scrollToBottom()

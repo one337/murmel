@@ -8,6 +8,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
 
@@ -79,19 +80,19 @@ func newChannelEditor(b *bus.Bus, info bus.ChannelInfo, page string) (*channelEd
 	e := &channelEditor{b: b, info: info}
 
 	e.stack = adw.NewViewStack()
-	e.addPage(PageGeneral, tr("General"), "document-properties-symbolic", e.generalPage(), formWidth)
+	e.addPage(PageGeneral, i18n.Tr("General"), "document-properties-symbolic", e.generalPage(), formWidth)
 	e.descPage = gtk.NewBox(gtk.OrientationVertical, 0)
-	e.stack.AddTitledWithIcon(e.descPage, PageDescription, tr("Description"), "format-justify-left-symbolic")
+	e.stack.AddTitledWithIcon(e.descPage, PageDescription, i18n.Tr("Description"), "format-justify-left-symbolic")
 	e.groupsBox = pageBox()
 	e.groupsBox.Append(loadingLabel())
-	e.addPage(PageGroups, tr("Groups"), "system-users-symbolic", e.groupsBox, formWidth)
+	e.addPage(PageGroups, i18n.Tr("Groups"), "system-users-symbolic", e.groupsBox, formWidth)
 	e.permsBox = pageBox()
 	e.permsBox.Append(loadingLabel())
-	e.addPage(PagePermissions, tr("Permissions"), "security-high-symbolic", e.permsBox, formWidth)
+	e.addPage(PagePermissions, i18n.Tr("Permissions"), "security-high-symbolic", e.permsBox, formWidth)
 
-	e.saveBtn = gtk.NewButtonWithLabel(tr("Save"))
+	e.saveBtn = gtk.NewButtonWithLabel(i18n.Tr("Save"))
 	e.saveBtn.AddCSSClass("suggested-action")
-	cancelBtn := gtk.NewButtonWithLabel(tr("Cancel"))
+	cancelBtn := gtk.NewButtonWithLabel(i18n.Tr("Cancel"))
 
 	switcher := adw.NewViewSwitcher()
 	switcher.SetStack(e.stack)
@@ -109,7 +110,7 @@ func newChannelEditor(b *bus.Bus, info bus.ChannelInfo, page string) (*channelEd
 	toolbar.SetContent(e.stack)
 
 	dialog := adw.NewDialog()
-	dialog.SetTitle(fmt.Sprintf(tr("Edit Channel %s"), info.Name))
+	dialog.SetTitle(fmt.Sprintf(i18n.Tr("Edit Channel %s"), info.Name))
 	dialog.SetContentWidth(editorWidth)
 	dialog.SetContentHeight(editorHeight)
 	dialog.SetChild(toolbar)
@@ -213,18 +214,18 @@ func pageBox() *gtk.Box {
 
 func (e *channelEditor) generalPage() gtk.Widgetter {
 	e.name = adw.NewEntryRow()
-	e.name.SetTitle(tr("Name"))
+	e.name.SetTitle(i18n.Tr("Name"))
 	e.name.SetText(e.info.Name)
 	e.name.ConnectChanged(e.on(func(e *channelEditor) { e.name.RemoveCSSClass("error") }))
 
 	e.position = adw.NewSpinRowWithRange(-maxPosition, maxPosition, 1)
-	e.position.SetTitle(tr("Position"))
-	e.position.SetSubtitle(tr("Order among sibling channels: lower numbers come first"))
+	e.position.SetTitle(i18n.Tr("Position"))
+	e.position.SetSubtitle(i18n.Tr("Order among sibling channels: lower numbers come first"))
 	e.position.SetValue(float64(e.info.Position))
 
 	e.maxUsers = adw.NewSpinRowWithRange(0, maxUsersCap, 1)
-	e.maxUsers.SetTitle(tr("Maximum Users"))
-	e.maxUsers.SetSubtitle(tr("0 = no limit beyond the server's own"))
+	e.maxUsers.SetTitle(i18n.Tr("Maximum Users"))
+	e.maxUsers.SetSubtitle(i18n.Tr("0 = no limit beyond the server's own"))
 	e.maxUsers.SetValue(float64(e.info.MaxUsers))
 
 	props := adw.NewPreferencesGroup()
@@ -233,18 +234,18 @@ func (e *channelEditor) generalPage() gtk.Widgetter {
 	props.Add(e.maxUsers)
 	if e.info.Temporary {
 		tmp := adw.NewActionRow()
-		tmp.SetTitle(tr("Temporary"))
-		tmp.SetSubtitle(tr("Removed automatically when the last user leaves"))
+		tmp.SetTitle(i18n.Tr("Temporary"))
+		tmp.SetSubtitle(i18n.Tr("Removed automatically when the last user leaves"))
 		props.Add(tmp)
 	}
 
 	e.password = adw.NewPasswordEntryRow()
-	e.password.SetTitle(tr("Password"))
+	e.password.SetTitle(i18n.Tr("Password"))
 	e.password.SetSensitive(false) // until the ACL is known
 
 	access := adw.NewPreferencesGroup()
-	access.SetTitle(tr("Access"))
-	access.SetDescription(tr("Loading the channel's permissions…"))
+	access.SetTitle(i18n.Tr("Access"))
+	access.SetDescription(i18n.Tr("Loading the channel's permissions…"))
 	access.Add(e.password)
 	e.accessGroup = access
 
@@ -259,9 +260,9 @@ func (e *channelEditor) aclLoaded() {
 	clearBox(e.groupsBox)
 	clearBox(e.permsBox)
 	if e.acl == nil {
-		e.accessGroup.SetDescription(tr("You may not view this channel's permissions, so its password cannot be changed here."))
+		e.accessGroup.SetDescription(i18n.Tr("You may not view this channel's permissions, so its password cannot be changed here."))
 		for _, box := range []*gtk.Box{e.groupsBox, e.permsBox} {
-			msg := gtk.NewLabel(tr("You do not have permission to view this channel's groups and permissions."))
+			msg := gtk.NewLabel(i18n.Tr("You do not have permission to view this channel's groups and permissions."))
 			msg.AddCSSClass("dim-label")
 			msg.SetWrap(true)
 			box.Append(msg)
@@ -274,7 +275,7 @@ func (e *channelEditor) aclLoaded() {
 	e.origPW = channelPassword(e.acl.Rules)
 	e.password.SetText(e.origPW)
 	e.password.SetSensitive(true)
-	e.accessGroup.SetDescription(tr("Users need this password to enter the channel. Leave it empty for an open channel."))
+	e.accessGroup.SetDescription(i18n.Tr("Users need this password to enter the channel. Leave it empty for an open channel."))
 }
 
 // --- Save ------------------------------------------------------------------

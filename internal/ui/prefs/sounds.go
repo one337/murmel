@@ -15,6 +15,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
 	"github.com/one337/murmel/internal/audio/effects"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui/gfileio"
 	"github.com/one337/murmel/internal/ui/weakref"
@@ -24,27 +25,27 @@ import (
 func eventLabel(ev effects.Event) string {
 	switch ev {
 	case effects.SelfConnected:
-		return tr("Connected to a server")
+		return i18n.Tr("Connected to a server")
 	case effects.SelfDisconnected:
-		return tr("Disconnected")
+		return i18n.Tr("Disconnected")
 	case effects.SelfMoved:
-		return tr("You switched channels")
+		return i18n.Tr("You switched channels")
 	case effects.UserJoinedChannel:
-		return tr("User joined your channel")
+		return i18n.Tr("User joined your channel")
 	case effects.UserLeftChannel:
-		return tr("User left your channel")
+		return i18n.Tr("User left your channel")
 	case effects.UserConnected:
-		return tr("User connected to the server")
+		return i18n.Tr("User connected to the server")
 	case effects.UserDisconnected:
-		return tr("User disconnected from the server")
+		return i18n.Tr("User disconnected from the server")
 	case effects.PrivateMessage:
-		return tr("Private message")
+		return i18n.Tr("Private message")
 	case effects.ChannelMessage:
-		return tr("Channel message")
+		return i18n.Tr("Channel message")
 	case effects.PushToTalkPressed:
-		return tr("Push-to-talk pressed")
+		return i18n.Tr("Push-to-talk pressed")
 	case effects.PushToTalkRelease:
-		return tr("Push-to-talk released")
+		return i18n.Tr("Push-to-talk released")
 	}
 	return string(ev)
 }
@@ -53,23 +54,23 @@ func eventLabel(ev effects.Event) string {
 func builtinLabel(id string) string {
 	switch id {
 	case "join":
-		return tr("Rising chime")
+		return i18n.Tr("Rising chime")
 	case "leave":
-		return tr("Falling chime")
+		return i18n.Tr("Falling chime")
 	case "connect":
-		return tr("Rising triad")
+		return i18n.Tr("Rising triad")
 	case "disconnect":
-		return tr("Falling triad")
+		return i18n.Tr("Falling triad")
 	case "move":
-		return tr("Pop")
+		return i18n.Tr("Pop")
 	case "blip-up":
-		return tr("Blip up")
+		return i18n.Tr("Blip up")
 	case "blip-down":
-		return tr("Blip down")
+		return i18n.Tr("Blip down")
 	case "message":
-		return tr("Bell")
+		return i18n.Tr("Bell")
 	case "tick":
-		return tr("Tick")
+		return i18n.Tr("Tick")
 	}
 	return id
 }
@@ -84,8 +85,8 @@ const chooseFile = "\x00choose"
 // local path; pw shows problems with a picked file.
 func soundsRow(st settings.Settings, player *effects.Player, parent func() *gtk.Window, pw weakref.Ref[*adw.PreferencesDialog], soundsDir string) *adw.ExpanderRow {
 	exp := adw.NewExpanderRow()
-	exp.SetTitle(tr("Event sounds"))
-	exp.SetSubtitle(tr("For connections, users, messages and push-to-talk"))
+	exp.SetTitle(i18n.Tr("Event sounds"))
+	exp.SetSubtitle(i18n.Tr("For connections, users, messages and push-to-talk"))
 	exp.SetShowEnableSwitch(true)
 	exp.SetEnableExpansion(st.SoundsEnabled())
 	onNotify(exp, "enable-expansion", func(exp *adw.ExpanderRow) {
@@ -107,7 +108,7 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 		updating bool     // suppresses the notify handler while rebuilding
 	)
 	preview := gtk.NewButtonFromIconName("media-playback-start-symbolic")
-	preview.SetTooltipText(tr("Play"))
+	preview.SetTooltipText(i18n.Tr("Play"))
 	preview.SetVAlign(gtk.AlignCenter)
 	preview.AddCSSClass("flat")
 	preview.ConnectClicked(func() {
@@ -144,7 +145,7 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 		updating = true
 		defer func() { updating = false }()
 		choices = []string{effects.Off}
-		labels := []string{tr("Off")}
+		labels := []string{i18n.Tr("Off")}
 		for _, id := range effects.Builtins {
 			choices = append(choices, effects.BuiltinChoice(id))
 			labels = append(labels, builtinLabel(id))
@@ -154,7 +155,7 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 			labels = append(labels, filepath.Base(path))
 		}
 		choices = append(choices, chooseFile)
-		labels = append(labels, tr("Choose File…"))
+		labels = append(labels, i18n.Tr("Choose File…"))
 		row.SetModel(gtk.NewStringList(labels))
 		for i, c := range choices {
 			if c == current {
@@ -205,7 +206,7 @@ func soundEventRow(st settings.Settings, player *effects.Player, parent func() *
 // asked; closing it abandons the pick.
 func pickSoundFile(parent *gtk.Window, owner gtk.Widgetter, soundsDir string, done func(path, problem string)) {
 	audio := gtk.NewFileFilter()
-	audio.SetName(tr("Sounds (WAV, Ogg Vorbis)"))
+	audio.SetName(i18n.Tr("Sounds (WAV, Ogg Vorbis)"))
 	for _, s := range []string{"wav", "ogg", "oga"} {
 		audio.AddSuffix(s)
 	}
@@ -216,7 +217,7 @@ func pickSoundFile(parent *gtk.Window, owner gtk.Widgetter, soundsDir string, do
 	filters.Append(audio.Object)
 
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(tr("Choose Sound"))
+	fd.SetTitle(i18n.Tr("Choose Sound"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(audio)
@@ -247,7 +248,7 @@ func pickSoundFile(parent *gtk.Window, owner gtk.Widgetter, soundsDir string, do
 					switch {
 					case decodeErr != nil:
 						slog.Info("sound file not usable", "file", name, "err", decodeErr)
-						done("", tr("This file is not a usable sound (WAV or Ogg Vorbis)."))
+						done("", i18n.Tr("This file is not a usable sound (WAV or Ogg Vorbis)."))
 					case copyErr != nil:
 						slog.Info("sound file not copied", "file", name, "err", copyErr)
 						done("", copyErr.Error())

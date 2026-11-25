@@ -13,6 +13,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/pango"
 
 	"github.com/one337/murmel/internal/bus"
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
 
@@ -155,7 +156,7 @@ func showUnread(b *gtk.Label, n int) {
 		b.SetText(strconv.Itoa(n))
 	}
 	if n > 0 {
-		b.SetTooltipText(fmt.Sprintf(tr("Unread messages: %d"), n))
+		b.SetTooltipText(fmt.Sprintf(i18n.Tr("Unread messages: %d"), n))
 	}
 }
 
@@ -182,7 +183,7 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	r := &channelRowWidgets{}
 
 	r.chevron = newChevron()
-	r.chevron.SetTooltipText(tr("Expand or collapse"))
+	r.chevron.SetTooltipText(i18n.Tr("Expand or collapse"))
 	r.chevron.ConnectClicked(toggle)
 
 	r.name = gtk.NewLabel(n.info.Name)
@@ -197,7 +198,7 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	// "You are here" marker for the channel the local user is in.
 	r.here = gtk.NewImageFromIconName(iconCurrentChannel)
 	r.here.AddCSSClass("here-icon")
-	r.here.SetTooltipText(tr("You are in this channel"))
+	r.here.SetTooltipText(i18n.Tr("You are in this channel"))
 
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	box.Append(r.chevron)
@@ -262,7 +263,7 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	slot.SetChild(chevronSpacer())
 	r.handle = gtk.NewImageFromIconName(iconDragHandle)
 	r.handle.AddCSSClass("user-drag-handle")
-	r.handle.SetTooltipText(tr("Drag into another channel"))
+	r.handle.SetTooltipText(i18n.Tr("Drag into another channel"))
 	slot.AddOverlay(r.handle)
 	box.Append(slot)
 	box.Append(r.avatar)
@@ -364,10 +365,10 @@ func (r *channelRowWidgets) showCurrent(current bool) {
 	r.here.SetVisible(current)
 	if current {
 		r.root.AddCSSClass("current-channel")
-		r.content.SetTooltipText(tr("You are in this channel"))
+		r.content.SetTooltipText(i18n.Tr("You are in this channel"))
 	} else {
 		r.root.RemoveCSSClass("current-channel")
-		r.content.SetTooltipText(tr("Double-click to join"))
+		r.content.SetTooltipText(i18n.Tr("Double-click to join"))
 	}
 }
 
@@ -501,10 +502,10 @@ func (r *userRowWidgets) setLocalAudio(a localAudio) {
 	case a.muted:
 		r.localAudio.SetFromIconName(iconLocalMuted)
 		r.localAudio.AddCSSClass("local-muted")
-		r.localAudio.SetTooltipText(tr("Muted for you"))
+		r.localAudio.SetTooltipText(i18n.Tr("Muted for you"))
 	case a.volume != 1:
 		r.localAudio.SetFromIconName(iconLocalVolume)
-		r.localAudio.SetTooltipText(fmt.Sprintf(tr("Volume for you: %d %%"), percent(a.volume)))
+		r.localAudio.SetTooltipText(fmt.Sprintf(i18n.Tr("Volume for you: %d %%"), percent(a.volume)))
 	}
 	r.localAudio.SetVisible(a.muted || a.volume != 1)
 	r.local = a
@@ -568,10 +569,10 @@ func buildChannelMenu(m *treeModel, id uint32, a ChannelMenuActions) (*gtk.Popov
 
 	menu := gio.NewMenu()
 	// TRANSLATORS: Context menu entry: move yourself into this channel.
-	menu.Append(tr("Join"), "ctx.join")
-	menu.Append(tr("Create sub-channel…"), "ctx.create-sub")
-	menu.Append(tr("Edit…"), "ctx.edit")
-	menu.Append(tr("Remove…"), "ctx.remove")
+	menu.Append(i18n.Tr("Join"), "ctx.join")
+	menu.Append(i18n.Tr("Create sub-channel…"), "ctx.create-sub")
+	menu.Append(i18n.Tr("Edit…"), "ctx.edit")
+	menu.Append(i18n.Tr("Remove…"), "ctx.remove")
 
 	pm := gtk.NewPopoverMenuFromModel(menu)
 	pm.InsertActionGroup("ctx", group)
@@ -641,18 +642,18 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 	}
 	refresh()
 
-	muteLabel := tr("Mute on server")
+	muteLabel := i18n.Tr("Mute on server")
 	if a.IsMuted {
-		muteLabel = tr("Unmute on server")
+		muteLabel = i18n.Tr("Unmute on server")
 	}
-	deafenLabel := tr("Deafen on server")
+	deafenLabel := i18n.Tr("Deafen on server")
 	if a.IsDeafened {
-		deafenLabel = tr("Undeafen on server")
+		deafenLabel = i18n.Tr("Undeafen on server")
 	}
 
 	menu := gio.NewMenu()
 	root := menu
-	menu.Append(tr("Send message…"), "ctx.message")
+	menu.Append(i18n.Tr("Send message…"), "ctx.message")
 	var volume gtk.Widgetter
 	if a.SetLocalAudio != nil {
 		state := a.LocalAudio
@@ -672,26 +673,26 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 		slider := gio.NewMenuItem("", "")
 		slider.SetAttributeValue("custom", glib.NewVariantString("local-volume"))
 		local.AppendItem(slider)
-		local.Append(tr("Mute for me"), "ctx.local-mute")
+		local.Append(i18n.Tr("Mute for me"), "ctx.local-mute")
 		menu.AppendSection("", local)
 	}
 	admin := gio.NewMenu()
 	menu.AppendSection("", admin)
 	menu = admin
-	menu.Append(tr("Move to my channel"), "ctx.move")
+	menu.Append(i18n.Tr("Move to my channel"), "ctx.move")
 	// Shown only while the user is suppressed (and one may lift it).
 	// TRANSLATORS: User menu entry: lets a user speak whom the channel's
 	// permissions keep silent, until they change channels.
-	unsuppress := gio.NewMenuItem(tr("Allow speaking"), "ctx.unsuppress")
+	unsuppress := gio.NewMenuItem(i18n.Tr("Allow speaking"), "ctx.unsuppress")
 	unsuppress.SetAttributeValue("hidden-when", glib.NewVariantString("action-disabled"))
 	menu.AppendItem(unsuppress)
 	menu.Append(muteLabel, "ctx.mute")
 	menu.Append(deafenLabel, "ctx.deafen")
-	menu.Append(tr("Priority speaker"), "ctx.priority")
-	menu.Append(tr("Kick…"), "ctx.kick")
-	menu.Append(tr("Ban…"), "ctx.ban")
-	menu.Append(tr("Register"), "ctx.register")
-	menu.Append(tr("View stats"), "ctx.stats")
+	menu.Append(i18n.Tr("Priority speaker"), "ctx.priority")
+	menu.Append(i18n.Tr("Kick…"), "ctx.kick")
+	menu.Append(i18n.Tr("Ban…"), "ctx.ban")
+	menu.Append(i18n.Tr("Register"), "ctx.register")
+	menu.Append(i18n.Tr("View stats"), "ctx.stats")
 	pm := gtk.NewPopoverMenuFromModel(root)
 	pm.InsertActionGroup("ctx", group)
 	if volume != nil {
@@ -705,7 +706,7 @@ func buildUserMenu(m *treeModel, session uint32, a UserMenuActions) (*gtk.Popove
 func localVolumeSlider(volume float64, set func(float64)) gtk.Widgetter {
 	box := gtk.NewBox(gtk.OrientationVertical, 2)
 	box.AddCSSClass("local-volume")
-	title := gtk.NewLabel(tr("Volume for me"))
+	title := gtk.NewLabel(i18n.Tr("Volume for me"))
 	title.SetXAlign(0)
 	title.AddCSSClass("caption-heading")
 	scale := gtk.NewScaleWithRange(gtk.OrientationHorizontal, 0, 200, 5)

@@ -17,6 +17,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/graphene"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/protocol/gumble"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui/avatarpick"
@@ -81,7 +82,7 @@ func (c *Controller) savedServersGroup(dialog *adw.Dialog, fill func(settings.Se
 	s := &savedList{c: c, fill: fill}
 	s.self = weakref.Owned(dialog, s)
 	s.group = adw.NewPreferencesGroup()
-	s.group.SetTitle(tr("Saved Connections"))
+	s.group.SetTitle(i18n.Tr("Saved Connections"))
 	s.list = gtk.NewListBox()
 	s.list.AddCSSClass("boxed-list")
 	s.list.SetSelectionMode(gtk.SelectionNone)
@@ -222,7 +223,7 @@ func (r *savedRow) showPing(resp *gumble.PingResponse, err error) {
 		r.dot.RemoveCSSClass("connected")
 		r.dot.AddCSSClass("disconnected")
 		r.users.SetVisible(false)
-		r.status.SetTooltipText(tr("The server did not answer. It may be offline, or it does not answer pings."))
+		r.status.SetTooltipText(i18n.Tr("The server did not answer. It may be offline, or it does not answer pings."))
 		return
 	}
 	r.dot.RemoveCSSClass("disconnected")
@@ -231,7 +232,7 @@ func (r *savedRow) showPing(resp *gumble.PingResponse, err error) {
 	r.users.SetVisible(true)
 	r.users.SetText(fmt.Sprintf("%d/%d", resp.ConnectedUsers, resp.MaximumUsers))
 	major, minor, _ := resp.Version.SemanticVersion()
-	r.status.SetTooltipText(fmt.Sprintf(tr("Mumble %d.%d · %d of %d users · %d ms"),
+	r.status.SetTooltipText(fmt.Sprintf(i18n.Tr("Mumble %d.%d · %d of %d users · %d ms"),
 		major, minor, resp.ConnectedUsers, resp.MaximumUsers, ms))
 }
 
@@ -246,7 +247,7 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 
 	handle := gtk.NewImageFromIconName("list-drag-handle-symbolic")
 	handle.AddCSSClass("drag-handle")
-	handle.SetTooltipText(tr("Drag to reorder"))
+	handle.SetTooltipText(i18n.Tr("Drag to reorder"))
 	handle.SetCursorFromName("grab")
 	r.row.AddPrefix(handle)
 	s.dragSource(r, handle)
@@ -268,11 +269,11 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 	r.status.SetVAlign(gtk.AlignCenter)
 	r.status.Append(r.users)
 	r.status.Append(r.dot)
-	r.status.SetTooltipText(tr("Checking the server…"))
+	r.status.SetTooltipText(i18n.Tr("Checking the server…"))
 	r.row.AddSuffix(r.status)
 
 	r.active = gtk.NewImageFromIconName("object-select-symbolic")
-	r.active.SetTooltipText(tr("Connected"))
+	r.active.SetTooltipText(i18n.Tr("Connected"))
 	r.active.SetVisible(false)
 	r.row.AddSuffix(r.active)
 
@@ -293,17 +294,17 @@ func (s *savedList) newRow(e settings.ServerEntry) *savedRow {
 
 	menu := gio.NewMenu()
 	order := gio.NewMenu()
-	order.Append(tr("Move Up"), "saved.up")
-	order.Append(tr("Move Down"), "saved.down")
+	order.Append(i18n.Tr("Move Up"), "saved.up")
+	order.Append(i18n.Tr("Move Down"), "saved.down")
 	menu.AppendSection("", order)
 	remove := gio.NewMenu()
-	remove.Append(tr("Forget Connection"), "saved.forget")
+	remove.Append(i18n.Tr("Forget Connection"), "saved.forget")
 	menu.AppendSection("", remove)
 	more := gtk.NewMenuButton()
 	more.SetIconName("view-more-symbolic")
 	more.AddCSSClass("flat")
 	more.SetVAlign(gtk.AlignCenter)
-	more.SetTooltipText(tr("More"))
+	more.SetTooltipText(i18n.Tr("More"))
 	more.SetMenuModel(menu)
 	r.row.AddSuffix(more)
 	return r

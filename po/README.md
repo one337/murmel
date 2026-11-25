@@ -53,8 +53,8 @@ messages each language still lacks.
 
 ## For developers
 
-- Wrap user-visible text in `tr("…")`; a number that decides the grammar
-  goes through `trn("%d item", "%d items", n)` (in packages that have it).
+- Wrap user-visible text in `i18n.Tr("…")`; a number that decides the
+  grammar goes through `i18n.TrN("%d item", "%d items", n)`.
 - Write whole sentences with placeholders instead of joining pieces, and
   put a `// TRANSLATORS: …` comment above messages that need context.
 - Regenerate the template with `tools/update-pot.sh` (CI fails when it is

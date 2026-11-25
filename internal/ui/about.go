@@ -4,6 +4,7 @@ import (
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
 )
 
@@ -48,9 +49,9 @@ func addLegalSections(d *adw.AboutDialog) {
 		text            string
 	}{
 		{"gotk4, gotk4-adwaita", "", gtk.LicenseMPL20, ""},
-		{tr("gumble (Murmel's fork)"), "", gtk.LicenseMPL20, ""},
-		{tr("Mumble protocol and voice encryption"), "© 2005–2013 Thorvald Natvig and others", gtk.LicenseBSD3, ""},
-		{"malgo, miniaudio", "", gtk.LicenseCustom, tr("Unlicense (public domain).")},
+		{i18n.Tr("gumble (Murmel's fork)"), "", gtk.LicenseMPL20, ""},
+		{i18n.Tr("Mumble protocol and voice encryption"), "© 2005–2013 Thorvald Natvig and others", gtk.LicenseBSD3, ""},
+		{"malgo, miniaudio", "", gtk.LicenseCustom, i18n.Tr("Unlicense (public domain).")},
 		{"golang/protobuf", "© 2010 The Go Authors", gtk.LicenseBSD3, ""},
 		{"golang.org/x/sync", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
 		{"golang.org/x/image", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
@@ -59,7 +60,7 @@ func addLegalSections(d *adw.AboutDialog) {
 		{"hraban/opus", "© 2015–2022 Go Opus Authors", gtk.LicenseMITX11, ""},
 		{"oggvorbis, vorbis", "© 2016 Johann Freymuth", gtk.LicenseMITX11, ""},
 		{"gotext", "© 2016 Leonel Quinteros", gtk.LicenseMITX11, ""},
-		{"GNOME Icon Development Kit", "", gtk.LicenseCustom, tr("CC0 1.0 (public domain), for two user icons.")},
+		{"GNOME Icon Development Kit", "", gtk.LicenseCustom, i18n.Tr("CC0 1.0 (public domain), for two user icons.")},
 	} {
 		d.AddLegalSection(c.name, c.copyright, c.license, c.text)
 	}
