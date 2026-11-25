@@ -10,25 +10,39 @@ import (
 	"testing"
 )
 
-// textSetterMethods is the set of GTK/Adwaita method names that set
-// user-visible text; their string arguments must be wrapped in i18n.Tr().
-var textSetterMethods = map[string]bool{
-	"SetTitle":           true,
-	"SetSubtitle":        true,
-	"SetDescription":     true,
-	"SetBody":            true,
-	"SetComments":        true,
-	"SetTooltipText":     true,
-	"SetPlaceholderText": true,
-	"SetLabel":           true,
-	"SetText":            true,
-	"NewButtonWithLabel": true,
-	"NewLabel":           true,
-	"NewWindowTitle":     true,
+// textArgs maps the GTK/Adwaita functions and methods that show text to the
+// positions of their text arguments; a string literal there must be wrapped
+// in i18n.Tr(). Proper names (SetApplicationName, SetDeveloperName,
+// SetCopyright) stay out on purpose, as do arguments that are IDs or action
+// names (AddResponse's id, NewMenuItem's action).
+var textArgs = map[string][]int{
+	"SetTitle":                {0},
+	"SetSubtitle":             {0},
+	"SetDescription":          {0},
+	"SetBody":                 {0},
+	"SetComments":             {0},
+	"SetTooltipText":          {0},
+	"SetPlaceholderText":      {0},
+	"SetLabel":                {0},
+	"SetText":                 {0},
+	"SetHeading":              {0},
+	"SetButtonLabel":          {0},
+	"SetName":                 {0}, // file filter names; widget names are lowercase IDs
+	"NewButtonWithLabel":      {0},
+	"NewCheckButtonWithLabel": {0},
+	"NewLabel":                {0},
+	"NewWindowTitle":          {0},
+	"NewToast":                {0},
+	"NewShortcutsSection":     {0},
+	"NewShortcutsItem":        {0},
+	"NewMenuItem":             {0},
+	"Append":                  {0}, // menu labels; Box.Append takes a widget
+	"NewAlertDialog":          {0, 1},
+	"AddResponse":             {1},
 }
 
-// technicalStringPrefixes are known non-translatable string patterns that
-// may appear as literal arguments to the above methods without i18n.Tr() wrapping.
+// technicalAllowlist holds known non-translatable string patterns that may
+// appear as literal text arguments without i18n.Tr() wrapping.
 var technicalAllowlist = []string{
 	"-symbolic", // icon names
 	"app.",      // action names
@@ -46,8 +60,8 @@ var technicalAllowlist = []string{
 }
 
 // TestNoHardcodedStrings verifies that every user-visible string literal
-// passed to a GTK text-setter is wrapped in i18n.Tr(). It AST-scans all non-test
-// .go files under internal/ui/.
+// passed as a text argument (textArgs) is wrapped in i18n.Tr(). It AST-scans
+// all non-test .go files under internal/ui/.
 func TestNoHardcodedStrings(t *testing.T) {
 	root := filepath.Join("..", "..")
 	uiRoot := filepath.Join(root, "internal", "ui")
@@ -76,7 +90,7 @@ func TestNoHardcodedStrings(t *testing.T) {
 			if !ok {
 				return true
 			}
-			// Identify calls to textSetterMethods.
+			// Identify calls with text arguments.
 			var methodName string
 			switch fn := call.Fun.(type) {
 			case *ast.SelectorExpr:
@@ -84,26 +98,23 @@ func TestNoHardcodedStrings(t *testing.T) {
 			case *ast.Ident:
 				methodName = fn.Name
 			}
-			if !textSetterMethods[methodName] {
-				return true
+			for _, i := range textArgs[methodName] {
+				if i >= len(call.Args) {
+					continue
+				}
+				lit, isLit := call.Args[i].(*ast.BasicLit)
+				if !isLit || lit.Kind != token.STRING {
+					continue // already wrapped or not a literal
+				}
+				// Unwrap surrounding quotes.
+				val := strings.Trim(lit.Value, `"`+"`")
+				if isTechnical(val) {
+					continue
+				}
+				pos := fset.Position(call.Pos())
+				violations = append(violations,
+					rel+":"+pos.String()+": literal "+lit.Value+" passed to "+methodName+" without i18n.Tr()")
 			}
-			// Check the first string-literal argument.
-			if len(call.Args) == 0 {
-				return true
-			}
-			arg := call.Args[0]
-			lit, isLit := arg.(*ast.BasicLit)
-			if !isLit || lit.Kind != token.STRING {
-				return true // already wrapped or not a literal
-			}
-			// Unwrap surrounding quotes.
-			val := strings.Trim(lit.Value, `"`+"`")
-			if isTechnical(val) {
-				return true
-			}
-			pos := fset.Position(call.Pos())
-			violations = append(violations,
-				rel+":"+pos.String()+": literal "+lit.Value+" passed to "+methodName+" without i18n.Tr()")
 			return true
 		})
 		return nil
