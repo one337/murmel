@@ -42,7 +42,7 @@ func Import(owner gtk.Widgetter, m *certs.Manager, done func(certs.IdentityMeta)
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(pem)
-	fd.Open(context.Background(), WindowOf(owner), func(res gio.AsyncResulter) {
+	fd.Open(context.Background(), gfileio.WindowOf(owner), func(res gio.AsyncResulter) {
 		file, err := fd.OpenFinish(res)
 		if err != nil || file == nil {
 			return // cancelled
@@ -93,7 +93,7 @@ func Export(owner gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta, done
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(pem)
 	fd.SetInitialName(meta.Name + ".pem")
-	fd.Save(context.Background(), WindowOf(owner), func(res gio.AsyncResulter) {
+	fd.Save(context.Background(), gfileio.WindowOf(owner), func(res gio.AsyncResulter) {
 		file, err := fd.SaveFinish(res)
 		if err != nil || file == nil {
 			return // cancelled

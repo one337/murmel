@@ -16,7 +16,6 @@ import (
 	"strings"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
-	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -227,7 +226,7 @@ func (s *rowState) choose() {
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(filter)
-	fd.Open(context.Background(), windowOf(row), func(res gio.AsyncResulter) {
+	fd.Open(context.Background(), gfileio.WindowOf(row), func(res gio.AsyncResulter) {
 		file, err := fd.OpenFinish(res)
 		if err != nil || file == nil {
 			return // cancelled
@@ -260,24 +259,4 @@ func (s *rowState) choose() {
 			}()
 		})
 	})
-}
-
-// windowOf finds the toplevel window of w for the file dialog's parent
-// (nil when w is not shown; the dialog then has no parent).
-func windowOf(w gtk.Widgetter) *gtk.Window {
-	root := gtk.BaseWidget(w).Root()
-	if root == nil {
-		return nil
-	}
-	switch win := coreglib.InternObject(root).Cast().(type) {
-	case *adw.ApplicationWindow:
-		return &win.ApplicationWindow.Window
-	case *adw.Window:
-		return &win.Window
-	case *gtk.ApplicationWindow:
-		return &win.Window
-	case *gtk.Window:
-		return win
-	}
-	return nil
 }

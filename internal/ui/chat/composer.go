@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
@@ -290,7 +289,7 @@ func (c *composer) pickImage() {
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(filter)
-	parent := windowOf(c.root)
+	parent := gfileio.WindowOf(c.root)
 	fd.Open(context.Background(), parent, func(res gio.AsyncResulter) {
 		file, err := fd.OpenFinish(res)
 		if err != nil || file == nil {
@@ -489,24 +488,4 @@ func (c *composer) update() {
 
 func counterText(n, max int) string {
 	return fmt.Sprintf("%d / %d", n, max)
-}
-
-// windowOf returns the toplevel window of w (nil when not in a window),
-// for dialogs that want a parent.
-func windowOf(w gtk.Widgetter) *gtk.Window {
-	root := gtk.BaseWidget(w).Root()
-	if root == nil {
-		return nil
-	}
-	switch win := coreglib.InternObject(root).Cast().(type) {
-	case *adw.ApplicationWindow:
-		return &win.ApplicationWindow.Window
-	case *adw.Window:
-		return &win.Window
-	case *gtk.ApplicationWindow:
-		return &win.Window
-	case *gtk.Window:
-		return win
-	}
-	return nil
 }

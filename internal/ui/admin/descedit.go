@@ -6,7 +6,6 @@ import (
 	"strings"
 	"weak"
 
-	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 	"github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gdk/v4"
 	"github.com/diamondburned/gotk4/pkg/gdkpixbuf/v2"
@@ -569,7 +568,7 @@ func (e *descEditor) pickImage() {
 	fd.SetModal(true)
 	fd.SetFilters(filters)
 	fd.SetDefaultFilter(filter)
-	fd.Open(context.Background(), windowOf(e.root), func(res gio.AsyncResulter) {
+	fd.Open(context.Background(), gfileio.WindowOf(e.root), func(res gio.AsyncResulter) {
 		file, err := fd.OpenFinish(res)
 		if err != nil || file == nil {
 			return
@@ -781,22 +780,3 @@ func (e *descEditor) renderPreview() {
 
 // TooLong reports whether the description exceeds the server's limit.
 func (e *descEditor) TooLong() bool { return len(e.HTML()) > e.limit }
-
-// windowOf finds the toplevel window of w (nil when not shown).
-func windowOf(w gtk.Widgetter) *gtk.Window {
-	root := gtk.BaseWidget(w).Root()
-	if root == nil {
-		return nil
-	}
-	switch win := glib.InternObject(root).Cast().(type) {
-	case *adw.ApplicationWindow:
-		return &win.ApplicationWindow.Window
-	case *adw.Window:
-		return &win.Window
-	case *gtk.ApplicationWindow:
-		return &win.Window
-	case *gtk.Window:
-		return win
-	}
-	return nil
-}

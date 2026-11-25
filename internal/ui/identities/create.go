@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
-	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
@@ -185,27 +184,4 @@ func offerBackup(parent gtk.Widgetter, m *certs.Manager, meta certs.IdentityMeta
 		})
 	})
 	alert.Present(parent)
-}
-
-// WindowOf finds the toplevel window of w for file dialogs (nil when w is
-// not shown).
-func WindowOf(w gtk.Widgetter) *gtk.Window {
-	if w == nil {
-		return nil
-	}
-	root := gtk.BaseWidget(w).Root()
-	if root == nil {
-		return nil
-	}
-	switch win := coreglib.InternObject(root).Cast().(type) {
-	case *adw.ApplicationWindow:
-		return &win.ApplicationWindow.Window
-	case *adw.Window:
-		return &win.Window
-	case *gtk.ApplicationWindow:
-		return &win.Window
-	case *gtk.Window:
-		return win
-	}
-	return nil
 }

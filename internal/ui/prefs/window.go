@@ -28,6 +28,7 @@ import (
 	"github.com/one337/murmel/internal/ui/avatarpick"
 	"github.com/one337/murmel/internal/ui/chat"
 	"github.com/one337/murmel/internal/ui/clock"
+	"github.com/one337/murmel/internal/ui/gfileio"
 	"github.com/one337/murmel/internal/ui/identities"
 	"github.com/one337/murmel/internal/ui/levelmeter"
 	"github.com/one337/murmel/internal/ui/shortcuts"
@@ -671,7 +672,7 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 		if !ok {
 			return nil
 		}
-		return identities.WindowOf(pw)
+		return gfileio.WindowOf(pw)
 	}
 	page := adw.NewPreferencesPage()
 	page.SetTitle(i18n.Tr("General"))
