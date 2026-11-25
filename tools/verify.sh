@@ -185,11 +185,24 @@ if tools/install-translations.sh 2>&1; then
 else
   fail "a translation does not compile (msgfmt --check)"
 fi
-# Informational: open messages per language (they show in English).
+
+step "i18n: translations are complete"
+# An untranslated or fuzzy message shows in English.
+incomplete=()
 for po in po/*.po; do
   [ -e "$po" ] || continue
-  printf '  %s: %s\n' "$(basename "$po" .po)" "$(msgfmt --statistics -o /dev/null "$po" 2>&1)"
+  stats=$(LC_ALL=C msgfmt --statistics -o /dev/null "$po" 2>&1)
+  printf '  %s: %s\n' "$(basename "$po" .po)" "$stats"
+  case $stats in
+  *untranslated* | *fuzzy*) incomplete+=("$po") ;;
+  esac
 done
+if [ ${#incomplete[@]} -eq 0 ]; then
+  pass "every message is translated"
+else
+  printf 'List them: msgattrib --untranslated <po>; msgattrib --only-fuzzy <po>\n'
+  fail "untranslated or fuzzy messages in ${incomplete[*]}"
+fi
 
 step "i18n: translations keep the format arguments"
 if go test ./internal/ui -run 'TestTranslationsKeepTheFormatArguments|TestFormatArgs|TestFormatMismatches' 2>&1; then
