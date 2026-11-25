@@ -12,7 +12,7 @@ tools/harness/
 ├── murmur.ini         server config, mounted read-only into the container
 ├── xvfb-run-ui.sh     headless UI runner + screenshot
 ├── README.md          this file
-└── bots/              SEPARATE Go module (io.github/murmel/harness-bots)
+└── bots/              SEPARATE Go module (github.com/one337/murmel/tools/harness/bots)
     ├── pingbot/       UDP ping probe → JSON
     ├── setupbot/      idempotent channel bootstrap (Lobby, TestChan)
     └── peerbot/       scriptable peer: text, synthetic Opus voice, expectations
@@ -20,7 +20,7 @@ tools/harness/
 
 The bots live in their own Go module so their dependencies (upstream
 `layeh.com/gumble`, `layeh.com/gopus` cgo) never pollute the main
-`io.github/murmel` module. The root `go build ./...` ignores nested modules
+`github.com/one337/murmel` module. The root `go build ./...` ignores nested modules
 automatically.
 
 ## Image pin
@@ -226,7 +226,7 @@ with code 3 when either is missing.
 ## Build prerequisite: system libopus (main module)
 
 Unlike the bots (which use gopus's **embedded** Opus 1.1.2), the main
-`io.github/murmel` module wraps `gopkg.in/hraban/opus.v2`, which links
+`github.com/one337/murmel` module wraps `gopkg.in/hraban/opus.v2`, which links
 against the **system** libopus via cgo. Building or testing
 `internal/audio/opus` (and everything importing it) requires:
 

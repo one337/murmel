@@ -1,4 +1,4 @@
-module io.github/murmel/harness-bots
+module github.com/one337/murmel/tools/harness/bots
 
 go 1.26
 
