@@ -195,18 +195,18 @@ func (c *certList) listGroup() *adw.PreferencesGroup {
 		})
 	}))
 	imp := gtk.NewButtonWithLabel(i18n.Tr("Import…"))
-	imp.SetTooltipText(i18n.Tr("Load a PEM file with certificate and private key"))
+	imp.SetTooltipText(i18n.Tr("Import a certificate, for example a backup from the official Mumble client (.p12)"))
 	imp.ConnectClicked(c.on(func(c *certList) {
 		c.pw.Do(func(pw *adw.PreferencesDialog) {
-			identities.Import(pw, c.m, func(meta certs.IdentityMeta) {
+			identities.Import(pw, c.m, func(meta certs.IdentityMeta, existing bool) {
 				if c := ws.Value(); c != nil {
 					c.st.SetLastIdentity(meta.ID)
 					c.refresh()
-					c.toast(fmt.Sprintf(i18n.Tr("Imported identity %s"), meta.Name))
-				}
-			}, func(err error) {
-				if c := ws.Value(); c != nil {
-					c.toast(fmt.Sprintf(i18n.Tr("Import failed: %v"), err))
+					if existing {
+						c.toast(fmt.Sprintf(i18n.Tr("This certificate is already saved as “%s”."), meta.Name))
+					} else {
+						c.toast(fmt.Sprintf(i18n.Tr("Imported identity %s"), meta.Name))
+					}
 				}
 			})
 		})

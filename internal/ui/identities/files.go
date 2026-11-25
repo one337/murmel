@@ -32,52 +32,96 @@ func pemFilters() (*gio.ListStore, *gtk.FileFilter) {
 	return filters, pem
 }
 
-// Import lets the user pick a PEM file (certificate and private key) and
-// adds it to the identity store. owner is the widget that asked (its
-// dialog or window); closing it abandons the import.
-func Import(owner gtk.Widgetter, m *certs.Manager, done func(certs.IdentityMeta), failed func(error)) {
-	filters, pem := pemFilters()
+// importFilters offers the files an identity can be imported from:
+// PKCS #12 (the official Mumble client's backups) and PEM.
+func importFilters() (*gio.ListStore, *gtk.FileFilter) {
+	certificates := gtk.NewFileFilter()
+	certificates.SetName(i18n.Tr("Certificates"))
+	for _, suffix := range []string{"p12", "pfx", "pkcs12", "pem", "crt", "key"} {
+		certificates.AddSuffix(suffix)
+	}
+	certificates.AddMIMEType("application/x-pkcs12")
+	certificates.AddMIMEType("application/x-pem-file")
+	all := gtk.NewFileFilter()
+	all.SetName(i18n.Tr("All Files"))
+	all.AddPattern("*")
+	filters := gio.NewListStore(gtk.GTypeFileFilter)
+	filters.Append(certificates.Object)
+	filters.Append(all.Object)
+	return filters, certificates
+}
+
+// Import lets the user pick a certificate file (PKCS #12, as the official
+// Mumble client backs up, or PEM) and adds it to the identity store,
+// asking for the file's password when it has one and for a name. owner is
+// the widget that asked (its dialog or window); closing it abandons the
+// import. done runs with the new identity, or with the stored one
+// (existing true) when the certificate is already in the store. A file
+// Murmel cannot read is reported over owner.
+func Import(owner gtk.Widgetter, m *certs.Manager, done func(meta certs.IdentityMeta, existing bool)) {
+	filters, certificates := importFilters()
 	fd := gtk.NewFileDialog()
-	fd.SetTitle(i18n.Tr("Import Identity"))
+	fd.SetTitle(i18n.Tr("Import Certificate"))
 	fd.SetModal(true)
 	fd.SetFilters(filters)
-	fd.SetDefaultFilter(pem)
+	fd.SetDefaultFilter(certificates)
 	fd.Open(context.Background(), gfileio.WindowOf(owner), func(res gio.AsyncResulter) {
 		file, err := fd.OpenFinish(res)
 		if err != nil || file == nil {
 			return // cancelled
 		}
-		ImportFile(gfileio.ForWidget(owner), m, file, func(ident *certs.Identity, err error) {
-			if err != nil {
-				failed(err)
-				return
-			}
-			done(ident.Meta)
-		})
+		importFile(owner, m, file, done)
 	})
 }
 
-// ImportFile adds the identity in file (certificate and private key as
-// PEM) to the store, named like the file without its extension. The file
-// is read through GIO, so it may lie on a network location, and nothing
-// blocks the main loop. done runs on the main loop unless ctx ended.
-func ImportFile(ctx context.Context, m *certs.Manager, file *gio.File, done func(*certs.Identity, error)) {
+// importFile reads file through GIO (it may lie on a network location),
+// tries to open it without a password off the main loop, and continues in
+// the import dialog.
+func importFile(owner gtk.Widgetter, m *certs.Manager, file *gio.File, done func(certs.IdentityMeta, bool)) {
+	ctx := gfileio.ForWidget(owner)
 	name := gfileio.Name(file)
 	gfileio.Load(ctx, file, gfileio.MaxPEMBytes, func(data []byte, err error) {
 		if err != nil {
-			slog.Info("identity file not read", "file", file.Basename(), "err", err)
-			done(nil, errors.New(gfileio.Message(err)))
+			slog.Info("identity file not read", "err", err)
+			importFailed(owner, gfileio.Message(err))
 			return
 		}
 		go func() {
-			ident, err := m.ImportPEM(name, data)
+			b, err := certs.ReadIdentity(data, "")
 			glib.IdleAdd(func() {
-				if ctx.Err() == nil {
-					done(ident, err)
+				if ctx.Err() != nil {
+					return
+				}
+				if err != nil && !errors.Is(err, certs.ErrWrongPassword) {
+					slog.Info("identity file not imported", "err", err)
+					importFailed(owner, ImportError(err))
+					return
+				}
+				if err != nil {
+					b = nil // protected: the dialog asks for the password
+				} else if meta, ok := m.FindCertificate(b.Fingerprint()); ok {
+					done(meta, true)
+					return
+				}
+				d := newImportDialog(m, data, name, b, done)
+				d.dialog.Present(owner)
+				if b == nil {
+					d.pwRow.GrabFocus()
+				} else {
+					d.nameRow.GrabFocus()
 				}
 			})
 		}()
 	})
+}
+
+// importFailed tells over owner why a file could not be imported.
+func importFailed(owner gtk.Widgetter, msg string) {
+	alert := adw.NewAlertDialog(i18n.Tr("Certificate Import Failed"), msg)
+	alert.AddResponse("ok", i18n.Tr("OK"))
+	alert.SetDefaultResponse("ok")
+	alert.SetCloseResponse("ok")
+	alert.Present(owner)
 }
 
 // Export saves the identity's certificate and private key as one PEM

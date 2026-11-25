@@ -15,7 +15,6 @@ import (
 	"weak"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
-	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
@@ -28,7 +27,6 @@ import (
 	"github.com/one337/murmel/internal/ui"
 	"github.com/one337/murmel/internal/ui/avatarpick"
 	"github.com/one337/murmel/internal/ui/clock"
-	"github.com/one337/murmel/internal/ui/gfileio"
 	"github.com/one337/murmel/internal/ui/identities"
 	"github.com/one337/murmel/internal/ui/secrets"
 	"github.com/one337/murmel/internal/ui/weakref"
@@ -322,53 +320,11 @@ func (c *Controller) saveServer(e settings.ServerEntry, password string) {
 	}()
 }
 
-// pickCertificateFile opens a file chooser for a PEM certificate bundle
-// (certificate chain + private key, the Mumble export format), imports it
-// into the identity store and reports the new identity via onImported.
-// Import failures are shown as an alert on top of parent.
-func (c *Controller) pickCertificateFile(parent *adw.Dialog, onImported func(certs.IdentityMeta)) {
-	pem := gtk.NewFileFilter()
-	pem.SetName(i18n.Tr("PEM Certificates"))
-	pem.AddSuffix("pem")
-	pem.AddSuffix("crt")
-	pem.AddSuffix("key")
-	pem.AddMIMEType("application/x-pem-file")
-	all := gtk.NewFileFilter()
-	all.SetName(i18n.Tr("All Files"))
-	all.AddPattern("*")
-
-	filters := gio.NewListStore(gtk.GTypeFileFilter)
-	filters.Append(pem.Object)
-	filters.Append(all.Object)
-
-	fd := gtk.NewFileDialog()
-	fd.SetTitle(i18n.Tr("Select User Certificate"))
-	fd.SetModal(true)
-	fd.SetFilters(filters)
-	fd.SetDefaultFilter(pem)
-
-	var parentWin *gtk.Window
-	if w, ok := c.win.(*ui.Window); ok {
-		parentWin = &w.ApplicationWindow.ApplicationWindow.Window
-	}
-
-	fd.Open(c.appCtx, parentWin, func(res gio.AsyncResulter) {
-		file, err := fd.OpenFinish(res)
-		if err != nil || file == nil {
-			return // cancelled
-		}
-		identities.ImportFile(gfileio.ForWidget(parent), c.certs, file, func(ident *certs.Identity, err error) {
-			if err != nil {
-				slog.Info("certificate import failed", "file", file.Basename(), "err", err)
-				alert := adw.NewAlertDialog(i18n.Tr("Certificate Import Failed"),
-					fmt.Sprintf(i18n.Tr("The file could not be imported: %v"), err))
-				alert.AddResponse("ok", i18n.Tr("OK"))
-				alert.Present(parent)
-				return
-			}
-			onImported(ident.Meta)
-		})
-	})
+// pickCertificateFile imports a certificate file over parent (see
+// identities.Import): a new identity is added to the form, one already
+// stored is selected there.
+func (c *Controller) pickCertificateFile(parent *adw.Dialog, onImported func(meta certs.IdentityMeta, existing bool)) {
+	identities.Import(parent, c.certs, onImported)
 }
 
 // --- Dial ------------------------------------------------------------------

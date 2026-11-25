@@ -127,9 +127,9 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	importBtn := gtk.NewButtonFromIconName("document-open-symbolic")
 	importBtn.AddCSSClass("flat")
 	importBtn.SetVAlign(gtk.AlignCenter)
-	importBtn.SetTooltipText(i18n.Tr("Import certificate (PEM file with certificate and private key)"))
+	importBtn.SetTooltipText(i18n.Tr("Import a certificate, for example a backup from the official Mumble client (.p12)"))
 	importBtn.ConnectClicked(with(func(f *connectForm) {
-		dialogRef.Do(func(dialog *adw.Dialog) { c.pickCertificateFile(dialog, f.addIdentity) })
+		dialogRef.Do(func(dialog *adw.Dialog) { c.pickCertificateFile(dialog, f.importedIdentity) })
 	}))
 	f.identityRow.AddSuffix(importBtn)
 
@@ -219,6 +219,19 @@ func (f *connectForm) selectIdentity(id string) {
 			return
 		}
 	}
+}
+
+// importedIdentity adds an imported certificate and selects it, or
+// selects the stored one and says so when it was imported before.
+func (f *connectForm) importedIdentity(meta certs.IdentityMeta, existing bool) {
+	if !existing {
+		f.addIdentity(meta)
+		return
+	}
+	f.selectIdentity(meta.ID)
+	note := fmt.Sprintf(i18n.Tr("This certificate is already saved as “%s”."), meta.Name)
+	f.identityRow.SetSubtitle(note)
+	f.identityRow.Announce(note, gtk.AccessibleAnnouncementPriorityMedium)
 }
 
 // addIdentity adds an imported or created certificate and selects it.

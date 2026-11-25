@@ -111,3 +111,6 @@ func (m *Manager) Store(name string, b *Bundle) (*Identity, error) {
 	}
 	return m.importParsed(name, b.certs, b.key)
 }
+
+// Email is the certificate's e-mail address for display (see certEmail).
+func (b *Bundle) Email() string { return certEmail(b.Leaf) }

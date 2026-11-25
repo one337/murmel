@@ -174,7 +174,7 @@ fi
 # focus goes to the window shown last, so test programs sharing a display
 # take it from each other. The packages still run in parallel. -v keeps
 # the tests' log lines (repeated passes, windows shown again) in the output.
-GTK_TEST_PKGS=(./internal/ui/channeltree ./internal/ui/chat ./internal/ui/admin ./internal/ui/connection ./internal/ui/dragicon ./internal/ui/prefs ./internal/ui/richtext)
+GTK_TEST_PKGS=(./internal/ui/channeltree ./internal/ui/chat ./internal/ui/admin ./internal/ui/connection ./internal/ui/dragicon ./internal/ui/identities ./internal/ui/prefs ./internal/ui/richtext)
 step "GTK leak tests (xvfb-run)"
 if command -v xvfb-run >/dev/null 2>&1; then
   GTKHOME=$(mktemp -d /tmp/murmel-gtk-XXXXXX)

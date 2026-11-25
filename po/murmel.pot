@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 12:10+0100\n"
+"POT-Creation-Date: 2026-11-25 19:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -225,7 +225,8 @@ msgstr ""
 #: internal/ui/admin/ban.go internal/ui/admin/channel.go
 #: internal/ui/admin/channeledit.go internal/ui/admin/kick.go
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
-#: internal/ui/prefs/window.go internal/ui/window.go
+#: internal/ui/identities/importdlg.go internal/ui/prefs/window.go
+#: internal/ui/window.go
 msgid "Cancel"
 msgstr ""
 
@@ -332,6 +333,7 @@ msgid "Edit Channel %s"
 msgstr ""
 
 #: internal/ui/admin/channeledit.go internal/ui/identities/create.go
+#: internal/ui/identities/importdlg.go
 msgid "Name"
 msgstr ""
 
@@ -352,6 +354,7 @@ msgid "0 = no limit beyond the server's own"
 msgstr ""
 
 #: internal/ui/admin/channeledit.go internal/ui/connection/controller.go
+#: internal/ui/identities/importdlg.go
 msgid "Password"
 msgstr ""
 
@@ -1209,8 +1212,10 @@ msgstr ""
 msgid "User Certificate"
 msgstr ""
 
-#: internal/ui/connection/connectform.go
-msgid "Import certificate (PEM file with certificate and private key)"
+#: internal/ui/connection/connectform.go internal/ui/prefs/window.go
+msgid ""
+"Import a certificate, for example a backup from the official Mumble client "
+"(.p12)"
 msgstr ""
 
 #: internal/ui/connection/connectform.go internal/ui/prefs/window.go
@@ -1241,6 +1246,11 @@ msgstr ""
 msgid "Your certificates could not be read."
 msgstr ""
 
+#: internal/ui/connection/connectform.go internal/ui/prefs/window.go
+#, go-format
+msgid "This certificate is already saved as “%s”."
+msgstr ""
+
 #: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr ""
@@ -1265,32 +1275,6 @@ msgstr ""
 #: internal/ui/connection/controller.go
 #, go-format
 msgid "Connected to %s. Connecting to another server ends this connection."
-msgstr ""
-
-#: internal/ui/connection/controller.go internal/ui/identities/files.go
-msgid "PEM Certificates"
-msgstr ""
-
-#: internal/ui/connection/controller.go internal/ui/identities/files.go
-msgid "All Files"
-msgstr ""
-
-#: internal/ui/connection/controller.go
-msgid "Select User Certificate"
-msgstr ""
-
-#: internal/ui/connection/controller.go
-msgid "Certificate Import Failed"
-msgstr ""
-
-#: internal/ui/connection/controller.go
-#, go-format
-msgid "The file could not be imported: %v"
-msgstr ""
-
-#: internal/ui/connection/controller.go internal/ui/identities/create.go
-#: internal/ui/identities/files.go
-msgid "OK"
 msgstr ""
 
 #: internal/ui/connection/controller.go
@@ -1468,6 +1452,11 @@ msgstr ""
 msgid "Connection Failed"
 msgstr ""
 
+#: internal/ui/connection/controller.go internal/ui/identities/create.go
+#: internal/ui/identities/files.go
+msgid "OK"
+msgstr ""
+
 #: internal/ui/connection/savedlist.go
 msgid "Saved Connections"
 msgstr ""
@@ -1594,7 +1583,23 @@ msgid "Backup Failed"
 msgstr ""
 
 #: internal/ui/identities/files.go
-msgid "Import Identity"
+msgid "PEM Certificates"
+msgstr ""
+
+#: internal/ui/identities/files.go
+msgid "All Files"
+msgstr ""
+
+#: internal/ui/identities/files.go internal/ui/prefs/window.go
+msgid "Certificates"
+msgstr ""
+
+#: internal/ui/identities/files.go internal/ui/identities/importdlg.go
+msgid "Import Certificate"
+msgstr ""
+
+#: internal/ui/identities/files.go
+msgid "Certificate Import Failed"
 msgstr ""
 
 #: internal/ui/identities/files.go
@@ -1609,6 +1614,85 @@ msgstr ""
 msgid ""
 "The backup contains your private key. Murmel could not restrict access to "
 "the file at this location. Keep it where only you have access."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+#, go-format
+msgid "“%s” is protected by a password."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Fingerprint"
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Valid Until"
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Email"
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid ""
+"The name is shown in Murmel only. Servers recognize registered accounts by "
+"the certificate."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Unlock"
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Import"
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Opening the file…"
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Wrong password. If it is correct, the file may be damaged."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "Importing the certificate…"
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid ""
+"This file is not a certificate Murmel can read. Use a PKCS #12 file "
+"(.p12, .pfx) or a PEM file with certificate and private key."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid ""
+"This file asks for an unusually costly password check and was not opened."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid ""
+"The file contains no private key. Export the certificate together with its "
+"private key."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "The file contains no certificate."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid ""
+"Murmel cannot read the certificate in this file. Export it again from the "
+"program it comes from, without a password or with a current encryption "
+"method."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "The private key in the file does not belong to its certificate."
+msgstr ""
+
+#: internal/ui/identities/importdlg.go
+msgid "The file is damaged or not a certificate."
 msgstr ""
 
 #: internal/ui/levelmeter/levelmeter.go
@@ -1886,10 +1970,6 @@ msgid "Client Certificate"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Certificates"
-msgstr ""
-
-#: internal/ui/prefs/window.go
 msgid ""
 "Servers recognize registered accounts by their certificate. Keep a backup of "
 "the ones you use."
@@ -1904,17 +1984,8 @@ msgid "Import…"
 msgstr ""
 
 #: internal/ui/prefs/window.go
-msgid "Load a PEM file with certificate and private key"
-msgstr ""
-
-#: internal/ui/prefs/window.go
 #, go-format
 msgid "Imported identity %s"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-#, go-format
-msgid "Import failed: %v"
 msgstr ""
 
 #: internal/ui/prefs/window.go
