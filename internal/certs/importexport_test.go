@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/pem"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/cryptotest"
 )
 
 func TestExportImportRoundtripConcatenated(t *testing.T) {
@@ -127,6 +130,40 @@ func TestImportRejectsKeyMismatch(t *testing.T) {
 		t.Fatal("import of cert with non-matching key must fail")
 	} else if !strings.Contains(err.Error(), "match") {
 		t.Errorf("error should mention key/cert mismatch, got: %v", err)
+	}
+}
+
+// An import that fails while writing leaves no identity directory, and
+// so no copy of the private key, behind.
+func TestImportFailureLeavesNoFiles(t *testing.T) {
+	m := newTestManager(t)
+	src, err := m.Generate("Partial", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	blob, err := m.ExportPEM(src.Meta.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// The import draws the same identity ID after the same seed; a
+	// directory in place of identity.json makes the last write fail.
+	cryptotest.SetGlobalRandom(t, 1)
+	id, err := newIdentityID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m2 := newTestManager(t)
+	if err := os.MkdirAll(filepath.Join(m2.identityDir(id), "identity.json", "blocker"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	cryptotest.SetGlobalRandom(t, 1)
+
+	if _, err := m2.ImportPEM("Partial", blob); err == nil {
+		t.Fatal("import must fail when identity.json cannot be written")
+	}
+	if _, err := os.Stat(m2.identityDir(id)); !errors.Is(err, fs.ErrNotExist) {
+		t.Fatalf("identity directory left behind after a failed import (stat: %v)", err)
 	}
 }
 

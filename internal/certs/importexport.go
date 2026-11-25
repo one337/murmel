@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -100,14 +99,17 @@ func (m *Manager) importParsed(name string, certDERs [][]byte, key crypto.Privat
 	}
 	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: keyDER})
 
-	if err := m.persistIdentity(meta, certPEM, keyPEM); err != nil {
-		return nil, err
-	}
-	pair, err := tls.X509KeyPair(certPEM, keyPEM)
+	// Check the result before anything is written, and leave no partial
+	// identity directory (with a private key in it) behind.
+	ident, err := m.loadIdentity(meta, certPEM, keyPEM)
 	if err != nil {
 		return nil, err
 	}
-	return &Identity{Meta: meta, Certificate: leaf, PrivateKey: key, TLSCertificate: pair}, nil
+	if err := m.persistIdentity(meta, certPEM, keyPEM); err != nil {
+		_ = os.RemoveAll(m.identityDir(id))
+		return nil, err
+	}
+	return ident, nil
 }
 
 func parsePEMBundle(data []byte) (certs [][]byte, key crypto.PrivateKey, err error) {
