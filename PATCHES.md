@@ -3,7 +3,7 @@
 Every patch applied to `internal/protocol` (the vendored fork of [layeh/gumble](https://github.com/layeh/gumble), upstream ref `d1df60a3cc14e2d47e2b46d0d887dc79c2ff64c9`) gets an entry in this file describing what was changed and why.
 
 Vendored packages (import paths mechanically rewritten from
-`layeh.com/gumble/...` to `io.github/murmel/internal/protocol/...`):
+`layeh.com/gumble/...` to `github.com/one337/murmel/internal/protocol/...`):
 
 - `gumble` → `internal/protocol/gumble`
 - `gumble/MumbleProto` → `internal/protocol/gumble/MumbleProto`
@@ -383,3 +383,13 @@ the test file, its only user.
 without a limit and would hang on a server that sends a channel loop.
 
 **Upstream**: layeh/gumble `gumbleutil/channel.go` and `gumbleutil/main.go`.
+
+## P19 — Import paths follow the new module path
+
+**What**: The module is now `github.com/one337/murmel`; every import of
+the fork reads `github.com/one337/murmel/internal/protocol/...` instead of
+the path from P0. No other line changed.
+
+**Why**: The module path names the repository the code lives in.
+
+**Upstream**: none, the import paths are the fork's own.
