@@ -33,10 +33,11 @@
 <div class="card"><h3>Fedora: RPM packages</h3><p>For Fedora 45 and newer, from <a href="https://copr.fedorainfracloud.org/coprs/one337/murmel/"><span aria-hidden="true">↗&nbsp;</span>Copr</a>, with updates through <code>dnf</code>:</p><div class="code"><pre><code id="cmd-copr">sudo dnf copr enable one337/murmel</code></pre><button class="copy" type="button" aria-describedby="cmd-copr">Copy</button></div><div class="code"><pre><code id="cmd-dnf">sudo dnf install murmel</code></pre><button class="copy" type="button" aria-describedby="cmd-dnf">Copy</button></div></div>
 <div class="card"><h3>NixOS and Nix</h3>
 <p>Murmel is a Nix <a href="https://wiki.nixos.org/wiki/Flakes"><span aria-hidden="true">↗&nbsp;</span>flake</a>. Install it into your user profile:</p>
-<div class="code"><pre><code id="cmd-nix-add">nix --extra-experimental-features 'nix-command flakes' profile add github:one337/murmel</code></pre><button class="copy" type="button" aria-describedby="cmd-nix-add">Copy</button></div>
+<div class="code"><pre><code id="cmd-nix-add">nix --extra-experimental-features 'nix-command flakes' profile add github:one337/murmel/stable</code></pre><button class="copy" type="button" aria-describedby="cmd-nix-add">Copy</button></div>
 <p>Update it later with:</p>
 <div class="code"><pre><code id="cmd-nix-upgrade">nix --extra-experimental-features 'nix-command flakes' profile upgrade murmel</code></pre><button class="copy" type="button" aria-describedby="cmd-nix-upgrade">Copy</button></div>
-<p><code>--extra-experimental-features</code> turns flakes on for this one command. To turn them on permanently, so that plain <code>nix profile add github:one337/murmel</code> and <code>nix profile upgrade murmel</code> work:</p>
+<p>For the latest development state, use <code>github:one337/murmel/main</code> instead; it may contain unreleased and less tested changes.</p>
+<p><code>--extra-experimental-features</code> turns flakes on for this one command. To turn them on permanently, so that plain <code>nix profile add github:one337/murmel/stable</code> and <code>nix profile upgrade murmel</code> work:</p>
 <ul><li>on NixOS, add <code>nix.settings.experimental-features = [ "nix-command" "flakes" ];</code> to your system configuration (for example <code>/etc/nixos/configuration.nix</code>) and run <code>sudo nixos-rebuild switch</code>;</li>
 <li>with Nix on another distribution, add the line <code>experimental-features = nix-command flakes</code> to <code>~/.config/nix/nix.conf</code>.</li></ul></div>
 <div class="card"><h3>Alternatives</h3>

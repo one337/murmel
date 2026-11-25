@@ -85,7 +85,7 @@ sudo dnf install murmel
 Install it into your user profile:
 
 ```sh
-nix --extra-experimental-features 'nix-command flakes' profile add github:one337/murmel
+nix --extra-experimental-features 'nix-command flakes' profile add github:one337/murmel/stable
 ```
 
 Update it later with:
@@ -94,9 +94,13 @@ Update it later with:
 nix --extra-experimental-features 'nix-command flakes' profile upgrade murmel
 ```
 
+For the latest development state, use `github:one337/murmel/main` instead; it
+may contain unreleased and less tested changes.
+
 `--extra-experimental-features` turns flakes on for this one command. To turn
-them on permanently, so that plain `nix profile add github:one337/murmel` and
-`nix profile upgrade murmel` work:
+them on permanently, so that plain
+`nix profile add github:one337/murmel/stable` and `nix profile upgrade murmel`
+work:
 
 - on NixOS, add `nix.settings.experimental-features = [ "nix-command" "flakes" ];`
   to your system configuration (for example `/etc/nixos/configuration.nix`)
