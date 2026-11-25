@@ -63,7 +63,7 @@ func newBundle(ders [][]byte, key crypto.PrivateKey) (*Bundle, error) {
 	leafAt := -1
 	var leaf *x509.Certificate
 	for i, der := range ders {
-		c, err := x509.ParseCertificate(der)
+		c, err := parseOwnCertificate(der)
 		if err != nil {
 			return nil, fmt.Errorf("%w (certificate: %v)", ErrDamagedFile, err)
 		}

@@ -72,7 +72,7 @@ func (m *Manager) ExportPEM(id string) ([]byte, error) {
 }
 
 func (m *Manager) importParsed(name string, certDERs [][]byte, key crypto.PrivateKey) (*Identity, error) {
-	leaf, err := x509.ParseCertificate(certDERs[0])
+	leaf, err := parseOwnCertificate(certDERs[0])
 	if err != nil {
 		return nil, fmt.Errorf("certs: parsing imported certificate: %w", err)
 	}

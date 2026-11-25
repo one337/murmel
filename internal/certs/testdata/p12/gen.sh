@@ -28,6 +28,13 @@ openssl pkcs12 -export -keypbe NONE -certpbe NONE -nomac -in "$tmp/id.pem" -pass
 # password, friendly name "Mumble Identity".
 openssl pkcs12 -export -keypbe NONE -certpbe NONE -name 'Mumble Identity' -in "$tmp/id.pem" \
   -passout pass: -out mumble-format.p12
+# The official Mumble client writes an e-mail address with letters such
+# as ä as raw UTF-8 into the rfc822Name, through the same OpenSSL call.
+openssl req -x509 -newkey rsa:2048 -nodes -keyout "$tmp/ukey.pem" -out "$tmp/ucert.pem" -utf8 \
+  -subj '/CN=Jürgen Ä' -addext 'subjectAltName=email:jürgen@müller.example' -days 7300 2>/dev/null
+cat "$tmp/ucert.pem" "$tmp/ukey.pem" >"$tmp/uid.pem"
+openssl pkcs12 -export -keypbe NONE -certpbe NONE -name 'Mumble Identity' -in "$tmp/uid.pem" \
+  -passout pass: -out mumble-format-umlaut.p12
 
 # The Mumble export in BER: the outer SEQUENCE with indefinite length.
 # A file that states 2^31-1 MAC iterations (its MAC is no longer valid).

@@ -211,16 +211,34 @@ func (m *Manager) saveMeta(meta IdentityMeta) error {
 	return writeFileAtomic(m.metaPath(meta.ID), raw, 0o644)
 }
 
+// loadIdentity builds an identity from its PEM files. The certificates go
+// to servers exactly as stored; they are parsed with parseOwnCertificate,
+// which also takes certificates of the official Mumble client with a UTF-8
+// e-mail address (tls.X509KeyPair refuses those).
 func (m *Manager) loadIdentity(meta IdentityMeta, certPEM, keyPEM []byte) (*Identity, error) {
-	pair, err := tls.X509KeyPair(certPEM, keyPEM)
+	ders, _, err := parsePEMBundle(certPEM)
 	if err != nil {
-		return nil, fmt.Errorf("certs: identity %s: %w", meta.ID, err)
+		return nil, fmt.Errorf("certs: identity %s: certificate: %w", meta.ID, err)
 	}
-	leaf, err := x509.ParseCertificate(pair.Certificate[0])
+	_, key, err := parsePEMBundle(keyPEM)
+	if err != nil {
+		return nil, fmt.Errorf("certs: identity %s: private key: %w", meta.ID, err)
+	}
+	if len(ders) == 0 {
+		return nil, fmt.Errorf("certs: identity %s: %w", meta.ID, ErrNoCertificate)
+	}
+	if key == nil {
+		return nil, fmt.Errorf("certs: identity %s: %w", meta.ID, ErrNoKey)
+	}
+	leaf, err := parseOwnCertificate(ders[0])
 	if err != nil {
 		return nil, fmt.Errorf("certs: identity %s: parsing leaf: %w", meta.ID, err)
 	}
-	return &Identity{Meta: meta, Certificate: leaf, PrivateKey: pair.PrivateKey, TLSCertificate: pair}, nil
+	if err := ensureKeyMatches(leaf, key); err != nil {
+		return nil, fmt.Errorf("certs: identity %s: %w", meta.ID, err)
+	}
+	pair := tls.Certificate{Certificate: ders, PrivateKey: key, Leaf: leaf}
+	return &Identity{Meta: meta, Certificate: leaf, PrivateKey: key, TLSCertificate: pair}, nil
 }
 
 func randSerial() (*big.Int, error) {
