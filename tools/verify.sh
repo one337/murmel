@@ -69,6 +69,61 @@ else
   fail "licenses"
 fi
 
+# The linker ignores -X for a variable that does not exist, so a stale
+# path only shows up as a wrong version in the About dialog. Every build
+# description must name a variable of this module, and in a binary built
+# with those flags (as tools/install.sh does, without -trimpath to reuse
+# the build cache) the variable must hold the value passed in. The value
+# is read from the string the linker stores for -X (<variable>.str): the
+# flags themselves are also recorded in the binary's build information.
+step "version: the -X flags of every build reach the binary"
+x_problems=()
+x_targets=()
+x_module=$(go list -m)
+for f in tools/install.sh packaging/nix/package.nix packaging/rpm/murmel.spec.in README.md; do
+  mapfile -t x_found < <(grep -o -- '-X [^ =]*=' "$f" | sed 's/^-X //; s/=$//')
+  [ ${#x_found[@]} -gt 0 ] || x_problems+=("$f: no -X flag")
+  for t in "${x_found[@]}"; do
+    x_targets+=("$f $t")
+  done
+done
+x_marker="verify-version-$$"
+x_ldflags=""
+for ft in "${x_targets[@]}"; do
+  f=${ft%% *} t=${ft#* }
+  if [ "$(go list -f '{{with .Module}}{{.Path}}{{end}}' "${t%.*}" 2>/dev/null)" != "$x_module" ]; then
+    x_problems+=("$f: -X $t: ${t%.*} is no package of $x_module")
+  fi
+  x_ldflags+=" -X $t=$x_marker"
+done
+x_dir=$(mktemp -d)
+if go build -mod=vendor -ldflags "$x_ldflags" -o "$x_dir/murmel" ./cmd/murmel 2>&1; then
+  x_syms=$(go tool nm "$x_dir/murmel")
+  for ft in "${x_targets[@]}"; do
+    f=${ft%% *} t=${ft#* }
+    x_addr=$(awk -v s="$t.str" '$NF == s { print $1 }' <<<"$x_syms")
+    if [ -z "$x_addr" ]; then
+      x_problems+=("$f: -X $t: the linker set no such variable")
+      continue
+    fi
+    x_hex=$(LC_ALL=C objdump -s --start-address="0x$x_addr" \
+      --stop-address=$((0x$x_addr + ${#x_marker})) "$x_dir/murmel" |
+      awk '/^ [0-9a-f]+ / { print substr($0, length($1) + 3, 35) }' | tr -d ' \n')
+    x_value=$(printf '%b' "$(sed 's/../\\x&/g' <<<"$x_hex")")
+    [ "$x_value" = "$x_marker" ] ||
+      x_problems+=("$f: -X $t: the binary holds \"$x_value\", not \"$x_marker\"")
+  done
+else
+  x_problems+=("go build with the -X flags failed")
+fi
+rm -rf "$x_dir"
+if [ ${#x_problems[@]} -eq 0 ]; then
+  pass "version (${#x_targets[@]} -X flags checked)"
+else
+  printf '  %s\n' "${x_problems[@]}"
+  fail "version"
+fi
+
 step "go test"
 # The GTK tests (TestGTK…) need a display; they run in their own step below.
 if go test -skip '^TestGTK' "${PKGS[@]}" 2>&1; then
