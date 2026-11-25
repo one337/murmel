@@ -81,6 +81,10 @@ func logLines(ev presence.Event, enabled func(LogEvent) bool, self uint32, chann
 		return nil // a line about someone needs their name
 	}
 	switch ev.Kind {
+	case presence.SelfConnected:
+		if ev.User.Suppressed && enabled(LogServerMute) {
+			return []string{tr("You may not speak here")}
+		}
 	case presence.SelfMoved:
 		if enabled(LogSelfMove) {
 			return []string{fmt.Sprintf(tr("You moved to %s"), channel(ev.To))}
@@ -94,12 +98,17 @@ func logLines(ev presence.Event, enabled func(LogEvent) bool, self uint32, chann
 			return []string{fmt.Sprintf(tr("%s moved to %s"), name, channel(ev.To))}
 		}
 	case presence.UserConnected:
+		var out []string
 		switch {
 		case enabled(LogServerConnect):
-			return []string{fmt.Sprintf(tr("%s connected to the server"), name)}
+			out = append(out, fmt.Sprintf(tr("%s connected to the server"), name))
 		case ev.InMyChannel && enabled(LogChannelJoin):
-			return []string{fmt.Sprintf(tr("%s joined the channel"), name)}
+			out = append(out, fmt.Sprintf(tr("%s joined the channel"), name))
 		}
+		if ev.InMyChannel && ev.User.Suppressed && enabled(LogServerMute) {
+			out = append(out, fmt.Sprintf(tr("%s may not speak here"), name))
+		}
+		return out
 	case presence.UserDisconnected:
 		switch {
 		case ev.Reason != "" && enabled(LogKickBan):
@@ -113,13 +122,15 @@ func logLines(ev presence.Event, enabled func(LogEvent) bool, self uint32, chann
 		if !ev.InMyChannel && ev.User.Session != self {
 			return nil
 		}
-		return audioLines(ev.Before, ev.User, enabled, ev.User.Session == self)
+		return audioLines(ev.Before, ev.User, enabled, ev.User.Session == self, ev.Moved)
 	}
 	return nil
 }
 
-// audioLines describes mute/deafen changes between two states.
-func audioLines(before, after bus.UserInfo, enabled func(LogEvent) bool, isSelf bool) []string {
+// audioLines describes mute/deafen changes between two states. After a
+// move (moved), only a new suppression is told: its lifting only means
+// the old channel's limit no longer applies.
+func audioLines(before, after bus.UserInfo, enabled func(LogEvent) bool, isSelf, moved bool) []string {
 	var out []string
 	add := func(changed, now bool, e LogEvent, on, off, selfOn, selfOff string) {
 		if !changed || !enabled(e) {
@@ -142,7 +153,7 @@ func audioLines(before, after bus.UserInfo, enabled func(LogEvent) bool, isSelf 
 	add(before.Deafened != after.Deafened, after.Deafened, LogServerMute,
 		tr("%s was deafened by the server"), tr("%s was undeafened by the server"),
 		tr("You were deafened by the server"), tr("You were undeafened by the server"))
-	add(before.Suppressed != after.Suppressed, after.Suppressed, LogServerMute,
+	add(before.Suppressed != after.Suppressed && (after.Suppressed || !moved), after.Suppressed, LogServerMute,
 		tr("%s may not speak here"), tr("%s may speak again"),
 		tr("You may not speak here"), tr("You may speak again"))
 	add(before.SelfMuted != after.SelfMuted, after.SelfMuted, LogSelfMute,

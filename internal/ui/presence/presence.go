@@ -32,6 +32,10 @@ type Event struct {
 	Reason      string // disconnects: kick/ban text, "" otherwise
 	// Before is the user's previous state (audio changes).
 	Before bus.UserInfo
+	// Moved: the audio change came with a move to another channel (the
+	// server works out anew whether the user may speak there); the move
+	// is reported first.
+	Moved bool
 }
 
 // Tracker turns raw bus user events into presence events for the
@@ -165,24 +169,29 @@ func (t *Tracker) OnUserUpdated(ev bus.UserUpdated) {
 		}
 		return
 	}
+	moved := ev.Changed.Has(bus.UserChangeChannel) && prev.Channel != ev.User.Channel
+	if moved {
+		t.emitMove(prev, ev.User)
+	}
 	if ev.Changed.Has(bus.UserChangeAudio) {
 		mine, ok := t.myChannel()
 		t.emit(Event{Kind: UserAudioChanged, User: ev.User, Before: prev,
-			InMyChannel: ok && ev.User.Channel == mine})
+			InMyChannel: ok && ev.User.Channel == mine, Moved: moved})
 	}
-	if !ev.Changed.Has(bus.UserChangeChannel) || prev.Channel == ev.User.Channel {
-		return
-	}
-	if ev.User.Session == t.self {
-		t.emit(Event{Kind: SelfMoved, User: ev.User, From: prev.Channel, To: ev.User.Channel})
+}
+
+// emitMove reports a user's move from prev's channel to u's.
+func (t *Tracker) emitMove(prev, u bus.UserInfo) {
+	if u.Session == t.self {
+		t.emit(Event{Kind: SelfMoved, User: u, From: prev.Channel, To: u.Channel})
 		return
 	}
 	mine, ok := t.myChannel()
 	switch {
 	case !ok:
-	case ev.User.Channel == mine:
-		t.emit(Event{Kind: UserJoinedChannel, User: ev.User, From: prev.Channel, To: mine})
+	case u.Channel == mine:
+		t.emit(Event{Kind: UserJoinedChannel, User: u, From: prev.Channel, To: mine})
 	case prev.Channel == mine:
-		t.emit(Event{Kind: UserLeftChannel, User: ev.User, From: mine, To: ev.User.Channel})
+		t.emit(Event{Kind: UserLeftChannel, User: u, From: mine, To: u.Channel})
 	}
 }

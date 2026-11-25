@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 22:47+0100\n"
+"POT-Creation-Date: 2026-11-20 23:17+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -881,7 +881,9 @@ msgstr "Bild anhängen"
 
 #: internal/ui/chat/composer.go
 msgid "Enter sends, Shift+Enter adds a line, Ctrl+B / Ctrl+I format"
-msgstr "Eingabetaste sendet, Umschalt+Eingabe fügt eine Zeile ein, Strg+B / Strg+I formatieren"
+msgstr ""
+"Eingabetaste sendet, Umschalt+Eingabe fügt eine Zeile ein, Strg+B / Strg+I "
+"formatieren"
 
 #: internal/ui/chat/composer.go
 msgid "[image]"
@@ -1022,6 +1024,10 @@ msgid "User mutes or deafens themselves"
 msgstr "Jemand schaltet sich stumm oder taub"
 
 #: internal/ui/chat/logevents.go
+msgid "You may not speak here"
+msgstr "Du darfst hier nicht sprechen"
+
+#: internal/ui/chat/logevents.go
 #, go-format
 msgid "You moved to %s"
 msgstr "Du bist in %s gewechselt"
@@ -1040,6 +1046,11 @@ msgstr "%s ist in %s gewechselt"
 #, go-format
 msgid "%s connected to the server"
 msgstr "%s hat sich mit dem Server verbunden"
+
+#: internal/ui/chat/logevents.go
+#, go-format
+msgid "%s may not speak here"
+msgstr "%s darf hier nicht sprechen"
 
 #: internal/ui/chat/logevents.go
 #, go-format
@@ -1094,17 +1105,8 @@ msgstr "Deine Taubschaltung wurde vom Server aufgehoben"
 
 #: internal/ui/chat/logevents.go
 #, go-format
-msgid "%s may not speak here"
-msgstr "%s darf hier nicht sprechen"
-
-#: internal/ui/chat/logevents.go
-#, go-format
 msgid "%s may speak again"
 msgstr "%s darf wieder sprechen"
-
-#: internal/ui/chat/logevents.go
-msgid "You may not speak here"
-msgstr "Du darfst hier nicht sprechen"
 
 #: internal/ui/chat/logevents.go
 msgid "You may speak again"

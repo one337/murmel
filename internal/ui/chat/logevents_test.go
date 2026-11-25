@@ -107,3 +107,110 @@ func TestLogLinesWithoutName(t *testing.T) {
 		t.Errorf("own move: %q", got)
 	}
 }
+
+// chatLog feeds bus events through a presence tracker and returns the
+// channel chat's log lines (default settings). The local user is session
+// 1 in Lobby (1); "Quiet" (3) is a channel without Speak.
+func chatLog(selfSuppressed bool, events ...bus.Event) []string {
+	tracker := presence.NewTracker()
+	var out []string
+	enabled := func(e LogEvent) bool { return LogEnabled(nil, e) }
+	names := map[uint32]string{1: "Lobby", 2: "Games", 3: "Quiet"}
+	tracker.Listen(func(ev presence.Event) {
+		out = append(out, logLines(ev, enabled, 1, func(id uint32) string { return names[id] })...)
+	})
+	tracker.OnConnected(bus.Connected{SelfSession: 1, Users: []bus.UserInfo{
+		{Session: 1, Name: "me", Channel: 1, Suppressed: selfSuppressed},
+		{Session: 7, Name: "anna", Channel: 2},
+	}})
+	for _, ev := range events {
+		switch ev := ev.(type) {
+		case bus.UserAdded:
+			tracker.OnUserAdded(ev)
+		case bus.UserUpdated:
+			tracker.OnUserUpdated(ev)
+		case bus.UserRemoved:
+			tracker.OnUserRemoved(ev)
+		}
+	}
+	return out
+}
+
+// The server sends a move and the suppression it brings in one update.
+// The chat tells the move first, then that the user may not speak; the
+// end of a suppression that comes with a move is not told.
+func TestLogSuppressionWithMove(t *testing.T) {
+	move := func(session uint32, name string, channel uint32, suppressed bool) bus.Event {
+		return bus.UserUpdated{
+			User:    bus.UserInfo{Session: session, Name: name, Channel: channel, Suppressed: suppressed},
+			Changed: bus.UserChangeChannel | bus.UserChangeAudio,
+		}
+	}
+	for _, tt := range []struct {
+		name           string
+		selfSuppressed bool
+		events         []bus.Event
+		want           string
+	}{
+		{"someone moves into my channel without Speak", false,
+			[]bus.Event{move(7, "anna", 1, true)},
+			"anna joined the channel | anna may not speak here"},
+		{"someone comes from a channel without Speak", false,
+			[]bus.Event{move(7, "anna", 3, true), move(7, "anna", 1, false)},
+			"anna joined the channel"},
+		{"I move into a channel without Speak", false,
+			[]bus.Event{move(1, "me", 3, true)},
+			"You moved to Quiet | You may not speak here"},
+		{"I move out of it", false,
+			[]bus.Event{move(1, "me", 3, true), move(1, "me", 2, false)},
+			"You moved to Quiet | You may not speak here | You moved to Games"},
+		{"allowed to speak where I am", true,
+			[]bus.Event{bus.UserUpdated{User: bus.UserInfo{Session: 1, Name: "me", Channel: 1},
+				Changed: bus.UserChangeAudio}},
+			"You may not speak here | You may speak again"},
+	} {
+		if got := strings.Join(chatLog(tt.selfSuppressed, tt.events...), " | "); got != tt.want {
+			t.Errorf("%s: got %q, want %q", tt.name, got, tt.want)
+		}
+	}
+}
+
+// Connecting straight into a channel without Speak: the join line, then
+// that the user may not speak, both when the name comes with the first
+// state and when the server sends the suppression before the name.
+func TestLogSuppressionOnConnect(t *testing.T) {
+	for _, tt := range []struct {
+		name   string
+		events []bus.Event
+	}{
+		{"name with the first state", []bus.Event{
+			bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "guest", Channel: 1, Suppressed: true}},
+		}},
+		{"name after the suppression", []bus.Event{
+			bus.UserAdded{User: bus.UserInfo{Session: 9, Channel: 1, Suppressed: true}},
+			bus.UserUpdated{User: bus.UserInfo{Session: 9, Name: "guest", Channel: 1, Suppressed: true},
+				Changed: bus.UserChangeName | bus.UserChangeChannel},
+		}},
+	} {
+		events := append(append(append([]bus.Event{}, tt.events...), bus.UserRemoved{Session: 9}), tt.events...)
+		want := "guest joined the channel | guest may not speak here | guest left the channel | " +
+			"guest joined the channel | guest may not speak here"
+		if got := strings.Join(chatLog(false, events...), " | "); got != want {
+			t.Errorf("%s: got %q, want %q", tt.name, got, want)
+		}
+	}
+	// Elsewhere on the server: nothing (server-wide lines are off by default).
+	if got := chatLog(false, bus.UserAdded{User: bus.UserInfo{Session: 9, Name: "guest", Channel: 3, Suppressed: true}}); len(got) != 0 {
+		t.Errorf("connect into another channel: %q", got)
+	}
+}
+
+// Connecting oneself straight into a channel without Speak says so.
+func TestLogSuppressionOnOwnConnect(t *testing.T) {
+	if got := strings.Join(chatLog(true), " | "); got != "You may not speak here" {
+		t.Errorf("own connect into a channel without Speak: %q", got)
+	}
+	if got := chatLog(false); len(got) != 0 {
+		t.Errorf("own connect where one may speak: %q", got)
+	}
+}
