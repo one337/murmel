@@ -161,3 +161,70 @@ func TestGTKRefusalsShowInTheChat(t *testing.T) {
 		}
 	}
 }
+
+// rowShape describes a chat row's top box: its orientation, its style
+// classes and the texts of the labels in it, in order.
+func rowShape(row *gtk.ListBoxRow) (vertical bool, classes, labels []string) {
+	box := gtk.BaseWidget(row.Child())
+	if b, ok := coreglib.InternObject(row.Child()).Cast().(*gtk.Box); ok {
+		vertical = b.Orientation() == gtk.OrientationVertical
+	}
+	classes = box.CSSClasses()
+	var walk func(w gtk.Widgetter)
+	walk = func(w gtk.Widgetter) {
+		if label, ok := coreglib.InternObject(w).Cast().(*gtk.Label); ok {
+			labels = append(labels, label.Text())
+		}
+		for c := gtk.BaseWidget(w).FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
+			walk(c)
+		}
+	}
+	walk(row.Child())
+	return vertical, classes, labels
+}
+
+// An error row is a log line, time and text side by side, in the error
+// color: a refusal, as well as a message that could not be sent.
+func TestGTKErrorRowsAreLogLines(t *testing.T) {
+	needGTK(t)
+	v, b := chatWindow(t)
+	b.Emit(bus.UserUpdated{User: bus.UserInfo{Session: 7, Name: "anna", Channel: 0},
+		Changed: bus.UserChangeChannel})
+	b.Emit(bus.PermissionDenied{Reason: bus.DenyChannelFull})
+	waitUntil(t, "the rows", func() bool { return len(v.channel.hist.items) >= 2 })
+	onMain(func() { v.channel.append(rowStyle{kind: rowError, at: time.Now(), content: errorRowText("")}, false) })
+	type shape struct {
+		vertical bool
+		log, err bool
+		labels   int
+		text     string
+	}
+	var got []shape
+	onMain(func() {
+		for _, r := range v.channel.hist.items {
+			vertical, classes, labels := rowShape(r.row)
+			s := shape{vertical: vertical, labels: len(labels)}
+			for _, c := range classes {
+				s.log = s.log || c == "log-line"
+				s.err = s.err || c == "error"
+			}
+			if len(labels) > 0 {
+				s.text = labels[len(labels)-1]
+			}
+			got = append(got, s)
+		}
+	})
+	want := []shape{
+		{log: true, labels: 2, text: "anna joined the channel"},
+		{log: true, err: true, labels: 2, text: "The channel is full."},
+		{log: true, err: true, labels: 2, text: "Message not delivered."},
+	}
+	if len(got) != len(want) {
+		t.Fatalf("rows %+v, want %+v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("row %d: %+v, want %+v", i, got[i], want[i])
+		}
+	}
+}

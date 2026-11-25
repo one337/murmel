@@ -144,6 +144,11 @@ scrolledwindow.saved-connections {
   opacity: 0.55;
 }
 
+/* Errors in the chat: an event line in the error colour, not faded. */
+.log-line.error {
+  opacity: 1;
+}
+
 /* Unread messages next to a name in the channel tree. */
 .unread-badge {
   min-width: 10px;

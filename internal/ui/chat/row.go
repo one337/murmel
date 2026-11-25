@@ -60,7 +60,7 @@ const (
 // accent color or the light/dark style; its text is set as plain text
 // (never markup) so a name like "<b>evil</b>" can never be interpreted.
 func newRow(st rowStyle) *chatRow {
-	if st.kind == rowLog {
+	if st.kind == rowLog || st.kind == rowError {
 		return newLogRow(st)
 	}
 	sender := gtk.NewLabel(st.sender)
@@ -144,7 +144,8 @@ func errorRowText(reason string) string {
 	return fmt.Sprintf(tr("Message not delivered: %s"), reason)
 }
 
-// newLogRow is a single faded line: time and event text.
+// newLogRow is a single faded line: time and event text. An error is the
+// same line in the error color, not faded.
 func newLogRow(st rowStyle) *chatRow {
 	stamp := gtk.NewLabel(clock.Time(st.at))
 	stamp.AddCSSClass("numeric")
@@ -155,6 +156,9 @@ func newLogRow(st rowStyle) *chatRow {
 	text.SetHExpand(true)
 	box := gtk.NewBox(gtk.OrientationHorizontal, 8)
 	box.AddCSSClass("log-line")
+	if class := rowCSSClass(st.kind); class != "" {
+		box.AddCSSClass(class)
+	}
 	box.SetMarginStart(6)
 	box.SetMarginEnd(6)
 	box.SetMarginTop(1)
