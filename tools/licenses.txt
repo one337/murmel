@@ -8,6 +8,7 @@ gotk4            github.com/diamondburned/gotk4/pkg          vendor/github.com/d
 gotk4-adwaita    github.com/diamondburned/gotk4-adwaita/pkg  vendor/github.com/diamondburned/gotk4-adwaita/pkg/LICENSE
 malgo            github.com/gen2brain/malgo                  vendor/github.com/gen2brain/malgo/LICENSE
 golang-protobuf  github.com/golang/protobuf                  vendor/github.com/golang/protobuf/LICENSE
+x-crypto         golang.org/x/crypto                         vendor/golang.org/x/crypto/LICENSE vendor/golang.org/x/crypto/PATENTS
 x-sync           golang.org/x/sync                           vendor/golang.org/x/sync/LICENSE vendor/golang.org/x/sync/PATENTS
 x-image          golang.org/x/image                          vendor/golang.org/x/image/LICENSE vendor/golang.org/x/image/PATENTS
 x-net            golang.org/x/net                            vendor/golang.org/x/net/LICENSE vendor/golang.org/x/net/PATENTS
@@ -15,6 +16,7 @@ x-text           golang.org/x/text                           vendor/golang.org/x
 oggvorbis        github.com/jfreymuth/oggvorbis              vendor/github.com/jfreymuth/oggvorbis/LICENSE
 vorbis           github.com/jfreymuth/vorbis                 vendor/github.com/jfreymuth/vorbis/LICENSE
 gotext           github.com/leonelquinteros/gotext           vendor/github.com/leonelquinteros/gotext/LICENSE
+go-pkcs12        software.sslmate.com/src/go-pkcs12          vendor/software.sslmate.com/src/go-pkcs12/LICENSE
 opus             gopkg.in/hraban/opus.v2                     third_party/hraban-opus/LICENSE third_party/hraban-opus/AUTHORS
 # The gumble fork (internal/protocol), and the Mumble project's protocol
 # definitions (MumbleProto) and voice encryption (internal/protocol/crypt

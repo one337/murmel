@@ -18,7 +18,8 @@ Summary:        Mumble voice chat client for GNOME
 
 # Murmel itself: GPL-3.0-or-later. Vendored Go modules:
 #   gotk4, gotk4-adwaita, gumble (fork in internal/protocol/gumble): MPL-2.0
-#   golang/protobuf, golang.org/x/{sync,image,net,text}: BSD-3-Clause
+#   golang/protobuf, SSLMate/go-pkcs12, golang.org/x/{crypto,sync,image,net,text}:
+#   BSD-3-Clause
 #   hraban/opus: MIT; jfreymuth/oggvorbis, jfreymuth/vorbis: MIT
 #   leonelquinteros/gotext: MIT; gen2brain/malgo (miniaudio): Unlicense
 # Two symbolic icons (data/icons/symbolic): CC0-1.0
@@ -55,12 +56,14 @@ Provides:       bundled(golang(github.com/golang/protobuf))
 Provides:       bundled(golang(github.com/jfreymuth/oggvorbis))
 Provides:       bundled(golang(github.com/jfreymuth/vorbis))
 Provides:       bundled(golang(github.com/leonelquinteros/gotext))
+Provides:       bundled(golang(golang.org/x/crypto))
 Provides:       bundled(golang(golang.org/x/image))
 Provides:       bundled(golang(golang.org/x/net))
 Provides:       bundled(golang(golang.org/x/sync))
 Provides:       bundled(golang(golang.org/x/text))
 Provides:       bundled(golang(gopkg.in/hraban/opus.v2))
 Provides:       bundled(golang(layeh.com/gumble))
+Provides:       bundled(golang(software.sslmate.com/src/go-pkcs12))
 
 %description
 Murmel is a voice chat client for Mumble servers, written for GNOME with

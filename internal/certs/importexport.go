@@ -14,11 +14,10 @@ import (
 	"time"
 )
 
-// ImportPEM imports an identity from PEM data, accepting either a single
-// concatenated blob (certificate chain followed by the private key — the
-// official Mumble client export format) or certificate-only data when the key
-// lives in a separate file (use ImportFiles for that layout). The private key
-// must match the leaf certificate; the import fails otherwise.
+// ImportPEM imports an identity from PEM data: the certificate chain and
+// the private key in one blob, in any order (use ImportFiles when the key
+// lives in a separate file). One of the certificates must belong to the
+// key; it becomes the identity's certificate.
 func (m *Manager) ImportPEM(name string, pemData []byte) (*Identity, error) {
 	if name == "" {
 		return nil, errors.New("certs: imported identity must have a name")
@@ -27,13 +26,11 @@ func (m *Manager) ImportPEM(name string, pemData []byte) (*Identity, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(certDERs) == 0 {
-		return nil, errors.New("certs: import data contains no CERTIFICATE block")
+	b, err := newBundle(certDERs, key)
+	if err != nil {
+		return nil, err
 	}
-	if key == nil {
-		return nil, errors.New("certs: import data contains no private key")
-	}
-	return m.importParsed(name, certDERs, key)
+	return m.importParsed(name, b.certs, b.key)
 }
 
 // ImportFiles imports an identity from PEM files. certPath may hold the
@@ -126,25 +123,25 @@ func parsePEMBundle(data []byte) (certs [][]byte, key crypto.PrivateKey, err err
 		case "PRIVATE KEY":
 			k, perr := x509.ParsePKCS8PrivateKey(block.Bytes)
 			if perr != nil {
-				return nil, nil, fmt.Errorf("certs: parsing PKCS#8 private key: %w", perr)
+				return nil, nil, fmt.Errorf("%w (PKCS#8 private key: %v)", ErrDamagedFile, perr)
 			}
 			key = k
 		case "RSA PRIVATE KEY":
 			k, perr := x509.ParsePKCS1PrivateKey(block.Bytes)
 			if perr != nil {
-				return nil, nil, fmt.Errorf("certs: parsing RSA private key: %w", perr)
+				return nil, nil, fmt.Errorf("%w (RSA private key: %v)", ErrDamagedFile, perr)
 			}
 			key = k
 		case "EC PRIVATE KEY":
 			k, perr := x509.ParseECPrivateKey(block.Bytes)
 			if perr != nil {
-				return nil, nil, fmt.Errorf("certs: parsing EC private key: %w", perr)
+				return nil, nil, fmt.Errorf("%w (EC private key: %v)", ErrDamagedFile, perr)
 			}
 			key = k
 		}
 	}
 	if key == nil && len(certs) == 0 {
-		return nil, nil, errors.New("certs: no PEM blocks found")
+		return nil, nil, ErrUnsupportedFile
 	}
 	return certs, key, nil
 }
@@ -152,22 +149,28 @@ func parsePEMBundle(data []byte) (certs [][]byte, key crypto.PrivateKey, err err
 // ensureKeyMatches verifies the private key really belongs to the certificate,
 // so a mismatched cert/key pair can never be persisted as an identity.
 func ensureKeyMatches(cert *x509.Certificate, key crypto.PrivateKey) error {
-	var pub crypto.PublicKey
-	switch k := key.(type) {
-	case *rsa.PrivateKey:
-		pub = &k.PublicKey
-	case *ecdsa.PrivateKey:
-		pub = &k.PublicKey
-	case ed25519.PrivateKey:
-		pub = k.Public()
-	default:
-		return fmt.Errorf("certs: unsupported private key type %T", key)
+	pub, err := publicKey(key)
+	if err != nil {
+		return err
 	}
 	certPub, ok := cert.PublicKey.(interface{ Equal(crypto.PublicKey) bool })
 	if !ok || !certPub.Equal(pub) {
-		return errors.New("certs: private key does not match certificate")
+		return ErrKeyMismatch
 	}
 	return nil
+}
+
+// publicKey returns the public half of a key type Murmel can use.
+func publicKey(key crypto.PrivateKey) (crypto.PublicKey, error) {
+	switch k := key.(type) {
+	case *rsa.PrivateKey:
+		return &k.PublicKey, nil
+	case *ecdsa.PrivateKey:
+		return &k.PublicKey, nil
+	case ed25519.PrivateKey:
+		return k.Public(), nil
+	}
+	return nil, fmt.Errorf("certs: unsupported private key type %T", key)
 }
 
 func x509MarshalPrivateKey(key crypto.PrivateKey) ([]byte, error) {
