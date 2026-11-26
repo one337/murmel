@@ -435,3 +435,17 @@ plain read of a field that is written concurrently no longer compiles.
 **Upstream**: layeh/gumble `gumble/client.go` and `gumble/handlers.go`
 (`tcpPingAvg`, `tcpPingVar`); `audioDropped` comes from P3,
 `connWritesFailed` from P8.
+
+## P23 — Count ping replies atomically
+
+**What**: `Client.tcpPacketsReceived` is an `atomic.Uint32`. `handlePing`
+uses the value its increment returns, and `pingRoutine` copies the count
+into its own variable before each ping instead of handing the field's
+address to the message. `ping_test.go` sends a ping while replies arrive.
+
+**Why**: The ping message read the field while it was marshalled, at the
+same time as the read loop incremented it with `atomic.AddUint32`; the race
+detector reported this as a data race.
+
+**Upstream**: layeh/gumble `gumble/client.go` and `gumble/handlers.go`.
+

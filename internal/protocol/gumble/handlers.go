@@ -177,7 +177,7 @@ func (c *Client) handlePing(buffer []byte) error {
 		return err
 	}
 
-	atomic.AddUint32(&c.tcpPacketsReceived, 1)
+	received := c.tcpPacketsReceived.Add(1)
 
 	// Murmel patch (P12): the server's ping reply carries its view of our
 	// UDP crypt stream — how many of our datagrams it decrypted.
@@ -190,7 +190,7 @@ func (c *Client) handlePing(buffer []byte) error {
 	if packet.Timestamp != nil {
 		diff := time.Since(time.Unix(0, int64(*packet.Timestamp)))
 
-		index := int(c.tcpPacketsReceived) - 1
+		index := int(received) - 1
 		if index >= len(c.tcpPingTimes) {
 			for i := 1; i < len(c.tcpPingTimes); i++ {
 				c.tcpPingTimes[i-1] = c.tcpPingTimes[i]

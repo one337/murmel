@@ -58,7 +58,7 @@ type Client struct {
 	tmpACL      *ACL
 
 	// Ping stats
-	tcpPacketsReceived uint32
+	tcpPacketsReceived atomic.Uint32
 	tcpPingTimes       [12]float32
 	tcpPingAvg         atomic.Uint32
 	tcpPingVar         atomic.Uint32
@@ -298,11 +298,12 @@ func (c *Client) pingRoutine() {
 	defer ticker.Stop()
 
 	var timestamp uint64
+	var tcpPackets uint32
 	var tcpPingAvg float32
 	var tcpPingVar float32
 	packet := MumbleProto.Ping{
 		Timestamp:  &timestamp,
-		TcpPackets: &c.tcpPacketsReceived,
+		TcpPackets: &tcpPackets,
 		TcpPingAvg: &tcpPingAvg,
 		TcpPingVar: &tcpPingVar,
 	}
@@ -310,6 +311,7 @@ func (c *Client) pingRoutine() {
 	t := time.Now()
 	for {
 		timestamp = uint64(t.UnixNano())
+		tcpPackets = c.tcpPacketsReceived.Load()
 		tcpPingAvg = math.Float32frombits(c.tcpPingAvg.Load())
 		tcpPingVar = math.Float32frombits(c.tcpPingVar.Load())
 		c.Conn.WriteProto(&packet)
