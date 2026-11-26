@@ -38,32 +38,42 @@ func (a *App) showAbout() {
 	d.Present(parent)
 }
 
-// addLegalSections lists the components built into Murmel (see
-// tools/licenses.txt; their full license texts are installed with it).
-// Copyright lines are those of the components' license files; the free
-// text only shows for custom licenses.
+// addLegalSections lists the components built into Murmel.
 func addLegalSections(d *adw.AboutDialog) {
-	for _, c := range []struct {
-		name, copyright string
-		license         gtk.License
-		text            string
-	}{
-		{"gotk4, gotk4-adwaita", "", gtk.LicenseMPL20, ""},
-		{i18n.Tr("gumble (Murmel's fork)"), "", gtk.LicenseMPL20, ""},
-		{i18n.Tr("Mumble protocol and voice encryption"), "© 2005–2013 Thorvald Natvig and others", gtk.LicenseBSD3, ""},
-		{"malgo, miniaudio", "", gtk.LicenseCustom, i18n.Tr("Unlicense (public domain).")},
-		{"protobuf-go", "© 2018 The Go Authors", gtk.LicenseBSD3, ""},
-		{"go-pkcs12", "© 2015, 2018, 2019 Opsmate, Inc.", gtk.LicenseBSD3, ""},
-		{"golang.org/x/crypto", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
-		{"golang.org/x/sync", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
-		{"golang.org/x/image", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
-		{"golang.org/x/net", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
-		{"golang.org/x/text", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
-		{"hraban/opus", "© 2015–2022 Go Opus Authors", gtk.LicenseMITX11, ""},
-		{"oggvorbis, vorbis", "© 2016 Johann Freymuth", gtk.LicenseMITX11, ""},
-		{"gotext", "© 2016 Leonel Quinteros", gtk.LicenseMITX11, ""},
-		{"GNOME Icon Development Kit", "", gtk.LicenseCustom, i18n.Tr("CC0 1.0 (public domain), for two user icons.")},
-	} {
+	for _, c := range legalSections() {
 		d.AddLegalSection(c.name, c.copyright, c.license, c.text)
+	}
+}
+
+// legalSection is one entry of the About dialog's legal page. components
+// names the lines of tools/licenses.txt it covers; the full license texts
+// are installed with Murmel.
+type legalSection struct {
+	name, copyright string
+	license         gtk.License
+	text            string
+	components      []string
+}
+
+// legalSections returns the About dialog's legal entries. Copyright lines
+// are those of the components' license files; the free text only shows for
+// custom licenses.
+func legalSections() []legalSection {
+	return []legalSection{
+		{"gotk4, gotk4-adwaita", "", gtk.LicenseMPL20, "", []string{"gotk4", "gotk4-adwaita"}},
+		{i18n.Tr("gumble (Murmel's fork)"), "", gtk.LicenseMPL20, "", []string{"gumble"}},
+		{i18n.Tr("Mumble protocol and voice encryption"), "© 2005–2013 Thorvald Natvig and others", gtk.LicenseBSD3, "", []string{"mumble"}},
+		{"malgo, miniaudio", "", gtk.LicenseCustom, i18n.Tr("Unlicense (public domain)."), []string{"malgo"}},
+		{"protobuf-go", "© 2018 The Go Authors", gtk.LicenseBSD3, "", []string{"protobuf-go"}},
+		{"go-pkcs12", "© 2015, 2018, 2019 Opsmate, Inc.", gtk.LicenseBSD3, "", []string{"go-pkcs12"}},
+		{"golang.org/x/crypto", "© 2009 The Go Authors", gtk.LicenseBSD3, "", []string{"x-crypto"}},
+		{"golang.org/x/sync", "© 2009 The Go Authors", gtk.LicenseBSD3, "", []string{"x-sync"}},
+		{"golang.org/x/image", "© 2009 The Go Authors", gtk.LicenseBSD3, "", []string{"x-image"}},
+		{"golang.org/x/net", "© 2009 The Go Authors", gtk.LicenseBSD3, "", []string{"x-net"}},
+		{"golang.org/x/text", "© 2009 The Go Authors", gtk.LicenseBSD3, "", []string{"x-text"}},
+		{"hraban/opus", "© 2015–2022 Go Opus Authors", gtk.LicenseMITX11, "", []string{"opus"}},
+		{"oggvorbis, vorbis", "© 2016 Johann Freymuth", gtk.LicenseMITX11, "", []string{"oggvorbis", "vorbis"}},
+		{"gotext", "© 2016 Leonel Quinteros", gtk.LicenseMITX11, "", []string{"gotext"}},
+		{"GNOME Icon Development Kit", "", gtk.LicenseCustom, i18n.Tr("CC0 1.0 (public domain), for two user icons."), nil},
 	}
 }
