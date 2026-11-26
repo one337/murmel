@@ -1,11 +1,11 @@
 package bus
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
 	"net"
 	"slices"
-	"sort"
 
 	"github.com/one337/murmel/internal/protocol/gumble"
 )
@@ -47,9 +47,7 @@ func (g *gumbleBridge) OnConnect(e *gumble.ConnectEvent) {
 	for _, ch := range e.Client.Channels {
 		ev.Channels = append(ev.Channels, copyChannel(ch))
 	}
-	sort.Slice(ev.Channels, func(i, j int) bool {
-		return ev.Channels[i].ID < ev.Channels[j].ID
-	})
+	slices.SortFunc(ev.Channels, func(a, b ChannelInfo) int { return cmp.Compare(a.ID, b.ID) })
 	ev.Users = make([]UserInfo, 0, len(e.Client.Users))
 	for _, u := range e.Client.Users {
 		ev.Users = append(ev.Users, copyUser(u))

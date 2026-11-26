@@ -3,7 +3,6 @@ package admin
 import (
 	"fmt"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -125,7 +124,7 @@ func groupNames(groups []bus.ACLGroupInfo) []string {
 			own = append(own, g.Name)
 		}
 	}
-	sort.Strings(own)
+	slices.Sort(own)
 	return append(names, own...)
 }
 

@@ -1,8 +1,10 @@
 package channeltree
 
 import (
+	"cmp"
 	"slices"
 	"sort"
+	"strings"
 
 	"github.com/one337/murmel/internal/bus"
 	"github.com/one337/murmel/internal/protocol/gumble"
@@ -250,20 +252,16 @@ func (m *treeModel) sortChildren(parent uint32) {
 	if !ok {
 		return
 	}
-	sort.SliceStable(p.children, func(i, j int) bool {
-		return m.lessChannel(p.children[i], p.children[j])
-	})
+	slices.SortStableFunc(p.children, m.compareChannel)
 }
 
-func (m *treeModel) lessChannel(a, b uint32) bool {
+func (m *treeModel) compareChannel(a, b uint32) int {
 	ca, cb := m.channels[a].info, m.channels[b].info
-	if ca.Position != cb.Position {
-		return ca.Position < cb.Position
-	}
-	if ca.Name != cb.Name {
-		return ca.Name < cb.Name
-	}
-	return ca.ID < cb.ID
+	return cmp.Or(
+		cmp.Compare(ca.Position, cb.Position),
+		strings.Compare(ca.Name, cb.Name),
+		cmp.Compare(ca.ID, cb.ID),
+	)
 }
 
 func (m *treeModel) lessUser(a, b uint32) bool {

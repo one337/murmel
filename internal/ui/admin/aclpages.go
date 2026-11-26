@@ -3,7 +3,6 @@ package admin
 import (
 	"fmt"
 	"slices"
-	"sort"
 	"strings"
 	"weak"
 
@@ -96,7 +95,7 @@ func userPicker(icon, tooltip string, users func() map[uint32]string, skip func(
 				all = append(all, entry{id, n})
 			}
 		}
-		sort.Slice(all, func(i, j int) bool { return strings.ToLower(all[i].name) < strings.ToLower(all[j].name) })
+		slices.SortFunc(all, func(a, b entry) int { return strings.Compare(strings.ToLower(a.name), strings.ToLower(b.name)) })
 		if len(all) == 0 {
 			list.Append(messageRow(i18n.Tr("No matching registered users. Users must be registered on the server; online ones and those from the user list are shown.")))
 			return

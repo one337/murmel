@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"sort"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -122,7 +122,7 @@ func formatArgs(s string) []string {
 		out = append(out, fmt.Sprintf("%d:%s", arg, m[3]))
 		next = arg + 1
 	}
-	sort.Strings(out)
+	slices.Sort(out)
 	return out
 }
 

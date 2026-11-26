@@ -14,7 +14,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -130,11 +131,11 @@ func (m *Manager) List() ([]IdentityMeta, error) {
 		}
 		metas = append(metas, *meta)
 	}
-	sort.Slice(metas, func(i, j int) bool {
-		if !metas[i].Created.Equal(metas[j].Created) {
-			return metas[i].Created.Before(metas[j].Created)
+	slices.SortFunc(metas, func(a, b IdentityMeta) int {
+		if c := a.Created.Compare(b.Created); c != 0 {
+			return c
 		}
-		return metas[i].ID < metas[j].ID
+		return strings.Compare(a.ID, b.ID)
 	})
 	return metas, nil
 }

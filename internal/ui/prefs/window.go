@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"sync"
 	"weak"
@@ -225,7 +225,7 @@ func (c *certList) refresh() {
 	if err != nil {
 		slog.Warn("prefs: identities not listed", "err", err)
 	}
-	sort.Slice(list, func(i, j int) bool { return list[i].Created.Before(list[j].Created) })
+	slices.SortFunc(list, func(a, b certs.IdentityMeta) int { return a.Created.Compare(b.Created) })
 	c.identities = list
 
 	c.syncing = true

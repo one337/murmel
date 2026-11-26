@@ -25,7 +25,7 @@ import (
 	"math"
 	"net"
 	"os"
-	"sort"
+	"slices"
 	"sync"
 	"time"
 
@@ -505,7 +505,7 @@ func channelTree(root *gumble.Channel) []string {
 			names = append(names, sub.Name)
 			kids[sub.Name] = sub
 		}
-		sort.Strings(names)
+		slices.Sort(names)
 		for _, name := range names {
 			walk(kids[name], indent+"  ")
 		}
