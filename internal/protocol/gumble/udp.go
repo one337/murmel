@@ -89,7 +89,7 @@ type udpTransport struct {
 	startOnce        sync.Once
 	closed           chan struct{}
 	closeOnce        sync.Once
-	connWritesFailed uint32
+	connWritesFailed atomic.Uint32
 }
 
 func newUDPTransport(client *Client, conn net.Conn) *udpTransport {
@@ -151,7 +151,7 @@ func (t *udpTransport) sendVoicePacket(packet []byte) bool {
 		return false
 	}
 	if _, err := t.conn.Write(datagram); err != nil {
-		atomic.AddUint32(&t.connWritesFailed, 1)
+		t.connWritesFailed.Add(1)
 		t.fallback()
 		return false
 	}
@@ -168,7 +168,7 @@ func (t *udpTransport) sendPing() {
 		return
 	}
 	if _, err := t.conn.Write(datagram); err != nil {
-		atomic.AddUint32(&t.connWritesFailed, 1)
+		t.connWritesFailed.Add(1)
 		t.fallback()
 		return
 	}

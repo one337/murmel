@@ -60,8 +60,8 @@ type Client struct {
 	// Ping stats
 	tcpPacketsReceived uint32
 	tcpPingTimes       [12]float32
-	tcpPingAvg         uint32
-	tcpPingVar         uint32
+	tcpPingAvg         atomic.Uint32
+	tcpPingVar         atomic.Uint32
 
 	// A collection containing the server's context actions.
 	ContextActions ContextActions
@@ -73,7 +73,7 @@ type Client struct {
 	// (audioDispatchRoutine); audioDropped counts voice packets dropped
 	// because the queue was full.
 	audioQueue   chan *audioJob
-	audioDropped uint32
+	audioDropped atomic.Uint32
 	// To whom transmitted audio will be sent. The VoiceTarget must have already
 	// been sent to the server for targeting to work correctly. Setting to nil
 	// will disable voice targeting (i.e. switch back to regular speaking).
@@ -310,8 +310,8 @@ func (c *Client) pingRoutine() {
 	t := time.Now()
 	for {
 		timestamp = uint64(t.UnixNano())
-		tcpPingAvg = math.Float32frombits(atomic.LoadUint32(&c.tcpPingAvg))
-		tcpPingVar = math.Float32frombits(atomic.LoadUint32(&c.tcpPingVar))
+		tcpPingAvg = math.Float32frombits(c.tcpPingAvg.Load())
+		tcpPingVar = math.Float32frombits(c.tcpPingVar.Load())
 		c.Conn.WriteProto(&packet)
 
 		select {
@@ -437,6 +437,6 @@ func (c *Client) ServerCryptStats() (good, late, lost uint32) {
 // TCPPing returns the average TCP control-channel round-trip time measured
 // from the client's ping packets (0 before the first reply).
 func (c *Client) TCPPing() time.Duration {
-	ms := math.Float32frombits(atomic.LoadUint32(&c.tcpPingAvg))
+	ms := math.Float32frombits(c.tcpPingAvg.Load())
 	return time.Duration(float64(ms) * float64(time.Millisecond))
 }

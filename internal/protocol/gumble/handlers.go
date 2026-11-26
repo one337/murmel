@@ -162,7 +162,7 @@ func (c *Client) handleVoicePacket(buffer []byte) error {
 	select {
 	case c.audioQueue <- &job:
 	default:
-		atomic.AddUint32(&c.audioDropped, 1)
+		c.audioDropped.Add(1)
 	}
 	return nil
 }
@@ -214,8 +214,8 @@ func (c *Client) handlePing(buffer []byte) error {
 		}
 		variance := sum / float32(index+1)
 
-		atomic.StoreUint32(&c.tcpPingAvg, math.Float32bits(avg))
-		atomic.StoreUint32(&c.tcpPingVar, math.Float32bits(variance))
+		c.tcpPingAvg.Store(math.Float32bits(avg))
+		c.tcpPingVar.Store(math.Float32bits(variance))
 	}
 	return nil
 }

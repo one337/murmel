@@ -421,3 +421,17 @@ messages without notice.
 
 **Upstream**: layeh/gumble `gumble/MumbleProto/Mumble.pb.go` and
 `generate_main.go`.
+
+## P22 — Counters use the sync/atomic types
+
+**What**: `Client.tcpPingAvg`, `Client.tcpPingVar`, `Client.audioDropped`
+and `udpTransport.connWritesFailed` are `atomic.Uint32` fields instead of
+plain `uint32` fields read and written with `atomic.LoadUint32`,
+`StoreUint32` and `AddUint32`.
+
+**Why**: With the atomic types every access is atomic by construction; a
+plain read of a field that is written concurrently no longer compiles.
+
+**Upstream**: layeh/gumble `gumble/client.go` and `gumble/handlers.go`
+(`tcpPingAvg`, `tcpPingVar`); `audioDropped` comes from P3,
+`connWritesFailed` from P8.

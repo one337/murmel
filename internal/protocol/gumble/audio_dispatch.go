@@ -3,7 +3,6 @@ package gumble
 import (
 	"encoding/binary"
 	"math"
-	"sync/atomic"
 )
 
 // audioDispatchQueueSize bounds how many raw incoming audio packets may wait
@@ -138,5 +137,5 @@ func (c *Client) dispatchAudio(job *audioJob) {
 // AudioDropped returns the number of incoming voice packets that had to be
 // dropped because the audio dispatch queue was full.
 func (c *Client) AudioDropped() uint32 {
-	return atomic.LoadUint32(&c.audioDropped)
+	return c.audioDropped.Load()
 }
