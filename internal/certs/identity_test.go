@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -178,7 +180,7 @@ func TestDeleteIdentity(t *testing.T) {
 	if len(list) != 0 {
 		t.Errorf("identity still listed after delete: %d", len(list))
 	}
-	if _, err := os.Stat(filepath.Join(m.DataDir(), "identities", id.Meta.ID)); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(m.DataDir(), "identities", id.Meta.ID)); !errors.Is(err, fs.ErrNotExist) {
 		t.Error("identity dir still on disk")
 	}
 }

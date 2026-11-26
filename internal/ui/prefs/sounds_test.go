@@ -1,6 +1,8 @@
 package prefs
 
 import (
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"testing"
@@ -41,7 +43,7 @@ func TestRemoveUnusedCopy(t *testing.T) {
 	}
 	// No longer used: removed.
 	removeUnusedCopy(dir, choice, map[string]string{})
-	if _, err := os.Stat(copied); !os.IsNotExist(err) {
+	if _, err := os.Stat(copied); !errors.Is(err, fs.ErrNotExist) {
 		t.Fatal("an unused copy was kept")
 	}
 	// A file of the user's outside the copies folder: never touched.

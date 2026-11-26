@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -139,7 +140,7 @@ func (m *Manager) loadStore() (map[string]ServerEntry, error) {
 	store := map[string]ServerEntry{}
 	raw, err := os.ReadFile(m.storePath())
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return store, nil
 		}
 		return nil, fmt.Errorf("certs: reading known-servers.json: %w", err)

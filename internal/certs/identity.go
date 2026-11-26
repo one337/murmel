@@ -10,6 +10,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io/fs"
 	"math/big"
 	"net"
 	"os"
@@ -115,7 +116,7 @@ func (m *Manager) Load(id string) (*Identity, error) {
 func (m *Manager) List() ([]IdentityMeta, error) {
 	entries, err := os.ReadDir(m.identitiesDir())
 	if err != nil {
-		if os.IsNotExist(err) {
+		if errors.Is(err, fs.ErrNotExist) {
 			return nil, nil
 		}
 		return nil, err
