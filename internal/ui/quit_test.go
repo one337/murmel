@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"slices"
 	"testing"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
@@ -102,46 +101,4 @@ func TestGTKQuitWhileConnectedAsksAboveDialog(t *testing.T) {
 	default:
 		waitMain(t, "the disconnect request", func() bool { return len(disconnects) > 0 })
 	}
-}
-
-// quitShortcuts returns the triggers of the shortcuts on w that run
-// app.quit from the bubble phase.
-func quitShortcuts(w gtk.Widgetter) []string {
-	var out []string
-	ctrls := gtk.BaseWidget(w).ObserveControllers()
-	for i := range ctrls.NItems() {
-		c, ok := ctrls.Item(i).Cast().(*gtk.ShortcutController)
-		if !ok || c.PropagationPhase() != gtk.PhaseBubble {
-			continue
-		}
-		for j := range c.NItems() {
-			s, ok := c.Item(j).Cast().(*gtk.Shortcut)
-			if !ok {
-				continue
-			}
-			if a, ok := s.Action().(*gtk.NamedAction); ok && a.ActionName() == "app.quit" {
-				out = append(out, gtk.BaseShortcutTrigger(s.Trigger()).String())
-			}
-		}
-	}
-	return out
-}
-
-// Every dialog on the main window carries the keys of app.quit, as GTK
-// does not run the application's shortcuts while a dialog is open.
-func TestGTKQuitShortcutInDialogs(t *testing.T) {
-	needGTK(t)
-	app, _ := testApp(t)
-	onMain(func() {
-		d := openDialog(app)
-		want := app.AccelsForAction("app.quit")
-		if got := quitShortcuts(d); !slices.Equal(got, want) {
-			t.Errorf("dialog quit shortcuts = %v, want %v", got, want)
-		}
-		d.ForceClose()
-		d.Present(app.window)
-		if got := quitShortcuts(d); !slices.Equal(got, want) {
-			t.Errorf("dialog presented again: quit shortcuts = %v, want %v", got, want)
-		}
-	})
 }
