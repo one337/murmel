@@ -24,7 +24,7 @@ const testPassword = "Murmel-Test-ä1"
 
 // testCert returns a throwaway certificate for key, signed by parent
 // (self-signed when parent is nil).
-func testCert(t *testing.T, cn string, key crypto.Signer, parent *x509.Certificate, parentKey crypto.Signer, isCA bool) *x509.Certificate {
+func testCert(t testing.TB, cn string, key crypto.Signer, parent *x509.Certificate, parentKey crypto.Signer, isCA bool) *x509.Certificate {
 	t.Helper()
 	tmpl := &x509.Certificate{
 		SerialNumber:          big.NewInt(time.Now().UnixNano()),
