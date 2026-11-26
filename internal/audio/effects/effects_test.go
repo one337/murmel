@@ -215,3 +215,11 @@ func TestPlayerWaitsForSlowStream(t *testing.T) {
 		}
 	}
 }
+
+// A damaged Ogg file is an error, not a panic.
+func TestDecodeDamagedOgg(t *testing.T) {
+	page := []byte("OggS\x00000000000000000000000\x00") // a page without segments
+	if _, err := Decode(page); err == nil {
+		t.Fatal("damaged Ogg file decoded")
+	}
+}

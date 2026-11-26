@@ -58,13 +58,24 @@ func Decode(data []byte) ([]int16, error) {
 	case len(data) >= 12 && string(data[:4]) == "RIFF" && string(data[8:12]) == "WAVE":
 		return decodeWAV(data)
 	case len(data) >= 4 && string(data[:4]) == "OggS":
-		samples, format, err := oggvorbis.ReadAll(bytes.NewReader(data))
+		samples, format, err := readOgg(data)
 		if err != nil {
 			return nil, fmt.Errorf("effects: ogg vorbis: %w", err)
 		}
 		return toPCM(samples, format.Channels, format.SampleRate)
 	}
 	return nil, ErrUnsupported
+}
+
+// readOgg decodes an Ogg Vorbis file. The decoder panics on some damaged
+// files (for example a page without segments); that becomes an error.
+func readOgg(data []byte) (samples []float32, format *oggvorbis.Format, err error) {
+	defer func() {
+		if p := recover(); p != nil {
+			samples, format, err = nil, nil, fmt.Errorf("damaged file (%v)", p)
+		}
+	}()
+	return oggvorbis.ReadAll(bytes.NewReader(data))
 }
 
 func decodeWAV(data []byte) ([]int16, error) {
