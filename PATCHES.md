@@ -505,3 +505,18 @@ server with a throwaway certificate.
 
 **Upstream**: none, `dial_test.go` is Murmel's.
 
+## P29 — Read only the 13 size bits of a voice frame
+
+**What**: `handleVoicePacket` takes the frame size as `length & 0x1FFF`
+instead of clearing only the last-frame bit, and still drops a packet whose
+frame does not fit. `voicepacket_test.go` checks the size field and fuzzes
+the parsing and decoding of voice packets; `testdata/fuzz` keeps the input
+that crashed it.
+
+**Why**: A negative size (varint forms `0xF8` and `0xFC`) passed the length
+check and made the audio goroutine slice the payload with a negative
+bound, which panicked and ended the program. The official client reads
+the same 13 bits.
+
+**Upstream**: layeh/gumble `gumble/handlers.go` (`handleUDPTunnel`); since
+P3 the frame is sliced in `audio_dispatch.go`.

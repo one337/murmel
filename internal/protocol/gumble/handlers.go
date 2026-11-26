@@ -133,8 +133,11 @@ func (c *Client) handleVoicePacket(buffer []byte) error {
 		return errInvalidProtobuf
 	}
 	buffer = buffer[n:]
-	// Opus audio packets set the 13th bit in the size field as the terminator.
-	audioLength := int(length) &^ 0x2000
+	// The size of an Opus frame has 13 bits; bit 13 marks the last frame
+	// of a stream. Like the official client, read only those 13 bits, so a
+	// negative or oversized value cannot make the length negative; a frame
+	// that does not fit into the packet is dropped.
+	audioLength := int(length & 0x1FFF)
 	if audioLength > len(buffer) {
 		return errInvalidProtobuf
 	}
