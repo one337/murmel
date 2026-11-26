@@ -10,6 +10,9 @@ on:
   # Manual start, e.g. to rebuild after a failed trigger.
   workflow_dispatch:
 
+# The job only calls the webhook and needs no access to the repository.
+permissions: {}
+
 jobs:
   copr:
     runs-on: ubuntu-latest
