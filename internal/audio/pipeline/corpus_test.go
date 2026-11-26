@@ -2,9 +2,9 @@ package pipeline
 
 import (
 	"encoding/csv"
-	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 )
 
@@ -30,9 +30,14 @@ func loadLabels(t *testing.T) map[string][]region {
 		if i == 0 || len(row) != 3 {
 			continue
 		}
-		var s, e int
-		fmt.Sscanf(row[1], "%d", &s)
-		fmt.Sscanf(row[2], "%d", &e)
+		s, err := strconv.Atoi(row[1])
+		if err != nil {
+			t.Fatalf("labels row %d: start %q: %v", i, row[1], err)
+		}
+		e, err := strconv.Atoi(row[2])
+		if err != nil {
+			t.Fatalf("labels row %d: end %q: %v", i, row[2], err)
+		}
 		out[row[0]] = append(out[row[0]], region{s / 10, e / 10})
 	}
 	return out

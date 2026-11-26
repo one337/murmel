@@ -427,7 +427,7 @@ func (c *Controller) onDialSuccess(a attempt, client *gumble.Client, connBus *bu
 		slog.Info("superseded connection closed", "addr", addr)
 		stopFwd()
 		connBus.Close()
-		client.Disconnect()
+		_ = client.Disconnect()
 		return
 	}
 	c.mu.Lock()
@@ -827,7 +827,7 @@ func (c *Controller) disconnectLocked() {
 		c.connBus = nil
 	}
 	if c.client != nil {
-		c.client.Disconnect()
+		_ = c.client.Disconnect()
 		c.client = nil
 	}
 }

@@ -54,7 +54,7 @@ func read(ctx context.Context, file *gio.File, maxBytes int64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer in.Close(context.Background())
+	defer func() { _ = in.Close(context.Background()) }()
 	return readLimited(ctx, &in.InputStream, maxBytes)
 }
 

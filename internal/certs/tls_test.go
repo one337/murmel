@@ -50,7 +50,9 @@ func dialTLS(t *testing.T, cfg *tls.Config, addr string) error {
 		return err
 	}
 	defer conn.Close()
-	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	if err := conn.SetReadDeadline(time.Now().Add(2 * time.Second)); err != nil {
+		return err
+	}
 	var buf [2]byte
 	_, err = conn.Read(buf[:])
 	return err

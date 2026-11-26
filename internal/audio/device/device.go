@@ -112,7 +112,7 @@ func Open(cfg Config) (*Device, error) {
 			Stop: d.stopped,
 		})
 		if err != nil {
-			d.release()
+			_ = d.release()
 			return nil, fmt.Errorf("device: open capture stream (48 kHz mono S16): %w", err)
 		}
 		d.capDev = capDev
@@ -123,7 +123,7 @@ func Open(cfg Config) (*Device, error) {
 			Stop: d.stopped,
 		})
 		if err != nil {
-			d.release()
+			_ = d.release()
 			return nil, fmt.Errorf("device: open playback stream (48 kHz mono S16): %w", err)
 		}
 		d.playDev = playDev
@@ -132,13 +132,13 @@ func Open(cfg Config) (*Device, error) {
 	// rings must exist before Start — they do; d was built complete.
 	if d.capDev != nil {
 		if err := d.capDev.Start(); err != nil {
-			d.release()
+			_ = d.release()
 			return nil, fmt.Errorf("device: start capture stream: %w", err)
 		}
 	}
 	if d.playDev != nil {
 		if err := d.playDev.Start(); err != nil {
-			d.release()
+			_ = d.release()
 			return nil, fmt.Errorf("device: start playback stream: %w", err)
 		}
 	}
@@ -222,7 +222,7 @@ func (d *Device) release() error {
 	d.closing.Store(true)
 	for _, dev := range []*malgo.Device{d.capDev, d.playDev} {
 		if dev != nil {
-			dev.Stop()
+			_ = dev.Stop()
 			dev.Uninit()
 		}
 	}

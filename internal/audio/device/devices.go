@@ -31,7 +31,7 @@ func GetDevices() (*List, error) {
 		return nil, fmt.Errorf("device: enumerate: init backends: %w", err)
 	}
 	defer ctx.Free()
-	defer ctx.Uninit()
+	defer func() { _ = ctx.Uninit() }()
 
 	caps, err := ctx.Devices(malgo.Capture)
 	if err != nil {

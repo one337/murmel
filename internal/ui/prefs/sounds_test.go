@@ -48,7 +48,9 @@ func TestRemoveUnusedCopy(t *testing.T) {
 	}
 	// A file of the user's outside the copies folder: never touched.
 	own := filepath.Join(t.TempDir(), "mine.ogg")
-	os.WriteFile(own, []byte("x"), 0o600)
+	if err := os.WriteFile(own, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	removeUnusedCopy(dir, effects.FileChoice(own), map[string]string{})
 	if _, err := os.Stat(own); err != nil {
 		t.Fatal("a file outside the copies folder was removed")

@@ -126,7 +126,7 @@ func (p *Player) run() {
 	defer tick.Stop()
 	defer func() {
 		if sink != nil {
-			sink.Close()
+			_ = sink.Close()
 		}
 	}()
 	for range tick.C {
@@ -172,7 +172,7 @@ func (p *Player) run() {
 		}
 		if sink == nil || output != opened {
 			if sink != nil {
-				sink.Close()
+				_ = sink.Close()
 				sink = nil
 			}
 			s, err := p.Open(output)
@@ -189,6 +189,6 @@ func (p *Player) run() {
 		for i, v := range acc {
 			frame[i] = int16(max(-32768, min(32767, v)))
 		}
-		sink.Write(frame)
+		_ = sink.Write(frame) // fails only once the sink is closed, which this loop does itself
 	}
 }

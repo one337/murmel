@@ -363,7 +363,7 @@ func TestInitNoDevice(t *testing.T) {
 		}
 		return
 	}
-	ctx.Uninit()
+	_ = ctx.Uninit()
 	ctx.Free()
 	t.Skip("audio backends available; the failure path runs where none are")
 }

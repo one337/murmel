@@ -89,7 +89,7 @@ func (m *Monitor) run(process func([]int16), report func(Level)) {
 // Stop closes the capture device and waits for the reader to end.
 func (m *Monitor) Stop() {
 	m.once.Do(func() {
-		m.src.Close()
+		_ = m.src.Close()
 		<-m.done
 	})
 }

@@ -87,7 +87,7 @@ func printSummary(m *certs.Manager, id string) {
 	}
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
-	enc.Encode(map[string]any{
+	if err := enc.Encode(map[string]any{
 		"id":          id,
 		"name":        ident.Meta.Name,
 		"cn":          ident.Certificate.Subject.CommonName,
@@ -97,7 +97,9 @@ func printSummary(m *certs.Manager, id string) {
 		"cert":        filepath.Join(m.DataDir(), "identities", id, "cert.pem"),
 		"key":         filepath.Join(m.DataDir(), "identities", id, "key.pem"),
 		"fingerprint": certs.Fingerprint(ident.Certificate),
-	})
+	}); err != nil {
+		fail(err)
+	}
 }
 
 func fail(err error) {

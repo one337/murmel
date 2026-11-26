@@ -223,7 +223,7 @@ func writePrivateFile(path string, data []byte) error {
 		slog.Info("export: file permissions not set", "err", err)
 	}
 	if _, err := f.Write(data); err != nil {
-		f.Close()
+		_ = f.Close()
 		return err
 	}
 	return f.Close()

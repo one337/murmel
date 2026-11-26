@@ -222,7 +222,7 @@ func (f *dataFile[T]) load(fill func(*T), same func(T) bool, hasOld bool, clearO
 	}
 	if err != nil {
 		slog.Warn("settings: moving values to the data file failed, they stay in GSettings", "file", f.path, "err", err)
-		os.Remove(f.path)
+		_ = os.Remove(f.path)
 		return
 	}
 	clearOld()
@@ -325,13 +325,13 @@ var writeData = func(path string, data []byte) error {
 	if err != nil {
 		return err
 	}
-	defer os.Remove(tmp.Name())
+	defer func() { _ = os.Remove(tmp.Name()) }() // gone after a successful rename
 	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if err := tmp.Sync(); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if err := tmp.Close(); err != nil {

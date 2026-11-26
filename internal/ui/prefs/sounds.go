@@ -282,8 +282,8 @@ func copySound(soundsDir, name string, data []byte) (string, error) {
 			return "", err
 		}
 		if _, err := f.Write(data); err != nil {
-			f.Close()
-			os.Remove(path)
+			_ = f.Close()
+			_ = os.Remove(path)
 			return "", err
 		}
 		return path, f.Close()

@@ -252,7 +252,7 @@ func (e *Engine) reopenLocked() {
 	if e.dev != nil {
 		// The old capture loop ends on the closed device's Read error
 		// and closes its own outgoing stream.
-		e.dev.Close()
+		_ = e.dev.Close()
 		e.dev = nil
 	}
 	e.openLocked()
@@ -352,7 +352,7 @@ func (e *Engine) Stop() {
 	e.devMu.Lock()
 	defer e.devMu.Unlock()
 	if e.dev != nil {
-		e.dev.Close()
+		_ = e.dev.Close()
 		e.dev = nil
 	}
 	e.ctx = nil

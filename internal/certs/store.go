@@ -35,13 +35,13 @@ func writeFileAtomic(path string, data []byte, perm os.FileMode) error {
 		return fmt.Errorf("certs: writing %s: %w", path, err)
 	}
 	tmpName := tmp.Name()
-	defer os.Remove(tmpName)
+	defer func() { _ = os.Remove(tmpName) }() // gone after a successful rename
 	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("certs: writing %s: %w", path, err)
 	}
 	if err := tmp.Chmod(perm); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("certs: writing %s: %w", path, err)
 	}
 	if err := tmp.Close(); err != nil {

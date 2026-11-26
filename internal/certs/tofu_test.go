@@ -80,12 +80,16 @@ func TestTOFULastSeenUpdatedOnMatch(t *testing.T) {
 	id, _ := m.Generate("LastSeen", "")
 	addr := "h:2"
 
-	m.VerifyServer(addr, []*x509.Certificate{id.Certificate})
+	if res, err := m.VerifyServer(addr, []*x509.Certificate{id.Certificate}); err != nil || res != VerifyNew {
+		t.Fatalf("first contact = %v, %v; want VerifyNew", res, err)
+	}
 	known, _ := m.KnownServers()
 	first := known[addr].FirstSeen
 
 	time.Sleep(20 * time.Millisecond)
-	m.VerifyServer(addr, []*x509.Certificate{id.Certificate})
+	if res, err := m.VerifyServer(addr, []*x509.Certificate{id.Certificate}); err != nil || res != VerifyMatch {
+		t.Fatalf("second contact = %v, %v; want VerifyMatch", res, err)
+	}
 	known, _ = m.KnownServers()
 	if !known[addr].LastSeen.After(first) {
 		t.Error("LastSeen not advanced on Match")

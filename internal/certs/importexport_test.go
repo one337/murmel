@@ -92,8 +92,12 @@ func TestImportSeparateCertAndKeyFiles(t *testing.T) {
 	dir := t.TempDir()
 	certPath := filepath.Join(dir, "cert.pem")
 	keyPath := filepath.Join(dir, "key.pem")
-	os.WriteFile(certPath, certPEM, 0o600)
-	os.WriteFile(keyPath, keyPEM, 0o600)
+	if err := os.WriteFile(certPath, certPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(keyPath, keyPEM, 0o600); err != nil {
+		t.Fatal(err)
+	}
 
 	m2 := newTestManager(t)
 	got, err := m2.ImportFiles("FromFiles", certPath, keyPath)
