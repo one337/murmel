@@ -99,6 +99,21 @@
   </content_rating>
 
   <releases>
+    <release version="0.5.1" date="2026-11-26">
+      <description>
+        <ul>
+          <li>This release fixes a crash that other users can trigger; updating is recommended.</li>
+          <li>Notification previews of private messages keep words apart across line breaks, paragraphs and quotes.</li>
+          <li>Certificates backed up with the official Mumble client (.p12 or .pfx) can be imported, also with e-mail addresses containing letters such as ä, so registered accounts keep working; importing the same certificate twice no longer adds a copy.</li>
+          <li>Certificate backups are saved as password-protected .p12 files that the official Mumble client can import.</li>
+          <li>A certificate import that fails no longer leaves a copy of the private key on disk.</li>
+          <li>In the channel editor's user picker, users whose names differ only in capitalization are listed in a fixed order, so each one can be picked.</li>
+          <li>Quitting Murmel from outside, for example via its D-Bus quit action, now also works while a dialog such as Preferences is open.</li>
+          <li>A malformed voice packet no longer crashes Murmel. On servers older than Mumble 1.5, any other user on the server could send such a packet.</li>
+          <li>A repeated synchronization message from the server no longer crashes Murmel.</li>
+        </ul>
+      </description>
+    </release>
     <release version="0.5.0" date="2026-11-25">
       <description>
         <ul>
