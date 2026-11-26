@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func encoded(t *testing.T, w, h int, enc func(*bytes.Buffer, image.Image) error) []byte {
+func encoded(t testing.TB, w, h int, enc func(*bytes.Buffer, image.Image) error) []byte {
 	t.Helper()
 	var buf bytes.Buffer
 	if err := enc(&buf, image.NewGray(image.Rect(0, 0, w, h))); err != nil {
@@ -18,7 +18,7 @@ func encoded(t *testing.T, w, h int, enc func(*bytes.Buffer, image.Image) error)
 	return buf.Bytes()
 }
 
-func pngOf(t *testing.T, w, h int) []byte {
+func pngOf(t testing.TB, w, h int) []byte {
 	return encoded(t, w, h, func(b *bytes.Buffer, m image.Image) error { return png.Encode(b, m) })
 }
 
