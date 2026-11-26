@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 failures=0
+skipped=0
 
 step() {
   printf '==> %s\n' "$1"
@@ -16,6 +17,11 @@ pass() {
 fail() {
   printf 'FAIL: %s\n\n' "$1"
   failures=$((failures + 1))
+}
+
+skip() {
+  printf 'SKIP: %s\n\n' "$1"
+  skipped=$((skipped + 1))
 }
 
 # The repository's own packages: not vendor/, not the untracked target/
@@ -42,6 +48,28 @@ if go vet "${PKGS[@]}" 2>&1; then
   pass "go vet"
 else
   fail "go vet"
+fi
+
+# Linters and their exceptions: .golangci.yml. Only the pinned version
+# runs, as other versions report differently; the CI runs it in a step of
+# its own (.github/workflows/verify.yml).
+GOLANGCI_LINT_VERSION=2.15.0
+step "golangci-lint $GOLANGCI_LINT_VERSION"
+lint_found=$(golangci-lint version --short 2>/dev/null || true)
+if [ -n "${CI:-}" ]; then
+  skip "golangci-lint (runs in its own step of the CI workflow)"
+elif [ "$lint_found" != "$GOLANGCI_LINT_VERSION" ]; then
+  printf 'golangci-lint %s is needed, found: %s\n' "$GOLANGCI_LINT_VERSION" "${lint_found:-not installed}"
+  printf 'Install the release binary: https://github.com/golangci/golangci-lint/releases/tag/v%s\n' "$GOLANGCI_LINT_VERSION"
+  skip "golangci-lint (version $GOLANGCI_LINT_VERSION not installed)"
+else
+  # golangci-lint takes directories, not import paths.
+  mapfile -t LINT_DIRS < <(go list -f '{{.Dir}}' ./... | grep -v '/target/' | sed "s|^$PWD|.|")
+  if golangci-lint run "${LINT_DIRS[@]}" 2>&1; then
+    pass "golangci-lint"
+  else
+    fail "golangci-lint (fix the findings or add a reasoned exception)"
+  fi
 fi
 
 step "go build"
@@ -294,6 +322,9 @@ else
 fi
 
 printf '========================\n'
+if [ "$skipped" -gt 0 ]; then
+  printf '%d CHECK(S) SKIPPED (see SKIP above)\n' "$skipped"
+fi
 if [ "$failures" -eq 0 ]; then
   printf 'ALL CHECKS PASSED\n'
   exit 0

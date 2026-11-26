@@ -1,0 +1,78 @@
+# golangci-lint configuration. tools/verify.sh and the CI run it with the
+# version pinned there.
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - gosec
+    - ineffassign
+    - misspell
+    - staticcheck
+    - unused
+
+  settings:
+    errcheck:
+      exclude-functions:
+        # gumble sends without reporting errors to its callers: a broken
+        # connection ends the read loop, which reports the disconnect.
+        - (*github.com/one337/murmel/internal/protocol/gumble.Conn).WriteProto
+        - (github.com/one337/murmel/internal/protocol/gumble.AudioBuffer).writeAudio
+        - (github.com/one337/murmel/internal/protocol/gumble.Message).writeMessage
+
+    staticcheck:
+      checks:
+        # The defaults of golangci-lint ...
+        - all
+        - -ST1000
+        - -ST1003
+        - -ST1016
+        - -ST1020
+        - -ST1021
+        - -ST1022
+        # ... and the full selector through embedded fields, which shows
+        # which embedded value is meant (gtk.Window in an
+        # adw.ApplicationWindow, net.Conn in gumble.Conn).
+        - -QF1008
+
+  exclusions:
+    # Mumble.pb.go and other files marked "Code generated ... DO NOT EDIT".
+    generated: strict
+    rules:
+      # Tests close, write and remove temporary files and fakes; a failure
+      # there shows up as a failing assertion.
+      - path: _test\.go$
+        linters: [errcheck]
+        text: "Error return value of `[^`]*\\.(Close|Write|Remove)` is not checked"
+
+      # Tests: deterministic random numbers for signals, file names and
+      # passwords of test data, helper programs and temporary directories.
+      # G104 duplicates errcheck.
+      - path: _test\.go$
+        linters: [gosec]
+        text: "^G(404|304|101|204|301|302|306|104):"
+
+      # G104 repeats errcheck, which ignores gumble's send functions (see
+      # above); gosec does not know that list.
+      - path: ^internal/protocol/gumble/
+        linters: [gosec]
+        text: "^G104:"
+        source: \.(WriteProto|writeAudio|writeMessage)\(
+
+      # Integer conversions are what these packages do: samples, sequence
+      # numbers and wire fields of fixed width, masked or range-checked
+      # before the conversion.
+      - path: _test\.go$
+        linters: [gosec]
+        text: "^G115:"
+      - path: ^internal/(audio/ring|audio/device|protocol/crypt|protocol/gumble)/
+        linters: [gosec]
+        text: "^G115:"
+      - path: ^internal/audio/effects/decode\.go$
+        linters: [gosec]
+        text: "^G115:"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

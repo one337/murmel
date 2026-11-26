@@ -54,3 +54,12 @@ jobs:
 
       - name: Verify
         run: tools/verify.sh
+
+      # After Verify, whose build leaves the compiled GTK bindings in the
+      # Go build cache for the type check. Runs also when Verify failed.
+      # Same version as GOLANGCI_LINT_VERSION in tools/verify.sh.
+      - name: golangci-lint
+        if: ${{ !cancelled() }}
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.15.0
