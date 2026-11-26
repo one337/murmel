@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"strings"
+
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
 
 	"github.com/one337/murmel/internal/i18n"
@@ -39,13 +41,7 @@ func (a *App) showShortcuts() {
 			}
 			global := adw.NewShortcutsSection(i18n.Tr("Global Shortcuts"))
 			for _, s := range g.Shortcuts() {
-				accel := ""
-				for i, k := range keys[s.ID] {
-					if i > 0 {
-						accel += " "
-					}
-					accel += k
-				}
+				accel := strings.Join(keys[s.ID], " ")
 				item := adw.NewShortcutsItem(s.Description, accel)
 				if accel == "" {
 					item.SetSubtitle(i18n.Tr("Not assigned – set up in Preferences → General"))

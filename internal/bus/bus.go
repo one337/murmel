@@ -263,32 +263,19 @@ func (r *registry) count(t reflect.Type) int {
 func Subscribe[T Event](b *Bus, handler func(T)) (unsubscribe func()) {
 	t := reflect.TypeFor[T]()
 	sub := b.reg.add(t, func(ev Event) { handler(ev.(T)) })
-	var once sync.Once
-	return func() {
-		once.Do(func() { b.reg.remove(t, sub.id) })
-	}
+	return sync.OnceFunc(func() { b.reg.remove(t, sub.id) })
 }
 
 // SubscribeCtx is Subscribe with automatic unsubscription when ctx is done —
 // the context-per-widget lifecycle pattern: tie ctx to the widget's lifetime
 // and cancellation tears the handler down without an explicit call. The
-// returned function cancels the watcher and unsubscribes; it is idempotent.
+// returned function detaches from ctx and unsubscribes; it is idempotent.
 func SubscribeCtx[T Event](ctx context.Context, b *Bus, handler func(T)) (unsubscribe func()) {
 	inner := Subscribe(b, handler)
-	stopped := make(chan struct{})
-	go func() {
-		select {
-		case <-ctx.Done():
-			inner()
-		case <-stopped:
-		}
-	}()
-	var once sync.Once
+	stop := context.AfterFunc(ctx, inner)
 	return func() {
-		once.Do(func() {
-			close(stopped)
-			inner()
-		})
+		stop()
+		inner()
 	}
 }
 

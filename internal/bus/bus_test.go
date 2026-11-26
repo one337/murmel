@@ -348,6 +348,64 @@ func TestSubscribeCtxCancel(t *testing.T) {
 	unsub()
 }
 
+// afterFuncCtx is a context that is never done and keeps the callbacks
+// registered on it through context.AfterFunc until they are stopped.
+type afterFuncCtx struct {
+	done  chan struct{}
+	mu    sync.Mutex
+	funcs map[int]func()
+	next  int
+}
+
+func newAfterFuncCtx() *afterFuncCtx {
+	return &afterFuncCtx{done: make(chan struct{}), funcs: map[int]func(){}}
+}
+
+func (c *afterFuncCtx) Deadline() (time.Time, bool) { return time.Time{}, false }
+func (c *afterFuncCtx) Done() <-chan struct{}       { return c.done }
+func (c *afterFuncCtx) Err() error                  { return nil }
+func (c *afterFuncCtx) Value(any) any               { return nil }
+
+func (c *afterFuncCtx) AfterFunc(f func()) (stop func() bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	id := c.next
+	c.next++
+	c.funcs[id] = f
+	return func() bool {
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		_, ok := c.funcs[id]
+		delete(c.funcs, id)
+		return ok
+	}
+}
+
+func (c *afterFuncCtx) pending() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return len(c.funcs)
+}
+
+func TestSubscribeCtxUnsubscribeReleasesContext(t *testing.T) {
+	b := testBus(syncIdleAdd)
+	defer b.Close()
+
+	ctx := newAfterFuncCtx()
+	unsub := SubscribeCtx(ctx, b, func(VoiceActivity) {})
+	if n := ctx.pending(); n != 1 {
+		t.Fatalf("callbacks on the context while subscribed = %d, want 1", n)
+	}
+	unsub()
+	if n := ctx.pending(); n != 0 {
+		t.Fatalf("callbacks left on the context after unsubscribe = %d, want 0", n)
+	}
+	if n := SubscribeCount[VoiceActivity](b); n != 0 {
+		t.Fatalf("handlers after unsubscribe = %d, want 0", n)
+	}
+	unsub()
+}
+
 func TestMultipleSubscribersAndTypeIsolation(t *testing.T) {
 	b := testBus(syncIdleAdd)
 	defer b.Close()

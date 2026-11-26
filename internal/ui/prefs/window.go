@@ -92,16 +92,13 @@ func Show(parent gtk.Widgetter, st settings.Settings, m *certs.Manager, player *
 // when Go no longer holds it, and its destroy signal must not reach Go
 // code then.
 func onClose(d *adw.PreferencesDialog, f func()) {
-	var once sync.Once
 	var closed, destroy coreglib.SignalHandle
 	obj := coreglib.InternObject(d)
-	run := func() {
-		once.Do(func() {
-			obj.HandlerDisconnect(closed)
-			obj.HandlerDisconnect(destroy)
-			f()
-		})
-	}
+	run := sync.OnceFunc(func() {
+		obj.HandlerDisconnect(closed)
+		obj.HandlerDisconnect(destroy)
+		f()
+	})
 	closed = d.ConnectClosed(run)
 	destroy = d.ConnectDestroy(run)
 }

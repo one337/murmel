@@ -149,7 +149,7 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 
 	// Audio settings apply live to the running voice engine.
 	disconnect := st.ConnectChanged(c.onSettingChanged)
-	go func() { <-ctx.Done(); glib.IdleAdd(func() bool { disconnect(); return false }) }()
+	context.AfterFunc(ctx, func() { glib.IdleAdd(func() bool { disconnect(); return false }) })
 	return c
 }
 
