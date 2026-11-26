@@ -175,7 +175,7 @@ func (d *Device) Write(frame []int16) error {
 	if n > periodFrames {
 		n = periodFrames
 	}
-	for i := 0; i < periodFrames; i++ {
+	for i := range periodFrames {
 		s := int16(0)
 		if i < n {
 			s = frame[i]

@@ -143,7 +143,7 @@ func toPCM(samples []float32, channels, rate int) ([]int16, error) {
 	mono := make([]float32, frames)
 	for i := range mono {
 		var sum float32
-		for c := 0; c < channels; c++ {
+		for c := range channels {
 			sum += samples[i*channels+c]
 		}
 		mono[i] = sum / float32(channels)

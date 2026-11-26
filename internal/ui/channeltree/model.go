@@ -281,7 +281,7 @@ func (m *treeModel) hasSelf() bool {
 
 // openTo opens channel id and every channel above it.
 func (m *treeModel) openTo(id uint32) {
-	for depth := 0; depth < 64; depth++ { // guards against a parent cycle
+	for range 64 { // guards against a parent cycle
 		n, ok := m.channels[id]
 		if !ok {
 			return

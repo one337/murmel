@@ -59,7 +59,7 @@ func runVAD(pcm []int16) (decisions []Decision, transmitted []bool) {
 	decisions = make([]Decision, nFrames)
 	transmitted = make([]bool, nFrames)
 	frame := make([]int16, FrameSize)
-	for i := 0; i < nFrames; i++ {
+	for i := range nFrames {
 		n := copy(frame, pcm[i*FrameSize:])
 		for j := n; j < FrameSize; j++ {
 			frame[j] = 0

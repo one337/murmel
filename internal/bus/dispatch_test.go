@@ -78,12 +78,12 @@ func TestDispatchFlood(t *testing.T) {
 	var emitDurations []time.Duration
 	var mu sync.Mutex
 	var wg sync.WaitGroup
-	for g := 0; g < floodGoroutines; g++ {
+	for range floodGoroutines {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			local := make([]time.Duration, 0, floodPerGoroutine)
-			for i := 0; i < floodPerGoroutine; i++ {
+			for i := range floodPerGoroutine {
 				start := time.Now()
 				b.Emit(UserUpdated{User: UserInfo{Session: uint32(i)}})
 				local = append(local, time.Since(start))
@@ -135,7 +135,7 @@ func TestUnsubscribe(t *testing.T) {
 	var calls atomic.Int64
 	unsub := Subscribe(b, func(TextMessage) { calls.Add(1) })
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		b.Emit(TextMessage{Message: "before"})
 	}
 	iterateMainContext(t, func() bool { return calls.Load() == 5 })
@@ -148,7 +148,7 @@ func TestUnsubscribe(t *testing.T) {
 		t.Fatalf("live handlers after unsubscribe = %d, want 0 (leak)", SubscribeCount[TextMessage](b))
 	}
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		b.Emit(TextMessage{Message: "after"})
 	}
 	b.Emit(ChannelRemoved{ID: 1})

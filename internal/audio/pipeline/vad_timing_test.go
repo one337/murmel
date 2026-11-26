@@ -16,7 +16,7 @@ func speechBurst(rng *rand.Rand, noiseLevel, level float64, leadFrames, syllable
 	var frames [][]int16
 	lp := 0.0
 	syllable := func(target float64, nFrames int) {
-		for f := 0; f < nFrames; f++ {
+		for f := range nFrames {
 			frame := make([]int16, FrameSize)
 			for i := range frame {
 				x := rng.Float64()*2 - 1
@@ -33,20 +33,20 @@ func speechBurst(rng *rand.Rand, noiseLevel, level float64, leadFrames, syllable
 			frames = append(frames, frame)
 		}
 	}
-	for i := 0; i < leadFrames; i++ {
+	for range leadFrames {
 		frames = append(frames, noiseFrameAt(rng, noiseLevel))
 	}
-	for s := 0; s < syllables; s++ {
+	for s := range syllables {
 		stress := 1.0
 		if s%3 == 1 {
 			stress = 0.8
 		}
 		syllable(level*stress, 12+s) // 120-... ms per syllable
-		for g := 0; g < 6; g++ {     // 60 ms inter-syllable gap
+		for range 6 {                // 60 ms inter-syllable gap
 			frames = append(frames, noiseFrameAt(rng, noiseLevel))
 		}
 	}
-	for i := 0; i < 100; i++ {
+	for range 100 {
 		frames = append(frames, noiseFrameAt(rng, noiseLevel))
 	}
 	return frames

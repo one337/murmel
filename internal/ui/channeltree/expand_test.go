@@ -138,7 +138,7 @@ func TestGTKExpandCollapseKeepsThePlace(t *testing.T) {
 	scrollRowToTop(t, tree, order[5])
 	var top3 float64
 	onMain(func() { top3, _, _ = viewTop(tree, rowID{id: 3}) })
-	for i := 0; i < 2; i++ {
+	for range 2 {
 		onMain(func() { tree.toggleExpand(3) })
 		time.Sleep(3 * rebuildInterval)
 		keepsPlace(t, tree, order[5], 0, "the top row")

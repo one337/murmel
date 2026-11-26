@@ -26,7 +26,7 @@ func TestBackoffSequence(t *testing.T) {
 
 func TestBackoffCapNeverExceeded(t *testing.T) {
 	var b backoff
-	for i := 0; i < 200; i++ {
+	for i := range 200 {
 		d := b.next()
 		if d > reconnectMax || d < reconnectInitial {
 			t.Fatalf("attempt %d produced out-of-range delay %v", i, d)

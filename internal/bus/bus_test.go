@@ -181,14 +181,14 @@ func TestBackpressureDropsAndCounts(t *testing.T) {
 	case <-time.After(5 * time.Second):
 		t.Fatal("pump never reached idleAdd")
 	}
-	for i := 0; i < bufferSize; i++ {
+	for i := range bufferSize {
 		b.Emit(UserUpdated{User: UserInfo{Session: uint32(i)}})
 		sent++
 	}
 	if n := b.Dropped(); n != 0 {
 		t.Fatalf("buffer of %d must absorb %d events, dropped = %d", bufferSize, bufferSize, n)
 	}
-	for i := 0; i < 7; i++ {
+	for range 7 {
 		b.Emit(UserUpdated{})
 		sent++
 	}
@@ -219,7 +219,7 @@ func TestCloseDrainsPendingEvents(t *testing.T) {
 	defer unsub()
 
 	const n = 12
-	for i := 0; i < n; i++ {
+	for range n {
 		b.Emit(UserAdded{})
 	}
 	b.Close()
@@ -373,22 +373,22 @@ func TestConcurrentSubscribeEmitRace(t *testing.T) {
 	defer b.Close()
 
 	var wg sync.WaitGroup
-	for g := 0; g < 4; g++ {
+	for range 4 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for i := 0; i < 200; i++ {
+			for range 200 {
 				unsub := Subscribe(b, func(TextMessage) {})
 				b.Emit(TextMessage{})
 				unsub()
 			}
 		}()
 	}
-	for g := 0; g < 4; g++ {
+	for range 4 {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for i := 0; i < 500; i++ {
+			for i := range 500 {
 				b.Emit(LatencyStats{RTT: time.Duration(i)})
 			}
 		}()

@@ -10,8 +10,8 @@ import (
 
 func TestDecodeAvatar(t *testing.T) {
 	img := image.NewRGBA(image.Rect(0, 0, 40, 24)) // not square: adw.Avatar crops
-	for x := 0; x < 40; x++ {
-		for y := 0; y < 24; y++ {
+	for x := range 40 {
+		for y := range 24 {
 			img.Set(x, y, color.RGBA{R: uint8(x * 6), G: 120, B: 200, A: 255})
 		}
 	}

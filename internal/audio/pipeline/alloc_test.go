@@ -37,13 +37,13 @@ func TestAllocVADSampleMixedStates(t *testing.T) {
 	loud := noiseFrameAt(rng, 300)
 	quiet := noiseFrameAt(rng, 30)
 	allocs := testing.AllocsPerRun(200, func() {
-		for i := 0; i < 60; i++ {
+		for range 60 {
 			v.Sample(quiet)
 		}
-		for i := 0; i < 60; i++ {
+		for range 60 {
 			v.Sample(loud)
 		}
-		for i := 0; i < 60; i++ {
+		for range 60 {
 			v.Sample(quiet)
 		}
 	})

@@ -95,7 +95,7 @@ func TestOCB2AuthCrypt(t *testing.T) {
 		t.Fatal("SetKey failed")
 	}
 
-	for length := 0; length < 128; length++ {
+	for length := range 128 {
 		src := make([]byte, length)
 		for i := range src {
 			src[i] = byte(i + 1)
@@ -142,7 +142,7 @@ func TestOCB2XEXStarAttack(t *testing.T) {
 	// Perform the attack: flip the length byte and forge the tag from the
 	// known second block.
 	encrypted[blockSize-1] ^= blockSize * 8
-	for i := 0; i < blockSize; i++ {
+	for i := range blockSize {
 		encTag[i] = src[blockSize+i] ^ encrypted[blockSize+i]
 	}
 

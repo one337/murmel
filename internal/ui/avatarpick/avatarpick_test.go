@@ -12,8 +12,8 @@ import (
 func writePNG(t *testing.T, w, h int) []byte {
 	t.Helper()
 	img := image.NewRGBA(image.Rect(0, 0, w, h))
-	for x := 0; x < w; x++ {
-		for y := 0; y < h; y++ {
+	for x := range w {
+		for y := range h {
 			img.Set(x, y, color.RGBA{uint8(x), uint8(y), 200, 255})
 		}
 	}

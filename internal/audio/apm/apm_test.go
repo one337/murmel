@@ -25,7 +25,7 @@ func run(t *testing.T, cfg Config, seconds int, gen func(i int) float64) float64
 	frames := seconds * 100
 	var sum float64
 	n := 0
-	for f := 0; f < frames; f++ {
+	for f := range frames {
 		frame := make([]int16, pipeline.FrameSize)
 		for i := range frame {
 			frame[i] = int16(gen(f*pipeline.FrameSize+i) * 32767)
@@ -208,7 +208,7 @@ func TestEchoCancellationRemovesPlayback(t *testing.T) {
 		}
 		defer pr.Close()
 		var energy float64
-		for f := 0; f < frames; f++ {
+		for f := range frames {
 			if err := pr.ProcessReverse(far[f*pipeline.FrameSize : (f+1)*pipeline.FrameSize]); err != nil {
 				t.Fatal(err)
 			}

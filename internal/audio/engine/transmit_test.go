@@ -29,7 +29,7 @@ func TestGatePushToTalkSendsWhileHeldPlusHold(t *testing.T) {
 		t.Fatalf("held = %v, want Continue", got)
 	}
 	// Released: pttHoldFrames more frames, then stop.
-	for i := 0; i < pttHoldFrames; i++ {
+	for i := range pttHoldFrames {
 		if got := g.next(TransmitPushToTalk, pipeline.Silent, false); got != pipeline.Continue {
 			t.Fatalf("hold frame %d = %v, want Continue", i, got)
 		}

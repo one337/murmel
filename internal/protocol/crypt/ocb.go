@@ -12,7 +12,7 @@ const blockSize = 16
 // straight big-endian shift over the whole block.
 func s2(block *[blockSize]byte) {
 	carry := block[0] >> 7
-	for i := 0; i < blockSize-1; i++ {
+	for i := range blockSize - 1 {
 		block[i] = block[i]<<1 | block[i+1]>>7
 	}
 	block[blockSize-1] = block[blockSize-1]<<1 ^ carry*0x87
@@ -22,7 +22,7 @@ func s2(block *[blockSize]byte) {
 // Port of S3() in CryptStateOCB2.cpp.
 func s3(block *[blockSize]byte) {
 	carry := block[0] >> 7
-	for i := 0; i < blockSize-1; i++ {
+	for i := range blockSize - 1 {
 		block[i] ^= block[i]<<1 | block[i+1]>>7
 	}
 	block[blockSize-1] ^= block[blockSize-1]<<1 ^ carry*0x87
@@ -30,7 +30,7 @@ func s3(block *[blockSize]byte) {
 
 // xorBlock sets dst = a ^ b for three 16-byte buffers. Buffers may alias.
 func xorBlock(dst, a, b []byte) {
-	for i := 0; i < blockSize; i++ {
+	for i := range blockSize {
 		dst[i] = a[i] ^ b[i]
 	}
 }
@@ -65,7 +65,7 @@ func (cs *CryptState) ocbEncrypt(plain, nonce []byte, modifyPlain bool) (ciphert
 		flipABit := false
 		if len(p)-blockSize <= blockSize {
 			var sum byte
-			for i := 0; i < blockSize-1; i++ {
+			for i := range blockSize - 1 {
 				sum |= p[i]
 			}
 			if sum == 0 {

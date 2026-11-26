@@ -33,7 +33,7 @@ func TestMixerPrebufferAndOrder(t *testing.T) {
 func TestMixerTwoSpeakersAndStop(t *testing.T) {
 	m := newMixer()
 	now := time.Now()
-	for i := 0; i < defaultPrebuffer; i++ {
+	for range defaultPrebuffer {
 		m.push(1, frame(10))
 		m.push(2, frame(20))
 	}
@@ -98,7 +98,7 @@ func TestMixerSplitsLargePackets(t *testing.T) {
 	m.push(1, pkt)
 	m.push(1, pkt)
 	var got []int16
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		f, _, _ := m.pull(now)
 		if f[1] == nil {
 			t.Fatalf("pull %d: no frame", i)
@@ -108,7 +108,7 @@ func TestMixerSplitsLargePackets(t *testing.T) {
 		}
 		got = append(got, f[1]...)
 	}
-	for i := 0; i < 1920; i++ {
+	for i := range 1920 {
 		if got[i] != int16(i%960) {
 			t.Fatalf("sample %d = %d, want %d", i, got[i], i%960)
 		}
@@ -119,7 +119,7 @@ func TestMixerConfigurablePrebuffer(t *testing.T) {
 	m := newMixer()
 	m.setPrebuffer(6)
 	now := time.Now()
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		m.push(1, make([]int16, mixChunk))
 	}
 	if f, _, _ := m.pull(now); len(f) != 0 {

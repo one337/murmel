@@ -150,7 +150,7 @@ func TestWritePadsAndTruncates(t *testing.T) {
 func TestCallbackCaptureDropOldestKeepsNewest(t *testing.T) {
 	d := newRingDevice()
 	in := make([]byte, frameBytes)
-	for gen := 0; gen < captureSlots+3; gen++ {
+	for gen := range captureSlots + 3 {
 		in[0] = byte(gen)
 		in[1] = 0
 		d.data(nil, in, periodFrames)
@@ -268,7 +268,7 @@ func TestConcurrentCaptureConservation(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		in := make([]byte, frameBytes)
-		for i := 0; i < produced; i++ {
+		for i := range produced {
 			in[0] = byte(i)
 			in[1] = byte(i >> 8)
 			d.data(nil, in, periodFrames)
@@ -418,7 +418,7 @@ func TestDuplexIntegration(t *testing.T) {
 			tone[i] = -8000
 		}
 	}
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		if err := d.Write(tone[:]); err != nil {
 			t.Fatalf("Write(%d): %v", i, err)
 		}
@@ -467,7 +467,7 @@ func TestCallbackRechunksOddCaptureSizes(t *testing.T) {
 		t.Fatalf("capture ring len = %d, want 3", got)
 	}
 	buf := make([]byte, frameBytes)
-	for p := 0; p < 3; p++ {
+	for p := range 3 {
 		d.capRing.Pop(buf)
 		for i, b := range buf {
 			if b != src[p*frameBytes+i] {
@@ -482,7 +482,7 @@ func TestCallbackRechunksOddCaptureSizes(t *testing.T) {
 func TestCallbackRechunksOddPlaybackSizes(t *testing.T) {
 	d := newRingDevice()
 	var want []byte
-	for p := 0; p < 2; p++ {
+	for p := range 2 {
 		var frame [periodFrames]int16
 		for i := range frame {
 			frame[i] = int16(p*1000 + i)

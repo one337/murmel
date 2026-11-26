@@ -68,7 +68,7 @@ func TestVADAbsFloorGuardsSilence(t *testing.T) {
 	v := NewVAD(VADConfig{})
 	// digitally near-silent input: floor plunges, open threshold must
 	// clamp at AbsFloor and never trigger
-	for i := 0; i < 500; i++ {
+	for i := range 500 {
 		f := make([]int16, FrameSize)
 		f[0] = 1
 		if d := v.Sample(f); d != Silent {
@@ -89,7 +89,7 @@ func TestVADOpenDelayAndStart(t *testing.T) {
 	// 20 loud frames: Start must fire exactly on the 5th consecutive
 	// above-threshold frame (50 ms open delay)
 	var startIdx int = -1
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		d := v.Sample(noiseFrameAt(rng, 300))
 		if d == Start {
 			startIdx = i
@@ -108,7 +108,7 @@ func TestVADTransientRejected(t *testing.T) {
 	v := NewVAD(VADConfig{})
 	rng := rand.New(rand.NewSource(5))
 	feed(v, rng, 30, 100)
-	for i := 0; i < 200; i++ {
+	for i := range 200 {
 		d := Silent
 		if i%7 == 0 { // isolated 1-frame spikes (keystrokes)
 			d = v.Sample(noiseFrameAt(rng, 3000))
@@ -128,7 +128,7 @@ func TestVADPreRollBuffer(t *testing.T) {
 
 	var preroll [][]int16
 	var startFrame []int16
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		f := noiseFrameAt(rng, 300)
 		d := v.Sample(f)
 		if d == Start {
@@ -191,7 +191,7 @@ func TestVADHangover(t *testing.T) {
 	// the last above-close frame
 	var stopIdx, lastLoudIdx int = -1, -1
 	var seenStart bool
-	for i := 0; i < 200; i++ {
+	for i := range 200 {
 		level := 30.0
 		if i < 60 {
 			level = 300
@@ -226,7 +226,7 @@ func TestVADMinSpeechHold(t *testing.T) {
 	// is deferred to the 1200 ms mark (elapsed 120 frames → i = 169)
 	var stopIdx int = -1
 	var seenStart bool
-	for i := 0; i < 200; i++ {
+	for i := range 200 {
 		level := 30.0
 		if i >= 50 && i < 65 {
 			level = 300
@@ -304,7 +304,7 @@ func TestVADAbsoluteThreshold(t *testing.T) {
 		quiet[i] = sign * 328
 		loud[i] = sign * 3277
 	}
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		if d := v.Sample(quiet); d != Silent {
 			t.Fatalf("frame %d: quiet input below the absolute threshold gave %v", i, d)
 		}
@@ -313,7 +313,7 @@ func TestVADAbsoluteThreshold(t *testing.T) {
 		t.Fatalf("thresholds = %.1f/%.1f, want -30/-36", open, closeDB)
 	}
 	started := false
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		if v.Sample(loud) == Start {
 			started = true
 		}
@@ -342,7 +342,7 @@ func TestVADPreRollExcludesStartFrame(t *testing.T) {
 	rng := rand.New(rand.NewSource(7))
 	feed(v, rng, 30, 100)
 	var sent [][]int16
-	for i := 0; i < 20; i++ {
+	for range 20 {
 		f := noiseFrameAt(rng, 300)
 		if v.Sample(f) == Start {
 			for _, p := range v.PreRoll() {

@@ -203,7 +203,7 @@ func (cs *CryptState) Encrypt(plain []byte) ([]byte, error) {
 	}
 
 	// First, increase our IV (carry propagates from byte 0 upwards).
-	for i := 0; i < IVSize; i++ {
+	for i := range IVSize {
 		cs.encryptIV[i]++
 		if cs.encryptIV[i] != 0 {
 			break

@@ -14,7 +14,7 @@ const testAmplitude = 12000 // of int16 max 32767
 // starting at sample offset `phaseSamples`.
 func sineFrame(freq float64, frameSize, phaseSamples int) []int16 {
 	pcm := make([]int16, frameSize)
-	for i := 0; i < frameSize; i++ {
+	for i := range frameSize {
 		t := float64(phaseSamples+i) / float64(SampleRate)
 		pcm[i] = int16(testAmplitude * math.Sin(2*math.Pi*freq*t))
 	}
@@ -49,7 +49,7 @@ func risingZeroCrossings(pcm []int16) int {
 func encodeSine(t *testing.T, enc *Encoder, freq float64, n, maxDataBytes int) [][]byte {
 	t.Helper()
 	packets := make([][]byte, 0, n)
-	for f := 0; f < n; f++ {
+	for f := range n {
 		pcm := sineFrame(freq, FrameSize, f*FrameSize)
 		packet, err := enc.Encode(pcm, FrameSize, maxDataBytes)
 		if err != nil {
@@ -265,7 +265,7 @@ func TestPLCOnEmptyInput(t *testing.T) {
 	}
 
 	// Three "lost" frames: empty and nil input both must produce a PLC frame.
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		var data []byte
 		if i == 1 {
 			data = []byte{}
@@ -365,7 +365,7 @@ func TestCorruptInput(t *testing.T) {
 
 	rng := rand.New(rand.NewSource(20261104)) // deterministic garbage
 	errors, decoded := 0, 0
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		n := 1 + rng.Intn(127)
 		garbage := make([]byte, n)
 		rng.Read(garbage)

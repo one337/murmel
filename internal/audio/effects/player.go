@@ -155,7 +155,7 @@ func (p *Player) run() {
 		kept := p.voices[:0]
 		for _, v := range p.voices {
 			n := min(frameSize, len(v))
-			for i := 0; i < n; i++ {
+			for i := range n {
 				acc[i] += int32(v[i])
 			}
 			if v = v[n:]; len(v) > 0 {

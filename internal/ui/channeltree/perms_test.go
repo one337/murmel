@@ -179,7 +179,7 @@ func TestDragAndDropPermissions(t *testing.T) {
 		c.Permissions = six
 		c.MaxUsers = maxSix
 		m.addChannel(c)
-		for i := 0; i < sixUsers; i++ {
+		for i := range sixUsers {
 			s := uint32(100 + i)
 			m.addUser(bus.UserInfo{Session: s, Name: "x", Channel: 6})
 		}

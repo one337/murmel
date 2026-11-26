@@ -49,7 +49,7 @@ func TestRoundtripRandomPayloads(t *testing.T) {
 	}
 
 	rng := rand.New(rand.NewSource(42)) //nolint:gosec // deterministic test data
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		plain := make([]byte, rng.Intn(1000))
 		rng.Read(plain)
 		packet, err := enc.Encrypt(plain)
@@ -120,13 +120,13 @@ func TestDecryptGarbageNoPanic(t *testing.T) {
 	if !cs.SetKey(rawKeyKAT, nonceKAT, nonceKAT) {
 		t.Fatal("SetKey failed")
 	}
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		if _, err := cs.Decrypt(bytes.Repeat([]byte{0xA5}, i)); err == nil {
 			t.Errorf("packet of length %d accepted", i)
 		}
 	}
 	rng := rand.New(rand.NewSource(7)) //nolint:gosec // deterministic test data
-	for i := 0; i < 1000; i++ {
+	for i := range 1000 {
 		garbage := make([]byte, rng.Intn(64))
 		rng.Read(garbage)
 		if _, err := cs.Decrypt(garbage); err == nil {
@@ -160,7 +160,7 @@ func TestIVRecovery(t *testing.T) {
 
 	// Recover from 16 lost packets; the last of them is delivered, so 15
 	// count as lost (packets 2..16 of the gap).
-	for i := 0; i < 16; i++ {
+	for range 16 {
 		packet, err = enc.Encrypt(secret10)
 		if err != nil {
 			t.Fatalf("Encrypt: %v", err)
@@ -176,8 +176,8 @@ func TestIVRecovery(t *testing.T) {
 	// Wraparound: 15 dropped packets per round must count as 14 lost (the
 	// C++ test resets the counter each round and expects 14; here the
 	// cumulative value is asserted instead).
-	for i := 0; i < 128; i++ {
-		for j := 0; j < 15; j++ {
+	for i := range 128 {
+		for range 15 {
 			packet, err = enc.Encrypt(secret10)
 			if err != nil {
 				t.Fatalf("Encrypt: %v", err)
@@ -196,7 +196,7 @@ func TestIVRecovery(t *testing.T) {
 	}
 
 	// Too far ahead: 257 packets exceed the recovery window.
-	for i := 0; i < 257; i++ {
+	for range 257 {
 		if _, err := enc.Encrypt(secret10); err != nil {
 			t.Fatalf("Encrypt: %v", err)
 		}
@@ -244,7 +244,7 @@ func TestOutOfOrderAndReplay(t *testing.T) {
 		crypted[i] = packet
 	}
 
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		if _, err := dec.Decrypt(crypted[127-i]); err != nil {
 			t.Fatalf("OOO packet 127-%d rejected: %v", i, err)
 		}
@@ -254,7 +254,7 @@ func TestOutOfOrderAndReplay(t *testing.T) {
 			t.Fatalf("packet 127-%d outside recovery window accepted", i)
 		}
 	}
-	for i := 0; i < 30; i++ {
+	for i := range 30 {
 		if _, err := dec.Decrypt(crypted[127-i]); err == nil {
 			t.Fatalf("replayed packet 127-%d accepted", i)
 		}
@@ -376,13 +376,13 @@ func TestResyncRecoveryClientInitiated(t *testing.T) {
 	// and the byte-0 wraparound handling (byte 1 carried once).
 	var packet []byte
 	var err error
-	for i := 0; i < 300; i++ {
+	for range 300 {
 		packet, err = enc.Encrypt(secret)
 		if err != nil {
 			t.Fatalf("Encrypt: %v", err)
 		}
 	}
-	for i := 0; i < ResyncThreshold; i++ {
+	for range ResyncThreshold {
 		if _, err := dec.Decrypt(packet); err == nil {
 			t.Fatal("desynced packet unexpectedly accepted")
 		}
@@ -427,13 +427,13 @@ func TestResyncRecoveryServerInitiated(t *testing.T) {
 
 	var packet []byte
 	var err error
-	for i := 0; i < 300; i++ {
+	for range 300 {
 		packet, err = enc.Encrypt(secret)
 		if err != nil {
 			t.Fatalf("Encrypt: %v", err)
 		}
 	}
-	for i := 0; i < ResyncThreshold; i++ {
+	for range ResyncThreshold {
 		if _, err := dec.Decrypt(packet); err == nil {
 			t.Fatal("desynced packet unexpectedly accepted")
 		}
@@ -468,7 +468,7 @@ func TestResyncFullReKey(t *testing.T) {
 	secret := []byte("full-rekey")
 
 	// Desync dec beyond recovery.
-	for i := 0; i < 300; i++ {
+	for range 300 {
 		if _, err := enc.Encrypt(secret); err != nil {
 			t.Fatalf("Encrypt: %v", err)
 		}

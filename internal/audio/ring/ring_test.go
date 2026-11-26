@@ -19,7 +19,7 @@ func makeFrame(v byte, size int) []byte {
 
 func TestRingFIFO(t *testing.T) {
 	r := New(frameBytes(), 4)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if !r.Push(makeFrame(byte(i), frameBytes())) {
 			t.Fatalf("push %d rejected on non-full ring", i)
 		}
@@ -28,7 +28,7 @@ func TestRingFIFO(t *testing.T) {
 		t.Fatalf("Len = %d, want 3", r.Len())
 	}
 	var dst []byte = make([]byte, frameBytes())
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		if !r.Pop(dst) {
 			t.Fatalf("pop %d failed", i)
 		}
@@ -49,7 +49,7 @@ func TestRingWraparound(t *testing.T) {
 	var dst []byte = make([]byte, frameBytes())
 	// 10 push/pop cycles through a 4-slot ring: every slot survives many
 	// generation wraps with data intact.
-	for gen := 0; gen < 10; gen++ {
+	for gen := range 10 {
 		if !r.Push(makeFrame(byte(gen), frameBytes())) {
 			t.Fatalf("gen %d: push rejected", gen)
 		}
@@ -69,7 +69,7 @@ func TestRingOverflowDropsOldest(t *testing.T) {
 	r := New(frameBytes(), 4)
 	// Fill 4, then push 2 more without consuming: frames 0 and 1 must
 	// be dropped, leaving 2,3,4,5.
-	for i := 0; i < 6; i++ {
+	for i := range 6 {
 		if !r.Push(makeFrame(byte(i), frameBytes())) {
 			t.Fatalf("push %d rejected; drop-oldest must always make room", i)
 		}
@@ -112,7 +112,7 @@ func TestRingSizeMismatchRejected(t *testing.T) {
 
 func TestRingTryPushNeverDrops(t *testing.T) {
 	r := New(frameBytes(), 2)
-	for i := 0; i < 2; i++ {
+	for i := range 2 {
 		if !r.TryPush(makeFrame(byte(i), frameBytes())) {
 			t.Fatalf("try-push %d rejected on non-full ring", i)
 		}
@@ -163,7 +163,7 @@ func TestRingConcurrentSPSC(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		src := make([]byte, frameBytes())
-		for i := 0; i < produced; i++ {
+		for i := range produced {
 			v := byte(i)
 			for j := range src {
 				src[j] = v
@@ -178,7 +178,7 @@ func TestRingConcurrentSPSC(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		dst := make([]byte, frameBytes())
-		for popped := 0; popped < produced; popped++ {
+		for popped := range produced {
 			for !r.Pop(dst) {
 			}
 			if !bytes.Equal(dst, makeFrame(dst[0], frameBytes())) {
@@ -213,7 +213,7 @@ func TestRingDropOldestUnderFlood(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		src := make([]byte, frameBytes())
-		for i := 0; i < produced; i++ {
+		for i := range produced {
 			v := byte(i)
 			for j := range src {
 				src[j] = v
@@ -249,7 +249,7 @@ func TestRingSequentialFloodDrops(t *testing.T) {
 	// Single-threaded flood (consumer absent): every push succeeds, ring
 	// always holds the NEWEST n frames.
 	r := New(frameBytes(), 4)
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		if !r.Push(makeFrame(byte(i), frameBytes())) {
 			t.Fatalf("push %d rejected without consumer", i)
 		}

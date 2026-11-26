@@ -85,7 +85,7 @@ func wav(rate, channels, bits int, samples []int32) []byte {
 func TestDecodeWAVStereoResample(t *testing.T) {
 	// 24 kHz stereo, 16 bit: left 10000, right 0 → mono 5000 at 48 kHz.
 	var s []int32
-	for i := 0; i < 2400; i++ {
+	for range 2400 {
 		s = append(s, 10000, 0)
 	}
 	pcm, err := Decode(wav(24000, 2, 16, s))
@@ -209,7 +209,7 @@ func TestPlayerWaitsForSlowStream(t *testing.T) {
 	sink.mu.Lock()
 	defer sink.mu.Unlock()
 	// Every frame of the sound must arrive, in order: none dropped.
-	for i := 0; i < 40; i++ {
+	for i := range 40 {
 		if sink.frames[i][0] != int16(i+1) {
 			t.Fatalf("frame %d = %d: sound truncated or reordered", i, sink.frames[i][0])
 		}
