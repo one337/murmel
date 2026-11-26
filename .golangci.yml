@@ -9,10 +9,18 @@ linters:
     - gosec
     - ineffassign
     - misspell
+    - nolintlint
     - staticcheck
     - unused
 
   settings:
+    # Every exception names the linter it silences, gives a reason and
+    # still matches a finding.
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
+
     errcheck:
       exclude-functions:
         # gumble sends without reporting errors to its callers: a broken
