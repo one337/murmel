@@ -29,10 +29,11 @@ jobs:
       GOCACHE: /github/home/.cache/go-build
       GOMODCACHE: /github/home/go/pkg/mod
     steps:
+      # file: the CodeQL action uses it to inspect the Go binary.
       - name: Install build dependencies
         run: >-
           dnf -y install --setopt=install_weak_deps=False
-          git golang gcc gcc-c++ pkgconf-pkg-config
+          git golang gcc gcc-c++ pkgconf-pkg-config file
           gtk4-devel libadwaita-devel gobject-introspection-devel graphene-devel
           opus-devel webrtc-audio-processing-devel libsecret-devel
           glib2-devel
