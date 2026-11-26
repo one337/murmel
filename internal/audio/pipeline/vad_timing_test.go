@@ -65,7 +65,7 @@ func TestVADTiming(t *testing.T) {
 	frames := speechBurst(rng, 30, 1000, lead, 4)
 
 	var startIdx, stopIdx = -1, -1
-	var lastVoiceIdx int = -1
+	lastVoiceIdx := -1
 	for i, f := range frames {
 		d := v.Sample(f)
 		switch d {
@@ -89,9 +89,9 @@ func TestVADTiming(t *testing.T) {
 	if len(preroll) != 5 {
 		t.Fatalf("pre-roll = %d frames, want 5 (50 ms)", len(preroll))
 	}
-	preMs := time.Duration(len(preroll)) * FrameDuration
-	if preMs < 50*time.Millisecond {
-		t.Fatalf("pre-roll %v < 50 ms", preMs)
+	prerollDur := time.Duration(len(preroll)) * FrameDuration
+	if prerollDur < 50*time.Millisecond {
+		t.Fatalf("pre-roll %v < 50 ms", prerollDur)
 	}
 	// pre-roll + Start frame must cover from the episode's logical start:
 	// the oldest pre-roll frame is at/near the first above-threshold

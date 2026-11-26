@@ -399,10 +399,7 @@ func (e *Engine) captureLoop(ctx context.Context, dev IO) {
 		clipping bool
 	)
 
-	for {
-		if ctx.Err() != nil {
-			break
-		}
+	for ctx.Err() == nil {
 		frame, err := dev.Read()
 		if err != nil {
 			break

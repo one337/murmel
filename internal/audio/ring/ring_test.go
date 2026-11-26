@@ -27,7 +27,7 @@ func TestRingFIFO(t *testing.T) {
 	if r.Len() != 3 {
 		t.Fatalf("Len = %d, want 3", r.Len())
 	}
-	var dst []byte = make([]byte, frameBytes())
+	dst := make([]byte, frameBytes())
 	for i := range 3 {
 		if !r.Pop(dst) {
 			t.Fatalf("pop %d failed", i)
@@ -46,7 +46,7 @@ func TestRingFIFO(t *testing.T) {
 
 func TestRingWraparound(t *testing.T) {
 	r := New(frameBytes(), 4)
-	var dst []byte = make([]byte, frameBytes())
+	dst := make([]byte, frameBytes())
 	// 10 push/pop cycles through a 4-slot ring: every slot survives many
 	// generation wraps with data intact.
 	for gen := range 10 {
@@ -80,7 +80,7 @@ func TestRingOverflowDropsOldest(t *testing.T) {
 	if got := r.Drops(); got != 2 {
 		t.Fatalf("Drops = %d, want 2", got)
 	}
-	var dst []byte = make([]byte, frameBytes())
+	dst := make([]byte, frameBytes())
 	for i := 2; i < 6; i++ {
 		if !r.Pop(dst) {
 			t.Fatalf("pop %d failed", i)
@@ -129,7 +129,7 @@ func TestRingTryPushNeverDrops(t *testing.T) {
 	if got := r.Drops(); got != 1 {
 		t.Fatalf("Drops = %d, want 1 (size mismatch counted)", got)
 	}
-	var dst []byte = make([]byte, frameBytes())
+	dst := make([]byte, frameBytes())
 	if !r.Pop(dst) || dst[0] != 0 {
 		t.Fatal("frame 0 lost despite lossless policy")
 	}
@@ -257,7 +257,7 @@ func TestRingSequentialFloodDrops(t *testing.T) {
 	if got := r.Drops(); got != 96 {
 		t.Fatalf("Drops = %d, want 96", got)
 	}
-	var dst []byte = make([]byte, frameBytes())
+	dst := make([]byte, frameBytes())
 	for want := byte(96); want < 100; want++ {
 		if !r.Pop(dst) || dst[0] != want {
 			t.Fatalf("surviving frames must be newest; got %d want %d", dst[0], want)

@@ -173,8 +173,7 @@ func TestGTKChannelChatAsksForUnknownPermissions(t *testing.T) {
 	var mu sync.Mutex
 	var asked []uint32
 	var v *View
-	var b *bus.Bus
-	b = bus.New(nil)
+	b := bus.New(nil)
 	bus.SubscribeCtx(ctx, b, func(ev bus.ChannelPermissionRequested) {
 		mu.Lock()
 		asked = append(asked, ev.ChannelID)

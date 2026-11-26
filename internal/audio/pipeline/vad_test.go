@@ -88,7 +88,7 @@ func TestVADOpenDelayAndStart(t *testing.T) {
 
 	// 20 loud frames: Start must fire exactly on the 5th consecutive
 	// above-threshold frame (50 ms open delay)
-	var startIdx int = -1
+	startIdx := -1
 	for i := range 20 {
 		d := v.Sample(noiseFrameAt(rng, 300))
 		if d == Start {
@@ -109,7 +109,7 @@ func TestVADTransientRejected(t *testing.T) {
 	rng := rand.New(rand.NewSource(5))
 	feed(v, rng, 30, 100)
 	for i := range 200 {
-		d := Silent
+		var d Decision
 		if i%7 == 0 { // isolated 1-frame spikes (keystrokes)
 			d = v.Sample(noiseFrameAt(rng, 3000))
 		} else {
@@ -189,7 +189,7 @@ func TestVADHangover(t *testing.T) {
 
 	// 600 ms speech then silence; Stop must fire exactly 30 frames after
 	// the last above-close frame
-	var stopIdx, lastLoudIdx int = -1, -1
+	stopIdx, lastLoudIdx := -1, -1
 	var seenStart bool
 	for i := range 200 {
 		level := 30.0
@@ -224,7 +224,7 @@ func TestVADMinSpeechHold(t *testing.T) {
 
 	// 150 ms burst: burst + 300 ms hangover = 450 ms < MinSpeech, so Stop
 	// is deferred to the 1200 ms mark (elapsed 120 frames → i = 169)
-	var stopIdx int = -1
+	stopIdx := -1
 	var seenStart bool
 	for i := range 200 {
 		level := 30.0

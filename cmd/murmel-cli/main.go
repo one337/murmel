@@ -289,7 +289,7 @@ func cmdVoiceIn(c *commonFlags, _ []string) error {
 	defer disconnect(client)
 
 	if client.AudioEncoder == nil {
-		return fmt.Errorf("Opus was not negotiated (no audio encoder)")
+		return fmt.Errorf("Opus was not negotiated (no audio encoder)") //nolint:staticcheck // shown to the user as a sentence; "Opus" is a name
 	}
 	if _, err := joinChannel(client, c.channel); err != nil {
 		return err

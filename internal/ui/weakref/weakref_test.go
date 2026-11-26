@@ -49,7 +49,6 @@ func TestOwnedLivesAsLongAsTheObject(t *testing.T) {
 	}
 	runtime.KeepAlive(objs)
 
-	objs = nil
 	if !collect(func() bool { return len(anchors) == 0 }) {
 		t.Fatalf("%d anchors left after the objects were freed", len(anchors))
 	}
@@ -76,7 +75,6 @@ func TestRefGetAfterTheObjectIsGone(t *testing.T) {
 		t.Fatal("Get failed while the object exists")
 	}
 	runtime.KeepAlive(obj)
-	obj = nil
 	gone := collect(func() bool { _, ok := r.Get(); return !ok })
 	if !gone {
 		t.Fatal("Get still returns the object after it was freed")
