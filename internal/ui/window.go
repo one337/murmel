@@ -92,6 +92,11 @@ type Window struct {
 	shortcuts *globalShortcuts
 	// quitConfirmed skips the quit confirmation once the user agreed.
 	quitConfirmed bool
+	// quitAsking is set while the quit confirmation is shown.
+	quitAsking bool
+	// dialogs lists the dialogs open on the window; held so that its
+	// items-changed handler stays connected.
+	dialogs *gio.ListModel
 }
 
 func newWindow(app *App) *Window {
@@ -187,6 +192,7 @@ func newWindow(app *App) *Window {
 
 	w.AddBreakpoint(w.newNarrowBreakpoint())
 	w.registerActions()
+	w.watchDialogs()
 	w.restoreGeometry()
 	w.subscribe()
 	w.installPlaceholders()
@@ -244,6 +250,70 @@ func newPrimaryMenuButton() *gtk.MenuButton {
 	return btn
 }
 
+// quit closes the window and with it the application (Ctrl+Q, app.quit).
+// While connected it asks first, above any open dialog. Open dialogs are
+// closed first: closing the window while a dialog is open would only close
+// the topmost dialog.
+func (w *Window) quit() {
+	if w.connected && !w.quitConfirmed {
+		if !w.quitAsking {
+			w.confirmQuit()
+		}
+		return
+	}
+	w.closeDialogs()
+	w.Close()
+}
+
+// closeDialogs closes the dialogs open on the window, topmost first.
+func (w *Window) closeDialogs() {
+	for range w.dialogs.NItems() {
+		d := w.VisibleDialog()
+		if d == nil {
+			return
+		}
+		d.ForceClose()
+	}
+}
+
+// quitShortcutName names the shortcut controller watchDialogs adds.
+const quitShortcutName = "quit-in-dialog"
+
+// watchDialogs gives every dialog opened on the window the keys of
+// app.quit: GTK does not run the application's shortcuts while a dialog
+// is open.
+func (w *Window) watchDialogs() {
+	w.dialogs = w.Dialogs()
+	w.dialogs.ConnectItemsChanged(func(position, _, added uint) {
+		for i := position; i < position+added; i++ {
+			if d, ok := w.dialogs.Item(i).Cast().(gtk.Widgetter); ok {
+				w.addQuitShortcut(gtk.BaseWidget(d))
+			}
+		}
+	})
+}
+
+// addQuitShortcut adds the keys of app.quit to d in the bubble phase, so
+// the dialog's own shortcuts come first; a dialog shown again keeps the
+// one it has.
+func (w *Window) addQuitShortcut(d *gtk.Widget) {
+	ctrls := d.ObserveControllers()
+	for i := range ctrls.NItems() {
+		if c, ok := ctrls.Item(i).Cast().(gtk.EventControllerer); ok && gtk.BaseEventController(c).Name() == quitShortcutName {
+			return
+		}
+	}
+	ctrl := gtk.NewShortcutController()
+	ctrl.SetName(quitShortcutName)
+	ctrl.SetPropagationPhase(gtk.PhaseBubble)
+	for _, accel := range w.app.AccelsForAction("app.quit") {
+		if trigger := gtk.NewShortcutTriggerParseString(accel); trigger != nil {
+			ctrl.AddShortcut(gtk.NewShortcut(trigger, gtk.NewNamedAction("app.quit")))
+		}
+	}
+	d.AddController(ctrl)
+}
+
 // confirmQuit asks before quitting while connected; agreeing leaves the
 // server and closes the window.
 func (w *Window) confirmQuit() {
@@ -255,13 +325,16 @@ func (w *Window) confirmQuit() {
 	alert.SetDefaultResponse("cancel")
 	alert.SetCloseResponse("cancel")
 	alert.ConnectResponse(func(response string) {
+		w.quitAsking = false
 		if response != "quit" {
 			return
 		}
 		w.quitConfirmed = true
 		w.app.bus.Emit(bus.DisconnectRequested{})
+		w.closeDialogs()
 		w.Close()
 	})
+	w.quitAsking = true
 	alert.Present(w)
 }
 

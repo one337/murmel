@@ -179,7 +179,7 @@ func (a *App) registerActions() {
 	quit := gio.NewSimpleAction("quit", nil)
 	quit.ConnectActivate(func(*glib.Variant) {
 		if a.window != nil {
-			a.window.Close()
+			a.window.quit()
 		} else {
 			a.Quit()
 		}
