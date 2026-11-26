@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strings"
@@ -95,7 +96,13 @@ func userPicker(icon, tooltip string, users func() map[uint32]string, skip func(
 				all = append(all, entry{id, n})
 			}
 		}
-		slices.SortFunc(all, func(a, b entry) int { return strings.Compare(strings.ToLower(a.name), strings.ToLower(b.name)) })
+		slices.SortFunc(all, func(a, b entry) int {
+			return cmp.Or(
+				strings.Compare(strings.ToLower(a.name), strings.ToLower(b.name)),
+				strings.Compare(a.name, b.name),
+				cmp.Compare(a.id, b.id),
+			)
+		})
 		if len(all) == 0 {
 			list.Append(messageRow(i18n.Tr("No matching registered users. Users must be registered on the server; online ones and those from the user list are shown.")))
 			return
