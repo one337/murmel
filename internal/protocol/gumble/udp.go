@@ -20,7 +20,6 @@ import (
 	"errors"
 	"net"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/one337/murmel/internal/protocol/crypt"
@@ -79,17 +78,16 @@ type udpTransport struct {
 
 	readDeadline time.Duration
 
-	mu               sync.Mutex
-	active           bool
-	fellBack         bool
-	lastGood         time.Time
-	lastResync       time.Time
-	startedAt        time.Time
-	stats            UDPVoiceStats
-	startOnce        sync.Once
-	closed           chan struct{}
-	closeOnce        sync.Once
-	connWritesFailed atomic.Uint32
+	mu         sync.Mutex
+	active     bool
+	fellBack   bool
+	lastGood   time.Time
+	lastResync time.Time
+	startedAt  time.Time
+	stats      UDPVoiceStats
+	startOnce  sync.Once
+	closed     chan struct{}
+	closeOnce  sync.Once
 }
 
 func newUDPTransport(client *Client, conn net.Conn) *udpTransport {
@@ -151,7 +149,6 @@ func (t *udpTransport) sendVoicePacket(packet []byte) bool {
 		return false
 	}
 	if _, err := t.conn.Write(datagram); err != nil {
-		t.connWritesFailed.Add(1)
 		t.fallback()
 		return false
 	}
@@ -168,7 +165,6 @@ func (t *udpTransport) sendPing() {
 		return
 	}
 	if _, err := t.conn.Write(datagram); err != nil {
-		t.connWritesFailed.Add(1)
 		t.fallback()
 		return
 	}

@@ -449,3 +449,12 @@ detector reported this as a data race.
 
 **Upstream**: layeh/gumble `gumble/client.go` and `gumble/handlers.go`.
 
+## P24 — Drop the unread UDP write counter
+
+**What**: Removed `udpTransport.connWritesFailed`.
+
+**Why**: It was only incremented when a UDP write failed and never read;
+the failed write already switches voice back to the TCP tunnel.
+
+**Upstream**: none, the counter came with P8.
+
