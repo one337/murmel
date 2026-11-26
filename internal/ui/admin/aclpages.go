@@ -386,7 +386,6 @@ type permsPage struct {
 	box      *gtk.Box
 	root     bool // the root channel: server-wide permissions apply
 	expanded map[int]bool
-	onGroups func() // the group list changed (rules can add none, but keep in sync)
 }
 
 func newPermsPage(w *aclWork, box *gtk.Box, root bool) *permsPage {

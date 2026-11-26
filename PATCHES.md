@@ -458,3 +458,13 @@ the failed write already switches voice back to the TCP tunnel.
 
 **Upstream**: none, the counter came with P8.
 
+## P25 — Drop an unused error and fix a parameter name
+
+**What**: Removed the error variable `errNoCodec`. The parameter of
+`User.SetSuppressed` is spelled `suppressed`.
+
+**Why**: Nothing returned `errNoCodec`; an unknown codec is reported as
+`errUnsupportedAudio`. The parameter name was misspelled.
+
+**Upstream**: layeh/gumble `gumble/handlers.go` and `gumble/user.go`.
+

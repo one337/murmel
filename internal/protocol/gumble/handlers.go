@@ -18,7 +18,6 @@ var (
 	errIncompleteProtobuf   = errors.New("gumble: protobuf message is missing a required field")
 	errInvalidProtobuf      = errors.New("gumble: protobuf message has an invalid field")
 	errUnsupportedAudio     = errors.New("gumble: unsupported audio codec")
-	errNoCodec              = errors.New("gumble: no audio codec")
 )
 
 // queryUsersType is the QueryUsers message type (its index in handlers).

@@ -142,10 +142,10 @@ func (u *User) SetMuted(muted bool) {
 }
 
 // SetSuppressed sets whether the user is suppressed by the server or not.
-func (u *User) SetSuppressed(supressed bool) {
+func (u *User) SetSuppressed(suppressed bool) {
 	packet := MumbleProto.UserState{
 		Session:  &u.Session,
-		Suppress: &supressed,
+		Suppress: &suppressed,
 	}
 	u.client.Conn.WriteProto(&packet)
 }
