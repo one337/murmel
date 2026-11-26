@@ -42,8 +42,8 @@ func Ping(address string, interval, timeout time.Duration) (*PingResponse, error
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
-	conn.SetReadDeadline(deadline)
+	defer func() { _ = conn.Close() }()
+	_ = conn.SetReadDeadline(deadline) // fails only on a closed connection, and then so does the read
 
 	var (
 		idsLock sync.Mutex
@@ -59,7 +59,7 @@ func Ping(address string, interval, timeout time.Duration) (*PingResponse, error
 		idsLock.Lock()
 		ids[id] = time.Now()
 		idsLock.Unlock()
-		conn.Write(packet[:])
+		_, _ = conn.Write(packet[:]) // a lost ping gets no reply and ends in the timeout
 	}
 
 	if interval > 0 {

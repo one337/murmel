@@ -482,3 +482,16 @@ effect; `return 0` was unreachable, as every non-negative `int64` fits the
 **Upstream**: layeh/gumble `gumble/client.go`, `gumble/ping.go` and
 `gumble/varint/write.go`.
 
+## P27 — Discard ignored errors explicitly
+
+**What**: Calls whose error gumble ignores (closing the connection after
+a failure, read deadlines, the ping packet, the result of a message
+handler) assign it to `_`, with a comment where the reason is not obvious.
+
+**Why**: errcheck reports silently dropped errors; the behaviour stays the
+same. A message its handler rejects is still dropped and the connection
+continues.
+
+**Upstream**: layeh/gumble `gumble/client.go`, `gumble/conn.go`,
+`gumble/handlers.go` and `gumble/ping.go`.
+

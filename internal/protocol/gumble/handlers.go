@@ -238,7 +238,7 @@ func (c *Client) handleReject(buffer []byte) error {
 		err.Reason = *packet.Reason
 	}
 	c.connect <- err
-	c.Conn.Close()
+	_ = c.Conn.Close()
 	return nil
 }
 

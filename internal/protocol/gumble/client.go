@@ -136,7 +136,7 @@ func DialContext(ctx context.Context, dialer *net.Dialer, addr string, config *C
 		return nil, err
 	}
 	if err := ctx.Err(); err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, err
 	}
 
@@ -206,10 +206,10 @@ func DialContext(ctx context.Context, dialer *net.Dialer, addr string, config *C
 
 	select {
 	case <-ctx.Done():
-		client.Conn.Close()
+		_ = client.Conn.Close()
 		return nil, ctx.Err()
 	case <-timeout:
-		client.Conn.Close()
+		_ = client.Conn.Close()
 		return nil, errors.New("gumble: synchronization timeout")
 	case <-client.end:
 		// Murmel patch: the server closed the connection before ServerSync
@@ -217,7 +217,7 @@ func DialContext(ctx context.Context, dialer *net.Dialer, addr string, config *C
 		return nil, errors.New("gumble: connection closed by server during synchronization")
 	case err := <-client.connect:
 		if err != nil {
-			client.Conn.Close()
+			_ = client.Conn.Close()
 			return nil, err
 		}
 
@@ -341,7 +341,7 @@ func (c *Client) readRoutine() {
 			c.flushPendingACL()
 		}
 		if int(pType) < len(handlers) {
-			handlers[pType](c, data)
+			_ = handlers[pType](c, data) // a message the handler rejects is dropped
 		}
 	}
 
@@ -378,7 +378,7 @@ func (c *Client) Disconnect() error {
 		return errors.New("gumble: client is already disconnected")
 	}
 	c.disconnectEvent.Type = DisconnectUser
-	c.Conn.Close()
+	_ = c.Conn.Close()
 	return nil
 }
 

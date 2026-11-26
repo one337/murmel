@@ -42,7 +42,7 @@ func NewConn(conn net.Conn) *Conn {
 //
 // This function should only be called by a single go routine.
 func (c *Conn) ReadPacket() (uint16, []byte, error) {
-	c.Conn.SetReadDeadline(time.Now().Add(c.Timeout))
+	_ = c.Conn.SetReadDeadline(time.Now().Add(c.Timeout)) // fails only on a closed connection, and then so does the read
 	var header [6]byte
 	if _, err := io.ReadFull(c.Conn, header[:]); err != nil {
 		return 0, nil, err
