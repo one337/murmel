@@ -240,7 +240,7 @@ func (c *Client) handleReject(buffer []byte) error {
 	if packet.Reason != nil {
 		err.Reason = *packet.Reason
 	}
-	c.connect <- err
+	c.finishConnect(err)
 	_ = c.Conn.Close()
 	return nil
 }
@@ -282,8 +282,22 @@ func (c *Client) handleServerSync(buffer []byte) error {
 	}
 	atomic.StoreUint32(&c.state, uint32(StateSynced))
 	c.Config.Listeners.onConnect(&event)
-	close(c.connect)
+	c.finishConnect(nil)
 	return nil
+}
+
+// finishConnect reports the outcome of the connection attempt to
+// DialWithDialer: nil once the server has synced, or the server's
+// rejection. Only the first outcome reaches Dial; a repeated ServerSync or
+// Reject does not signal again. The channel has room for the outcome, so
+// the read loop never waits for a Dial that has already given up.
+func (c *Client) finishConnect(reject *RejectError) {
+	c.connectOnce.Do(func() {
+		if reject != nil {
+			c.connect <- reject
+		}
+		close(c.connect)
+	})
 }
 
 func (c *Client) handleChannelRemove(buffer []byte) error {

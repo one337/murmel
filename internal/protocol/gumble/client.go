@@ -8,6 +8,7 @@ import (
 	"math"
 	"net"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -92,7 +93,10 @@ type Client struct {
 	// modified.
 	volatile rpwMutex
 
+	// connect carries the outcome of the connection attempt to
+	// DialWithDialer; finishConnect fills it once.
 	connect         chan *RejectError
+	connectOnce     sync.Once
 	end             chan struct{}
 	disconnectEvent DisconnectEvent
 
@@ -140,21 +144,7 @@ func DialContext(ctx context.Context, dialer *net.Dialer, addr string, config *C
 		return nil, err
 	}
 
-	client := &Client{
-		Conn:     NewConn(conn),
-		Config:   config,
-		Users:    make(Users),
-		Channels: make(Channels),
-
-		permissions: make(map[uint32]*Permission),
-
-		state: uint32(StateConnected),
-
-		audioQueue: make(chan *audioJob, audioDispatchQueueSize),
-
-		connect: make(chan *RejectError),
-		end:     make(chan struct{}),
-	}
+	client := newClient(conn, config)
 
 	if config.UDPVoice {
 		// A UDP socket that cannot even be dialed is a permanent
@@ -222,6 +212,26 @@ func DialContext(ctx context.Context, dialer *net.Dialer, addr string, config *C
 		}
 
 		return client, nil
+	}
+}
+
+// newClient returns a client on an established connection that waits for
+// the server to sync.
+func newClient(conn net.Conn, config *Config) *Client {
+	return &Client{
+		Conn:     NewConn(conn),
+		Config:   config,
+		Users:    make(Users),
+		Channels: make(Channels),
+
+		permissions: make(map[uint32]*Permission),
+
+		state: uint32(StateConnected),
+
+		audioQueue: make(chan *audioJob, audioDispatchQueueSize),
+
+		connect: make(chan *RejectError, 1),
+		end:     make(chan struct{}),
 	}
 }
 

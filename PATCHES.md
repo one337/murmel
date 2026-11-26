@@ -520,3 +520,21 @@ the same 13 bits.
 
 **Upstream**: layeh/gumble `gumble/handlers.go` (`handleUDPTunnel`); since
 P3 the frame is sliced in `audio_dispatch.go`.
+
+## P30 — Report the end of the connection attempt once
+
+**What**: `handleServerSync` and `handleReject` hand the outcome of the
+connection attempt to `DialContext` through `finishConnect`, which acts
+only on the first call. The `connect` channel has room for one outcome.
+`newClient` builds the client for `DialContext` and the tests.
+`connect_test.go` covers a repeated ServerSync, repeated rejections and
+a rejection without a waiting dial, and fuzzes sequences of server
+messages; `testdata/fuzz` keeps the inputs that broke them.
+
+**Why**: A second ServerSync closed the already closed channel and the
+panic ended the program. A Reject sent on the unbuffered channel, so a
+second Reject, or one that arrived after the dial had given up, blocked
+the read loop for good.
+
+**Upstream**: layeh/gumble `gumble/handlers.go` (`handleServerSync`,
+`handleReject`) and `gumble/client.go` (`DialWithDialer`).
