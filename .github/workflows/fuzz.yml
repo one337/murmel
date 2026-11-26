@@ -1,0 +1,94 @@
+name: fuzz
+
+on:
+  # Weekly, away from the CodeQL run on Monday.
+  schedule:
+    - cron: '17 3 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    # The packages build against GTK 4.24 and Libadwaita 1.10, as in
+    # verify.yml.
+    container: fedora:45
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      GOCACHE: /github/home/.cache/go-build
+      GOMODCACHE: /github/home/go/pkg/mod
+    steps:
+      - name: Install build dependencies
+        run: >-
+          dnf -y install --setopt=install_weak_deps=False
+          git golang gcc gcc-c++ pkgconf-pkg-config
+          gtk4-devel libadwaita-devel gobject-introspection-devel graphene-devel
+          opus-devel webrtc-audio-processing-devel libsecret-devel
+          glib2-devel
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Trust the workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # Fuzzing builds instrumented packages, the GTK bindings included
+      # (about nine minutes without a cache). The Go build cache also keeps
+      # the inputs found in earlier runs (GOCACHE/fuzz).
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /github/home/.cache/go-build
+            /github/home/go/pkg/mod
+          key: fuzz-${{ hashFiles('go.sum') }}-${{ github.sha }}
+          restore-keys: fuzz-${{ hashFiles('go.sum') }}-
+
+      # Runs every target, then fails if any of them did.
+      - name: Fuzz
+        run: |
+          failed=""
+          while read -r pkg target; do
+            echo "::group::$target ($pkg)"
+            if ! go test -run='^$' -fuzz="^$target\$" -fuzztime=60s "$pkg" </dev/null; then
+              failed="$failed $target"
+            fi
+            echo "::endgroup::"
+          done <<'EOF'
+          ./internal/protocol/gumble/varint FuzzDecode
+          ./internal/protocol/gumble/varint FuzzEncode
+          ./internal/protocol/crypt FuzzDecrypt
+          ./internal/protocol/crypt FuzzEncryptDecrypt
+          ./internal/protocol/gumble FuzzReadPacket
+          ./internal/protocol/gumble FuzzHandleVoicePacket
+          ./internal/protocol/gumble FuzzHandleMessages
+          ./internal/audio/effects FuzzDecode
+          ./internal/certs FuzzReadIdentity
+          ./internal/certs FuzzParsePEMBundle
+          ./internal/certs FuzzCheckP12Iterations
+          ./internal/ui/richtext FuzzParse
+          ./internal/ui/richtext FuzzCheckImage
+          ./internal/ui FuzzParseConnectURL
+          EOF
+          if [ -n "$failed" ]; then
+            echo "::error::Failing fuzz targets:$failed"
+            exit 1
+          fi
+
+      # A failing target writes its input to testdata/fuzz/<target>/ in its
+      # package; committed there, it runs with every go test.
+      - name: Collect failing inputs
+        if: failure()
+        run: |
+          mkdir -p fuzz-failures
+          git ls-files --others --exclude-standard -- '*/testdata/fuzz/*' |
+            xargs -r cp --parents -t fuzz-failures
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: fuzz-failures
+          path: fuzz-failures
+          if-no-files-found: ignore
