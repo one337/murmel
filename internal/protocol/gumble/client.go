@@ -39,7 +39,7 @@ const (
 // listener state they do not display. 1.5.0 must not be announced — murmur
 // then switches the client to the protobuf UDP audio format, which this
 // fork does not implement.
-const ClientVersion = 1<<16 | 4<<8 | 0
+const ClientVersion = 1<<16 | 4<<8 // 1.4.0
 
 // Client is the type used to create a connection to a server.
 type Client struct {

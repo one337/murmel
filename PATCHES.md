@@ -468,3 +468,17 @@ the failed write already switches voice back to the TCP tunnel.
 
 **Upstream**: layeh/gumble `gumble/handlers.go` and `gumble/user.go`.
 
+## P26 — Simplify three expressions staticcheck reports
+
+**What**: `ClientVersion` is written `1<<16 | 4<<8` with the version as a
+comment. `varint.Encode` writes the 64-bit form for every remaining value,
+without the comparison against `math.MaxInt64` and the `return 0` after
+it. The ping reply is looked up with `ids[string(…)]` directly.
+
+**Why**: OR with 0 and comparing an `int64` with `math.MaxInt64` have no
+effect; `return 0` was unreachable, as every non-negative `int64` fits the
+64-bit form. The direct lookup lets the compiler skip the string copy.
+
+**Upstream**: layeh/gumble `gumble/client.go`, `gumble/ping.go` and
+`gumble/varint/write.go`.
+

@@ -86,9 +86,8 @@ func Ping(address string, interval, timeout time.Duration) (*PingResponse, error
 		if _, err := io.ReadFull(conn, incoming[:]); err != nil {
 			return nil, err
 		}
-		id := string(incoming[4:12])
 		idsLock.Lock()
-		sendTime, ok := ids[id]
+		sendTime, ok := ids[string(incoming[4:12])]
 		idsLock.Unlock()
 		if !ok {
 			continue

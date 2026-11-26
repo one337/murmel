@@ -62,11 +62,7 @@ func Encode(b []byte, value int64) int {
 		return 5
 	}
 	// 111101__ + long (64-bit) 64-bit number
-	if value <= math.MaxInt64 {
-		b[0] = 0xF4
-		binary.BigEndian.PutUint64(b[1:], uint64(value))
-		return 9
-	}
-
-	return 0
+	b[0] = 0xF4
+	binary.BigEndian.PutUint64(b[1:], uint64(value))
+	return 9
 }
