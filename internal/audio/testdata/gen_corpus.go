@@ -116,7 +116,7 @@ func main() {
 			case fr < 570:
 				env = 1
 			default:
-				env = math.Max(0, 1-(fr-570)/130)
+				env = max(0, 1-(fr-570)/130)
 			}
 			t := float64(len(pcm)) / sampleRate
 			v := 0.0
@@ -155,7 +155,7 @@ func randNoise(rng *rand.Rand, rms float64) float64 {
 }
 
 func clamp(v, lo, hi float64) float64 {
-	return math.Max(lo, math.Min(hi, v))
+	return max(lo, min(hi, v))
 }
 
 // appendNoise appends n frames of one-pole lowpassed noise at target RMS.
@@ -189,7 +189,7 @@ func syllableEpisode(rng *rand.Rand, pcm *[]int16, rms float64, n int) {
 				if pos < 0.15 {
 					env = pos / 0.15
 				} else if pos > 0.7 {
-					env = math.Max(0, (1-pos)/0.3)
+					env = max(0, (1-pos)/0.3)
 				}
 				syl = append(syl, int16(clamp(lp*env, -32767, 32767)))
 			}

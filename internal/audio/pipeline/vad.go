@@ -174,7 +174,7 @@ func (v *VAD) Sample(frame []int16) Decision {
 	if v.absolute {
 		v.openDB = v.absOpenDB
 	} else {
-		v.openDB = math.Max(v.floorDB+v.cfg.OpenMargin, v.cfg.AbsFloor)
+		v.openDB = max(v.floorDB+v.cfg.OpenMargin, v.cfg.AbsFloor)
 	}
 	v.closeDB = v.openDB - v.cfg.Hysteresis
 

@@ -144,7 +144,7 @@ func (m *voiceMeter) draw(area *gtk.DrawingArea, cr *cairo.Context, width, heigh
 		level += l / meterSmooth
 	}
 	// A hint of movement even in silence, so the line reads as live.
-	amp := math.Max(0.6, level*(mid-1.5))
+	amp := max(0.6, level*(mid-1.5))
 
 	// The colour comes from style.css: the state classes on the pill set
 	// it, so it follows the light, dark and high-contrast styles.

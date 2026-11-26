@@ -299,7 +299,7 @@ func (m *Meter) stopMonitor() {
 
 func (m *Meter) feed(db float64, clipping bool) {
 	f := pipeline.LevelFraction(db)
-	m.level = math.Max(f, m.level-releasePerUpdate)
+	m.level = max(f, m.level-releasePerUpdate)
 	now := time.Now()
 	if f >= m.peak || now.Sub(m.peakAt) > peakHold {
 		m.peak, m.peakAt = f, now
@@ -331,7 +331,7 @@ func (m *Meter) fractionAt(x float64) float64 {
 // knob radius so the handle stays fully visible at both ends.
 func (m *Meter) track() (left, width float64) {
 	w := float64(m.area.Width())
-	return knobRadius, math.Max(1, w-2*knobRadius)
+	return knobRadius, max(1, w-2*knobRadius)
 }
 
 func (m *Meter) updateLabels() {
@@ -385,11 +385,11 @@ func (m *Meter) draw(area *gtk.DrawingArea, cr *cairo.Context, width, height int
 	cr.Clip()
 	if lvX > left {
 		setFG(0.40)
-		cr.Rectangle(left, top, math.Min(lvX, thrX)-left, trackHeight)
+		cr.Rectangle(left, top, min(lvX, thrX)-left, trackHeight)
 		cr.Fill()
 		if lvX > thrX {
 			cr.SetSourceRGBA(0.180, 0.761, 0.494, 1) // green #2ec27e
-			cr.Rectangle(thrX, top, math.Min(lvX, clipX)-thrX, trackHeight)
+			cr.Rectangle(thrX, top, min(lvX, clipX)-thrX, trackHeight)
 			cr.Fill()
 		}
 		if lvX > clipX {
@@ -434,7 +434,7 @@ func (m *Meter) draw(area *gtk.DrawingArea, cr *cairo.Context, width, height int
 }
 
 func roundedRect(cr *cairo.Context, x, y, w, h, r float64) {
-	r = math.Min(r, math.Min(w, h)/2)
+	r = min(r, min(w, h)/2)
 	cr.NewPath()
 	cr.Arc(x+w-r, y+r, r, -math.Pi/2, 0)
 	cr.Arc(x+w-r, y+h-r, r, 0, math.Pi/2)

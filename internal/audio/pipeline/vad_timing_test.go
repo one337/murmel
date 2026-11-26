@@ -1,7 +1,6 @@
 package pipeline
 
 import (
-	"math"
 	"math/rand"
 	"testing"
 	"time"
@@ -26,7 +25,7 @@ func speechBurst(rng *rand.Rand, noiseLevel, level float64, leadFrames, syllable
 				if pos < 0.15 {
 					env = pos / 0.15
 				} else if pos > 0.7 {
-					env = math.Max(0, (1-pos)/0.3)
+					env = max(0, (1-pos)/0.3)
 				}
 				frame[i] = int16(target * env * lp)
 			}

@@ -52,7 +52,7 @@ func TestVADThresholdsHysteresis(t *testing.T) {
 	open, close := v.Thresholds()
 	floor := v.NoiseFloor()
 	// open = max(floor+10, AbsFloor −50); floor(30) ≈ −61 so AbsFloor binds
-	wantOpen := math.Max(floor+10, -50)
+	wantOpen := max(floor+10, -50)
 	if open < wantOpen-0.1 || open > wantOpen+0.1 {
 		t.Fatalf("open = %.1f, want %.1f (floor+10 clamped at AbsFloor)", open, wantOpen)
 	}
