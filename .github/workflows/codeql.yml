@@ -1,0 +1,81 @@
+name: codeql
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Weekly, so that new CodeQL queries also run without a code change.
+  schedule:
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push supersedes a run still in progress on the same branch.
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    # The Go build needs GTK 4.24 and Libadwaita 1.10, as in verify.yml.
+    container: fedora:45
+    permissions:
+      contents: read
+      security-events: write
+    env:
+      GOCACHE: /github/home/.cache/go-build
+      GOMODCACHE: /github/home/go/pkg/mod
+    steps:
+      - name: Install build dependencies
+        run: >-
+          dnf -y install --setopt=install_weak_deps=False
+          git golang gcc gcc-c++ pkgconf-pkg-config
+          gtk4-devel libadwaita-devel gobject-introspection-devel graphene-devel
+          opus-devel webrtc-audio-processing-devel libsecret-devel
+          glib2-devel
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Trust the workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      # Reuses the compiled GTK bindings from the verify workflow's cache
+      # without writing a cache of its own.
+      - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            /github/home/.cache/go-build
+            /github/home/go/pkg/mod
+          key: go-${{ hashFiles('go.sum') }}-${{ github.sha }}
+          restore-keys: go-${{ hashFiles('go.sum') }}-
+
+      - uses: github/codeql-action/init@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          languages: go
+          build-mode: autobuild
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          category: /language:go
+
+  actions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: github/codeql-action/init@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          languages: actions
+          build-mode: none
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
+        with:
+          category: /language:actions
