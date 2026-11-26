@@ -298,7 +298,7 @@ func (t *Tree) scheduleRebuild() {
 		return false
 	}
 	if wait := rebuildInterval - time.Since(t.lastRebuild); wait > 0 {
-		glib.TimeoutAdd(uint(wait.Milliseconds())+1, run)
+		glib.TimeoutAdd(uint(wait.Milliseconds())+1, run) //nolint:gosec // 0 < wait <= rebuildInterval
 	} else {
 		glib.IdleAdd(run)
 	}

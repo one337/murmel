@@ -495,3 +495,13 @@ continues.
 **Upstream**: layeh/gumble `gumble/client.go`, `gumble/conn.go`,
 `gumble/handlers.go` and `gumble/ping.go`.
 
+## P28 — Mark the test dials without certificate checks
+
+**What**: The two dials in `dial_test.go` that skip certificate
+verification carry a `//nolint:gosec` comment naming the reason.
+
+**Why**: gosec reports `InsecureSkipVerify`; the tests talk to a local
+server with a throwaway certificate.
+
+**Upstream**: none, `dial_test.go` is Murmel's.
+

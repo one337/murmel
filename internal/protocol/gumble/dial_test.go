@@ -32,7 +32,7 @@ func TestDialContextGivesUpDuringHandshake(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	time.AfterFunc(200*time.Millisecond, cancel)
 	start := time.Now()
-	_, err = DialContext(ctx, new(net.Dialer), ln.Addr().String(), NewConfig(), &tls.Config{InsecureSkipVerify: true})
+	_, err = DialContext(ctx, new(net.Dialer), ln.Addr().String(), NewConfig(), &tls.Config{InsecureSkipVerify: true}) //nolint:gosec // the test server's throwaway certificate
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("err = %v, want context.Canceled", err)
 	}
@@ -59,7 +59,7 @@ func TestDialContextCancelledBeforehand(t *testing.T) {
 	defer ln.Close()
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	if _, err := DialContext(ctx, new(net.Dialer), ln.Addr().String(), NewConfig(), &tls.Config{InsecureSkipVerify: true}); !errors.Is(err, context.Canceled) {
+	if _, err := DialContext(ctx, new(net.Dialer), ln.Addr().String(), NewConfig(), &tls.Config{InsecureSkipVerify: true}); !errors.Is(err, context.Canceled) { //nolint:gosec // the test server's throwaway certificate
 		t.Fatalf("err = %v, want context.Canceled", err)
 	}
 }

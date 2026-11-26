@@ -36,13 +36,13 @@ func (m *Manager) ImportPEM(name string, pemData []byte) (*Identity, error) {
 // certificate chain alone or a concatenated cert+key blob; keyPath, when
 // non-empty, holds the private key separately.
 func (m *Manager) ImportFiles(name, certPath, keyPath string) (*Identity, error) {
-	certData, err := os.ReadFile(certPath)
+	certData, err := os.ReadFile(certPath) //nolint:gosec // a file the user chose to import
 	if err != nil {
 		return nil, fmt.Errorf("certs: reading %s: %w", certPath, err)
 	}
 	pemData := certData
 	if keyPath != "" {
-		keyData, err := os.ReadFile(keyPath)
+		keyData, err := os.ReadFile(keyPath) //nolint:gosec // a file the user chose to import
 		if err != nil {
 			return nil, fmt.Errorf("certs: reading %s: %w", keyPath, err)
 		}

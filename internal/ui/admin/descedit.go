@@ -624,7 +624,7 @@ func (e *descEditor) insertImage(it *gtk.TextIter, data []byte) bool {
 	if w, h := pb.Width(), pb.Height(); w > descImagePx {
 		pb = pb.ScaleSimple(descImagePx, max(1, h*descImagePx/w), gdkpixbuf.InterpBilinear)
 	}
-	tex := gdk.NewTextureForPixbuf(pb)
+	tex := gdk.NewTextureForPixbuf(pb) //nolint:staticcheck // no Go binding for glycin yet; GTK 4.24 still has it
 	e.images[key(tex)] = data
 	e.buffer.InsertPaintable(it, tex)
 	return true
@@ -715,7 +715,7 @@ func (e *descEditor) lines() []descLine {
 				flush()
 				cur = r
 			}
-			text = append(text, rune(it.Char()))
+			text = append(text, rune(it.Char())) //nolint:gosec // a Unicode code point from GTK
 		}
 		flush()
 		if len(line.Runs) > 0 || line.Kind == linePara && !e.isImageLine(l) {

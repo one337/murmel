@@ -60,7 +60,7 @@ func renameIdentity(m *certs.Manager, from, to string) error {
 		return err
 	}
 	metaPath := filepath.Join(dir, "identities", to, "identity.json")
-	raw, err := os.ReadFile(metaPath)
+	raw, err := os.ReadFile(metaPath) //nolint:gosec // inside the identities folder of the data directory
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func renameIdentity(m *certs.Manager, from, to string) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(metaPath, raw, 0o644)
+	return os.WriteFile(metaPath, raw, 0o644) //nolint:gosec // metadata without key material, as certs writes it
 }
 
 func printSummary(m *certs.Manager, id string) {

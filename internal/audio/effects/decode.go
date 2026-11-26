@@ -37,7 +37,7 @@ func Load(choice string) ([]int16, error) {
 		return Decode(data)
 	}
 	if path, ok := FilePath(choice); ok {
-		f, err := os.Open(path)
+		f, err := os.Open(path) //nolint:gosec // a sound file the user chose
 		if err != nil {
 			return nil, err
 		}

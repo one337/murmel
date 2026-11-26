@@ -175,7 +175,7 @@ func (d *Device) Write(frame []int16) error {
 	for i := range periodFrames {
 		s := int16(0)
 		if i < n {
-			s = frame[i]
+			s = frame[i] //nolint:gosec // i < n <= len(frame)
 		}
 		d.playBuf[2*i] = byte(s)
 		d.playBuf[2*i+1] = byte(s >> 8)

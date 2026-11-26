@@ -139,7 +139,7 @@ func (c *Controller) savedServersGroup(dialog *adw.Dialog, fill func(settings.Se
 	var stop context.CancelFunc
 	s.group.ConnectMap(s.with(func(s *savedList) {
 		var ctx context.Context
-		ctx, stop = context.WithCancel(context.Background())
+		ctx, stop = context.WithCancel(context.Background()) //nolint:gosec // stop runs on unmap
 		go s.pingLoop(ctx)
 	}))
 	s.group.ConnectUnmap(func() {

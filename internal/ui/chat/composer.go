@@ -429,7 +429,7 @@ func (c *composer) message() (html, plain string) {
 			flush()
 			cur = span{bold: b, italic: i}
 		}
-		text = append(text, rune(it.Char()))
+		text = append(text, rune(it.Char())) //nolint:gosec // a Unicode code point from GTK
 		it.ForwardChar()
 	}
 	flush()

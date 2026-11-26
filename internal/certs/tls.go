@@ -30,8 +30,8 @@ type VerifyCallback func(result VerifyResult, stored, presented ServerEntry) err
 // client certificate) but verified the same way.
 func (m *Manager) TLSConfig(identity *Identity, addr string, onVerify VerifyCallback) *tls.Config {
 	cfg := &tls.Config{
-		InsecureSkipVerify: true, // verified below: authority, then TOFU (most murmur certs are self-signed)
-		VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+		InsecureSkipVerify: true, //nolint:gosec // verified below: authority, then TOFU (most murmur certs are self-signed)
+		VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error { //nolint:gosec // no ClientSessionCache, so no handshake is resumed unverified
 			chain := make([]*x509.Certificate, 0, len(rawCerts))
 			for _, raw := range rawCerts {
 				cert, err := x509.ParseCertificate(raw)

@@ -15,7 +15,7 @@ import (
 func OpenImage(owner gtk.Widgetter, title string, done func(*gio.File)) {
 	filter := gtk.NewFileFilter()
 	filter.SetName(i18n.Tr("Images"))
-	filter.AddPixbufFormats()
+	filter.AddPixbufFormats() //nolint:staticcheck // no Go binding for glycin yet; GTK 4.24 still has it
 	filters := gio.NewListStore(gtk.GTypeFileFilter)
 	filters.Append(filter.Object)
 	fd := gtk.NewFileDialog()

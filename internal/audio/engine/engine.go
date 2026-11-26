@@ -216,7 +216,7 @@ func (e *Engine) openLocked() {
 	period := playbackPeriods[e.playStep]
 	// Played audio reaches the microphone after about two playback
 	// periods plus one capture period; the canceller refines the rest.
-	e.echoDelayMs.Store(int32(2*period/time.Millisecond + 10))
+	e.echoDelayMs.Store(int32(2*period/time.Millisecond + 10)) //nolint:gosec // periods are at most a few hundred ms
 	dev, err := e.open(e.capName, e.outName, period)
 	if err != nil {
 		slog.Warn("voice engine: audio device unavailable", "err", err)
@@ -296,7 +296,7 @@ func (e *Engine) SetJitterFrames(n int) { e.mix.setPrebuffer(n) }
 // Options.PacketFrames). It applies from the next transmission on. Safe
 // from any goroutine.
 func (e *Engine) SetPacketFrames(n int) {
-	e.packetFrames.Store(int32(validPacketFrames(n)))
+	e.packetFrames.Store(int32(validPacketFrames(n))) //nolint:gosec // 1, 2, 4 or 6
 }
 
 // validPacketFrames maps n onto the packet lengths Opus and Mumble accept
@@ -311,7 +311,9 @@ func validPacketFrames(n int) int {
 
 // SetNoiseSuppression changes the noise suppression (0 off … 4 very high)
 // from the next captured frame on. Safe from any goroutine.
-func (e *Engine) SetNoiseSuppression(level int) { e.noise.Store(int32(level)) }
+func (e *Engine) SetNoiseSuppression(level int) {
+	e.noise.Store(int32(level)) //nolint:gosec // the setting is 0–4, apm.ForLevel clamps
+}
 
 // SetEchoCancellation turns echo cancellation on or off from the next
 // captured frame on. Safe from any goroutine.

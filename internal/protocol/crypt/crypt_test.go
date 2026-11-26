@@ -48,7 +48,7 @@ func TestRoundtripRandomPayloads(t *testing.T) {
 		t.Fatal("SetKey failed")
 	}
 
-	rng := rand.New(rand.NewSource(42)) //nolint:gosec // deterministic test data
+	rng := rand.New(rand.NewSource(42))
 	for i := range 1000 {
 		plain := make([]byte, rng.Intn(1000))
 		rng.Read(plain)
@@ -125,7 +125,7 @@ func TestDecryptGarbageNoPanic(t *testing.T) {
 			t.Errorf("packet of length %d accepted", i)
 		}
 	}
-	rng := rand.New(rand.NewSource(7)) //nolint:gosec // deterministic test data
+	rng := rand.New(rand.NewSource(7))
 	for i := range 1000 {
 		garbage := make([]byte, rng.Intn(64))
 		rng.Read(garbage)

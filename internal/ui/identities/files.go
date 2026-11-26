@@ -215,7 +215,7 @@ var chmod = (*os.File).Chmod
 // file system without Unix permissions (FAT, exFAT) refuses the mode; the
 // file is written all the same.
 func writePrivateFile(path string, data []byte) error {
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600) //nolint:gosec // the file the user chose to save
 	if err != nil {
 		return err
 	}

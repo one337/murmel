@@ -97,11 +97,11 @@ func (m *Manager) Generate(name, email string) (*Identity, error) {
 // Load reads identity <id> from disk.
 func (m *Manager) Load(id string) (*Identity, error) {
 	dir := m.identityDir(id)
-	certPEM, err := os.ReadFile(filepath.Join(dir, "cert.pem"))
+	certPEM, err := os.ReadFile(filepath.Join(dir, "cert.pem")) //nolint:gosec // the identity's own folder
 	if err != nil {
 		return nil, fmt.Errorf("certs: loading identity %s: %w", id, err)
 	}
-	keyPEM, err := os.ReadFile(filepath.Join(dir, "key.pem"))
+	keyPEM, err := os.ReadFile(filepath.Join(dir, "key.pem")) //nolint:gosec // the identity's own folder
 	if err != nil {
 		return nil, fmt.Errorf("certs: loading identity %s: %w", id, err)
 	}

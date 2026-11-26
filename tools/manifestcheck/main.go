@@ -43,7 +43,7 @@ func main() {
 }
 
 func load(path string) (map[string]any, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) //nolint:gosec // a manifest named on the command line
 	if err != nil {
 		return nil, err
 	}

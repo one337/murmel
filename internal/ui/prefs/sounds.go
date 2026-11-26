@@ -274,7 +274,7 @@ func copySound(soundsDir, name string, data []byte) (string, error) {
 		if i > 1 {
 			path = filepath.Join(soundsDir, fmt.Sprintf("%s-%d%s", stem, i, ext))
 		}
-		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600) //nolint:gosec // inside Murmel's sounds folder
 		if errors.Is(err, os.ErrExist) {
 			continue
 		}

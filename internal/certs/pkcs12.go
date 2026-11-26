@@ -6,7 +6,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/pbkdf2"
-	"crypto/sha1"
+	"crypto/sha1" //nolint:gosec // PKCS#12 files of the official client use SHA-1 for the MAC and key derivation
 	"crypto/sha256"
 	"crypto/sha512"
 	"crypto/x509"
@@ -314,7 +314,7 @@ func decryptPBES2(alg pkix.AlgorithmIdentifier, password string, data []byte) ([
 	plain := make([]byte, len(data))
 	cipher.NewCBCDecrypter(block, iv).CryptBlocks(plain, data)
 	pad := int(plain[len(plain)-1])
-	if pad < 1 || pad > block.BlockSize() || !bytes.Equal(plain[len(plain)-pad:], bytes.Repeat([]byte{byte(pad)}, pad)) {
+	if pad < 1 || pad > block.BlockSize() || !bytes.Equal(plain[len(plain)-pad:], bytes.Repeat([]byte{byte(pad)}, pad)) { //nolint:gosec // pad came from a byte
 		return nil, ErrWrongPassword
 	}
 	return plain[:len(plain)-pad], nil
