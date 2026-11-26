@@ -280,8 +280,9 @@ func (w *Window) closeDialogs() {
 const quitShortcutName = "quit-in-dialog"
 
 // watchDialogs gives every dialog opened on the window the keys of
-// app.quit: GTK does not run the application's shortcuts while a dialog
-// is open.
+// app.quit. Dialogs block the application's shortcuts on purpose, as they
+// are modal (libadwaita issue 973); quitting is deliberately the one
+// exception, so that Ctrl+Q always quits.
 func (w *Window) watchDialogs() {
 	w.dialogs = w.Dialogs()
 	w.dialogs.ConnectItemsChanged(func(position, _, added uint) {
