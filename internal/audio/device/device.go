@@ -171,10 +171,7 @@ func (d *Device) Write(frame []int16) error {
 	if d.done.Load() {
 		return ErrClosed
 	}
-	n := len(frame)
-	if n > periodFrames {
-		n = periodFrames
-	}
+	n := min(len(frame), periodFrames)
 	for i := range periodFrames {
 		s := int16(0)
 		if i < n {

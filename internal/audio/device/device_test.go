@@ -264,9 +264,7 @@ func TestConcurrentCaptureConservation(t *testing.T) {
 	const produced = 3000
 	d := newRingDevice()
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		in := make([]byte, frameBytes)
 		for i := range produced {
 			in[0] = byte(i)
@@ -274,7 +272,7 @@ func TestConcurrentCaptureConservation(t *testing.T) {
 			d.data(nil, in, periodFrames)
 		}
 		d.stopped() // stand-in for device end-of-life: unblocks Read
-	}()
+	})
 
 	delivered := 0
 	last := -1
@@ -305,9 +303,7 @@ func TestConcurrentPlaybackConservation(t *testing.T) {
 	d := newRingDevice()
 	var producerDone atomic.Bool
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		frame := make([]int16, periodFrames)
 		for i := 1; i <= produced; i++ {
 			frame[0] = int16(i)
@@ -317,7 +313,7 @@ func TestConcurrentPlaybackConservation(t *testing.T) {
 			}
 		}
 		producerDone.Store(true)
-	}()
+	})
 
 	consumed := 0
 	last := 0

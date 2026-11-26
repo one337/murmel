@@ -45,7 +45,7 @@ func parseDescription(s string) []descLine {
 	}
 	if !strings.Contains(s, "<") {
 		var lines []descLine
-		for _, l := range strings.Split(html.UnescapeString(s), "\n") {
+		for l := range strings.SplitSeq(html.UnescapeString(s), "\n") {
 			lines = append(lines, descLine{Runs: []descRun{{Text: l}}})
 		}
 		return trimLines(lines)

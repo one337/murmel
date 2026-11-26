@@ -374,24 +374,20 @@ func TestConcurrentSubscribeEmitRace(t *testing.T) {
 
 	var wg sync.WaitGroup
 	for range 4 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for range 200 {
 				unsub := Subscribe(b, func(TextMessage) {})
 				b.Emit(TextMessage{})
 				unsub()
 			}
-		}()
+		})
 	}
 	for range 4 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			for i := range 500 {
 				b.Emit(LatencyStats{RTT: time.Duration(i)})
 			}
-		}()
+		})
 	}
 	wg.Wait()
 

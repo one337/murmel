@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"maps"
 	"math"
 	"net"
 	"os"
@@ -479,9 +480,7 @@ func (c *collector) snapshot() collectorSnapshot {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	byUser := make(map[string]int, len(c.byUser))
-	for k, v := range c.byUser {
-		byUser[k] = v
-	}
+	maps.Copy(byUser, c.byUser)
 	texts := make([]receivedText, len(c.texts))
 	copy(texts, c.texts)
 	return collectorSnapshot{packets: c.packets, samples: c.samples, byUser: byUser, texts: texts}

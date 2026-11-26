@@ -261,7 +261,7 @@ func (r *registry) count(t reflect.Type) int {
 // idempotent; call it on widget destroy. Once it returns, the handler will
 // not be invoked again.
 func Subscribe[T Event](b *Bus, handler func(T)) (unsubscribe func()) {
-	t := reflect.TypeOf((*T)(nil)).Elem()
+	t := reflect.TypeFor[T]()
 	sub := b.reg.add(t, func(ev Event) { handler(ev.(T)) })
 	var once sync.Once
 	return func() {
@@ -295,5 +295,5 @@ func SubscribeCtx[T Event](ctx context.Context, b *Bus, handler func(T)) (unsubs
 // SubscribeCount reports the number of live handlers registered for T.
 // Primarily for leak checks in tests.
 func SubscribeCount[T Event](b *Bus) int {
-	return b.reg.count(reflect.TypeOf((*T)(nil)).Elem())
+	return b.reg.count(reflect.TypeFor[T]())
 }

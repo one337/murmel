@@ -169,8 +169,7 @@ func TestGTKChannelChatLockFollowsPermissionsAndMoves(t *testing.T) {
 // answer decides.
 func TestGTKChannelChatAsksForUnknownPermissions(t *testing.T) {
 	needGTK(t)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 	var mu sync.Mutex
 	var asked []uint32
 	var v *View

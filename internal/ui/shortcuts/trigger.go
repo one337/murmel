@@ -13,7 +13,7 @@ import (
 // with more than one letter are taken.
 func (b Binding) Accelerators() []string {
 	var out []string
-	for _, word := range strings.Fields(b.Trigger) {
+	for word := range strings.FieldsSeq(b.Trigger) {
 		word = strings.Trim(word, ".,;:\"'«»„“”()")
 		key, mods, ok := gtk.AcceleratorParse(word)
 		if !ok || key == 0 {

@@ -202,7 +202,7 @@ func TestBridgeTextMessage(t *testing.T) {
 	trees := []*gumble.Channel{{ID: 0}}
 
 	bridge.OnTextMessage(&gumble.TextMessageEvent{
-		TextMessage: gumble.TextMessage{Sender: sender, Users: to, Channels: chs, Trees: trees, Message: "m"},
+		Sender: sender, Users: to, Channels: chs, Trees: trees, Message: "m",
 	})
 	ev := waitEvent[TextMessage](t, ch, "TextMessage")
 	if ev.Sender != 3 || ev.Message != "m" {
@@ -218,7 +218,7 @@ func TestBridgeTextMessage(t *testing.T) {
 		t.Fatalf("TreeIDs = %v", ev.TreeIDs)
 	}
 
-	bridge.OnTextMessage(&gumble.TextMessageEvent{TextMessage: gumble.TextMessage{Message: "bare"}})
+	bridge.OnTextMessage(&gumble.TextMessageEvent{Message: "bare"})
 	ev = waitEvent[TextMessage](t, ch, "bare TextMessage")
 	if ev.Sender != 0 || ev.UserSessions != nil || ev.ChannelIDs != nil || ev.TreeIDs != nil {
 		t.Fatalf("nil recipients must stay nil: %+v", ev)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"slices"
 	"sort"
 
 	"github.com/one337/murmel/internal/protocol/gumble"
@@ -256,8 +257,7 @@ func TranslateReject(err error) (ev ConnectError, ok bool) {
 	if errors.As(err, &ptr) && ptr != nil {
 		return ConnectError{Reason: rejectReason(ptr.Type), Text: ptr.Reason}, true
 	}
-	var val gumble.RejectError
-	if errors.As(err, &val) {
+	if val, ok := errors.AsType[gumble.RejectError](err); ok {
 		return ConnectError{Reason: rejectReason(val.Type), Text: val.Reason}, true
 	}
 	return ConnectError{}, false
@@ -449,7 +449,7 @@ func copyChannel(c *gumble.Channel) ChannelInfo {
 		for id := range c.Links {
 			info.Links = append(info.Links, id)
 		}
-		sort.Slice(info.Links, func(i, j int) bool { return info.Links[i] < info.Links[j] })
+		slices.Sort(info.Links)
 	}
 	return info
 }

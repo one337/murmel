@@ -1,6 +1,10 @@
 package channeltree
 
-import "github.com/one337/murmel/internal/protocol/gumble"
+import (
+	"slices"
+
+	"github.com/one337/murmel/internal/protocol/gumble"
+)
 
 // Context menu permissions, evaluated like the official client: channel
 // actions against the local user's permissions in that channel; kick, ban
@@ -45,12 +49,7 @@ func (m *treeModel) allowed(id uint32, perms ...gumble.Permission) bool {
 	if !ok {
 		return false
 	}
-	for _, want := range perms {
-		if p.Has(want) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(perms, p.Has)
 }
 
 // channelMenuState is which channel menu entries are enabled.

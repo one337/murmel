@@ -1,6 +1,9 @@
 package bus
 
-import "sync"
+import (
+	"maps"
+	"sync"
+)
 
 // ConnectionState is the bus's view of the connection lifecycle.
 type ConnectionState int
@@ -131,8 +134,6 @@ func (s *store) snapshot() State {
 		}
 		snap.Channels[id] = ch
 	}
-	for id, u := range s.state.Users {
-		snap.Users[id] = u
-	}
+	maps.Copy(snap.Users, s.state.Users)
 	return snap
 }

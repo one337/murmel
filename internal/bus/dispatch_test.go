@@ -1,7 +1,7 @@
 package bus
 
 import (
-	"sort"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -79,9 +79,7 @@ func TestDispatchFlood(t *testing.T) {
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	for range floodGoroutines {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			local := make([]time.Duration, 0, floodPerGoroutine)
 			for i := range floodPerGoroutine {
 				start := time.Now()
@@ -91,7 +89,7 @@ func TestDispatchFlood(t *testing.T) {
 			mu.Lock()
 			emitDurations = append(emitDurations, local...)
 			mu.Unlock()
-		}()
+		})
 	}
 
 	emitted := make(chan struct{})
@@ -116,7 +114,7 @@ func TestDispatchFlood(t *testing.T) {
 		t.Fatalf("recorded %d emit timings, want %d", len(emitDurations), floodTotal)
 	}
 	sorted := append([]time.Duration(nil), emitDurations...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i] < sorted[j] })
+	slices.Sort(sorted)
 	p99 := sorted[int(0.99*float64(len(sorted)-1))]
 	if p99 >= p99Limit {
 		t.Fatalf("p99 Emit send-block = %v, want < %v (bus must never stall the network loop)", p99, p99Limit)

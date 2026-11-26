@@ -1,6 +1,7 @@
 package channeltree
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/one337/murmel/internal/bus"
@@ -412,10 +413,5 @@ func removeOrdered(list *[]uint32, id uint32) {
 }
 
 func containsOrdered(list []uint32, id uint32) bool {
-	for _, v := range list {
-		if v == id {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, id)
 }

@@ -147,7 +147,7 @@ func corpusRegions(t *testing.T, name string) []region {
 		t.Fatal(err)
 	}
 	var rs []region
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		f := strings.Split(strings.TrimSpace(line), ",")
 		if len(f) != 3 || f[0] != name {
 			continue

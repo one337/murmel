@@ -6,6 +6,7 @@ package effects
 
 import (
 	"embed"
+	"slices"
 	"strings"
 )
 
@@ -102,12 +103,7 @@ func valid(v string) bool {
 		return true
 	}
 	if id, ok := BuiltinID(v); ok {
-		for _, b := range Builtins {
-			if b == id {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(Builtins, id)
 	}
 	path, ok := FilePath(v)
 	return ok && path != ""

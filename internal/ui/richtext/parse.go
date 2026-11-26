@@ -11,6 +11,7 @@ import (
 	"html"
 	"log/slog"
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -223,8 +224,8 @@ func (p *parser) pop(element string) {
 
 // flush ends the current paragraph (closing its open tags).
 func (p *parser) flush() {
-	for j := len(p.stack) - 1; j >= 0; j-- {
-		p.b.WriteString("</" + p.stack[j].tag + ">")
+	for _, v := range slices.Backward(p.stack) {
+		p.b.WriteString("</" + v.tag + ">")
 	}
 	m := strings.TrimRight(strings.TrimLeft(p.b.String(), "\n "), "\n ")
 	if visible(m) {

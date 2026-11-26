@@ -3,6 +3,7 @@ package ui
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -33,10 +34,8 @@ func localeDirs() []string {
 func localeDirsFor(envDir, exe string) []string {
 	var dirs []string
 	add := func(d string) {
-		for _, have := range dirs {
-			if have == d {
-				return
-			}
+		if slices.Contains(dirs, d) {
+			return
 		}
 		dirs = append(dirs, d)
 	}
@@ -148,7 +147,7 @@ func pickLanguage(getenv func(string) string, has func(string) bool) string {
 		return ""
 	}
 	var candidates []string
-	for _, l := range strings.Split(getenv("LANGUAGE"), ":") {
+	for l := range strings.SplitSeq(getenv("LANGUAGE"), ":") {
 		if l = normalizeLocale(l); l != "" {
 			candidates = append(candidates, l)
 		}

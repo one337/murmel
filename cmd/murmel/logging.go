@@ -36,7 +36,7 @@ type glibDebug struct {
 
 func parseGLibDebug(env string) glibDebug {
 	d := glibDebug{domains: map[string]bool{}}
-	for _, f := range strings.Fields(env) {
+	for f := range strings.FieldsSeq(env) {
 		if f == "all" {
 			d.all = true
 		}

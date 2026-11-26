@@ -77,10 +77,7 @@ func streamConfigs(captureID, playbackID *malgo.DeviceID, playbackPeriod time.Du
 // playbackPeriodFrames converts the requested playback period into whole
 // 10 ms frames (at least one).
 func playbackPeriodFrames(d time.Duration) uint32 {
-	n := int(d / pipeline.FrameDuration)
-	if n < 1 {
-		n = 1
-	}
+	n := max(int(d/pipeline.FrameDuration), 1)
 	return uint32(n * periodFrames)
 }
 

@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"log/slog"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -227,12 +228,7 @@ func isPrivateMessage(ev bus.TextMessage, self uint32) bool {
 	if self == 0 {
 		return false
 	}
-	for _, session := range ev.UserSessions {
-		if session == self {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ev.UserSessions, self)
 }
 
 // messagePreview renders a chat message as a single-line notification body:

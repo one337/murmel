@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"maps"
 	"math"
 	"net"
 	"os"
@@ -122,9 +123,7 @@ func (c *collector) snapshot() (packets, samples int, byUser map[string]int, tex
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	byUser = make(map[string]int, len(c.byUser))
-	for k, v := range c.byUser {
-		byUser[k] = v
-	}
+	maps.Copy(byUser, c.byUser)
 	return c.decodedPackets, c.decodedSamples, byUser, c.texts, c.disconnected
 }
 

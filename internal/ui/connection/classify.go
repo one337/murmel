@@ -106,8 +106,7 @@ func mentionsCert(msg string) bool {
 // connect: connection refused") down to the actionable part for the
 // dialog body.
 func unreachableDetail(err error) string {
-	var opErr *net.OpError
-	if errors.As(err, &opErr) {
+	if opErr, ok := errors.AsType[*net.OpError](err); ok {
 		if opErr.Err != nil {
 			if urlErr := new(url.Error); errors.As(opErr.Err, &urlErr) && urlErr.Err != nil {
 				return urlErr.Err.Error()
