@@ -19,10 +19,10 @@ func rowObjects(tree *Tree) map[rowID]uintptr {
 	out := map[rowID]uintptr{}
 	onMain(func() {
 		for id, r := range tree.channelRows {
-			out[rowID{id: id}] = coreglib.InternObject(r.root).Native()
+			out[rowID{id: id}] = coreglib.BaseObject(r.root).Native()
 		}
 		for s, r := range tree.userRows {
-			out[rowID{user: true, id: s}] = coreglib.InternObject(r.root).Native()
+			out[rowID{user: true, id: s}] = coreglib.BaseObject(r.root).Native()
 		}
 	})
 	return out

@@ -162,7 +162,7 @@ func TestGTKFocusedUserLeavesFocusStaysInChannel(t *testing.T) {
 	}
 
 	// Enter (the list's activate-cursor-row) joins the focused channel.
-	onMain(func() { coreglib.InternObject(tree.list).Emit("activate-cursor-row") })
+	onMain(func() { coreglib.BaseObject(tree.list).Emit("activate-cursor-row") })
 	got := joins(1)
 	if len(got) != 1 || got[0].ChannelID != ch {
 		t.Errorf("Enter after the rebuild requested %+v, want to join channel %d", got, ch)
@@ -227,7 +227,7 @@ func TestGTKArrowKeyRightAfterRebuildKeepsScroll(t *testing.T) {
 
 	inOnePass(b, []bus.Event{bus.UserRemoved{Session: 2}}, func() {
 		tree.flushRebuild()
-		coreglib.InternObject(tree.list).Emit("move-cursor", gtk.MovementDisplayLines, 1, false, false)
+		coreglib.BaseObject(tree.list).Emit("move-cursor", gtk.MovementDisplayLines, 1, false, false)
 	})
 	time.Sleep(3 * rebuildInterval)
 	var pageSize float64
@@ -251,7 +251,7 @@ func TestGTKRebuildLeavesFocusOutsideTheList(t *testing.T) {
 	removeAndWait(t, tree, b, 3, 4, 5)
 	onMain(func() {
 		focus := win.Focus()
-		if focus == nil || !gtk.BaseWidget(focus).IsAncestor(entry) && coreglib.InternObject(focus).Native() != coreglib.InternObject(entry).Native() {
+		if focus == nil || !gtk.BaseWidget(focus).IsAncestor(entry) && coreglib.BaseObject(focus).Native() != coreglib.BaseObject(entry).Native() {
 			t.Errorf("the focus moved from the entry to %T", focus)
 		}
 	})

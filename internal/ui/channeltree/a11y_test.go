@@ -105,7 +105,7 @@ func TestGTKUnreadWaitsForTheFocusToLeave(t *testing.T) {
 		c := gtk.NewEventControllerFocus()
 		c.ConnectLeave(func() { lost.Store(true) })
 		tree.rowFor(id).AddController(c)
-		coreglib.InternObject(win).NotifyProperty("is-active", func() {
+		coreglib.BaseObject(win).NotifyProperty("is-active", func() {
 			if !win.IsActive() {
 				lost.Store(true)
 			}

@@ -137,7 +137,7 @@ type activeGetter interface {
 // onActive calls f with the new value whenever w's "active" changes.
 func onActive(w activeGetter, f func(bool)) {
 	self := weakref.New(w)
-	coreglib.InternObject(w).NotifyProperty("active", func() {
+	coreglib.BaseObject(w).NotifyProperty("active", func() {
 		self.Do(func(w activeGetter) { f(w.Active()) })
 	})
 }
@@ -260,7 +260,7 @@ func (p *groupsPage) groupRow(i int) *adw.ExpanderRow {
 	exp.SetExpanded(p.expanded[g.Name])
 	name := g.Name
 	expRef := weakref.New(exp)
-	coreglib.InternObject(exp).NotifyProperty("expanded", p.on(func(p *groupsPage) {
+	coreglib.BaseObject(exp).NotifyProperty("expanded", p.on(func(p *groupsPage) {
 		expRef.Do(func(exp *adw.ExpanderRow) { p.expanded[name] = exp.Expanded() })
 	}))
 
@@ -488,7 +488,7 @@ func (p *permsPage) ruleRow(i int) *adw.ExpanderRow {
 	exp.SetSubtitleLines(2)
 	exp.SetExpanded(p.expanded[i])
 	expRef := weakref.New(exp)
-	coreglib.InternObject(exp).NotifyProperty("expanded", p.on(func(p *permsPage) {
+	coreglib.BaseObject(exp).NotifyProperty("expanded", p.on(func(p *permsPage) {
 		expRef.Do(func(exp *adw.ExpanderRow) { p.expanded[i] = exp.Expanded() })
 	}))
 

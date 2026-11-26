@@ -203,8 +203,8 @@ func TestGTKOnNotifyWorksAfterGC(t *testing.T) {
 	t.Cleanup(func() { onMain(func() { win.Destroy() }) })
 	collect()
 	onMain(func() {
-		list := coreglib.InternObject(win.Content()).Cast().(*gtk.ListBox)
-		r := coreglib.InternObject(list.RowAtIndex(0)).Cast().(*adw.SwitchRow)
+		list := coreglib.BaseObject(win.Content()).Cast().(*gtk.ListBox)
+		r := coreglib.BaseObject(list.RowAtIndex(0)).Cast().(*adw.SwitchRow)
 		r.SetActive(true)
 	})
 	if got.Load() != 1 {

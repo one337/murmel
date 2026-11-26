@@ -13,7 +13,7 @@ import (
 
 // find returns the first widget below w (w included) of type T.
 func find[T any](w gtk.Widgetter) (T, bool) {
-	if x, ok := coreglib.InternObject(w).Cast().(T); ok {
+	if x, ok := coreglib.BaseObject(w).Cast().(T); ok {
 		return x, true
 	}
 	for c := gtk.BaseWidget(w).FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
@@ -73,7 +73,7 @@ func TestGTKRebuildWaitsWhileHandlePressed(t *testing.T) {
 	needGTK(t)
 	tree, b, _, _ := focusTree(t, 5, 40)
 	src := dragSource(t, tree, 20)
-	onMain(func() { coreglib.InternObject(src).Emit("begin", nil) })
+	onMain(func() { coreglib.BaseObject(src).Emit("begin", nil) })
 
 	leaveAndSettle(b, 3)
 	var old bool
@@ -83,7 +83,7 @@ func TestGTKRebuildWaitsWhileHandlePressed(t *testing.T) {
 	}
 	var caughtUp bool
 	onMain(func() {
-		coreglib.InternObject(src).Emit("end", nil)
+		coreglib.BaseObject(src).Emit("end", nil)
 		_, still := tree.userRows[3]
 		caughtUp = !still
 	})
@@ -213,7 +213,7 @@ func TestGTKDialogFromMenuSurvivesRebuild(t *testing.T) {
 	if alert == nil {
 		t.Fatal("the kick dialog did not open")
 	}
-	onMain(func() { coreglib.InternObject(alert).Emit("response", "kick") })
+	onMain(func() { coreglib.BaseObject(alert).Emit("response", "kick") })
 	got := kicks(1)
 	if len(got) != 1 || got[0].Session != 20 {
 		t.Errorf("the kick dialog requested %+v, want a kick of user 20", got)

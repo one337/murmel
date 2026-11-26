@@ -81,9 +81,9 @@ func newComposer() *composer {
 
 	c.buffer = gtk.NewTextBuffer(nil)
 	c.boldTag = gtk.NewTextTag("bold")
-	coreglib.InternObject(c.boldTag).SetObjectProperty("weight", 700)
+	coreglib.BaseObject(c.boldTag).SetObjectProperty("weight", 700)
 	c.italicTag = gtk.NewTextTag("italic")
-	coreglib.InternObject(c.italicTag).SetObjectProperty("style", pango.StyleItalic)
+	coreglib.BaseObject(c.italicTag).SetObjectProperty("style", pango.StyleItalic)
 	c.buffer.TagTable().Add(c.boldTag)
 	c.buffer.TagTable().Add(c.italicTag)
 	c.buffer.ConnectInsertText(func(at *gtk.TextIter, text string, _ int) {

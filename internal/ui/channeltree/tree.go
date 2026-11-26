@@ -388,14 +388,14 @@ func (e entry) rowID() rowID { return rowID{user: e.kind != entryChannel, id: e.
 func (t *Tree) listOrder() []rowID {
 	ids := make(map[uintptr]rowID, len(t.channelRows)+len(t.userRows))
 	for id, r := range t.channelRows {
-		ids[coreglib.InternObject(r.root).Native()] = rowID{id: id}
+		ids[coreglib.BaseObject(r.root).Native()] = rowID{id: id}
 	}
 	for session, r := range t.userRows {
-		ids[coreglib.InternObject(r.root).Native()] = rowID{user: true, id: session}
+		ids[coreglib.BaseObject(r.root).Native()] = rowID{user: true, id: session}
 	}
 	order := make([]rowID, 0, len(ids))
 	for c := t.list.FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
-		if id, ok := ids[coreglib.InternObject(c).Native()]; ok {
+		if id, ok := ids[coreglib.BaseObject(c).Native()]; ok {
 			order = append(order, id)
 		}
 	}
@@ -735,7 +735,7 @@ func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 		return false
 	}
 	// extend false, modify true: move the cursor without selecting.
-	coreglib.InternObject(t.list).Emit("move-cursor", step, count, false, true)
+	coreglib.BaseObject(t.list).Emit("move-cursor", step, count, false, true)
 	return true
 }
 
@@ -864,7 +864,7 @@ func sameRow(a, b *gtk.ListBoxRow) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return coreglib.InternObject(a).Native() == coreglib.InternObject(b).Native()
+	return coreglib.BaseObject(a).Native() == coreglib.BaseObject(b).Native()
 }
 
 // onActivate fires when the user double-clicks or presses Enter (or

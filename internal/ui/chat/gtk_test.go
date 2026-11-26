@@ -112,7 +112,7 @@ func errorRows(v *View) []string {
 	var texts func(w gtk.Widgetter) []string
 	texts = func(w gtk.Widgetter) []string {
 		var l []string
-		if label, ok := coreglib.InternObject(w).Cast().(*gtk.Label); ok && label.Text() != "" {
+		if label, ok := coreglib.BaseObject(w).Cast().(*gtk.Label); ok && label.Text() != "" {
 			l = append(l, label.Text())
 		}
 		for c := gtk.BaseWidget(w).FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
@@ -121,7 +121,7 @@ func errorRows(v *View) []string {
 		return l
 	}
 	for c := v.visible().list.FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
-		row, ok := coreglib.InternObject(c).Cast().(*gtk.ListBoxRow)
+		row, ok := coreglib.BaseObject(c).Cast().(*gtk.ListBoxRow)
 		if !ok || row.Child() == nil || !gtk.BaseWidget(row.Child()).HasCSSClass("error") {
 			continue
 		}
@@ -166,13 +166,13 @@ func TestGTKRefusalsShowInTheChat(t *testing.T) {
 // classes and the texts of the labels in it, in order.
 func rowShape(row *gtk.ListBoxRow) (vertical bool, classes, labels []string) {
 	box := gtk.BaseWidget(row.Child())
-	if b, ok := coreglib.InternObject(row.Child()).Cast().(*gtk.Box); ok {
+	if b, ok := coreglib.BaseObject(row.Child()).Cast().(*gtk.Box); ok {
 		vertical = b.Orientation() == gtk.OrientationVertical
 	}
 	classes = box.CSSClasses()
 	var walk func(w gtk.Widgetter)
 	walk = func(w gtk.Widgetter) {
-		if label, ok := coreglib.InternObject(w).Cast().(*gtk.Label); ok {
+		if label, ok := coreglib.BaseObject(w).Cast().(*gtk.Label); ok {
 			labels = append(labels, label.Text())
 		}
 		for c := gtk.BaseWidget(w).FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {

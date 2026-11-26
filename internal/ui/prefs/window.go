@@ -93,7 +93,7 @@ func Show(parent gtk.Widgetter, st settings.Settings, m *certs.Manager, player *
 // code then.
 func onClose(d *adw.PreferencesDialog, f func()) {
 	var closed, destroy coreglib.SignalHandle
-	obj := coreglib.InternObject(d)
+	obj := coreglib.BaseObject(d)
 	run := sync.OnceFunc(func() {
 		obj.HandlerDisconnect(closed)
 		obj.HandlerDisconnect(destroy)
@@ -156,7 +156,7 @@ func (c *certList) defaultGroup() *adw.PreferencesGroup {
 	c.combo = adw.NewComboRow()
 	c.combo.SetTitle(i18n.Tr("Default identity"))
 	c.combo.SetSubtitle(i18n.Tr("Used for new connections"))
-	coreglib.InternObject(c.combo).NotifyProperty("selected", c.on(func(c *certList) {
+	coreglib.BaseObject(c.combo).NotifyProperty("selected", c.on(func(c *certList) {
 		if c.syncing {
 			return
 		}
@@ -732,7 +732,7 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 // w only weakly: it is attached to w (see internal/ui/weakref).
 func onNotify[T coreglib.Objector](w T, property string, f func(T)) {
 	self := weakref.New(w)
-	coreglib.InternObject(w).NotifyProperty(property, func() { self.Do(f) })
+	coreglib.BaseObject(w).NotifyProperty(property, func() { self.Do(f) })
 }
 
 // deviceComboRow builds a ComboRow backed by audio device enumeration.

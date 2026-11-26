@@ -123,7 +123,7 @@ func TestGTKEnterOnUserOpensConversation(t *testing.T) {
 		t.Fatalf("the cursor is on %+v, not on a user", user)
 	}
 
-	onMain(func() { coreglib.InternObject(tree.list).Emit("activate-cursor-row") })
+	onMain(func() { coreglib.BaseObject(tree.list).Emit("activate-cursor-row") })
 	got := targets(1)
 	if len(got) == 0 || got[len(got)-1].Session != user.id {
 		t.Fatalf("Enter on user %d sent %+v", user.id, got)
@@ -134,7 +134,7 @@ func TestGTKEnterOnUserOpensConversation(t *testing.T) {
 	focusRow(t, tree, other)
 	focusRow(t, tree, user)
 	n := len(targets(0))
-	onMain(func() { coreglib.InternObject(tree.list).Emit("activate-cursor-row") })
+	onMain(func() { coreglib.BaseObject(tree.list).Emit("activate-cursor-row") })
 	got = targets(n + 1)
 	if len(got) <= n || got[len(got)-1].Session != user.id {
 		t.Errorf("Enter on the selected user %d sent %+v", user.id, got[n:])
@@ -147,7 +147,7 @@ func TestGTKEnterOnChannelJoins(t *testing.T) {
 	tree, b, _, _, _ := keyTree(t)
 	joins := record[bus.ChannelJoinRequested](t, b)
 	focusRow(t, tree, rowID{id: 3})
-	onMain(func() { coreglib.InternObject(tree.list).Emit("activate-cursor-row") })
+	onMain(func() { coreglib.BaseObject(tree.list).Emit("activate-cursor-row") })
 	if got := joins(1); len(got) != 1 || got[0].ChannelID != 3 {
 		t.Errorf("Enter on channel 3 sent %+v", got)
 	}
@@ -168,7 +168,7 @@ func TestGTKMouseStillOpensConversation(t *testing.T) {
 		ctrls := tree.userRows[user].root.ObserveControllers()
 		for i := uint(0); i < ctrls.NItems(); i++ {
 			if g, ok := ctrls.Item(i).Cast().(*gtk.GestureClick); ok && g.Button() == gdk.BUTTON_PRIMARY {
-				coreglib.InternObject(g).Emit("released", 1, 5.0, 5.0)
+				coreglib.BaseObject(g).Emit("released", 1, 5.0, 5.0)
 			}
 		}
 	})
@@ -258,7 +258,7 @@ func TestGTKMenuEntryKeepsTheFocusItMoved(t *testing.T) {
 	var inEntry bool
 	onMain(func() {
 		if f := tree.list.Root().Focus(); f != nil {
-			inEntry = coreglib.InternObject(f).Native() == coreglib.InternObject(entry).Native() || gtk.BaseWidget(f).IsAncestor(entry)
+			inEntry = coreglib.BaseObject(f).Native() == coreglib.BaseObject(entry).Native() || gtk.BaseWidget(f).IsAncestor(entry)
 		}
 	})
 	if row, ok := focused(tree); ok || !inEntry {

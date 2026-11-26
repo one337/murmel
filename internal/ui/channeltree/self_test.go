@@ -169,7 +169,7 @@ func TestGTKOwnRowShownAfterHandleRelease(t *testing.T) {
 	tree, b, _, _ := focusTree(t, 30, 300)
 	scrollTo(t, tree, false)
 	src := dragSource(t, tree, firstUser(tree))
-	onMain(func() { coreglib.InternObject(src).Emit("begin", nil) })
+	onMain(func() { coreglib.BaseObject(src).Emit("begin", nil) })
 	var before float64
 	onMain(func() { before = tree.root.VAdjustment().Value() })
 
@@ -183,7 +183,7 @@ func TestGTKOwnRowShownAfterHandleRelease(t *testing.T) {
 	if after != before {
 		t.Errorf("while the handle was pressed the view moved from %.0f to %.0f", before, after)
 	}
-	onMain(func() { coreglib.InternObject(src).Emit("end", nil) })
+	onMain(func() { coreglib.BaseObject(src).Emit("end", nil) })
 	time.Sleep(3 * rebuildInterval)
 	fullyShown(t, tree, "after the handle was released")
 }

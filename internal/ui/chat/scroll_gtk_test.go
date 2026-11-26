@@ -113,7 +113,7 @@ func TestGTKScrolledUpStaysAndJumpShowsNewest(t *testing.T) {
 	if value != 0 || !revealed {
 		t.Errorf("scrolled up: view moved to %v, jump offered %v; want 0 and offered", value, revealed)
 	}
-	onMain(func() { coreglib.InternObject(c.jump.Child()).Emit("clicked") })
+	onMain(func() { coreglib.BaseObject(c.jump.Child()).Emit("clicked") })
 	settleFrames()
 	if px := newestHidden(c); px != 0 {
 		t.Errorf("after the jump, the newest row is %v px out of view", px)

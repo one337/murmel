@@ -353,7 +353,7 @@ func TestGTKFocusedUserMovedKeyboardViewFollows(t *testing.T) {
 		t.Errorf("the view scrolled more than needed: the row ends at %.0f, the view at %.0f", top+h, page)
 	}
 
-	onMain(func() { coreglib.InternObject(tree.list).Emit("activate-cursor-row") })
+	onMain(func() { coreglib.BaseObject(tree.list).Emit("activate-cursor-row") })
 	got := targets(1)
 	if len(got) == 0 || got[len(got)-1].Session != focus.id {
 		t.Errorf("Enter after the move went to %+v, want user %d", got, focus.id)

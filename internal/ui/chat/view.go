@@ -79,7 +79,7 @@ func NewView(ctx context.Context, b *bus.Bus, sender Sender) *View {
 
 	v.nav = adw.NewNavigationView()
 	v.nav.Add(v.channel.page)
-	coreglib.InternObject(v.nav).NotifyProperty("visible-page", v.markVisibleRead)
+	coreglib.BaseObject(v.nav).NotifyProperty("visible-page", v.markVisibleRead)
 	v.nav.ConnectMap(v.trackWindow)
 
 	v.subscribe(ctx)
@@ -142,7 +142,7 @@ func (v *View) trackWindow() {
 	if root == nil {
 		return
 	}
-	obj := coreglib.InternObject(root)
+	obj := coreglib.BaseObject(root)
 	v.windowActive = func() bool {
 		active, _ := obj.ObjectProperty("is-active").(bool)
 		return active

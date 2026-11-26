@@ -15,7 +15,7 @@ import (
 func menuEntryShown(pop *gtk.PopoverMenu, label string) bool {
 	var walk func(w gtk.Widgetter) bool
 	walk = func(w gtk.Widgetter) bool {
-		obj := coreglib.InternObject(w)
+		obj := coreglib.BaseObject(w)
 		if obj.TypeFromInstance().Name() == "GtkModelButton" &&
 			obj.ObjectProperty("text") == label && gtk.BaseWidget(w).Visible() {
 			return true

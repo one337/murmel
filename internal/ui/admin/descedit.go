@@ -75,10 +75,10 @@ func newDescEditor(html string, limit int) *descEditor {
 	e.bold = e.newTag("bold", "weight", 700)
 	e.italic = e.newTag("italic", "style", pango.StyleItalic)
 	e.heading = e.newTag("heading", "weight", 700)
-	glib.InternObject(e.heading).SetObjectProperty("scale", 1.3)
-	glib.InternObject(e.heading).SetObjectProperty("pixels-above-lines", 6)
+	glib.BaseObject(e.heading).SetObjectProperty("scale", 1.3)
+	glib.BaseObject(e.heading).SetObjectProperty("pixels-above-lines", 6)
 	e.item = e.newTag("item", "left-margin", 28)
-	glib.InternObject(e.item).SetObjectProperty("indent", -14)
+	glib.BaseObject(e.item).SetObjectProperty("indent", -14)
 	e.bulletTag = e.newTag("bullet", "editable", false)
 
 	e.buffer.ConnectInsertText(func(at *gtk.TextIter, text string, _ int) {
@@ -231,12 +231,12 @@ func (e *descEditor) on(fn func(e *descEditor)) func() {
 
 func (e *descEditor) newTag(name, prop string, value any) *gtk.TextTag {
 	t := gtk.NewTextTag(name)
-	glib.InternObject(t).SetObjectProperty(prop, value)
+	glib.BaseObject(t).SetObjectProperty(prop, value)
 	e.buffer.TagTable().Add(t)
 	return t
 }
 
-func key(o any) uintptr { return glib.InternObject(o.(glib.Objector)).Native() }
+func key(o any) uintptr { return glib.BaseObject(o.(glib.Objector)).Native() }
 
 // button is a flat toolbar button; fallback is used when the icon theme
 // lacks icon.
@@ -509,8 +509,8 @@ func (e *descEditor) linkButton() *gtk.MenuButton {
 		e.removeLinks(start, end)
 		if href != "" {
 			tag := gtk.NewTextTag("")
-			glib.InternObject(tag).SetObjectProperty("underline", pango.UnderlineSingle)
-			glib.InternObject(tag).SetObjectProperty("foreground", "#3584e4")
+			glib.BaseObject(tag).SetObjectProperty("underline", pango.UnderlineSingle)
+			glib.BaseObject(tag).SetObjectProperty("foreground", "#3584e4")
 			e.buffer.TagTable().Add(tag)
 			e.links[key(tag)] = href
 			e.buffer.ApplyTag(tag, start, end)
@@ -656,8 +656,8 @@ func (e *descEditor) load(lines []descLine) {
 			}
 			if r.Link != "" {
 				tag := gtk.NewTextTag("")
-				glib.InternObject(tag).SetObjectProperty("underline", pango.UnderlineSingle)
-				glib.InternObject(tag).SetObjectProperty("foreground", "#3584e4")
+				glib.BaseObject(tag).SetObjectProperty("underline", pango.UnderlineSingle)
+				glib.BaseObject(tag).SetObjectProperty("foreground", "#3584e4")
 				e.buffer.TagTable().Add(tag)
 				e.links[key(tag)] = r.Link
 				e.buffer.ApplyTag(tag, start, end)

@@ -101,7 +101,7 @@ func TestGTKImagesAreFreedWithTheirRow(t *testing.T) {
 			row := Build(Parse(html), Options{MaxImageWidth: 360, MaxImageHeight: 360})
 			var walk func(w gtk.Widgetter)
 			walk = func(w gtk.Widgetter) {
-				if p, ok := coreglib.InternObject(w).Cast().(*gtk.Picture); ok {
+				if p, ok := coreglib.BaseObject(w).Cast().(*gtk.Picture); ok {
 					watched++
 					coreglib.WeakRefObject(p, func() { finalized.Add(1) })
 					if tex := p.Paintable(); tex != nil {
@@ -161,7 +161,7 @@ func TestGTKImageClickOpensViewAfterGC(t *testing.T) {
 		var click *gtk.GestureClick
 		var walk func(w gtk.Widgetter)
 		walk = func(w gtk.Widgetter) {
-			if _, ok := coreglib.InternObject(w).Cast().(*gtk.Picture); ok {
+			if _, ok := coreglib.BaseObject(w).Cast().(*gtk.Picture); ok {
 				ctrls := gtk.BaseWidget(w).ObserveControllers()
 				for i := uint(0); i < ctrls.NItems(); i++ {
 					if g, ok := ctrls.Item(i).Cast().(*gtk.GestureClick); ok {
@@ -178,7 +178,7 @@ func TestGTKImageClickOpensViewAfterGC(t *testing.T) {
 			t.Error("no click gesture on the picture")
 			return
 		}
-		coreglib.InternObject(click).Emit("released", 1, 0.0, 0.0)
+		coreglib.BaseObject(click).Emit("released", 1, 0.0, 0.0)
 		if d := win.VisibleDialog(); d != nil {
 			opened = true
 			d.ForceClose()

@@ -63,7 +63,7 @@ func (i *Icon) End() {
 		}
 		done = true
 		if mapped != 0 {
-			coreglib.InternObject(surface).HandlerDisconnect(mapped)
+			coreglib.BaseObject(surface).HandlerDisconnect(mapped)
 		}
 		if timeout != 0 {
 			glib.SourceRemove(timeout)
@@ -78,7 +78,7 @@ func (i *Icon) End() {
 		finish()
 		return
 	}
-	mapped = coreglib.InternObject(surface).NotifyProperty("mapped", func() {
+	mapped = coreglib.BaseObject(surface).NotifyProperty("mapped", func() {
 		if !surface.Mapped() {
 			finish()
 		}

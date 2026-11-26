@@ -184,7 +184,7 @@ func (s *statusBar) fillThresholdPopover(box *gtk.Box) {
 	noise := gtk.NewDropDownFromStrings([]string{i18n.Tr("Off"), i18n.Tr("Low"), i18n.Tr("Moderate"), i18n.Tr("High"), i18n.Tr("Very High")})
 	noise.SetSelected(uint(min(4, max(0, s.settings.NoiseSuppression()))))
 	noise.SetVAlign(gtk.AlignCenter)
-	coreglib.InternObject(noise).NotifyProperty("selected", func() {
+	coreglib.BaseObject(noise).NotifyProperty("selected", func() {
 		s.settings.SetNoiseSuppression(int(noise.Selected()))
 	})
 	box.Append(settingLine(i18n.Tr("Noise Suppression"), noise))
@@ -193,7 +193,7 @@ func (s *statusBar) fillThresholdPopover(box *gtk.Box) {
 	echo.SetActive(s.settings.EchoCancellation())
 	echo.SetVAlign(gtk.AlignCenter)
 	echo.SetTooltipText(i18n.Tr("For speakers instead of a headset"))
-	coreglib.InternObject(echo).NotifyProperty("active", func() {
+	coreglib.BaseObject(echo).NotifyProperty("active", func() {
 		s.settings.SetEchoCancellation(echo.Active())
 	})
 	box.Append(settingLine(i18n.Tr("Echo Cancellation"), echo))

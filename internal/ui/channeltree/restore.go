@@ -126,28 +126,28 @@ func (t *Tree) saveListState() listState {
 	// The rows in their current order, as identities.
 	ids := make(map[uintptr]rowID, len(t.channelRows)+len(t.userRows))
 	for id, r := range t.channelRows {
-		ids[coreglib.InternObject(r.root).Native()] = rowID{id: id}
+		ids[coreglib.BaseObject(r.root).Native()] = rowID{id: id}
 	}
 	for session, r := range t.userRows {
-		ids[coreglib.InternObject(r.root).Native()] = rowID{user: true, id: session}
+		ids[coreglib.BaseObject(r.root).Native()] = rowID{user: true, id: session}
 	}
 	var focused *gtk.ListBoxRow
 	focusVisible := false
 	if root := t.list.Root(); root != nil {
 		focused = focusedRow(root.Focus(), t.list)
-		if w, ok := coreglib.InternObject(root).Cast().(interface{ FocusVisible() bool }); ok {
+		if w, ok := coreglib.BaseObject(root).Cast().(interface{ FocusVisible() bool }); ok {
 			focusVisible = w.FocusVisible()
 		}
 	}
 	var focusedNative uintptr
 	if focused != nil {
-		focusedNative = coreglib.InternObject(focused).Native()
+		focusedNative = coreglib.BaseObject(focused).Native()
 	}
 	var order []rowID
 	var rows []*gtk.ListBoxRow
 	at := -1
 	for c := t.list.FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
-		native := coreglib.InternObject(c).Native()
+		native := coreglib.BaseObject(c).Native()
 		id, ok := ids[native]
 		if !ok {
 			continue // the placeholder
@@ -270,15 +270,15 @@ func channelAbove(order []rowID, i int) uint32 {
 // focusedRow returns the row of list that holds the focus widget, nil if
 // the focus is elsewhere.
 func focusedRow(focus gtk.Widgetter, list *gtk.ListBox) *gtk.ListBoxRow {
-	listNative := coreglib.InternObject(list).Native()
+	listNative := coreglib.BaseObject(list).Native()
 	for w := focus; w != nil; {
 		base := gtk.BaseWidget(w)
 		parent := base.Parent()
 		if parent == nil {
 			return nil
 		}
-		if coreglib.InternObject(parent).Native() == listNative {
-			row, _ := coreglib.InternObject(w).Cast().(*gtk.ListBoxRow)
+		if coreglib.BaseObject(parent).Native() == listNative {
+			row, _ := coreglib.BaseObject(w).Cast().(*gtk.ListBoxRow)
 			return row
 		}
 		w = parent
@@ -361,7 +361,7 @@ func (t *Tree) anchorAfterLayout(anchor []anchorCandidate, ensureFocus, reveal b
 		return
 	}
 	p := &pendingAnchor{anchor: anchor, ensureFocus: ensureFocus, reveal: reveal, clock: gdk.BaseFrameClock(fc), retried: -1}
-	p.layout = coreglib.InternObject(p.clock).ConnectAfter("layout", func() {
+	p.layout = coreglib.BaseObject(p.clock).ConnectAfter("layout", func() {
 		if t.anchor != p {
 			return
 		}
@@ -391,7 +391,7 @@ func (t *Tree) anchorAfterLayout(anchor []anchorCandidate, ensureFocus, reveal b
 func (t *Tree) dropAnchor() {
 	if p := t.anchor; p != nil {
 		t.anchor = nil
-		coreglib.InternObject(p.clock).HandlerDisconnect(p.layout)
+		coreglib.BaseObject(p.clock).HandlerDisconnect(p.layout)
 	}
 }
 

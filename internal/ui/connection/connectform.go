@@ -120,7 +120,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	f.identityRow.SetTitle(i18n.Tr("User Certificate"))
 	f.identityRow.SetModel(f.identityStore)
 	f.identityNote("")
-	coreglib.InternObject(f.identityRow).NotifyProperty("selected", with(func(f *connectForm) { f.identityNote("") }))
+	coreglib.BaseObject(f.identityRow).NotifyProperty("selected", with(func(f *connectForm) { f.identityNote("") }))
 	f.selectIdentity(c.settings.LastIdentity())
 
 	// Import button inside the certificate row keeps the form compact.

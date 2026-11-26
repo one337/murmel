@@ -139,7 +139,7 @@ func checkListMatchesModel(t *testing.T, tree *Tree) {
 		walk := tree.model.walk()
 		i := 0
 		for c := tree.list.FirstChild(); c != nil; c = gtk.BaseWidget(c).NextSibling() {
-			row, isRow := coreglib.InternObject(c).Cast().(*gtk.ListBoxRow)
+			row, isRow := coreglib.BaseObject(c).Cast().(*gtk.ListBoxRow)
 			if !isRow {
 				continue // the placeholder
 			}
