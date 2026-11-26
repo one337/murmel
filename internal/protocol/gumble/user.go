@@ -1,8 +1,8 @@
 package gumble
 
 import (
-	"github.com/golang/protobuf/proto"
 	"github.com/one337/murmel/internal/protocol/gumble/MumbleProto"
+	"google.golang.org/protobuf/proto"
 )
 
 // User represents a user that is currently connected to the server.

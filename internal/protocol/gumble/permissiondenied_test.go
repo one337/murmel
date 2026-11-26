@@ -3,7 +3,7 @@ package gumble
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/one337/murmel/internal/protocol/gumble/MumbleProto"
 )

@@ -403,3 +403,21 @@ function, which also serves the notification preview and the rich-text
 fallback; the helper had no caller left.
 
 **Upstream**: layeh/gumble `gumbleutil/textmessage.go`.
+
+## P21 — Mumble messages from google.golang.org/protobuf
+
+**What**: `protoc-gen-go` v1.36.12 now produces
+`MumbleProto/Mumble.pb.go`, and the fork uses `google.golang.org/protobuf`
+instead of `github.com/golang/protobuf` v1.3.1. The schema did not change: it is
+`Mumble.proto` from Mumble commit `5a4f5297` (2020-02-28), the revision
+the previous file was generated from. `generate_main.go` now fetches that
+revision instead of the newest one and builds the generator at the version
+in `go.mod`. `MumbleProto/wire_test.go` checks that every message keeps
+its bytes on the wire.
+
+**Why**: `github.com/golang/protobuf` is superseded and v1.3.1 is from
+2019; generating from the newest `Mumble.proto` would have changed the
+messages without notice.
+
+**Upstream**: layeh/gumble `gumble/MumbleProto/Mumble.pb.go` and
+`generate_main.go`.

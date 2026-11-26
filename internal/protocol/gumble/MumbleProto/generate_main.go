@@ -1,6 +1,10 @@
 //go:build ignore
-// +build ignore
 
+// Generates Mumble.pb.go from Mumble's Mumble.proto. Needs protoc.
+//
+// The schema stays at a fixed Mumble commit, so that generating again does
+// not change the messages; the generator version matches the
+// google.golang.org/protobuf version in go.mod.
 package main
 
 import (
@@ -9,17 +13,25 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
+)
+
+const (
+	protoURL     = "https://raw.githubusercontent.com/mumble-voip/mumble/5a4f5297a37968b941a6ebee12b2778eb998b661/src/Mumble.proto"
+	protocGenGo  = "google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.12"
+	importPath   = "github.com/one337/murmel/internal/protocol/gumble/MumbleProto"
+	pluginBinDir = "protoc-gen-go.bin"
 )
 
 func main() {
-	// Get Mumble.proto
-	resp, err := http.Get("https://raw.githubusercontent.com/mumble-voip/mumble/master/src/Mumble.proto")
+	resp, err := http.Get(protoURL)
 	if err != nil {
 		log.Fatalf("could not download Mumble.proto: %s\n", err)
 	}
 	defer resp.Body.Close()
-
-	// Write Mumble.proto
+	if resp.StatusCode != http.StatusOK {
+		log.Fatalf("could not download Mumble.proto: %s\n", resp.Status)
+	}
 	f, err := os.Create("Mumble.proto")
 	if err != nil {
 		log.Fatalf("could not create Mumble.proto: %s\n", err)
@@ -30,18 +42,27 @@ func main() {
 	if err := f.Close(); err != nil {
 		log.Fatalf("could not close Mumble.proto: %s\n", err)
 	}
+	defer os.Remove("Mumble.proto")
 
-	// Build proto-gen-go
-	if err := exec.Command("go", "build", "-o", "protoc-gen-go", "github.com/golang/protobuf/protoc-gen-go").Run(); err != nil {
+	bin, err := filepath.Abs(pluginBinDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(bin)
+	install := exec.Command("go", "install", protocGenGo)
+	install.Env = append(os.Environ(), "GOBIN="+bin, "GOFLAGS=")
+	install.Stderr = os.Stderr
+	if err := install.Run(); err != nil {
 		log.Fatalf("could not build protoc-gen-go: %s\n", err)
 	}
 
-	// Generate code
-	if err := exec.Command("protoc", "--go_out=.", "Mumble.proto").Run(); err != nil {
+	protoc := exec.Command("protoc",
+		"--plugin=protoc-gen-go="+filepath.Join(bin, "protoc-gen-go"),
+		"--go_out=.", "--go_opt=paths=source_relative",
+		"--go_opt=MMumble.proto="+importPath,
+		"Mumble.proto")
+	protoc.Stderr = os.Stderr
+	if err := protoc.Run(); err != nil {
 		log.Fatalf("could not run protoc: %s\n", err)
 	}
-
-	// Clean up
-	os.Remove("Mumble.proto")
-	os.Remove("protoc-gen-go")
 }

@@ -261,7 +261,7 @@ Flatpak `share/licenses/io.github.one337.murmel`); the list is
 | A fork of [gumble](https://github.com/layeh/gumble) in `internal/protocol`, changes in [PATCHES.md](PATCHES.md) | MPL-2.0 |
 | [Mumble](https://www.mumble.info/)'s protocol definitions (`MumbleProto`) and voice encryption (`internal/protocol/crypt`, after Mumble's `CryptStateOCB2`) | BSD-3-Clause |
 | [malgo](https://github.com/gen2brain/malgo) with [miniaudio](https://miniaud.io/) | Unlicense |
-| [golang/protobuf](https://github.com/golang/protobuf), [go-pkcs12](https://github.com/SSLMate/go-pkcs12), [golang.org/x/crypto](https://pkg.go.dev/golang.org/x/crypto), [golang.org/x/sync](https://pkg.go.dev/golang.org/x/sync), [golang.org/x/image](https://pkg.go.dev/golang.org/x/image), [golang.org/x/net](https://pkg.go.dev/golang.org/x/net) and [golang.org/x/text](https://pkg.go.dev/golang.org/x/text) | BSD-3-Clause |
+| [protobuf-go](https://github.com/protocolbuffers/protobuf-go), [go-pkcs12](https://github.com/SSLMate/go-pkcs12), [golang.org/x/crypto](https://pkg.go.dev/golang.org/x/crypto), [golang.org/x/sync](https://pkg.go.dev/golang.org/x/sync), [golang.org/x/image](https://pkg.go.dev/golang.org/x/image), [golang.org/x/net](https://pkg.go.dev/golang.org/x/net) and [golang.org/x/text](https://pkg.go.dev/golang.org/x/text) | BSD-3-Clause |
 | [hraban/opus](https://github.com/hraban/opus) Go bindings, in `third_party/hraban-opus` | MIT |
 | [oggvorbis](https://github.com/jfreymuth/oggvorbis) and [vorbis](https://github.com/jfreymuth/vorbis) | MIT |
 | [gotext](https://github.com/leonelquinteros/gotext) | MIT |

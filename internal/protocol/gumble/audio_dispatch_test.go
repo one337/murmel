@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/one337/murmel/internal/protocol/gumble/MumbleProto"
 	"github.com/one337/murmel/internal/protocol/gumble/varint"
+	"google.golang.org/protobuf/proto"
 )
 
 // audioRecorder is an AudioListener that drains every stream it is offered

@@ -18,7 +18,7 @@ Summary:        Mumble voice chat client for GNOME
 
 # Murmel itself: GPL-3.0-or-later. Vendored Go modules:
 #   gotk4, gotk4-adwaita, gumble (fork in internal/protocol/gumble): MPL-2.0
-#   golang/protobuf, SSLMate/go-pkcs12, golang.org/x/{crypto,sync,image,net,text}:
+#   protobuf-go, SSLMate/go-pkcs12, golang.org/x/{crypto,sync,image,net,text}:
 #   BSD-3-Clause
 #   hraban/opus: MIT; jfreymuth/oggvorbis, jfreymuth/vorbis: MIT
 #   leonelquinteros/gotext: MIT; gen2brain/malgo (miniaudio): Unlicense
@@ -52,7 +52,6 @@ Requires:       hicolor-icon-theme
 Provides:       bundled(golang(github.com/diamondburned/gotk4))
 Provides:       bundled(golang(github.com/diamondburned/gotk4-adwaita))
 Provides:       bundled(golang(github.com/gen2brain/malgo))
-Provides:       bundled(golang(github.com/golang/protobuf))
 Provides:       bundled(golang(github.com/jfreymuth/oggvorbis))
 Provides:       bundled(golang(github.com/jfreymuth/vorbis))
 Provides:       bundled(golang(github.com/leonelquinteros/gotext))
@@ -61,6 +60,7 @@ Provides:       bundled(golang(golang.org/x/image))
 Provides:       bundled(golang(golang.org/x/net))
 Provides:       bundled(golang(golang.org/x/sync))
 Provides:       bundled(golang(golang.org/x/text))
+Provides:       bundled(golang(google.golang.org/protobuf))
 Provides:       bundled(golang(gopkg.in/hraban/opus.v2))
 Provides:       bundled(golang(layeh.com/gumble))
 Provides:       bundled(golang(software.sslmate.com/src/go-pkcs12))
