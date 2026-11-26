@@ -53,6 +53,8 @@ func addLegalSections(d *adw.AboutDialog) {
 		{i18n.Tr("Mumble protocol and voice encryption"), "© 2005–2013 Thorvald Natvig and others", gtk.LicenseBSD3, ""},
 		{"malgo, miniaudio", "", gtk.LicenseCustom, i18n.Tr("Unlicense (public domain).")},
 		{"protobuf-go", "© 2018 The Go Authors", gtk.LicenseBSD3, ""},
+		{"go-pkcs12", "© 2015, 2018, 2019 Opsmate, Inc.", gtk.LicenseBSD3, ""},
+		{"golang.org/x/crypto", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
 		{"golang.org/x/sync", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
 		{"golang.org/x/image", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
 		{"golang.org/x/net", "© 2009 The Go Authors", gtk.LicenseBSD3, ""},
