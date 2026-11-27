@@ -144,7 +144,11 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 		parent:      parent,
 	}
 
-	t.list = gtk.NewListBox()
+	// Assistive technologies know the list as a tree (the rows tell their
+	// level); the role can only be given when the list is created.
+	ui := gtk.NewBuilderFromString(`<interface><object class="GtkListBox" id="list">
+<property name="accessible-role">tree</property></object></interface>`)
+	t.list = ui.GetObject("list").Cast().(*gtk.ListBox)
 	// The list selects nothing itself: it would select every row the
 	// keyboard focus moves to. The tree marks the chat target instead.
 	t.list.SetSelectionMode(gtk.SelectionNone)

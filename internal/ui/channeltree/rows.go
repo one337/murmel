@@ -42,7 +42,9 @@ type channelRowWidgets struct {
 	here    *gtk.Image
 	name    *gtk.Label
 	count   *gtk.Label
-	badge   *gtk.Label
+	badge   *unreadBadge
+	// tip is the content's tooltip (see hoverTip).
+	tip *hoverTip
 
 	users   int  // users in the channel
 	current bool // one is in this channel oneself
@@ -71,7 +73,7 @@ type userRowWidgets struct {
 	handle *gtk.Image // drag handle, shown on hover when the user can be moved
 	avatar *adw.Avatar
 	name   *gtk.Label
-	badge  *gtk.Label
+	badge  *unreadBadge
 	icons  map[string]*gtk.Image
 	// localAudio shows a volume changed or muted for oneself.
 	localAudio *gtk.Image
@@ -125,8 +127,7 @@ func (a *rowText) apply(row *gtk.ListBoxRow, name string, desc func(unread int) 
 // everything in it from assistive technologies, as the row itself names
 // what they show; the role can only be given when the wrapper is created
 // (GTK sets the "hidden" state of each widget itself whenever it is
-// shown). A row's tooltip belongs on the wrapper: on the row, GTK would
-// read it out where the row's description is empty.
+// shown). A row's tooltip belongs on the wrapper, as a hoverTip.
 func rowContent(content *gtk.Box) *gtk.Box {
 	b := gtk.NewBuilderFromString(`<interface><object class="GtkBox" id="box">
 <property name="accessible-role">none</property></object></interface>`)
@@ -136,18 +137,70 @@ func rowContent(content *gtk.Box) *gtk.Box {
 	return wrap
 }
 
-// newBadge builds the unread-messages pill shown next to a name.
-func newBadge() *gtk.Label {
+// newTreeRow builds a row that assistive technologies know as an item of
+// a tree, so that they read its level (see setLevel). The role can only
+// be given when the row is created.
+func newTreeRow() *gtk.ListBoxRow {
+	b := gtk.NewBuilderFromString(`<interface><object class="GtkListBoxRow" id="row">
+<property name="accessible-role">tree-item</property></object></interface>`)
+	return b.GetObject("row").Cast().(*gtk.ListBoxRow)
+}
+
+// setLevel tells assistive technologies how deep row lies in the tree,
+// counted from 1 for the root channel.
+func setLevel(row *gtk.ListBoxRow, level int) {
+	// GTK reads the level as an int; a 64-bit GValue would not arrive.
+	l := int32(level) //nolint:gosec // one level per channel above the row
+	row.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyLevel},
+		[]coreglib.Value{*coreglib.NewValue(l)})
+}
+
+// hoverTip is a tooltip that assistive technologies do not read: GTK
+// reads the tooltip text of a row's content where the row's description
+// is empty, which would read out hints for the mouse or say more than
+// the description does (see rowText.apply).
+type hoverTip struct {
+	w    *gtk.Widget
+	text string
+}
+
+func newHoverTip(w gtk.Widgetter) *hoverTip {
+	h := &hoverTip{w: gtk.BaseWidget(w)}
+	h.w.SetHasTooltip(true)
+	h.w.ConnectQueryTooltip(func(_, _ int, _ bool, tip *gtk.Tooltip) bool {
+		if h.text == "" {
+			return false
+		}
+		tip.SetText(h.text)
+		return true
+	})
+	return h
+}
+
+func (h *hoverTip) set(text string) {
+	if h.text != text {
+		h.text = text
+		h.w.TriggerTooltipQuery()
+	}
+}
+
+// unreadBadge is the unread-messages pill shown next to a name.
+type unreadBadge struct {
+	*gtk.Label
+	tip *hoverTip
+}
+
+func newBadge() *unreadBadge {
 	b := gtk.NewLabel("")
 	b.AddCSSClass("unread-badge")
 	b.AddCSSClass("numeric")
 	b.SetVAlign(gtk.AlignCenter)
 	b.SetVisible(false)
-	return b
+	return &unreadBadge{Label: b, tip: newHoverTip(b)}
 }
 
 // showUnread shows n unread messages on the badge (hidden at 0).
-func showUnread(b *gtk.Label, n int) {
+func showUnread(b *unreadBadge, n int) {
 	b.SetVisible(n > 0)
 	switch {
 	case n > 99:
@@ -156,7 +209,7 @@ func showUnread(b *gtk.Label, n int) {
 		b.SetText(strconv.Itoa(n))
 	}
 	if n > 0 {
-		b.SetTooltipText(fmt.Sprintf(i18n.Tr("Unread messages: %d"), n))
+		b.tip.set(fmt.Sprintf(i18n.Tr("Unread messages: %d"), n))
 	}
 }
 
@@ -203,16 +256,16 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	box := gtk.NewBox(gtk.OrientationHorizontal, 6)
 	box.Append(r.chevron)
 	box.Append(r.name)
-	box.Append(r.badge)
+	box.Append(r.badge.Label)
 	box.Append(expander())
 	box.Append(r.here)
 	box.Append(r.count)
 	r.box = box
+	r.content = rowContent(box)
+	r.tip = newHoverTip(r.content)
+	r.root = newTreeRow()
 	r.depth = -1
 	r.setDepth(depthOf(m, id))
-
-	r.content = rowContent(box)
-	r.root = gtk.NewListBoxRow()
 	r.root.SetChild(r.content)
 	r.root.SetActivatable(true)
 	r.root.SetSelectable(true)
@@ -271,17 +324,16 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 	box.Append(slot)
 	box.Append(r.avatar)
 	box.Append(r.name)
-	box.Append(r.badge)
+	box.Append(r.badge.Label)
 	box.Append(expander())
 	box.Append(r.localAudio)
 	for _, k := range []string{iconSpeaking, iconPrioritySpeaker, iconRecording, iconMuted, iconDeafened} {
 		box.Append(r.icons[k])
 	}
 	r.box = box
+	r.root = newTreeRow()
 	r.depth = -1
 	r.setDepth(depthOf(m, u.Channel))
-
-	r.root = gtk.NewListBoxRow()
 	r.root.SetChild(rowContent(box))
 	r.root.SetActivatable(true)
 	r.root.SetSelectable(true)
@@ -350,13 +402,17 @@ func (r *channelRowWidgets) setDepth(depth int) {
 	if r.depth != depth {
 		r.depth = depth
 		r.box.SetMarginStart(indentPerDepthPx * depth)
+		setLevel(r.root, depth+1)
 	}
 }
 
+// setDepth indents the row like its channel's row (depth is the
+// channel's); the user lies one level below the channel.
 func (r *userRowWidgets) setDepth(depth int) {
 	if r.depth != depth {
 		r.depth = depth
 		r.box.SetMarginStart(indentPerDepthPx * depth)
+		setLevel(r.root, depth+2)
 	}
 }
 
@@ -373,10 +429,10 @@ func (r *channelRowWidgets) showCurrent(current bool) {
 	r.here.SetVisible(current)
 	if current {
 		r.root.AddCSSClass("current-channel")
-		r.content.SetTooltipText(i18n.Tr("You are in this channel"))
+		r.tip.set(i18n.Tr("You are in this channel"))
 	} else {
 		r.root.RemoveCSSClass("current-channel")
-		r.content.SetTooltipText(i18n.Tr("Double-click to join"))
+		r.tip.set(i18n.Tr("Double-click to join"))
 	}
 }
 

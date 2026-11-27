@@ -33,14 +33,17 @@ func TestGTKRowsNameThemselvesAndHideTheirContent(t *testing.T) {
 				t.Errorf("%+v: content role %v, want none", c.id, got)
 			}
 		}
-		// On the row, GTK would read the tooltip out as its description
-		// where that is empty; on the content it is still shown.
+		// GTK would read a tooltip in the row out as its description where
+		// that is empty; the content shows it without GTK reading it.
 		row := tree.rowFor(rowID{id: 3})
 		if got := row.TooltipText(); got != "" {
 			t.Errorf("channel row has the tooltip %q", got)
 		}
-		if got := gtk.BaseWidget(row.Child()).TooltipText(); got != "Double-click to join" {
-			t.Errorf("channel row content has the tooltip %q", got)
+		if got := gtk.BaseWidget(row.Child()).TooltipText(); got != "" {
+			t.Errorf("channel row content has the readable tooltip %q", got)
+		}
+		if got := tree.channelRows[3].tip.text; got != "Double-click to join" {
+			t.Errorf("channel row content shows the tooltip %q", got)
 		}
 		if got := tree.channelRows[3].text.name; got != "Channel 3" {
 			t.Errorf("channel row name %q", got)
@@ -147,6 +150,16 @@ func TestGTKUnreadWaitsForTheFocusToLeave(t *testing.T) {
 	want := fmt.Sprintf("%d unread messages", n)
 	waitFor(t, "the unread count after the focus left", func() bool {
 		return tree.userRows[20].text.desc == want
+	})
+	// The badge's tooltip is not read out in place of the description.
+	onMain(func() {
+		badge := tree.userRows[20].badge
+		if got := badge.TooltipText(); got != "" {
+			t.Errorf("unread badge has the readable tooltip %q", got)
+		}
+		if got, want := badge.tip.text, fmt.Sprintf("Unread messages: %d", n); got != want {
+			t.Errorf("unread badge shows the tooltip %q, want %q", got, want)
+		}
 	})
 }
 
