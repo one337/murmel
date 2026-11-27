@@ -719,8 +719,9 @@ func (t *Tree) userMenu(session uint32, at gdk.Rectangle, keyboard bool) {
 //
 //   - The arrow keys, Page Up/Down, Home and End only move the cursor, as
 //     Ctrl with them does: the chat target, and with it the conversation
-//     shown, stays. Enter (or Space) opens the conversation or joins the
-//     channel, a click does as before; Ctrl+Space does nothing.
+//     shown, stays. Enter opens the conversation or joins the channel, a
+//     click does as before. Space opens the conversation too, but on a
+//     channel does nothing; Ctrl+Space does nothing.
 //   - The Menu key and Shift+F10 open the context menu of the focused
 //     row, pointing at the whole row.
 //   - Right and Left open and close channels and move along the tree
@@ -738,6 +739,8 @@ func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 		// GTK would activate the row (join the channel): Ctrl+Space
 		// does nothing here.
 		return true
+	case (keyval == gdk.KEY_space || keyval == gdk.KEY_KP_Space) && mods == 0:
+		return t.space()
 	case mods&^gdk.ShiftMask != 0:
 		return false // Ctrl, Alt, Super: GTK's own meaning
 	}
@@ -891,8 +894,8 @@ func sameRow(a, b *gtk.ListBoxRow) bool {
 	return coreglib.BaseObject(a).Native() == coreglib.BaseObject(b).Native()
 }
 
-// onActivate fires when the user double-clicks or presses Enter (or
-// Space) on a row. The row becomes the chat target; channel rows also
+// onActivate fires when the user double-clicks or presses Enter on a row
+// (or Space on a user, see space). The row becomes the chat target; channel rows also
 // request a join, user rows open the conversation, also when the row is
 // the chat target already. The row may still show a channel or user that
 // a pending rebuild removes: only those the model knows count.
@@ -916,6 +919,24 @@ func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 			return
 		}
 	}
+}
+
+// space handles Space on the focused row: on a user it opens the
+// conversation, as Enter does; joining a channel takes Enter or a
+// double-click.
+func (t *Tree) space() bool {
+	root := t.list.Root()
+	if root == nil {
+		return false
+	}
+	row := focusedRow(root.Focus(), t.list)
+	if row == nil {
+		return false
+	}
+	if id, ok := t.rowIDOf(row); ok && id.user {
+		t.onActivate(row)
+	}
+	return true
 }
 
 // markTarget marks id's row as the chat target, as a selected row looks
