@@ -4,10 +4,21 @@ import (
 	"bytes"
 	"log"
 	"log/slog"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/one337/murmel/internal/ui/secrets/secretstest"
 )
+
+// The program links libsecret: no test may reach the desktop's keyring.
+func TestMain(m *testing.M) {
+	cleanup := secretstest.Isolate()
+	code := m.Run()
+	cleanup()
+	os.Exit(code)
+}
 
 // logLines logs through a logHandler with the given G_MESSAGES_DEBUG and
 // returns the written lines.

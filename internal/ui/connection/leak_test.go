@@ -18,6 +18,7 @@ import (
 	"github.com/one337/murmel/internal/certs"
 	"github.com/one337/murmel/internal/settings"
 	"github.com/one337/murmel/internal/ui"
+	"github.com/one337/murmel/internal/ui/secrets/secretstest"
 )
 
 // The leak tests need GTK and a display. tools/verify.sh runs them under
@@ -31,8 +32,15 @@ var gtkReady bool
 func init() { runtime.LockOSThread() }
 
 func TestMain(m *testing.M) {
+	cleanup := secretstest.Isolate()
+	code := runTests(m)
+	cleanup()
+	os.Exit(code)
+}
+
+func runTests(m *testing.M) int {
 	if os.Getenv("MURMEL_GTK_TESTS") == "" || !gtk.InitCheck() {
-		os.Exit(m.Run())
+		return m.Run()
 	}
 	adw.Init()
 	gtkReady = true
@@ -44,7 +52,7 @@ func TestMain(m *testing.M) {
 		glib.IdleAdd(func() bool { loop.Quit(); return false })
 	}()
 	loop.Run()
-	os.Exit(code)
+	return code
 }
 
 // needGTK skips a test without GTK and a display, except in CI, where a
