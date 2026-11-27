@@ -60,7 +60,9 @@ func checkRows(t *testing.T, tree *Tree) {
 				if got := r.count.Text(); r.count.Visible() != (count != "") || (count != "" && got != count) {
 					t.Errorf("channel %d shows %q users (shown %v), want %q", e.id, got, r.count.Visible(), count)
 				}
-				if want := channelDescription(len(n.users), current, r.text.shownUnread); r.text.desc != want {
+				kids := len(n.users) > 0 || len(n.children) > 0
+				// The focused row keeps its description until the focus leaves.
+				if want := channelDescription(len(n.users), kids, current, r.text.shownUnread); !r.root.HasFocus() && r.text.desc != want {
 					t.Errorf("channel %d described as %q, want %q", e.id, r.text.desc, want)
 				}
 			} else {
@@ -75,7 +77,7 @@ func checkRows(t *testing.T, tree *Tree) {
 					t.Errorf("user %d shown as %q (accessible %q, muted icon %v), want %q (muted %v)",
 						e.id, r.name.Text(), r.text.name, r.icons[iconMuted].Visible(), u.Name, muted)
 				}
-				if want := userDescription(u, r.local, r.text.shownUnread); r.text.desc != want {
+				if want := userDescription(u, r.local, r.text.shownUnread); !r.root.HasFocus() && r.text.desc != want {
 					t.Errorf("user %d described as %q, want %q", e.id, r.text.desc, want)
 				}
 			}

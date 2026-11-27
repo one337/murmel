@@ -55,6 +55,9 @@ type channelRowWidgets struct {
 	box     *gtk.Box
 	content *gtk.Box
 	depth   int
+	// kids and expanded are the channel's; focused whether the row has
+	// the keyboard focus (see publishExpanded).
+	kids, expanded, focused bool
 	// shown is what update last showed, so that an unchanged channel is
 	// left alone.
 	shown    channelShown
@@ -97,16 +100,25 @@ type rowText struct {
 	// unread is the current number of unread messages, shownUnread the
 	// one in the description.
 	unread, shownUnread int
+	// told is the state last told, in the description or announced.
+	told []part
 }
 
 // apply gives row its name and description where they changed. The
-// unread count of the focused row stays as it is until the focus leaves:
-// screen readers would read the description again on every new message.
-func (a *rowText) apply(row *gtk.ListBoxRow, name string, desc func(unread int) string) {
-	if !row.HasFocus() {
+// description of the focused row stays as it is until the focus leaves:
+// screen readers read a changed description out whole, as if every state
+// in it were new, and nothing when it becomes empty. A changed state is
+// announced instead, all changes at once in one line; new unread messages
+// are not (they would be on every message).
+func (a *rowText) apply(row *gtk.ListBoxRow, name string, parts []part) {
+	d := a.desc
+	if !a.set || !row.HasFocus() {
 		a.shownUnread = a.unread
+		d = describe(parts, a.shownUnread)
+	} else if msg := changeText(a.told, parts); msg != "" {
+		announce(row, msg)
 	}
-	d := desc(a.shownUnread)
+	a.told = parts
 	var props []gtk.AccessibleProperty
 	var vals []coreglib.Value
 	if !a.set || name != a.name {
@@ -121,6 +133,17 @@ func (a *rowText) apply(row *gtk.ListBoxRow, name string, desc func(unread int) 
 	if len(props) > 0 {
 		row.UpdateProperty(props, vals)
 	}
+}
+
+// announce asks screen readers to say msg. Without an accessibility bus
+// GTK falls back to a context that cannot announce and crashes when asked
+// to (GTK 4.24), so it is only asked where a screen reader can listen.
+func announce(row *gtk.ListBoxRow, msg string) {
+	ctx := row.AtContext()
+	if ctx == nil || coreglib.BaseObject(ctx).Type().Name() == "GtkTestATContext" {
+		return
+	}
+	row.Announce(msg, gtk.AccessibleAnnouncementPriorityMedium)
 }
 
 // rowContent wraps a row's content. The wrapper's role keeps it and
@@ -358,11 +381,9 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 // press claims the touch, so it does not also count as a tap (which opens
 // a conversation).
 func contextMenu(row *gtk.ListBoxRow, menu func(x, y float64)) {
-	// Assistive technologies announce that the row has a menu (opened
-	// with the Menu key or Shift+F10, see Tree.onKey).
-	row.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyHasPopup},
-		[]coreglib.Value{*coreglib.NewValue(true)})
-
+	// The row does not claim a popup for assistive technologies: that
+	// would say activating it opens one. The menu opens with the Menu key
+	// or Shift+F10 (see Tree.onKey), as context menus do.
 	g := gtk.NewGestureClick()
 	g.SetButton(gdk.BUTTON_SECONDARY)
 	g.ConnectPressed(func(_ int, x, y float64) { menu(x, y) })
@@ -388,6 +409,13 @@ func onClick(row *gtk.ListBoxRow, f func()) {
 		}
 	})
 	row.AddController(click)
+}
+
+// onFocusEnter calls f when the keyboard focus enters row.
+func onFocusEnter(row *gtk.ListBoxRow, f func()) {
+	c := gtk.NewEventControllerFocus()
+	c.ConnectEnter(f)
+	row.AddController(c)
 }
 
 // onFocusLeave calls f when the keyboard focus leaves row.
@@ -469,7 +497,8 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	// Every channel tells assistive technologies whether it is open, an
 	// empty one too: a state that appeared when a user enters would be
 	// announced like a change.
-	r.setExpandedState(n.expanded)
+	r.kids, r.expanded = hasKids, n.expanded
+	r.publishExpanded()
 	if len(n.users) > 0 {
 		r.count.SetText(fmt.Sprintf("%d", len(n.users)))
 		r.count.SetVisible(true)
@@ -478,6 +507,19 @@ func (r *channelRowWidgets) update(n *channelNode) {
 	}
 	r.users = len(n.users)
 	r.announce()
+}
+
+// publishExpanded tells assistive technologies whether the channel is open,
+// only while its row has the focus and only for a channel with content:
+// screen readers announce such a state appearing on any row (a row added
+// when a channel opens, an empty channel a user enters elsewhere) as if
+// the focused row had changed.
+func (r *channelRowWidgets) publishExpanded() {
+	if r.focused && r.kids {
+		r.setExpandedState(r.expanded)
+	} else {
+		r.root.ResetState(gtk.AccessibleStateExpanded)
+	}
 }
 
 func (r *channelRowWidgets) setExpandedState(expanded bool) {
@@ -492,9 +534,7 @@ func (r *channelRowWidgets) setExpandedState(expanded bool) {
 }
 
 func (r *channelRowWidgets) announce() {
-	r.text.apply(r.root, r.name.Text(), func(unread int) string {
-		return channelDescription(r.users, r.current, unread)
-	})
+	r.text.apply(r.root, r.name.Text(), channelParts(r.users, r.kids, r.current))
 }
 
 func (r *channelRowWidgets) setUnread(n int) {
@@ -543,9 +583,7 @@ func setTooltip(img *gtk.Image, text string) {
 }
 
 func (r *userRowWidgets) announce() {
-	r.text.apply(r.root, r.user.Name, func(unread int) string {
-		return userDescription(r.user, r.local, unread)
-	})
+	r.text.apply(r.root, r.user.Name, userParts(r.user, r.local))
 }
 
 func (r *userRowWidgets) setUnread(n int) {

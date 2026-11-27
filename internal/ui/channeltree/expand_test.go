@@ -228,35 +228,53 @@ func TestGTKRightOnEmptyChannel(t *testing.T) {
 	}
 }
 
-// Every channel row tells assistive technologies whether it is open, an
-// empty one too, and keeps that state while users come and go.
+// Only the focused row tells assistive technologies whether its channel
+// is open, and only for a channel with content: screen readers announce
+// such a state appearing on any row, e.g. on a row inserted by opening a
+// channel or on an empty channel a user enters elsewhere.
 func TestGTKChannelRowsAnnounceExpanded(t *testing.T) {
 	needGTK(t)
 	tree, b, _, _ := focusTree(t, 6, 5) // channel 1 has no users
+	// hasNow runs on the main loop (as waitFor's conditions do).
+	hasNow := func(ch uint32) bool {
+		return gtk.TestAccessibleHasState(tree.channelRows[ch].root, gtk.AccessibleStateExpanded)
+	}
 	has := func(ch uint32) (ok bool) {
-		onMain(func() { ok = gtk.TestAccessibleHasState(tree.channelRows[ch].root, gtk.AccessibleStateExpanded) })
+		onMain(func() { ok = hasNow(ch) })
 		return ok
 	}
+	if has(2) {
+		t.Error("channel 2 without the focus tells whether it is open")
+	}
+	focusRow(t, tree, rowID{id: 2})
 	if !has(2) {
-		t.Error("channel 2 (with users) does not announce expanded")
-	}
-	if !has(1) {
-		t.Error("the empty channel 1 does not announce expanded")
-	}
-	b.Emit(bus.UserAdded{User: bus.UserInfo{Session: 50, Name: "guest", Channel: 1}})
-	waitFor(t, "the user in channel 1", func() bool { return tree.userRows[50] != nil })
-	if !has(1) {
-		t.Error("channel 1 lost its state when a user entered")
-	}
-	b.Emit(bus.UserRemoved{Session: 50})
-	waitFor(t, "the user to leave channel 1", func() bool { return tree.userRows[50] == nil })
-	if !has(1) {
-		t.Error("channel 1 lost its state when the last user left")
+		t.Error("the focused channel 2 does not tell whether it is open")
 	}
 	onMain(func() { tree.toggleExpand(2) })
 	if !has(2) {
-		t.Error("the closed channel 2 does not announce its state")
+		t.Error("the focused channel 2 does not tell that it is closed")
 	}
+	onMain(func() { tree.toggleExpand(2) })
+
+	b.Emit(bus.UserAdded{User: bus.UserInfo{Session: 50, Name: "guest", Channel: 1}})
+	waitFor(t, "the user in channel 1", func() bool { return tree.userRows[50] != nil })
+	if has(1) {
+		t.Error("channel 1 without the focus tells whether it is open when a user entered")
+	}
+	b.Emit(bus.UserRemoved{Session: 50})
+	waitFor(t, "the user to leave channel 1", func() bool { return tree.userRows[50] == nil })
+
+	focusRow(t, tree, rowID{id: 1})
+	if has(2) {
+		t.Error("channel 2 still tells whether it is open after the focus left")
+	}
+	if has(1) {
+		t.Error("the focused empty channel 1 tells whether it is open")
+	}
+	b.Emit(bus.UserAdded{User: bus.UserInfo{Session: 50, Name: "guest", Channel: 1}})
+	waitFor(t, "the focused channel 1 to tell whether it is open", func() bool { return hasNow(1) })
+	b.Emit(bus.UserRemoved{Session: 50})
+	waitFor(t, "the focused channel 1 to be empty again", func() bool { return !hasNow(1) })
 }
 
 // Rows removed by closing a channel are freed, in Go and in GTK.

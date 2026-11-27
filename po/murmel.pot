@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 22:24+0100\n"
+"POT-Creation-Date: 2026-11-25 22:55+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -679,8 +679,8 @@ msgstr ""
 msgid "muted for you"
 msgstr ""
 
-#. TRANSLATORS: Part of a comma-separated list that screen readers
-#. read after a user's name.
+#. TRANSLATORS: Part of a comma-separated list that screen readers read
+#. after a user's name.
 #: internal/ui/channeltree/announce.go
 #, go-format
 msgid "volume for you: %d %%"
@@ -696,6 +696,12 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. TRANSLATORS: Part of a comma-separated list that screen readers
+#. read after a channel's name: no users and no sub-channels.
+#: internal/ui/channeltree/announce.go
+msgid "empty"
+msgstr ""
+
+#. TRANSLATORS: Part of a comma-separated list that screen readers
 #. read after a channel's name: one is in this channel oneself.
 #: internal/ui/channeltree/announce.go
 msgid "you are here"
@@ -709,6 +715,60 @@ msgid "%d unread message"
 msgid_plural "%d unread messages"
 msgstr[0] ""
 msgstr[1] ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "undeafened themselves"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "unmuted themselves"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "undeafened on the server"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "unmuted on the server"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "allowed to speak here again"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "no longer priority speaker"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "stopped recording"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when the user that has the
+#. keyboard focus ends a state; several are joined by commas.
+#: internal/ui/channeltree/announce.go
+msgid "unmuted for you"
+msgstr ""
+
+#. TRANSLATORS: Screen readers say this when one leaves the channel
+#. that has the keyboard focus.
+#: internal/ui/channeltree/announce.go
+msgid "you are no longer in this channel"
+msgstr ""
 
 #: internal/ui/channeltree/rows.go
 #, go-format
@@ -814,6 +874,11 @@ msgstr ""
 
 #: internal/ui/channeltree/rows.go
 msgid "Volume for me"
+msgstr ""
+
+#. TRANSLATORS: Name of the channel list for screen readers.
+#: internal/ui/channeltree/tree.go internal/ui/window.go
+msgid "Channels"
 msgstr ""
 
 #: internal/ui/channeltree/tree.go internal/ui/statusbar.go
@@ -2575,10 +2640,6 @@ msgstr ""
 
 #: internal/ui/window.go
 msgid "Join a Mumble server to start talking."
-msgstr ""
-
-#: internal/ui/window.go
-msgid "Channels"
 msgstr ""
 
 #: internal/ui/window.go

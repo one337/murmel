@@ -71,7 +71,8 @@ func TestGTKChevronIsNoTabStop(t *testing.T) {
 }
 
 // Speaking leaves the description alone (screen readers would read it
-// again on every word); a state change updates it.
+// again on every word); a state change updates it (here once the focus
+// is on another row: the focused row keeps its description).
 func TestGTKSpeakingKeepsTheDescription(t *testing.T) {
 	needGTK(t)
 	tree, b, _, _ := focusTree(t, 5, 40)
@@ -83,6 +84,7 @@ func TestGTKSpeakingKeepsTheDescription(t *testing.T) {
 			t.Errorf("speaking user described as %q, want nothing", got)
 		}
 	})
+	focusRow(t, tree, rowID{user: true, id: 21})
 	var u bus.UserInfo
 	onMain(func() { u = tree.model.users[20] })
 	u.Muted = true
@@ -210,5 +212,58 @@ func TestGTKVolumeSliderIsLabelled(t *testing.T) {
 			t.Error("the volume slider has no value text")
 		}
 		pop.Popdown()
+	})
+}
+
+// The focused row keeps its description while its state changes (the
+// change is announced instead) and takes the new one when the focus
+// leaves. A pass in which the focus was lost meanwhile is repeated.
+func TestGTKFocusedRowKeepsItsDescription(t *testing.T) {
+	needGTK(t)
+	tree, b, win, entry := focusTree(t, 5, 40)
+	id := rowID{user: true, id: 20}
+	var base bus.UserInfo
+	onMain(func() { base = tree.model.users[20] })
+	const passes = 3
+	for pass := 1; ; pass++ {
+		focusRow(t, tree, id)
+		waitForFocus(t, tree, win, id)
+		var before string
+		onMain(func() { before = tree.userRows[20].text.desc })
+		u := base
+		u.SelfMuted = pass%2 == 1
+		b.Emit(bus.UserUpdated{User: u, Changed: bus.UserChangeAudio})
+		waitFor(t, "the state change", func() bool { return tree.userRows[20].user.SelfMuted == u.SelfMuted })
+		var desc string
+		var still bool
+		onMain(func() { desc, still = tree.userRows[20].text.desc, tree.rowFor(id).HasFocus() })
+		if !still {
+			if pass == passes {
+				t.Fatalf("the row lost the focus in all %d passes", passes)
+			}
+			t.Logf("pass %d: the row lost the focus meanwhile; repeated", pass)
+			continue
+		}
+		if desc != before {
+			t.Errorf("focused row described as %q after the change, want %q as before", desc, before)
+		}
+		onMain(func() { entry.GrabFocus() })
+		want := userDescription(u, localAudio{volume: 1}, 0)
+		waitFor(t, "the new description after the focus left", func() bool {
+			return tree.userRows[20].text.desc == want
+		})
+		break
+	}
+}
+
+// The channel list has a name for screen readers (the sidebar shows no
+// heading for it).
+func TestGTKTreeIsNamed(t *testing.T) {
+	needGTK(t)
+	tree, _, _, _ := focusTree(t, 2, 2)
+	onMain(func() {
+		if !gtk.TestAccessibleHasProperty(tree.list, gtk.AccessiblePropertyLabel) {
+			t.Error("the channel list has no name")
+		}
 	})
 }

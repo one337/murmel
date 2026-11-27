@@ -285,14 +285,15 @@ func TestGTKVolumeSliderUpDownLeaveIt(t *testing.T) {
 	onMain(func() { pop.Popdown() })
 }
 
-// Assistive technologies learn that channel and user rows have a menu.
-func TestGTKRowsAnnounceTheirMenu(t *testing.T) {
+// Rows do not claim a popup: activating them joins a channel or opens a
+// conversation; the context menu opens with the Menu key or Shift+F10.
+func TestGTKRowsClaimNoPopup(t *testing.T) {
 	needGTK(t)
 	tree, _, _, _ := focusTree(t, 5, 40)
 	onMain(func() {
 		for _, id := range []rowID{{id: 3}, {user: true, id: 20}} {
-			if !gtk.TestAccessibleHasProperty(tree.rowFor(id), gtk.AccessiblePropertyHasPopup) {
-				t.Errorf("%+v does not announce a menu", id)
+			if gtk.TestAccessibleHasProperty(tree.rowFor(id), gtk.AccessiblePropertyHasPopup) {
+				t.Errorf("%+v claims a popup", id)
 			}
 		}
 	})

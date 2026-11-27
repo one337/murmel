@@ -149,6 +149,10 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 	ui := gtk.NewBuilderFromString(`<interface><object class="GtkListBox" id="list">
 <property name="accessible-role">tree</property></object></interface>`)
 	t.list = ui.GetObject("list").Cast().(*gtk.ListBox)
+	// The sidebar has no visible heading for the list to refer to.
+	t.list.UpdateProperty([]gtk.AccessibleProperty{gtk.AccessiblePropertyLabel},
+		// TRANSLATORS: Name of the channel list for screen readers.
+		[]coreglib.Value{*coreglib.NewValue(i18n.Tr("Channels"))})
 	// The list selects nothing itself: it would select every row the
 	// keyboard focus moves to. The tree marks the chat target instead.
 	t.list.SetSelectionMode(gtk.SelectionNone)
@@ -497,8 +501,16 @@ func (t *Tree) newRowFor(e entry) gtk.Widgetter {
 				}
 			})
 		t.channelRows[id] = r
+		onFocusEnter(r.root, func() {
+			if r, ok := t.channelRows[id]; ok {
+				r.focused = true
+				r.publishExpanded()
+			}
+		})
 		onFocusLeave(r.root, func() {
 			if r, ok := t.channelRows[id]; ok {
+				r.focused = false
+				r.publishExpanded()
 				r.announce()
 			}
 		})
@@ -580,13 +592,16 @@ func (t *Tree) setExpanded(id uint32, expanded bool) {
 	}
 	if expanded {
 		n.expanded = true
+		if r, ok := t.channelRows[id]; ok {
+			r.update(n)
+		}
 		t.insertMissingRows()
 	} else {
 		t.removeRowsBelow(id)
 		n.expanded = false
-	}
-	if r, ok := t.channelRows[id]; ok {
-		r.update(n)
+		if r, ok := t.channelRows[id]; ok {
+			r.update(n)
+		}
 	}
 	t.refreshDragHandles()
 	t.applyUnread()
