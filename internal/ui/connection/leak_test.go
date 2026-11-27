@@ -154,7 +154,7 @@ func TestGTKConnectDialogIsFreed(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 	win := testWindow(t)
-	c := &Controller{win: win, appBus: bus.New(nil), settings: st, certs: mgr, appCtx: ctx}
+	c := &Controller{win: win, appBus: bus.New(nil), settings: st, certs: mgr, passwords: &memStore{}, appCtx: ctx}
 
 	var w leakWatch
 	for range cycles {
@@ -191,7 +191,7 @@ func TestGTKConnectDialogIsFreedAfterConnecting(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
 	win := testWindow(t)
-	c := &Controller{win: win, appBus: bus.New(nil), settings: st, certs: mgr, appCtx: ctx}
+	c := &Controller{win: win, appBus: bus.New(nil), settings: st, certs: mgr, passwords: &memStore{}, appCtx: ctx}
 
 	var w leakWatch
 	const n = 10

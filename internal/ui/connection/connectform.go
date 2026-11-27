@@ -46,7 +46,8 @@ type connectForm struct {
 	identityStore *gtk.StringList
 	identityRow   *adw.ComboRow
 
-	saveRow *adw.SwitchRow
+	saveRow   *adw.SwitchRow
+	passwords secrets.Store
 
 	avatars       *avatarpick.Store
 	defaultAvatar []byte
@@ -60,7 +61,7 @@ type connectForm struct {
 // newConnectForm builds the form for req inside dialog (the parent of the
 // certificate dialogs it opens); ctx ends when the dialog closes.
 func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req ui.ConnectRequest) *connectForm {
-	f := &connectForm{ctx: ctx, req: req, reqPort: req.Port}
+	f := &connectForm{ctx: ctx, req: req, reqPort: req.Port, passwords: c.passwords}
 	if f.reqPort == 0 {
 		f.reqPort = ui.DefaultPort
 	}
@@ -279,7 +280,7 @@ func (f *connectForm) fill(e settings.ServerEntry) {
 	key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
 	gen := f.pwField.startLookup()
 	go func() {
-		pw, err := secrets.Lookup(key)
+		pw, err := f.passwords.Lookup(key)
 		if err != nil {
 			slog.Info("keyring lookup failed", "err", err)
 		}

@@ -20,6 +20,7 @@ import (
 	"github.com/one337/murmel/internal/ui/chat"
 	"github.com/one337/murmel/internal/ui/connection"
 	"github.com/one337/murmel/internal/ui/prefs"
+	"github.com/one337/murmel/internal/ui/secrets"
 )
 
 func main() {
@@ -43,7 +44,7 @@ func main() {
 	app.OnWindowCreated(func(win *ui.Window) {
 		ctx := app.Context()
 
-		ctrl := connection.NewController(ctx, win, b, st, certsManager)
+		ctrl := connection.NewController(ctx, win, b, st, certsManager, secrets.Keyring{})
 		app.OnConnect(ctrl.OnConnectRequest)
 
 		tree := channeltree.NewTree(ctx, b, win)

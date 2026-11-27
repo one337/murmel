@@ -508,7 +508,7 @@ func (s *savedList) forget(r *savedRow) {
 	s.updateActions()
 	key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
 	go func() {
-		if err := secrets.Delete(key); err != nil {
+		if err := s.c.passwords.Delete(key); err != nil {
 			slog.Info("keyring delete failed", "err", err)
 		}
 	}()

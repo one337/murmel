@@ -42,11 +42,12 @@ import (
 // All GTK work is main-loop-only; dial work happens on a goroutine and
 // marshals back through glib.IdleAdd.
 type Controller struct {
-	win      gtk.Widgetter
-	appBus   *bus.Bus
-	settings settings.Settings
-	certs    *certs.Manager
-	appCtx   context.Context
+	win       gtk.Widgetter
+	appBus    *bus.Bus
+	settings  settings.Settings
+	certs     *certs.Manager
+	passwords secrets.Store
+	appCtx    context.Context
 
 	mu      sync.Mutex
 	client  *gumble.Client
@@ -108,14 +109,15 @@ func (c *Controller) avatarStore() *avatarpick.Store {
 
 // NewController creates a Controller. win is the application window used as
 // the parent for modal dialogs. ctx is the application lifetime; cancelling
-// it tears the auto-reconnect loop down.
-func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st settings.Settings, m *certs.Manager) *Controller {
+// it tears the auto-reconnect loop down. pw keeps the saved passwords.
+func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st settings.Settings, m *certs.Manager, pw secrets.Store) *Controller {
 	c := &Controller{
-		win:      win,
-		appBus:   appBus,
-		settings: st,
-		certs:    m,
-		appCtx:   ctx,
+		win:       win,
+		appBus:    appBus,
+		settings:  st,
+		certs:     m,
+		passwords: pw,
+		appCtx:    ctx,
 	}
 	// Channel-join and user actions flow through the app bus.
 	bus.SubscribeCtx(ctx, appBus, c.onJoinRequested)
@@ -310,9 +312,9 @@ func (c *Controller) saveServer(e settings.ServerEntry, password string) {
 	go func() {
 		var err error
 		if password != "" {
-			err = secrets.Store(key, password)
+			err = c.passwords.Save(key, password)
 		} else {
-			err = secrets.Delete(key)
+			err = c.passwords.Delete(key)
 		}
 		if err != nil {
 			slog.Info("keyring: password not saved", "err", err)
