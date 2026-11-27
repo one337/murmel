@@ -70,6 +70,14 @@ type Tree struct {
 	// or activated (hasTarget false if none, or if its row went).
 	target    rowID
 	hasTarget bool
+	// lastFocus is the row that last had the keyboard focus (hasLastFocus
+	// false if none since connecting): Tab and Shift+Tab enter the list
+	// there (see setEntryRow).
+	lastFocus    rowID
+	hasLastFocus bool
+	// focusWatch follows the window's focus while the list is realized.
+	focusWatch coreglib.SignalHandle
+	focusRoot  *gtk.Root
 	// handlePressed is set while a mouse button is down on a drag handle.
 	// A rebuild may take out the row under it and break the drag that may
 	// follow, so it waits (like during a drag and while a menu is open).
@@ -143,6 +151,11 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 	t.list.AddCSSClass("navigation-sidebar")
 	// A single click picks the chat target; double-click (or Enter) joins.
 	t.list.SetActivateOnSingleClick(false)
+	// The list is one stop for Tab and Shift+Tab: they leave it from any
+	// row (the arrow keys move between rows). gotk4 has no setter for it.
+	t.list.SetObjectProperty("tab-behavior", gtk.ListTabItem)
+	t.list.ConnectRealize(t.watchFocus)
+	t.list.ConnectUnrealize(t.unwatchFocus)
 	placeholder := gtk.NewLabel(i18n.Tr("Not connected"))
 	placeholder.AddCSSClass("dim-label")
 	t.list.SetPlaceholder(placeholder)
@@ -193,6 +206,7 @@ func (t *Tree) subscribe(ctx context.Context) {
 		}
 	})
 	bus.SubscribeCtx(ctx, t.b, func(bus.Disconnected) {
+		t.hasLastFocus = false
 		t.permAsked = nil
 		t.localAudio = nil
 		t.unread, t.channelUnread = nil, 0

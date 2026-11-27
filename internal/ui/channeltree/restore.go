@@ -317,6 +317,71 @@ func (t *Tree) restoreListState(s listState) {
 	reveal := s.reveal || t.revealSelf
 	t.revealSelf = false
 	t.anchorAfterLayout(s.anchor, ensureFocus, reveal)
+	t.setEntryRow()
+}
+
+// watchFocus follows the focus of the window the list is in (see
+// focusMoved).
+func (t *Tree) watchFocus() {
+	root := t.list.Root()
+	if root == nil {
+		return
+	}
+	t.focusRoot = root
+	t.focusWatch = coreglib.BaseObject(root).NotifyProperty("focus-widget", t.focusMoved)
+	t.setEntryRow()
+}
+
+func (t *Tree) unwatchFocus() {
+	if t.focusRoot != nil {
+		coreglib.BaseObject(t.focusRoot).HandlerDisconnect(t.focusWatch)
+		t.focusRoot = nil
+	}
+}
+
+// focusMoved notes the row that got the focus, or, when the focus went
+// elsewhere, sets the row where Tab and Shift+Tab enter the list again.
+// GTK forgets the list's focus row when the focus leaves it, and the
+// window tells about the new focus only after that.
+func (t *Tree) focusMoved() {
+	if row := focusedRow(t.focusRoot.Focus(), t.list); row != nil {
+		t.lastFocus, t.hasLastFocus = t.rowIDOf(row)
+		return
+	}
+	t.setEntryRow()
+}
+
+// setEntryRow makes the row where Tab and Shift+Tab enter the list the
+// list's focus row, while the focus is outside the list: the row that
+// last had the focus, else the chat target, else one's own row. This
+// moves neither the focus nor the view.
+func (t *Tree) setEntryRow() {
+	root := t.list.Root()
+	if root == nil || focusedRow(root.Focus(), t.list) != nil {
+		return
+	}
+	var row *gtk.ListBoxRow
+	if t.hasLastFocus {
+		row = t.rowFor(t.lastFocus)
+	}
+	if row == nil && t.hasTarget {
+		row = t.rowFor(t.target)
+	}
+	if row == nil && t.model.hasSelf() {
+		row = t.rowFor(rowID{user: true, id: t.model.self})
+	}
+	if row != nil && !sameRow(focusChildRow(t.list), row) {
+		t.list.SetFocusChild(row)
+	}
+}
+
+// focusChildRow is the list's focus row (nil if none).
+func focusChildRow(list *gtk.ListBox) *gtk.ListBoxRow {
+	if c := list.FocusChild(); c != nil {
+		row, _ := coreglib.BaseObject(c).Cast().(*gtk.ListBoxRow)
+		return row
+	}
+	return nil
 }
 
 // channelOf is the channel a row is in (or, for a channel row, is).
