@@ -14,7 +14,9 @@
 #                                  tagged version (e.g. after a packaging fix)
 #
 # A release ends by uploading web/ to the server configured in
-# tools/release.conf (an SFTP location mounted via GVfs).
+# tools/release.conf (an SFTP location mounted via GVfs). The target is
+# checked first: when it cannot be reached, the script stops before it
+# commits, tags or builds anything.
 # A release also moves the branch stable, which Nix users install from, to
 # the new tag (fast-forward only). Push main first, then the tag together
 # with stable (git push origin refs/tags/v<version> refs/heads/stable);
@@ -175,6 +177,33 @@ write_page() {
 	echo "release: web/ website written for $version (screenshots $shots)"
 }
 
+# upload_dest prints where GVfs shows the upload target once mounted.
+upload_dest() {
+	printf '%s' "/run/user/$(id -u)/gvfs/sftp:host=$UPLOAD_HOST,port=$UPLOAD_PORT,user=$UPLOAD_USER$UPLOAD_PATH"
+}
+
+# ensure_upload_target stops the script unless the upload target is
+# mounted and writable. It mounts the target only when GVfs can do so
+# without asking: a password saved in the keyring is used by GVfs itself,
+# and with stdin on /dev/null gio gives up instead of prompting. Nothing
+# to check without UPLOAD_HOST (web/ is then uploaded by hand). The
+# argument says what to run once the password is saved.
+ensure_upload_target() {
+	[ -n "${UPLOAD_HOST:-}" ] || return 0
+	local retry=${1:-run this again} dest out="" i
+	dest=$(upload_dest)
+	if [ ! -d "$dest" ]; then
+		out=$(timeout 60 gio mount "sftp://$UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_PORT/" </dev/null 2>&1) || true
+		# The mount can show up a few seconds after gio returns.
+		for i in $(seq 15); do
+			[ -d "$dest" ] && break
+			sleep 1
+		done
+	fi
+	[ -d "$dest" ] || die "upload target $dest not reachable${out:+ (${out//$'\n'/ })}; it is only mounted without a password prompt, so open it once in Files and save the password, then $retry"
+	[ -w "$dest" ] || die "upload target $dest is not writable"
+}
+
 # upload mirrors web/ to the GVfs-mounted SFTP target, remounting it when
 # the connection dropped. GVfs SFTP does not keep modification times, so
 # rsync cannot detect changes by time. The repository layout makes that
@@ -188,12 +217,9 @@ upload() {
 		echo "release: no upload target configured; upload web/ to $WEB_URL by hand"
 		return
 	fi
-	local mount="/run/user/$(id -u)/gvfs/sftp:host=$UPLOAD_HOST,port=$UPLOAD_PORT,user=$UPLOAD_USER"
-	local dest="$mount$UPLOAD_PATH"
-	if [ ! -d "$dest" ]; then
-		gio mount "sftp://$UPLOAD_USER@$UPLOAD_HOST:$UPLOAD_PORT/" </dev/null >/dev/null 2>&1 || true
-	fi
-	[ -d "$dest" ] || die "upload target $dest not reachable; open it once in Files (save the password), then run tools/release.sh --upload"
+	ensure_upload_target "run tools/release.sh --upload"
+	local dest
+	dest=$(upload_dest)
 
 	local base=(-r --no-perms --no-times --omit-dir-times)
 	local mutable=(
@@ -278,12 +304,14 @@ case "${1:-}" in
 	# that ends up in the app needs a new version.
 	git diff --quiet "v$version" HEAD -- . ':!tools' ':!README.md' ||
 		die "app files changed since v$version; release a new version instead"
+	ensure_upload_target
 	build_and_publish
 	echo "release: v$version rebuilt and published"
 	exit 0
 	;;
 --refs-only)
 	[ -d "$REPO" ] || die "no $REPO yet; run a release first"
+	ensure_upload_target
 	write_descriptors
 	upload
 	exit 0
@@ -304,6 +332,7 @@ version=${1:-}
 [ -z "$(git status --porcelain)" ] || die "git tree not clean; commit first"
 git rev-parse -q --verify "refs/tags/v$version" >/dev/null && die "tag v$version exists"
 check_stable
+ensure_upload_target
 
 echo "$version" > VERSION
 bump_metainfo "$version"
