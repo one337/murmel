@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 22:55+0100\n"
+"POT-Creation-Date: 2026-11-27 18:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2461,6 +2461,10 @@ msgstr ""
 
 #: internal/ui/shortcutsdialog.go
 msgid "Fullscreen"
+msgstr ""
+
+#: internal/ui/shortcutsdialog.go
+msgid "Move between the channel list and the message field"
 msgstr ""
 
 #: internal/ui/shortcutsdialog.go internal/ui/window.go

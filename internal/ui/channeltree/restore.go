@@ -351,6 +351,23 @@ func (t *Tree) focusMoved() {
 	t.setEntryRow()
 }
 
+// FocusEntry moves the keyboard focus into the list, on the row where Tab
+// enters it (see setEntryRow), and reports whether the list has it.
+func (t *Tree) FocusEntry() bool {
+	root := t.list.Root()
+	if root == nil {
+		return false
+	}
+	if focusedRow(root.Focus(), t.list) != nil {
+		return true
+	}
+	t.setEntryRow()
+	if row := focusChildRow(t.list); row != nil {
+		return row.GrabFocus()
+	}
+	return false
+}
+
 // setEntryRow makes the row where Tab and Shift+Tab enter the list the
 // list's focus row, while the focus is outside the list: the row that
 // last had the focus, else the chat target, else one's own row. This

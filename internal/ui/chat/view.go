@@ -369,6 +369,10 @@ func (v *View) visibleTag() string {
 	return ""
 }
 
+// FocusComposer moves the keyboard focus into the message field of the
+// conversation on screen and reports whether it got there.
+func (v *View) FocusComposer() bool { return v.visible().composer.view.GrabFocus() }
+
 // visible is the conversation on screen.
 func (v *View) visible() *conversation {
 	for _, c := range v.dms {

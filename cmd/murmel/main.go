@@ -48,11 +48,13 @@ func main() {
 
 		tree := channeltree.NewTree(ctx, b, win)
 		win.Sidebar().Set(tree.Root())
+		win.Sidebar().SetFocus(tree.FocusEntry)
 
 		chatView := chat.NewView(ctx, b, ctrl)
 		chatView.AddChannelHeaderWidget(win.NarrowMuteButton())
 		chatView.UseSettings(st)
 		win.Chat().Set(chatView.Root())
+		win.Chat().SetFocus(chatView.FocusComposer)
 		app.OnOpenChat(chatView.OpenConversation)
 
 		app.OnPreferences(func() {

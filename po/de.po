@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-25 22:55+0100\n"
+"POT-Creation-Date: 2026-11-27 18:49+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -2589,6 +2589,10 @@ msgstr "Mit einem Server verbinden"
 #: internal/ui/shortcutsdialog.go
 msgid "Fullscreen"
 msgstr "Vollbild"
+
+#: internal/ui/shortcutsdialog.go
+msgid "Move between the channel list and the message field"
+msgstr "Zwischen Kanalliste und Nachrichtenfeld wechseln"
 
 #: internal/ui/shortcutsdialog.go internal/ui/window.go
 msgid "Quit"

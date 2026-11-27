@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/diamondburned/gotk4-adwaita/pkg/adw"
+	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gio/v2"
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
@@ -40,6 +41,8 @@ const (
 type Slot struct {
 	holder *gtk.Box
 	child  gtk.Widgetter
+	// focus moves the keyboard focus into the content (see SetFocus).
+	focus func() bool
 }
 
 func newSlot() *Slot {
@@ -58,6 +61,19 @@ func (s *Slot) Set(child gtk.Widgetter) {
 	if child != nil {
 		s.holder.Append(child)
 	}
+}
+
+// SetFocus gives the slot the function that moves the keyboard focus
+// into its content and reports whether it did (F6 and Shift+F6).
+func (s *Slot) SetFocus(focus func() bool) { s.focus = focus }
+
+// contains reports whether w lies inside the slot.
+func (s *Slot) contains(w gtk.Widgetter) bool {
+	return w != nil && (sameWidget(w, s.holder) || gtk.BaseWidget(w).IsAncestor(s.holder))
+}
+
+func sameWidget(a, b gtk.Widgetter) bool {
+	return coreglib.BaseObject(a).Native() == coreglib.BaseObject(b).Native()
 }
 
 // Window is the main application window: an adw.NavigationSplitView with
@@ -470,6 +486,32 @@ func (w *Window) registerActions() {
 		}
 	})
 	w.AddAction(fullscreen)
+
+	pane := gio.NewSimpleAction("switch-pane", nil)
+	pane.ConnectActivate(func(*glib.Variant) { w.switchPane() })
+	w.AddAction(pane)
+}
+
+// switchPane moves the keyboard focus between the channel list and the
+// message field (F6, Shift+F6): from the chat to the list, from anywhere
+// else to the chat. A narrow window shows the page it moves to. Nothing
+// happens while not connected or while a dialog is open.
+func (w *Window) switchPane() {
+	if !w.connected || w.VisibleDialog() != nil {
+		return
+	}
+	target := w.chat
+	toChat := !w.chat.contains(w.Focus())
+	if !toChat {
+		target = w.sidebar
+	}
+	if target.focus == nil {
+		return
+	}
+	if w.split.Collapsed() {
+		w.split.SetShowContent(toChat)
+	}
+	target.focus()
 }
 
 func (w *Window) restoreGeometry() {

@@ -108,3 +108,45 @@ func TestGTKTabEntersOnTargetWhenLastRowWent(t *testing.T) {
 		t.Errorf("Shift+Tab entered on %+v (%v), want the chat target %+v", got, ok, target)
 	}
 }
+
+// FocusEntry (F6) enters the list where Tab would: on the row that last
+// had the focus; with the focus already in the list it stays there.
+func TestGTKFocusEntryEntersLikeTab(t *testing.T) {
+	needGTK(t)
+	tree, _, win, entry := focusTree(t, 5, 40)
+	waitForFocus(t, tree, win, rowID{user: true, id: usersOf(tree, 2)[0]})
+	last := rowID{user: true, id: usersOf(tree, 4)[1]}
+	focusRow(t, tree, last)
+	onMain(func() { entry.GrabFocus() })
+	var ok bool
+	onMain(func() { ok = tree.FocusEntry() })
+	if got, in := focused(tree); !ok || !in || got != last {
+		t.Errorf("FocusEntry from outside: %v, focus on %+v (%v), want %+v", ok, got, in, last)
+	}
+	other := rowID{id: 3}
+	focusRow(t, tree, other)
+	onMain(func() { ok = tree.FocusEntry() })
+	if got, in := focused(tree); !ok || !in || got != other {
+		t.Errorf("FocusEntry from inside: %v, focus on %+v (%v), want %+v", ok, got, in, other)
+	}
+}
+
+// Without rows (not connected) FocusEntry does nothing.
+func TestGTKFocusEntryWithoutRows(t *testing.T) {
+	needGTK(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	var win *gtk.Window
+	var ok bool
+	onMain(func() {
+		win = gtk.NewWindow()
+		tree := NewTree(ctx, bus.New(nil), win)
+		win.SetChild(tree.Root())
+		win.Present()
+		ok = tree.FocusEntry()
+	})
+	t.Cleanup(func() { onMain(func() { win.Destroy() }) })
+	if ok {
+		t.Error("FocusEntry reported the focus in an empty list")
+	}
+}

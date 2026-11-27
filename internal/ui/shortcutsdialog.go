@@ -21,6 +21,7 @@ func (a *App) showShortcuts() {
 	general.Add(adw.NewShortcutsItem(i18n.Tr("Connect to a server"), "<Control>n"))
 	general.Add(adw.NewShortcutsItem(i18n.Tr("Preferences"), "<Control>comma"))
 	general.Add(adw.NewShortcutsItem(i18n.Tr("Fullscreen"), "F11"))
+	general.Add(adw.NewShortcutsItem(i18n.Tr("Move between the channel list and the message field"), "F6"))
 	general.Add(adw.NewShortcutsItem(i18n.Tr("Quit"), "<Control>q"))
 	d.Add(general)
 

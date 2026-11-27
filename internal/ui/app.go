@@ -249,6 +249,7 @@ func (a *App) registerActions() {
 	a.SetAccelsForAction("app.preferences", []string{"<Primary>comma"})
 	a.SetAccelsForAction("app.shortcuts", []string{"<Primary>question"})
 	a.SetAccelsForAction("win.fullscreen", []string{"F11"})
+	a.SetAccelsForAction("win.switch-pane", []string{"F6", "<Shift>F6"})
 }
 
 // trackServerActions enables the server actions only while connected,

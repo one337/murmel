@@ -225,3 +225,23 @@ func TestGTKScrolledUpEveryLineOffersJump(t *testing.T) {
 		t.Errorf("jump tooltip %q, want %q", tip, "Scroll to the newest line")
 	}
 }
+
+// FocusComposer puts the focus into the message field of the conversation
+// on screen: the channel's, or a private conversation's once it is shown.
+func TestGTKFocusComposerFollowsTheVisibleConversation(t *testing.T) {
+	needGTK(t)
+	v, _ := chatWindow(t)
+	onMain(func() {
+		if !v.FocusComposer() || !v.channel.composer.view.HasFocus() {
+			t.Error("the channel's message field did not get the focus")
+		}
+		v.openDM(convKey("u:7"), "anna")
+	})
+	settleFrames()
+	onMain(func() {
+		v.channel.composer.view.GrabFocus()
+		if !v.FocusComposer() || !v.dms[convKey("u:7")].composer.view.HasFocus() {
+			t.Error("the private conversation's message field did not get the focus")
+		}
+	})
+}
