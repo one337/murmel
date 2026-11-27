@@ -178,7 +178,7 @@ func chevronSpacer() *gtk.Button {
 	return b
 }
 
-func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float64)) *channelRowWidgets {
+func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float64), pick func()) *channelRowWidgets {
 	n := m.channels[id]
 	r := &channelRowWidgets{}
 
@@ -219,6 +219,9 @@ func newChannelRow(m *treeModel, id uint32, toggle func(), menu func(x, y float6
 	r.showCurrent(id == m.selfChannel() && m.hasSelf())
 	if menu != nil {
 		contextMenu(r.root, menu)
+	}
+	if pick != nil {
+		onClick(r.root, pick)
 	}
 	r.update(n)
 	return r
@@ -290,16 +293,9 @@ func newUserRow(m *treeModel, session uint32, menu func(x, y float64), open func
 		contextMenu(r.root, menu)
 	}
 	// A click opens the conversation with the user, also when the row is
-	// already selected (selection changes alone would not fire again).
+	// the chat target already.
 	if open != nil {
-		click := gtk.NewGestureClick()
-		click.SetButton(gdk.BUTTON_PRIMARY)
-		click.ConnectReleased(func(n int, _, _ float64) {
-			if n == 1 {
-				open()
-			}
-		})
-		r.root.AddController(click)
+		onClick(r.root, open)
 	}
 	r.update(u, m.speaking[session])
 	return r
@@ -328,6 +324,18 @@ func contextMenu(row *gtk.ListBoxRow, menu func(x, y float64)) {
 		menu(x, y)
 	})
 	row.AddController(hold)
+}
+
+// onClick calls f on a single click on row with the primary button.
+func onClick(row *gtk.ListBoxRow, f func()) {
+	click := gtk.NewGestureClick()
+	click.SetButton(gdk.BUTTON_PRIMARY)
+	click.ConnectReleased(func(n int, _, _ float64) {
+		if n == 1 {
+			f()
+		}
+	})
+	row.AddController(click)
 }
 
 // onFocusLeave calls f when the keyboard focus leaves row.

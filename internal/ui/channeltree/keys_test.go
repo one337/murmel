@@ -65,17 +65,13 @@ func TestGTKArrowKeysMoveOnlyTheCursor(t *testing.T) {
 	for i, key := range []uint{gdk.KEY_Down, gdk.KEY_Down, gdk.KEY_Down, gdk.KEY_Up, gdk.KEY_KP_Down} {
 		before, _ := focused(tree)
 		var handled bool
-		var selected bool
-		onMain(func() {
-			handled = press(keys, key, 0)
-			selected = tree.list.SelectedRow() != nil
-		})
+		onMain(func() { handled = press(keys, key, 0) })
 		after, ok := focused(tree)
 		if !handled || !ok || after == before {
 			t.Fatalf("key %d: handled %v, focus moved from %+v to %+v (in the list %v)", i, handled, before, after, ok)
 		}
-		if selected {
-			t.Errorf("key %d selected a row", i)
+		if shown, _ := marked(tree); len(shown) != 0 {
+			t.Errorf("key %d marked %+v as the chat target", i, shown)
 		}
 	}
 	for _, key := range []uint{gdk.KEY_Page_Down, gdk.KEY_End, gdk.KEY_Home} {
@@ -153,27 +149,20 @@ func TestGTKEnterOnChannelJoins(t *testing.T) {
 	}
 }
 
-// The mouse works as before: selecting a row (a click) and the click on
-// a user row both open the conversation.
+// The mouse works as before: a click on a user row opens the
+// conversation, also on the user who is the chat target already.
 func TestGTKMouseStillOpensConversation(t *testing.T) {
 	needGTK(t)
 	tree, b, _, _ := focusTree(t, 5, 40)
 	targets := record[bus.ChatTargetChanged](t, b)
 	user := usersOf(tree, 2)[0]
-	onMain(func() { tree.list.SelectRow(tree.userRows[user].root) })
+	clickRow(t, tree, rowID{user: true, id: user})
 	if got := targets(1); len(got) != 1 || got[0].Session != user {
-		t.Fatalf("selecting user %d sent %+v", user, got)
+		t.Fatalf("clicking user %d sent %+v", user, got)
 	}
-	onMain(func() {
-		ctrls := tree.userRows[user].root.ObserveControllers()
-		for i := uint(0); i < ctrls.NItems(); i++ {
-			if g, ok := ctrls.Item(i).Cast().(*gtk.GestureClick); ok && g.Button() == gdk.BUTTON_PRIMARY {
-				coreglib.BaseObject(g).Emit("released", 1, 5.0, 5.0)
-			}
-		}
-	})
+	clickRow(t, tree, rowID{user: true, id: user})
 	if got := targets(2); len(got) != 2 || got[1].Session != user {
-		t.Errorf("clicking the selected user %d sent %+v", user, got)
+		t.Errorf("clicking the user %d again sent %+v", user, got)
 	}
 }
 

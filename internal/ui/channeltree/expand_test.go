@@ -209,11 +209,9 @@ func TestGTKLeftRightKeys(t *testing.T) {
 	step(rowID{id: 0}, false, rowID{id: 0}, map[uint32]bool{0: false}, "Left on the open top channel")
 	step(rowID{id: 0}, false, rowID{id: 0}, map[uint32]bool{0: false}, "Left on the closed top channel")
 	step(rowID{id: 0}, true, rowID{id: 0}, map[uint32]bool{0: true}, "Right on the closed top channel")
-	onMain(func() {
-		if tree.list.SelectedRow() != nil {
-			t.Error("Left/Right selected a row")
-		}
-	})
+	if shown, _ := marked(tree); len(shown) != 0 {
+		t.Errorf("Left/Right marked %+v as the chat target", shown)
+	}
 	if got := targets(0); len(got) != 0 {
 		t.Errorf("Left/Right changed the chat target: %+v", got)
 	}

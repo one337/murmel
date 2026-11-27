@@ -7,15 +7,15 @@ import (
 )
 
 // rowID names a row by what it shows: a channel by its ID, a user by
-// their session. A rebuild may move or replace rows, so focus and
-// selection are carried over by this identity, not by position.
+// their session. A rebuild may move or replace rows, so focus and the
+// chat target mark are carried over by this identity, not by position.
 type rowID struct {
 	user bool
 	id   uint32
 }
 
-// listState is what a rebuild must keep: keyboard focus, selection and
-// what is on screen.
+// listState is what a rebuild must keep: keyboard focus, the chat target
+// mark and what is on screen.
 type listState struct {
 	// focus lists the rows that may take the keyboard focus after the
 	// rebuild, best first: the focused row, then (if it goes) the users
@@ -23,8 +23,9 @@ type listState struct {
 	// above and below it. Empty when the focus was not on a row.
 	focus []focusCandidate
 
-	selected    rowID
-	hasSelected bool
+	// target is the row marked as the chat target (see Tree.markTarget).
+	target    rowID
+	hasTarget bool
 
 	scroll float64
 
@@ -114,14 +115,12 @@ func (t *Tree) rowFor(id rowID) *gtk.ListBoxRow {
 	return nil
 }
 
-// saveListState records focus, selection and the rows' place on screen
+// saveListState records focus, chat target mark and the rows' place on screen
 // before the rows go.
 func (t *Tree) saveListState() listState {
 	adj := t.root.VAdjustment()
 	s := listState{scroll: adj.Value()}
-	if sel := t.list.SelectedRow(); sel != nil {
-		s.selected, s.hasSelected = t.rowIDOf(sel)
-	}
+	s.target, s.hasTarget = t.target, t.hasTarget
 
 	// The rows in their current order, as identities.
 	ids := make(map[uintptr]rowID, len(t.channelRows)+len(t.userRows))
@@ -286,12 +285,9 @@ func focusedRow(focus gtk.Widgetter, list *gtk.ListBox) *gtk.ListBoxRow {
 	return nil
 }
 
-// restoreListState gives the new rows the focus and selection the old ones
-// had, and keeps what was on screen there (see anchorAfterLayout).
+// restoreListState gives the new rows the focus and chat target mark the
+// old ones had, and keeps what was on screen there (see anchorAfterLayout).
 func (t *Tree) restoreListState(s listState) {
-	t.restoring = true
-	defer func() { t.restoring = false }()
-
 	// The list keeps its old height until the next layout, so the old
 	// position is not clamped here.
 	t.heldScroll, t.holdScroll = s.scroll, true
@@ -304,10 +300,11 @@ func (t *Tree) restoreListState(s listState) {
 			target.GrabFocus()
 		}
 	}
-	if s.hasSelected {
-		if row := t.rowFor(s.selected); row != nil {
-			t.list.SelectRow(row)
-		}
+	// A row put back into the list lost its mark for assistive
+	// technologies; a row that went takes the mark with it.
+	t.hasTarget = false
+	if s.hasTarget && t.rowFor(s.target) != nil {
+		t.markTarget(s.target)
 	}
 
 	// The focus moved to another row, or followed its user to another

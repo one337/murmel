@@ -20,9 +20,9 @@ import (
 // gtk.ListBox (one row per visible entry in depth-first order).
 //
 // When the user activates a channel row (double-click or Enter) it emits
-// bus.ChannelJoinRequested. Row selection (a click, Enter) and activating
-// a user row emit bus.ChatTargetChanged; the arrow keys only move the
-// cursor (see onKey).
+// bus.ChannelJoinRequested. A click on a row and activating a user row
+// emit bus.ChatTargetChanged and mark that row (see markTarget); moving the
+// keyboard focus marks nothing (see onKey).
 // Construct on the main loop; ctx tears the subscriptions down.
 type Tree struct {
 	root *gtk.ScrolledWindow
@@ -66,9 +66,10 @@ type Tree struct {
 	rebuildScheduled bool
 	lastRebuild      time.Time
 
-	// restoring is set while a rebuild gives the new rows the old
-	// selection: that is no new chat target.
-	restoring bool
+	// target is the row marked as the chat target: the row last clicked
+	// or activated (hasTarget false if none, or if its row went).
+	target    rowID
+	hasTarget bool
 	// handlePressed is set while a mouse button is down on a drag handle.
 	// A rebuild may take out the row under it and break the drag that may
 	// follow, so it waits (like during a drag and while a menu is open).
@@ -136,19 +137,16 @@ func NewTree(ctx context.Context, b *bus.Bus, parent gtk.Widgetter) *Tree {
 	}
 
 	t.list = gtk.NewListBox()
-	t.list.SetSelectionMode(gtk.SelectionSingle)
+	// The list selects nothing itself: it would select every row the
+	// keyboard focus moves to. The tree marks the chat target instead.
+	t.list.SetSelectionMode(gtk.SelectionNone)
 	t.list.AddCSSClass("navigation-sidebar")
-	// Single click selects the chat target; double-click (or Enter) joins.
+	// A single click picks the chat target; double-click (or Enter) joins.
 	t.list.SetActivateOnSingleClick(false)
 	placeholder := gtk.NewLabel(i18n.Tr("Not connected"))
 	placeholder.AddCSSClass("dim-label")
 	t.list.SetPlaceholder(placeholder)
 	t.list.ConnectRowActivated(func(row *gtk.ListBoxRow) { t.onActivate(row) })
-	t.list.ConnectRowSelected(func(row *gtk.ListBoxRow) {
-		if row != nil {
-			t.onSelect(row)
-		}
-	})
 	keys := gtk.NewEventControllerKey()
 	keys.SetPropagationPhase(gtk.PhaseCapture)
 	keys.ConnectKeyPressed(t.onKey)
@@ -327,8 +325,8 @@ func (t *Tree) flushRebuild() {
 // their place, and rows that moved are taken out and put back at their new
 // place (all but the longest run that is still in order). After connecting
 // or disconnecting every row is replaced: the same session or channel ID
-// may then be someone or something else. Focus, selection and what is on
-// screen are kept as before (see restoreListState).
+// may then be someone or something else. Focus, chat target mark and what
+// is on screen are kept as before (see restoreListState).
 func (t *Tree) rebuild() {
 	t.rebuildPending = false
 	defer func() { t.lastRebuild = time.Now() }()
@@ -472,7 +470,14 @@ func (t *Tree) newRowFor(e entry) gtk.Widgetter {
 		id := e.id
 		r := newChannelRow(t.model, id,
 			func() { t.toggleExpand(id) },
-			func(x, y float64) { t.showChannelMenu(id, x, y) })
+			func(x, y float64) { t.showChannelMenu(id, x, y) },
+			func() {
+				// The row may outlive the channel until the pending rebuild.
+				if _, ok := t.model.channels[id]; ok {
+					t.markTarget(rowID{id: id})
+					t.b.Emit(bus.ChatTargetChanged{ChannelID: id})
+				}
+			})
 		t.channelRows[id] = r
 		onFocusLeave(r.root, func() {
 			if r, ok := t.channelRows[id]; ok {
@@ -488,6 +493,7 @@ func (t *Tree) newRowFor(e entry) gtk.Widgetter {
 			func() {
 				// The row may outlive the user until the pending rebuild.
 				if _, ok := t.model.users[session]; ok {
+					t.markTarget(rowID{user: true, id: session})
 					t.b.Emit(bus.ChatTargetChanged{Session: session})
 				}
 			})
@@ -541,8 +547,8 @@ func (t *Tree) toggleExpand(id uint32) {
 }
 
 // setExpanded opens or closes a channel by adding or removing the rows
-// below it; every other row stays as it is (focus, selection, place on
-// screen). While the rows do not match the model (a rebuild pending or
+// below it; every other row stays as it is (focus, chat target mark,
+// place on screen). While the rows do not match the model (a rebuild pending or
 // held back by a menu, a drag or a pressed handle), the rebuild shows it.
 func (t *Tree) setExpanded(id uint32, expanded bool) {
 	n, ok := t.model.channels[id]
@@ -698,9 +704,9 @@ func (t *Tree) userMenu(session uint32, at gdk.Rectangle, keyboard bool) {
 // list itself (capture phase):
 //
 //   - The arrow keys, Page Up/Down, Home and End only move the cursor, as
-//     Ctrl with them does: the selection, and with it the conversation
+//     Ctrl with them does: the chat target, and with it the conversation
 //     shown, stays. Enter (or Space) opens the conversation or joins the
-//     channel, a click does as before.
+//     channel, a click does as before; Ctrl+Space does nothing.
 //   - The Menu key and Shift+F10 open the context menu of the focused
 //     row, pointing at the whole row.
 //   - Right and Left open and close channels and move along the tree
@@ -714,6 +720,10 @@ func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 		return t.sideways(true)
 	case (keyval == gdk.KEY_Left || keyval == gdk.KEY_KP_Left) && mods == 0:
 		return t.sideways(false)
+	case (keyval == gdk.KEY_space || keyval == gdk.KEY_KP_Space) && mods == gdk.ControlMask:
+		// GTK would activate the row (join the channel): Ctrl+Space
+		// does nothing here.
+		return true
 	case mods&^gdk.ShiftMask != 0:
 		return false // Ctrl, Alt, Super: GTK's own meaning
 	}
@@ -747,8 +757,8 @@ func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 //     the cursor to the parent channel, on a user to their channel.
 //
 // Otherwise (Right on an empty channel or a user, Left on the top
-// channel) nothing happens. The selection, and with it the conversation,
-// stays.
+// channel) nothing happens. The chat target, and with it the
+// conversation, stays.
 func (t *Tree) sideways(right bool) bool {
 	root := t.list.Root()
 	if root == nil {
@@ -868,14 +878,16 @@ func sameRow(a, b *gtk.ListBoxRow) bool {
 }
 
 // onActivate fires when the user double-clicks or presses Enter (or
-// Space) on a row. Channel rows request a join; user rows open the
-// conversation, also when the row is selected already (a click does that
-// through the row's own click handler). The row may still show a channel
-// or user that a pending rebuild removes: only those the model knows count.
+// Space) on a row. The row becomes the chat target; channel rows also
+// request a join, user rows open the conversation, also when the row is
+// the chat target already. The row may still show a channel or user that
+// a pending rebuild removes: only those the model knows count.
 func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 	for id, r := range t.channelRows {
 		if sameRow(r.root, row) {
 			if _, ok := t.model.channels[id]; ok {
+				t.markTarget(rowID{id: id})
+				t.b.Emit(bus.ChatTargetChanged{ChannelID: id})
 				t.b.Emit(bus.ChannelJoinRequested{ChannelID: id})
 			}
 			return
@@ -884,6 +896,7 @@ func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 	for session, r := range t.userRows {
 		if sameRow(r.root, row) {
 			if _, ok := t.model.users[session]; ok {
+				t.markTarget(rowID{user: true, id: session})
 				t.b.Emit(bus.ChatTargetChanged{Session: session})
 			}
 			return
@@ -891,27 +904,31 @@ func (t *Tree) onActivate(row *gtk.ListBoxRow) {
 	}
 }
 
-// onSelect fires on a row selection change and emits ChatTargetChanged so
-// the chat view follows the sidebar selection (only to channels and users
-// the model still knows, see onActivate).
-func (t *Tree) onSelect(row *gtk.ListBoxRow) {
-	if t.restoring {
+// markTarget marks id's row as the chat target, as a selected row looks
+// and as assistive technologies know a selected row, and unmarks the row
+// marked before.
+func (t *Tree) markTarget(id rowID) {
+	if t.hasTarget && t.target != id {
+		if row := t.rowFor(t.target); row != nil {
+			showTarget(row, false)
+		}
+	}
+	t.target, t.hasTarget = id, true
+	if row := t.rowFor(id); row != nil {
+		showTarget(row, true)
+	}
+}
+
+// showTarget shows row as the chat target or as an ordinary row.
+func showTarget(row *gtk.ListBoxRow, on bool) {
+	if !on {
+		row.UnsetStateFlags(gtk.StateFlagSelected)
+		row.ResetState(gtk.AccessibleStateSelected)
 		return
 	}
-	for id, r := range t.channelRows {
-		if sameRow(r.root, row) {
-			if _, ok := t.model.channels[id]; ok {
-				t.b.Emit(bus.ChatTargetChanged{ChannelID: id})
-			}
-			return
-		}
-	}
-	for session, r := range t.userRows {
-		if sameRow(r.root, row) {
-			if _, ok := t.model.users[session]; ok {
-				t.b.Emit(bus.ChatTargetChanged{Session: session})
-			}
-			return
-		}
-	}
+	row.SetStateFlags(gtk.StateFlagSelected, false)
+	// A "boolean or undefined" state: GTK reads it as an int (see
+	// setExpandedState).
+	row.UpdateState([]gtk.AccessibleState{gtk.AccessibleStateSelected},
+		[]coreglib.Value{*coreglib.NewValue(int32(1))})
 }

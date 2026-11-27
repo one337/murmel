@@ -260,31 +260,22 @@ func TestGTKRebuildLeavesFocusOutsideTheList(t *testing.T) {
 	}
 }
 
-// The selected row stays selected, and restoring it is no new chat
-// target.
-func TestGTKRebuildKeepsSelection(t *testing.T) {
+// The row marked as the chat target stays marked, and restoring the mark
+// is no new chat target.
+func TestGTKRebuildKeepsChatTargetMark(t *testing.T) {
 	needGTK(t)
 	tree, b, _, _ := focusTree(t, 5, 40)
 	for _, sel := range []rowID{{user: true, id: 20}, {id: 3}} {
 		targets := record[bus.ChatTargetChanged](t, b)
-		onMain(func() { tree.list.SelectRow(tree.rowFor(sel)) })
-		// Selecting is a new chat target: the test sees that event.
+		clickRow(t, tree, sel)
+		// The click is a new chat target: the test sees that event.
 		if len(targets(1)) == 0 {
-			t.Fatal("selecting a row did not change the chat target")
+			t.Fatal("a click on a row did not change the chat target")
 		}
 		removeAndWait(t, tree, b, usersOf(tree, 1)[0])
-		var got rowID
-		var ok bool
-		onMain(func() {
-			if row := tree.list.SelectedRow(); row != nil {
-				got, ok = tree.rowIDOf(row)
-			}
-		})
-		if !ok || got != sel {
-			t.Errorf("selected %+v (%v) after the rebuild, want %+v", got, ok, sel)
-		}
+		checkMarked(t, tree, sel, "after the rebuild")
 		if ev := targets(1); len(ev) != 1 {
-			t.Errorf("restoring the selection of %+v changed the chat target: %+v", sel, ev[1:])
+			t.Errorf("restoring the mark of %+v changed the chat target: %+v", sel, ev[1:])
 		}
 	}
 }
