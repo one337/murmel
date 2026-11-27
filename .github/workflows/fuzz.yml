@@ -46,13 +46,16 @@ jobs:
           key: fuzz-${{ hashFiles('go.sum') }}-${{ github.sha }}
           restore-keys: fuzz-${{ hashFiles('go.sum') }}-
 
-      # Runs every target, then fails if any of them did.
+      # Runs every target, then fails if any of them did. New inputs are
+      # not minimized: while the fuzzer shrinks one, no worker runs, and
+      # with large seeds that took most of the minute. A failing input is
+      # kept as found.
       - name: Fuzz
         run: |
           failed=""
           while read -r pkg target; do
             echo "::group::$target ($pkg)"
-            if ! go test -run='^$' -fuzz="^$target\$" -fuzztime=60s "$pkg" </dev/null; then
+            if ! go test -run='^$' -fuzz="^$target\$" -fuzztime=60s -fuzzminimizetime=0 "$pkg" </dev/null; then
               failed="$failed $target"
             fi
             echo "::endgroup::"
