@@ -725,16 +725,16 @@ func (t *Tree) userMenu(session uint32, at gdk.Rectangle, keyboard bool) {
 //   - The Menu key and Shift+F10 open the context menu of the focused
 //     row, pointing at the whole row.
 //   - Right and Left open and close channels and move along the tree
-//     (see sideways).
+//     (see sideways); in right-to-left layouts they swap.
 func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 	mods := state & (gdk.ShiftMask | gdk.ControlMask | gdk.AltMask | gdk.SuperMask)
 	switch {
 	case keyval == gdk.KEY_Menu && mods == 0, keyval == gdk.KEY_F10 && mods == gdk.ShiftMask:
 		return t.menuForFocused()
 	case (keyval == gdk.KEY_Right || keyval == gdk.KEY_KP_Right) && mods == 0:
-		return t.sideways(true)
+		return t.sideways(t.list.Direction() != gtk.TextDirRTL)
 	case (keyval == gdk.KEY_Left || keyval == gdk.KEY_KP_Left) && mods == 0:
-		return t.sideways(false)
+		return t.sideways(t.list.Direction() == gtk.TextDirRTL)
 	case (keyval == gdk.KEY_space || keyval == gdk.KEY_KP_Space) && mods == gdk.ControlMask:
 		// GTK would activate the row (join the channel): Ctrl+Space
 		// does nothing here.
@@ -766,15 +766,16 @@ func (t *Tree) onKey(keyval, _ uint, state gdk.ModifierType) bool {
 	return true
 }
 
-// sideways handles Right and Left on the focused row, as tree views do:
+// sideways handles Right and Left on the focused row, as tree views do
+// (in = Right, or Left in right-to-left layouts):
 //
-//   - Right opens a closed channel; on an open one it moves the cursor to
-//     the first row inside.
-//   - Left closes an open channel; on a closed (or empty) channel it moves
+//   - In opens a closed channel; on an open one it moves the cursor to the
+//     first row inside.
+//   - Out closes an open channel; on a closed (or empty) channel it moves
 //     the cursor to the parent channel, on a user to their channel.
 //
-// Otherwise (Right on an empty channel or a user, Left on the top
-// channel) nothing happens. The chat target, and with it the
+// Otherwise (in on an empty channel or a user, out on the top channel)
+// nothing happens. The chat target, and with it the
 // conversation, stays.
 func (t *Tree) sideways(right bool) bool {
 	root := t.list.Root()
