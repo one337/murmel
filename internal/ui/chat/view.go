@@ -114,6 +114,11 @@ func (v *View) onPresence(ev presence.Event) {
 	}
 	for _, line := range logLines(ev, enabled, st.SelfSession, name) {
 		v.channel.append(rowStyle{kind: rowLog, at: time.Now(), content: line})
+		if ownSpeakLine(ev) {
+			// Also told where the focus is not in the chat: a new row is
+			// not read out by itself.
+			v.nav.Announce(line, gtk.AccessibleAnnouncementPriorityMedium)
+		}
 	}
 }
 

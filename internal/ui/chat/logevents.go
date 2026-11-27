@@ -84,7 +84,11 @@ func logLines(ev presence.Event, enabled func(LogEvent) bool, self uint32, chann
 	switch ev.Kind {
 	case presence.SelfConnected:
 		if ev.User.Suppressed && enabled(LogServerMute) {
-			return []string{i18n.Tr("You may not speak here")}
+			return []string{selfSpeakLine(false)}
+		}
+	case presence.SelfSpeakChanged:
+		if enabled(LogServerMute) {
+			return []string{selfSpeakLine(ev.Allowed)}
 		}
 	case presence.SelfMoved:
 		if enabled(LogSelfMove) {
@@ -128,9 +132,24 @@ func logLines(ev presence.Event, enabled func(LogEvent) bool, self uint32, chann
 	return nil
 }
 
+// selfSpeakLine says whether one may speak (see presence.SelfSpeakChanged).
+func selfSpeakLine(allowed bool) string {
+	if allowed {
+		return i18n.Tr("You're allowed to speak again")
+	}
+	return i18n.Tr("You're not allowed to speak in this channel")
+}
+
+// ownSpeakLine is whether ev's log line, if any, says whether one may
+// speak: that line is also announced to screen readers.
+func ownSpeakLine(ev presence.Event) bool {
+	return ev.Kind == presence.SelfSpeakChanged || ev.Kind == presence.SelfConnected
+}
+
 // audioLines describes mute/deafen changes between two states. After a
-// move (moved), only a new suppression is told: its lifting only means
-// the old channel's limit no longer applies.
+// move (moved), only a new suppression of another user is told: its
+// lifting only means the old channel's limit no longer applies. Whether
+// one may speak oneself is told by selfSpeakLine.
 func audioLines(before, after bus.UserInfo, enabled func(LogEvent) bool, isSelf, moved bool) []string {
 	var out []string
 	add := func(changed, now bool, e LogEvent, on, off, selfOn, selfOff string) {
@@ -154,9 +173,10 @@ func audioLines(before, after bus.UserInfo, enabled func(LogEvent) bool, isSelf,
 	add(before.Deafened != after.Deafened, after.Deafened, LogServerMute,
 		i18n.Tr("%s was deafened by the server"), i18n.Tr("%s was undeafened by the server"),
 		i18n.Tr("You were deafened by the server"), i18n.Tr("You were undeafened by the server"))
-	add(before.Suppressed != after.Suppressed && (after.Suppressed || !moved), after.Suppressed, LogServerMute,
-		i18n.Tr("%s may not speak here"), i18n.Tr("%s may speak again"),
-		i18n.Tr("You may not speak here"), i18n.Tr("You may speak again"))
+	if !isSelf {
+		add(before.Suppressed != after.Suppressed && (after.Suppressed || !moved), after.Suppressed, LogServerMute,
+			i18n.Tr("%s may not speak here"), i18n.Tr("%s may speak again"), "", "")
+	}
 	add(before.SelfMuted != after.SelfMuted, after.SelfMuted, LogSelfMute,
 		i18n.Tr("%s muted themselves"), i18n.Tr("%s unmuted themselves"),
 		i18n.Tr("You muted yourself"), i18n.Tr("You unmuted yourself"))

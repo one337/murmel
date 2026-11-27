@@ -72,12 +72,24 @@ func TestLogLinesSuppressed(t *testing.T) {
 	}{
 		{anna, silent, "anna may not speak here"},
 		{silent, anna, "anna may speak again"},
-		{me, meSilent, "You may not speak here"},
-		{meSilent, me, "You may speak again"},
+		{me, meSilent, ""},
+		{meSilent, me, ""},
 	} {
 		ev := presence.Event{Kind: presence.UserAudioChanged, User: tt.after, Before: tt.before, InMyChannel: true}
 		if got := lines(ev, nil); got != tt.want {
 			t.Errorf("suppressed %v → %v: got %q, want %q", tt.before.Suppressed, tt.after.Suppressed, got, tt.want)
+		}
+	}
+	// One's own right to speak has lines of its own.
+	for _, allowed := range []bool{false, true} {
+		ev := presence.Event{Kind: presence.SelfSpeakChanged, User: me, Allowed: allowed}
+		want := map[bool]string{false: "You're not allowed to speak in this channel",
+			true: "You're allowed to speak again"}[allowed]
+		if got := lines(ev, nil); got != want {
+			t.Errorf("own right to speak %v: got %q, want %q", allowed, got, want)
+		}
+		if got := lines(ev, map[string]bool{string(LogServerMute): false}); got != "" {
+			t.Errorf("own right to speak %v with server mute lines off: got %q", allowed, got)
 		}
 	}
 }
@@ -138,7 +150,7 @@ func chatLog(selfSuppressed bool, events ...bus.Event) []string {
 
 // The server sends a move and the suppression it brings in one update.
 // The chat tells the move first, then that the user may not speak; the
-// end of a suppression that comes with a move is not told.
+// end of another user's suppression that comes with a move is not told.
 func TestLogSuppressionWithMove(t *testing.T) {
 	move := func(session uint32, name string, channel uint32, suppressed bool) bus.Event {
 		return bus.UserUpdated{
@@ -160,14 +172,15 @@ func TestLogSuppressionWithMove(t *testing.T) {
 			"anna joined the channel"},
 		{"I move into a channel without Speak", false,
 			[]bus.Event{move(1, "me", 3, true)},
-			"You moved to Quiet | You may not speak here"},
+			"You moved to Quiet | You're not allowed to speak in this channel"},
 		{"I move out of it", false,
 			[]bus.Event{move(1, "me", 3, true), move(1, "me", 2, false)},
-			"You moved to Quiet | You may not speak here | You moved to Games"},
+			"You moved to Quiet | You're not allowed to speak in this channel | " +
+				"You moved to Games | You're allowed to speak again"},
 		{"allowed to speak where I am", true,
 			[]bus.Event{bus.UserUpdated{User: bus.UserInfo{Session: 1, Name: "me", Channel: 1},
 				Changed: bus.UserChangeAudio}},
-			"You may not speak here | You may speak again"},
+			"You're not allowed to speak in this channel | You're allowed to speak again"},
 	} {
 		if got := strings.Join(chatLog(tt.selfSuppressed, tt.events...), " | "); got != tt.want {
 			t.Errorf("%s: got %q, want %q", tt.name, got, tt.want)
@@ -207,10 +220,67 @@ func TestLogSuppressionOnConnect(t *testing.T) {
 
 // Connecting oneself straight into a channel without Speak says so.
 func TestLogSuppressionOnOwnConnect(t *testing.T) {
-	if got := strings.Join(chatLog(true), " | "); got != "You may not speak here" {
+	if got := strings.Join(chatLog(true), " | "); got != "You're not allowed to speak in this channel" {
 		t.Errorf("own connect into a channel without Speak: %q", got)
 	}
 	if got := chatLog(false); len(got) != 0 {
 		t.Errorf("own connect where one may speak: %q", got)
+	}
+}
+
+// After every own move the chat says whether one may speak in the new
+// channel, the same when someone else moves one. A server sends the
+// suppression only when it changes: a move from one channel without Speak
+// into another carries none, a move between channels where one may speak
+// neither.
+func TestLogOwnRightToSpeakAfterMoves(t *testing.T) {
+	const (
+		locked  = "You're not allowed to speak in this channel"
+		allowed = "You're allowed to speak again"
+	)
+	// move is an own move as the server sends it; suppress is nil when the
+	// update carries no suppression.
+	move := func(channel uint32, wasSuppressed bool, suppress *bool) bus.Event {
+		u := bus.UserInfo{Session: 1, Name: "me", Channel: channel, Suppressed: wasSuppressed}
+		changed := bus.UserChangeChannel
+		if suppress != nil {
+			u.Suppressed = *suppress
+			changed |= bus.UserChangeAudio
+		}
+		return bus.UserUpdated{User: u, Changed: changed}
+	}
+	yes, no := true, false
+	for _, tt := range []struct {
+		name           string
+		selfSuppressed bool
+		ev             bus.Event
+		want           string
+	}{
+		{"allowed → locked", false, move(3, false, &yes), "You moved to Quiet | " + locked},
+		{"locked → locked", true, move(3, true, nil), "You moved to Quiet | " + locked},
+		{"locked → allowed", true, move(2, true, &no), "You moved to Games | " + allowed},
+		{"allowed → allowed", false, move(2, false, nil), "You moved to Games"},
+	} {
+		// The update looks the same whether one moved oneself or was moved.
+		// Connected into a channel without Speak, that is told first.
+		want := tt.want
+		if tt.selfSuppressed {
+			want = locked + " | " + want
+		}
+		if got := strings.Join(chatLog(tt.selfSuppressed, tt.ev), " | "); got != want {
+			t.Errorf("%s: got %q, want %q", tt.name, got, want)
+		}
+	}
+	// Connected into a channel without Speak and let speak there, then
+	// moved on: into another such channel the suppression comes again, into
+	// one where one may speak nothing changes.
+	unsuppress := bus.UserUpdated{User: bus.UserInfo{Session: 1, Name: "me", Channel: 1}, Changed: bus.UserChangeAudio}
+	if got := strings.Join(chatLog(true, unsuppress, move(3, false, &yes)), " | "); got !=
+		locked+" | "+allowed+" | You moved to Quiet | "+locked {
+		t.Errorf("let speak, then into a channel without Speak: %q", got)
+	}
+	if got := strings.Join(chatLog(true, unsuppress, move(2, false, nil)), " | "); got !=
+		locked+" | "+allowed+" | You moved to Games" {
+		t.Errorf("let speak, then into a channel with Speak: %q", got)
 	}
 }

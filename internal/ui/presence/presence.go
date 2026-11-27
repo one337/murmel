@@ -21,6 +21,11 @@ const (
 	// UserAudioChanged: a user's mute/deafen state changed (Before holds
 	// the previous state); InMyChannel tells whether it is in ours.
 	UserAudioChanged
+	// SelfSpeakChanged: whether one may speak, told after every own move
+	// into a channel without the right to speak (also from one such
+	// channel into another), after a move out of one, and when it changes
+	// where one is (Moved false). Allowed is whether one may speak now.
+	SelfSpeakChanged
 )
 
 // Event is one presence change. For connects/disconnects,
@@ -37,6 +42,8 @@ type Event struct {
 	// server works out anew whether the user may speak there); the move
 	// is reported first.
 	Moved bool
+	// Allowed: whether one may speak now (SelfSpeakChanged).
+	Allowed bool
 }
 
 // Tracker turns raw bus user events into presence events for the
@@ -179,6 +186,23 @@ func (t *Tracker) OnUserUpdated(ev bus.UserUpdated) {
 		t.emit(Event{Kind: UserAudioChanged, User: ev.User, Before: prev,
 			InMyChannel: ok && ev.User.Channel == mine, Moved: moved})
 	}
+	if ev.User.Session == t.self {
+		t.selfSpeak(prev, ev.User, moved)
+	}
+}
+
+// selfSpeak tells whether one may speak after an own state update. A
+// server sends the suppression only when it changes, so a move from one
+// channel without the right to speak into another carries none: after a
+// move the state is told from the user's state as it is now.
+func (t *Tracker) selfSpeak(prev, u bus.UserInfo, moved bool) {
+	switch {
+	case moved && (u.Suppressed || prev.Suppressed):
+	case !moved && u.Suppressed != prev.Suppressed:
+	default:
+		return
+	}
+	t.emit(Event{Kind: SelfSpeakChanged, User: u, Before: prev, Moved: moved, Allowed: !u.Suppressed})
 }
 
 // emitMove reports a user's move from prev's channel to u's.
