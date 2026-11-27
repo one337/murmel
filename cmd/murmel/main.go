@@ -7,6 +7,7 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"os"
 
@@ -37,6 +38,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Where passwords can be saved is found out while the window opens.
+	passwords := secrets.NewManager(secrets.Keyring{},
+		func() secrets.State { return secrets.Detect(context.Background()) },
+		func() { b.Emit(bus.PasswordStorageChanged{}) })
+
 	app := ui.NewApp(st, b)
 
 	// Wire up the subsystems once, when the main window is created: on a
@@ -44,7 +50,7 @@ func main() {
 	app.OnWindowCreated(func(win *ui.Window) {
 		ctx := app.Context()
 
-		ctrl := connection.NewController(ctx, win, b, st, certsManager, secrets.Keyring{})
+		ctrl := connection.NewController(ctx, win, b, st, certsManager, passwords)
 		app.OnConnect(ctrl.OnConnectRequest)
 
 		tree := channeltree.NewTree(ctx, b, win)
@@ -59,7 +65,7 @@ func main() {
 		app.OnOpenChat(chatView.OpenConversation)
 
 		app.OnPreferences(func() {
-			prefs.Show(win, st, certsManager, app.SoundPlayer(), b, win.GlobalShortcuts())
+			prefs.Show(win, st, certsManager, passwords, app.SoundPlayer(), b, win.GlobalShortcuts())
 		})
 		app.OnBanList(func() { admin.ShowBanList(win, b) })
 		app.OnUserList(func() { admin.ShowUserList(win, b) })

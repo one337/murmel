@@ -215,7 +215,7 @@ func TestKeyringOtherFailure(t *testing.T) {
 // On a session bus without a Secret Service, and none to start, every call
 // fails as Gone.
 func TestKeyringWithoutSecretService(t *testing.T) {
-	addr := privateBus(t)
+	addr := privateBus(t, "")
 	got := runHelper(t, "fail",
 		"DBUS_SESSION_BUS_ADDRESS="+addr,
 		"SECRET_BACKEND=service")
@@ -226,10 +226,10 @@ func TestKeyringWithoutSecretService(t *testing.T) {
 	}
 }
 
-// privateBus starts a dbus-daemon that can start no services and returns
-// its address; the test stops it. Without dbus-daemon the test is skipped,
-// except in CI, where it fails.
-func privateBus(t *testing.T) string {
+// privateBus starts a dbus-daemon and returns its address; the test stops
+// it. It can start only the services in serviceDir (none when ""). Without
+// dbus-daemon the test is skipped, except in CI, where it fails.
+func privateBus(t *testing.T, serviceDir string) string {
 	t.Helper()
 	daemon, err := exec.LookPath("dbus-daemon")
 	if err != nil {
@@ -240,13 +240,18 @@ func privateBus(t *testing.T) string {
 	}
 	dir := t.TempDir()
 	conf := filepath.Join(dir, "session.conf")
-	// No <servicedir> and no standard ones: nothing can be started.
+	// No standard service directories: only serviceDir can be started.
+	services := ""
+	if serviceDir != "" {
+		services = "<servicedir>" + serviceDir + "</servicedir>"
+	}
 	err = os.WriteFile(conf, []byte(`<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
  "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
 <busconfig>
   <type>session</type>
   <listen>unix:dir=`+dir+`</listen>
   <auth>EXTERNAL</auth>
+  `+services+`
   <policy context="default">
     <allow send_destination="*" eavesdrop="true"/>
     <allow eavesdrop="true"/>

@@ -47,6 +47,9 @@ type savedList struct {
 	list  *gtk.ListBox
 	rows  []*savedRow // in list order, mirrors the setting
 
+	toasts    weakref.Ref[*adw.ToastOverlay] // the dialog's
+	hasToasts bool
+
 	dragging *savedRow // the row being dragged, nil otherwise
 	scroll   *gtk.ScrolledWindow
 	speed    float64 // auto-scroll per frame while dragging near an edge
@@ -507,10 +510,20 @@ func (s *savedList) forget(r *savedRow) {
 	}
 	s.updateActions()
 	key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
+	toasts, haveToasts := s.toasts, s.hasToasts
 	go func() {
-		if err := s.c.passwords.Delete(key); err != nil {
-			slog.Info("keyring delete failed", "err", err)
+		err := s.c.passwords.Delete(key)
+		text := passwordProblem(err, true)
+		if text == "" {
+			return
 		}
+		slog.Info("keyring delete failed", "err", err)
+		glib.IdleAdd(func() bool {
+			if haveToasts {
+				toasts.Do(func(o *adw.ToastOverlay) { o.AddToast(adw.NewToast(text)) })
+			}
+			return false
+		})
 	}()
 }
 

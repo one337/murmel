@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-27 19:03+0100\n"
+"POT-Creation-Date: 2026-11-27 21:31+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1284,10 +1284,6 @@ msgid "Port"
 msgstr "Port"
 
 #: internal/ui/connection/connectform.go
-msgid "Server Password"
-msgstr "Server-Passwort"
-
-#: internal/ui/connection/connectform.go
 msgid "Username"
 msgstr "Benutzername"
 
@@ -1341,13 +1337,30 @@ msgid "This certificate is already saved as “%s”."
 msgstr "Dieses Zertifikat ist bereits als „%s“ gespeichert."
 
 #: internal/ui/connection/connectform.go
+msgid "Saved as username@address, without the password"
+msgstr "Gespeichert als benutzername@adresse, ohne Passwort"
+
+#: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr "Gespeichert als benutzername@adresse"
 
 #: internal/ui/connection/connectform.go
 #, go-format
+msgid "Saved as %s, without the password"
+msgstr "Gespeichert als %s, ohne Passwort"
+
+#: internal/ui/connection/connectform.go
+#, go-format
 msgid "Saved as %s"
 msgstr "Gespeichert als %s"
+
+#: internal/ui/connection/connectform.go
+msgid "Server Password"
+msgstr "Server-Passwort"
+
+#: internal/ui/connection/connectform.go
+msgid "Couldn't read password"
+msgstr "Passwort nicht lesbar"
 
 #: internal/ui/connection/connectform.go
 msgid "This certificate could not be loaded."
@@ -1433,6 +1446,10 @@ msgstr ""
 #: internal/ui/connection/controller.go
 msgid "Remember Password"
 msgstr "Passwort merken"
+
+#: internal/ui/connection/controller.go
+msgid "No keyring found, see Preferences"
+msgstr "Kein Schlüsselbund gefunden, siehe Einstellungen"
 
 #: internal/ui/connection/controller.go
 msgid "Stored in your keyring"
@@ -1577,6 +1594,30 @@ msgstr "Verbindung fehlgeschlagen"
 #: internal/ui/identities/files.go
 msgid "OK"
 msgstr "OK"
+
+#: internal/ui/connection/passwords.go
+msgid "Saved password not removed: the keyring is locked."
+msgstr "Gespeichertes Passwort nicht entfernt: Der Schlüsselbund ist gesperrt."
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: the keyring is locked."
+msgstr "Passwort nicht gespeichert: Der Schlüsselbund ist gesperrt."
+
+#: internal/ui/connection/passwords.go
+msgid "Saved password not removed: no keyring found."
+msgstr "Gespeichertes Passwort nicht entfernt: Kein Schlüsselbund gefunden."
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: no keyring found."
+msgstr "Passwort nicht gespeichert: Kein Schlüsselbund gefunden."
+
+#: internal/ui/connection/passwords.go
+msgid "Saved password not removed: the keyring reported an error."
+msgstr "Gespeichertes Passwort nicht entfernt: Der Schlüsselbund meldete einen Fehler."
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: the keyring reported an error."
+msgstr "Passwort nicht gespeichert: Der Schlüsselbund meldete einen Fehler."
 
 #: internal/ui/connection/savedlist.go
 msgid "Saved Connections"
@@ -2516,6 +2557,34 @@ msgstr "Wenn die Verbindung nach einem Abbruch wiederhergestellt ist"
 #: internal/ui/prefs/window.go
 msgid "Sounds"
 msgstr "Töne"
+
+#: internal/ui/prefs/window.go
+msgid "Passwords"
+msgstr "Passwörter"
+
+#: internal/ui/prefs/window.go
+msgid "Saved in your keyring"
+msgstr "Im Schlüsselbund gespeichert"
+
+#: internal/ui/prefs/window.go
+msgid "Passwords are not saved"
+msgstr "Passwörter werden nicht gespeichert"
+
+#: internal/ui/prefs/window.go
+msgid "No keyring found: the desktop offers no Secret portal."
+msgstr "Kein Schlüsselbund gefunden: Die Arbeitsumgebung bietet kein Secret-Portal an."
+
+#: internal/ui/prefs/window.go
+msgid ""
+"No keyring found. To save passwords, set up a keyring such as GNOME Keyring, "
+"KWallet or oo7."
+msgstr ""
+"Kein Schlüsselbund gefunden. Um Passwörter zu speichern, richte einen "
+"Schlüsselbund ein, etwa GNOME-Schlüsselbund, KWallet oder oo7."
+
+#: internal/ui/prefs/window.go
+msgid "Looking for a keyring…"
+msgstr "Schlüsselbund wird gesucht …"
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go
 msgid "System default"

@@ -46,7 +46,7 @@ type Controller struct {
 	appBus    *bus.Bus
 	settings  settings.Settings
 	certs     *certs.Manager
-	passwords secrets.Store
+	passwords secrets.Passwords
 	appCtx    context.Context
 
 	mu      sync.Mutex
@@ -110,7 +110,7 @@ func (c *Controller) avatarStore() *avatarpick.Store {
 // NewController creates a Controller. win is the application window used as
 // the parent for modal dialogs. ctx is the application lifetime; cancelling
 // it tears the auto-reconnect loop down. pw keeps the saved passwords.
-func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st settings.Settings, m *certs.Manager, pw secrets.Store) *Controller {
+func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st settings.Settings, m *certs.Manager, pw secrets.Passwords) *Controller {
 	c := &Controller{
 		win:       win,
 		appBus:    appBus,
@@ -267,7 +267,13 @@ func (c *Controller) newConnectDialog(req ui.ConnectRequest) (*adw.Dialog, *conn
 	toolbar.AddTopBar(hdr)
 	toolbar.AddTopBar(banner)
 	toolbar.SetContent(scroll)
-	dialog.SetChild(toolbar)
+	// Problems with what the dialog does show here, above the dialog.
+	toasts := adw.NewToastOverlay()
+	toasts.SetChild(toolbar)
+	dialog.SetChild(toasts)
+	if saved != nil {
+		saved.toasts, saved.hasToasts = weakref.New(toasts), true
+	}
 	dialog.SetDefaultWidget(connectBtn)
 
 	cancelBtn.ConnectClicked(func() { dialogRef.Do(func(d *adw.Dialog) { d.Close() }) })
@@ -318,6 +324,11 @@ func (c *Controller) saveServer(e settings.ServerEntry, password string) {
 		}
 		if err != nil {
 			slog.Info("keyring: password not saved", "err", err)
+		}
+		// Removing is only tidying up here (no password given): the user
+		// hears about a failed save only.
+		if text := passwordProblem(err, false); password != "" && text != "" {
+			c.appBus.Emit(bus.PasswordProblem{Text: text})
 		}
 	}()
 }
@@ -625,10 +636,7 @@ func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool)
 
 	entry := adw.NewPasswordEntryRow()
 	entry.SetTitle(i18n.Tr("Password"))
-	remember := adw.NewSwitchRow()
-	remember.SetTitle(i18n.Tr("Remember Password"))
-	remember.SetSubtitle(i18n.Tr("Stored in your keyring"))
-	remember.SetActive(true)
+	remember := rememberRow(c.passwords.State())
 	group := adw.NewPreferencesGroup()
 	group.Add(entry)
 	group.Add(remember)
@@ -655,6 +663,21 @@ func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool)
 	closeWhenSuperseded(a, &alert.Dialog)
 	alert.Present(c.win)
 	entry.GrabFocus()
+}
+
+// rememberRow is the password prompt's "Remember Password" switch: on, or
+// off and disabled when there is no keyring to remember it in.
+func rememberRow(s secrets.State) *adw.SwitchRow {
+	remember := adw.NewSwitchRow()
+	remember.SetTitle(i18n.Tr("Remember Password"))
+	if s == secrets.NoKeyring {
+		remember.SetSubtitle(i18n.Tr("No keyring found, see Preferences"))
+		remember.SetSensitive(false)
+		return remember
+	}
+	remember.SetSubtitle(i18n.Tr("Stored in your keyring"))
+	remember.SetActive(true)
+	return remember
 }
 
 // enableWhenFilled enables alert's response only while entry is not empty.

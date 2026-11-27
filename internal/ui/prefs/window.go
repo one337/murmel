@@ -5,6 +5,7 @@
 package prefs
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"path/filepath"
@@ -31,6 +32,7 @@ import (
 	"github.com/one337/murmel/internal/ui/gfileio"
 	"github.com/one337/murmel/internal/ui/identities"
 	"github.com/one337/murmel/internal/ui/levelmeter"
+	"github.com/one337/murmel/internal/ui/secrets"
 	"github.com/one337/murmel/internal/ui/shortcuts"
 	"github.com/one337/murmel/internal/ui/weakref"
 )
@@ -54,7 +56,8 @@ type Shortcuts interface {
 }
 
 // New constructs the preferences dialog. It does not present itself.
-func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
+// passwords tells where passwords are saved.
+func New(st settings.Settings, m *certs.Manager, passwords secrets.Passwords, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
 	pw := adw.NewPreferencesDialog()
 	pw.SetTitle(i18n.Tr("Preferences"))
 	pw.SetSearchEnabled(false)
@@ -64,7 +67,10 @@ func New(st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.
 	pw.Add(audioInputPage(st, b, sc, pw))
 	pw.Add(audioOutputPage(st))
 	pw.Add(chatPage(st))
-	pw.Add(generalPage(st, player, pw, sc, filepath.Join(m.DataDir(), "sounds")))
+	general := generalPage(st, player, pw, sc, filepath.Join(m.DataDir(), "sounds"))
+	pwGroup, _ := passwordsGroup(passwords, b, pw)
+	general.Add(pwGroup)
+	pw.Add(general)
 
 	return &Window{pw}
 }
@@ -75,11 +81,11 @@ var shown *Window
 // Show presents the preferences over parent and returns them, or returns
 // nil and does nothing while they are already open: Ctrl+, also fires
 // while the dialog has the focus. Main loop only.
-func Show(parent gtk.Widgetter, st settings.Settings, m *certs.Manager, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
+func Show(parent gtk.Widgetter, st settings.Settings, m *certs.Manager, passwords secrets.Passwords, player *effects.Player, b *bus.Bus, sc Shortcuts) *Window {
 	if shown != nil {
 		return nil
 	}
-	w := New(st, m, player, b, sc)
+	w := New(st, m, passwords, player, b, sc)
 	shown = w
 	onClose(w.PreferencesDialog, func() { shown = nil })
 	w.Present(parent)
@@ -724,6 +730,43 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 		page.Add(shortcutsGroup(sc, pw))
 	}
 	return page
+}
+
+// passwordsGroup says where passwords are saved, in its row; it follows
+// changes while pw is open.
+func passwordsGroup(passwords secrets.Passwords, b *bus.Bus, pw *adw.PreferencesDialog) (*adw.PreferencesGroup, *adw.ActionRow) {
+	group := adw.NewPreferencesGroup()
+	group.SetTitle(i18n.Tr("Passwords"))
+	row := adw.NewActionRow()
+	row.SetUseMarkup(false)
+	group.Add(row)
+	update := func(row *adw.ActionRow) {
+		title, subtitle := passwordStorageText(passwords.State(), secrets.Sandboxed("/.flatpak-info"))
+		row.SetTitle(title)
+		row.SetSubtitle(subtitle)
+	}
+	update(row)
+	rowRef := weakref.New(row)
+	ctx, cancel := context.WithCancel(context.Background())
+	bus.SubscribeCtx(ctx, b, func(bus.PasswordStorageChanged) { rowRef.Do(update) })
+	onClose(pw, cancel)
+	return group, row
+}
+
+// passwordStorageText is the title and subtitle of the Passwords row.
+func passwordStorageText(s secrets.State, sandboxed bool) (title, subtitle string) {
+	switch s {
+	case secrets.InKeyring:
+		return i18n.Tr("Saved in your keyring"), ""
+	case secrets.NoKeyring:
+		if sandboxed {
+			return i18n.Tr("Passwords are not saved"),
+				i18n.Tr("No keyring found: the desktop offers no Secret portal.")
+		}
+		return i18n.Tr("Passwords are not saved"),
+			i18n.Tr("No keyring found. To save passwords, set up a keyring such as GNOME Keyring, KWallet or oo7.")
+	}
+	return i18n.Tr("Looking for a keyring…"), ""
 }
 
 // --- Helpers ---------------------------------------------------------------

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-27 19:03+0100\n"
+"POT-Creation-Date: 2026-11-28 00:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1262,10 +1262,6 @@ msgid "Port"
 msgstr ""
 
 #: internal/ui/connection/connectform.go
-msgid "Server Password"
-msgstr ""
-
-#: internal/ui/connection/connectform.go
 msgid "Username"
 msgstr ""
 
@@ -1317,12 +1313,29 @@ msgid "This certificate is already saved as “%s”."
 msgstr ""
 
 #: internal/ui/connection/connectform.go
+msgid "Saved as username@address, without the password"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr ""
 
 #: internal/ui/connection/connectform.go
 #, go-format
+msgid "Saved as %s, without the password"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
+#, go-format
 msgid "Saved as %s"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
+msgid "Server Password"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
+msgid "Couldn't read password"
 msgstr ""
 
 #: internal/ui/connection/connectform.go
@@ -1397,6 +1410,10 @@ msgstr ""
 
 #: internal/ui/connection/controller.go
 msgid "Remember Password"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "No keyring found, see Preferences"
 msgstr ""
 
 #: internal/ui/connection/controller.go
@@ -1520,6 +1537,30 @@ msgstr ""
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
 #: internal/ui/identities/files.go
 msgid "OK"
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid "Saved password not removed: the keyring is locked."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: the keyring is locked."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid "Saved password not removed: no keyring found."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: no keyring found."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid "Saved password not removed: the keyring reported an error."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: the keyring reported an error."
 msgstr ""
 
 #: internal/ui/connection/savedlist.go
@@ -2390,6 +2431,32 @@ msgstr ""
 
 #: internal/ui/prefs/window.go
 msgid "Sounds"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Passwords"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Saved in your keyring"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Passwords are not saved"
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "No keyring found: the desktop offers no Secret portal."
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid ""
+"No keyring found. To save passwords, set up a keyring such as GNOME Keyring, "
+"KWallet or oo7."
+msgstr ""
+
+#: internal/ui/prefs/window.go
+msgid "Looking for a keyring…"
 msgstr ""
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go

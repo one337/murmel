@@ -446,6 +446,9 @@ func (w *Window) subscribe() {
 		toast.SetTimeout(8)
 		w.toasts.AddToast(toast)
 	})
+	bus.SubscribeCtx(w.ctx, w.app.bus, func(ev bus.PasswordProblem) {
+		w.toasts.AddToast(passwordProblemToast(ev.Text, w.VisibleDialog() != nil))
+	})
 	bus.SubscribeCtx(w.ctx, w.app.bus, func(ev bus.InputLevel) {
 		w.status.pushLevel(ev)
 	})
@@ -540,3 +543,16 @@ func (w *Window) saveGeometry() {
 
 // GlobalShortcuts is the window's global shortcuts, for the preferences.
 func (w *Window) GlobalShortcuts() *globalShortcuts { return w.shortcuts }
+
+// passwordProblemToast shows text for 10 seconds; while a dialog covers
+// the window it stays until dismissed, so it is not over unseen.
+func passwordProblemToast(text string, dialogOpen bool) *adw.Toast {
+	t := adw.NewToast(text)
+	t.SetUseMarkup(false)
+	if dialogOpen {
+		t.SetTimeout(0)
+	} else {
+		t.SetTimeout(10)
+	}
+	return t
+}

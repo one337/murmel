@@ -369,6 +369,16 @@ type AudioDeviceProblem struct {
 	Output bool
 }
 
+// PasswordStorageChanged announces that where passwords are saved changed:
+// the keyring was looked for at start, or it went away.
+type PasswordStorageChanged struct{}
+
+// PasswordProblem reports that a password could not be saved or removed
+// after the dialog that asked for it was closed. Text tells the user why.
+type PasswordProblem struct {
+	Text string
+}
+
 // ChatTargetChanged announces a new chat target: where newly composed
 // messages go. Emitters are the channel tree selection, per-user
 // "send message" actions, and the chat view's own target menu.
@@ -464,29 +474,31 @@ type UserListFetched struct {
 	Users []RegisteredUserInfo
 }
 
-func (Connected) isBusEvent()           {}
-func (ConnectionStarting) isBusEvent()  {}
-func (Disconnected) isBusEvent()        {}
-func (ConnectError) isBusEvent()        {}
-func (ChannelAdded) isBusEvent()        {}
-func (ChannelRemoved) isBusEvent()      {}
-func (ChannelUpdated) isBusEvent()      {}
-func (UserAdded) isBusEvent()           {}
-func (UserRemoved) isBusEvent()         {}
-func (UserUpdated) isBusEvent()         {}
-func (TextMessage) isBusEvent()         {}
-func (PermissionDenied) isBusEvent()    {}
-func (ServerConfigUpdated) isBusEvent() {}
-func (VoiceActivity) isBusEvent()       {}
-func (InputLevel) isBusEvent()          {}
-func (PushToTalk) isBusEvent()          {}
-func (AudioDeviceProblem) isBusEvent()  {}
-func (ConnectionInfo) isBusEvent()      {}
-func (LatencyStats) isBusEvent()        {}
-func (ChatTargetChanged) isBusEvent()   {}
-func (BanListFetched) isBusEvent()      {}
-func (UserListFetched) isBusEvent()     {}
-func (ACLFetched) isBusEvent()          {}
+func (Connected) isBusEvent()              {}
+func (ConnectionStarting) isBusEvent()     {}
+func (Disconnected) isBusEvent()           {}
+func (ConnectError) isBusEvent()           {}
+func (ChannelAdded) isBusEvent()           {}
+func (ChannelRemoved) isBusEvent()         {}
+func (ChannelUpdated) isBusEvent()         {}
+func (UserAdded) isBusEvent()              {}
+func (UserRemoved) isBusEvent()            {}
+func (UserUpdated) isBusEvent()            {}
+func (TextMessage) isBusEvent()            {}
+func (PermissionDenied) isBusEvent()       {}
+func (ServerConfigUpdated) isBusEvent()    {}
+func (VoiceActivity) isBusEvent()          {}
+func (InputLevel) isBusEvent()             {}
+func (PushToTalk) isBusEvent()             {}
+func (AudioDeviceProblem) isBusEvent()     {}
+func (PasswordStorageChanged) isBusEvent() {}
+func (PasswordProblem) isBusEvent()        {}
+func (ConnectionInfo) isBusEvent()         {}
+func (LatencyStats) isBusEvent()           {}
+func (ChatTargetChanged) isBusEvent()      {}
+func (BanListFetched) isBusEvent()         {}
+func (UserListFetched) isBusEvent()        {}
+func (ACLFetched) isBusEvent()             {}
 
 // UserStatsFetched carries a user's connection statistics, the server's
 // reply to UserStatsRequested. Fields the server did not send (it limits

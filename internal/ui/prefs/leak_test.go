@@ -20,6 +20,7 @@ import (
 	"github.com/one337/murmel/internal/bus"
 	"github.com/one337/murmel/internal/certs"
 	"github.com/one337/murmel/internal/settings"
+	"github.com/one337/murmel/internal/ui/secrets/secretstest"
 )
 
 // The leak tests need GTK and a display. tools/verify.sh runs them under
@@ -33,8 +34,15 @@ var gtkReady bool
 func init() { runtime.LockOSThread() }
 
 func TestMain(m *testing.M) {
+	cleanup := secretstest.Isolate()
+	code := runTests(m)
+	cleanup()
+	os.Exit(code)
+}
+
+func runTests(m *testing.M) int {
 	if os.Getenv("MURMEL_GTK_TESTS") == "" || !gtk.InitCheck() {
-		os.Exit(m.Run())
+		return m.Run()
 	}
 	adw.Init()
 	gtkReady = true
@@ -46,7 +54,7 @@ func TestMain(m *testing.M) {
 		glib.IdleAdd(func() bool { loop.Quit(); return false })
 	}()
 	loop.Run()
-	os.Exit(code)
+	return code
 }
 
 // needGTK skips a test without GTK and a display, except in CI, where a
@@ -150,7 +158,7 @@ func TestGTKPreferencesAreFreed(t *testing.T) {
 	for range cycles {
 		var d, dc *adw.PreferencesDialog
 		onMain(func() {
-			pw := New(st, mgr, nil, b, nil)
+			pw := New(st, mgr, fixedPasswords{}, nil, b, nil)
 			w.object(pw.PreferencesDialog)
 			pw.Present(win)
 			d = pw.PreferencesDialog
@@ -232,7 +240,7 @@ func TestGTKClosedPreferencesGoQuietly(t *testing.T) {
 	for range 5 {
 		var pw *Window
 		onMain(func() {
-			pw = Show(win, st, mgr, nil, b, nil)
+			pw = Show(win, st, mgr, fixedPasswords{}, nil, b, nil)
 			w.object(pw.PreferencesDialog)
 		})
 		onMain(func() { pw.ForceClose() })

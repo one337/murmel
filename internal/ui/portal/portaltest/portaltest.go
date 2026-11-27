@@ -54,11 +54,18 @@ type Portal struct {
 // Serve makes p own the portal's bus name until the test ends.
 func (p *Portal) Serve(t testing.TB) {
 	t.Helper()
-	ctx := context.Background()
-	addr, err := gio.DBusAddressGetForBusSync(ctx, gio.BusTypeSession)
+	addr, err := gio.DBusAddressGetForBusSync(context.Background(), gio.BusTypeSession)
 	if err != nil {
 		t.Fatalf("session bus: %v", err)
 	}
+	p.ServeAt(t, addr)
+}
+
+// ServeAt makes p own the portal's bus name on the bus at addr until the
+// test ends.
+func (p *Portal) ServeAt(t testing.TB, addr string) {
+	t.Helper()
+	ctx := context.Background()
 	conn, err := gio.NewDBusConnectionForAddressSync(ctx, addr,
 		gio.DBusConnectionFlagsAuthenticationClient|gio.DBusConnectionFlagsMessageBusConnection, nil)
 	if err != nil {

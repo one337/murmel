@@ -2,6 +2,7 @@ package connection
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -13,6 +14,7 @@ import (
 	"github.com/diamondburned/gotk4/pkg/glib/v2"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"github.com/one337/murmel/internal/bus"
 	"github.com/one337/murmel/internal/certs"
 	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/settings"
@@ -47,7 +49,7 @@ type connectForm struct {
 	identityRow   *adw.ComboRow
 
 	saveRow   *adw.SwitchRow
-	passwords secrets.Store
+	passwords secrets.Passwords
 
 	avatars       *avatarpick.Store
 	defaultAvatar []byte
@@ -86,11 +88,12 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	f.port.SetNumeric(true)
 
 	f.password = adw.NewPasswordEntryRow()
-	f.password.SetTitle(i18n.Tr("Server Password"))
 	f.password.SetText(req.Password)
+	f.showUnreadable(false)
 	f.password.ConnectChanged(with(func(f *connectForm) {
 		if !f.settingPassword {
 			f.pwField.edited()
+			f.showUnreadable(false)
 		}
 	}))
 
@@ -154,6 +157,7 @@ func (c *Controller) newConnectForm(dialog *adw.Dialog, ctx context.Context, req
 	f.port.ConnectChanged(updateSaveName)
 	f.user.ConnectChanged(updateSaveName)
 	f.updateSaveName()
+	bus.SubscribeCtx(ctx, c.appBus, func(bus.PasswordStorageChanged) { updateSaveName() })
 
 	// Optional avatar for this account; without one the default avatar
 	// (Preferences) is sent.
@@ -258,12 +262,36 @@ func (f *connectForm) formPort() int {
 }
 
 func (f *connectForm) updateSaveName() {
+	noKeyring := f.passwords.State() == secrets.NoKeyring
 	if strings.TrimSpace(f.host.Text()) == "" {
-		f.saveRow.SetSubtitle(i18n.Tr("Saved as username@address"))
+		if noKeyring {
+			f.saveRow.SetSubtitle(i18n.Tr("Saved as username@address, without the password"))
+		} else {
+			f.saveRow.SetSubtitle(i18n.Tr("Saved as username@address"))
+		}
 		return
 	}
-	f.saveRow.SetSubtitle(fmt.Sprintf(i18n.Tr("Saved as %s"),
-		savedName(strings.TrimSpace(f.user.Text()), strings.TrimSpace(f.host.Text()), f.typedPort())))
+	name := savedName(strings.TrimSpace(f.user.Text()), strings.TrimSpace(f.host.Text()), f.typedPort())
+	if noKeyring {
+		f.saveRow.SetSubtitle(fmt.Sprintf(i18n.Tr("Saved as %s, without the password"), name))
+	} else {
+		f.saveRow.SetSubtitle(fmt.Sprintf(i18n.Tr("Saved as %s"), name))
+	}
+}
+
+// showUnreadable says in the password field's title whether the saved
+// password could not be read (the keyring is locked, or the unlock prompt
+// was cancelled); screen readers are told as well.
+func (f *connectForm) showUnreadable(unreadable bool) {
+	if !unreadable {
+		f.password.SetTitle(i18n.Tr("Server Password"))
+		f.password.RemoveCSSClass("warning")
+		return
+	}
+	text := i18n.Tr("Couldn't read password")
+	f.password.SetTitle(text)
+	f.password.AddCSSClass("warning")
+	announce(f.password, text)
 }
 
 // fill shows a saved connection in the form; the password comes from the
@@ -274,9 +302,13 @@ func (f *connectForm) fill(e settings.ServerEntry) {
 	f.user.SetText(e.Username)
 	f.selectIdentity(e.IdentityID)
 	f.setPassword("")
+	f.showUnreadable(false)
 	f.saveRow.SetActive(true)
 	f.avatarRow.SetData(f.avatars.Load(avatarpick.AccountKey(e.Host, e.Port, e.Username)))
 	f.avatarChanged = false
+	if f.passwords.State() == secrets.NoKeyring {
+		return // nothing saved, nothing to wait for
+	}
 	key := secrets.Key{Host: e.Host, Port: e.Port, Username: e.Username}
 	gen := f.pwField.startLookup()
 	go func() {
@@ -284,6 +316,7 @@ func (f *connectForm) fill(e settings.ServerEntry) {
 		if err != nil {
 			slog.Info("keyring lookup failed", "err", err)
 		}
+		unreadable := err != nil && !errors.Is(err, secrets.ErrNoKeyring)
 		glib.IdleAdd(func() bool {
 			// Only if the dialog is open and still shows this account.
 			if f.ctx.Err() != nil || f.host.Text() != e.Host || f.user.Text() != e.Username {
@@ -291,6 +324,8 @@ func (f *connectForm) fill(e settings.ServerEntry) {
 			}
 			if f.pwField.lookupDone(gen, err == nil) {
 				f.setPassword(pw)
+			} else if unreadable && f.pwField.pending && f.pwField.gen == gen {
+				f.showUnreadable(true)
 			}
 			return false
 		})
