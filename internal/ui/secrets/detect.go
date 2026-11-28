@@ -22,6 +22,9 @@ const (
 	InKeyring
 	// NoKeyring: there is none; passwords are not saved.
 	NoKeyring
+	// InFile: there is no keyring, and the user chose to keep passwords
+	// in an unencrypted file (see File).
+	InFile
 )
 
 func (s State) String() string {
@@ -30,6 +33,8 @@ func (s State) String() string {
 		return "keyring"
 	case NoKeyring:
 		return "none"
+	case InFile:
+		return "file"
 	}
 	return "unknown"
 }

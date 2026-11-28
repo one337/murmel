@@ -2,10 +2,12 @@ package connection
 
 import (
 	"errors"
+	"sync"
 
 	coreglib "github.com/diamondburned/gotk4/pkg/core/glib"
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
 
+	"github.com/one337/murmel/internal/bus"
 	"github.com/one337/murmel/internal/i18n"
 	"github.com/one337/murmel/internal/ui/secrets"
 )
@@ -17,6 +19,13 @@ import (
 func passwordProblem(err error, removing bool) string {
 	if err == nil || errors.Is(err, secrets.ErrNoKeyring) {
 		return ""
+	}
+	var fileErr *secrets.FileError
+	if errors.As(err, &fileErr) {
+		if removing {
+			return i18n.Tr("Saved password not removed: the password file could not be changed.")
+		}
+		return i18n.Tr("Password not saved: the password file could not be changed.")
 	}
 	switch secrets.KindOf(err) {
 	case secrets.Refused:
@@ -51,4 +60,19 @@ func announce(w announcer, msg string) {
 type announcer interface {
 	AtContext() gtk.ATContexter
 	Announce(message string, priority gtk.AccessibleAnnouncementPriority)
+}
+
+// noticeLeftPasswords says once per start, as soon as it is known, that
+// passwords are still in the unencrypted file although there is a keyring.
+func (c *Controller) noticeLeftPasswords() {
+	var once sync.Once
+	check := func() {
+		if c.passwords.State() == secrets.InKeyring && c.passwords.File().Exists {
+			once.Do(func() {
+				c.appBus.Emit(bus.PasswordProblem{Text: i18n.Tr("Some passwords are still in an unencrypted file. You can move them to your keyring in Preferences.")})
+			})
+		}
+	}
+	bus.SubscribeCtx(c.appCtx, c.appBus, func(bus.PasswordStorageChanged) { check() })
+	check()
 }

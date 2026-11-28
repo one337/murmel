@@ -10,6 +10,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/one337/murmel/internal/bus"
 	"github.com/one337/murmel/internal/certs"
@@ -39,7 +40,11 @@ func main() {
 	}
 
 	// Where passwords can be saved is found out while the window opens.
-	passwords := secrets.NewManager(secrets.Keyring{},
+	var passwordFile *secrets.File
+	if dir, err := settings.DataDir(); err == nil {
+		passwordFile = secrets.NewFile(filepath.Join(dir, "passwords.json"))
+	}
+	passwords := secrets.NewManager(secrets.Keyring{}, passwordFile,
 		func() secrets.State { return secrets.Detect(context.Background()) },
 		func() { b.Emit(bus.PasswordStorageChanged{}) })
 

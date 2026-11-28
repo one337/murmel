@@ -262,21 +262,34 @@ func (f *connectForm) formPort() int {
 }
 
 func (f *connectForm) updateSaveName() {
-	noKeyring := f.passwords.State() == secrets.NoKeyring
-	if strings.TrimSpace(f.host.Text()) == "" {
-		if noKeyring {
-			f.saveRow.SetSubtitle(i18n.Tr("Saved as username@address, without the password"))
-		} else {
-			f.saveRow.SetSubtitle(i18n.Tr("Saved as username@address"))
+	state := f.passwords.State()
+	name := ""
+	if strings.TrimSpace(f.host.Text()) != "" {
+		name = savedName(strings.TrimSpace(f.user.Text()), strings.TrimSpace(f.host.Text()), f.typedPort())
+	}
+	f.saveRow.SetSubtitle(saveSubtitle(state, name))
+}
+
+// saveSubtitle says under "Save Connection" what the connection is saved
+// as (name, or the pattern while no address is typed) and where its
+// password goes.
+func saveSubtitle(state secrets.State, name string) string {
+	if name == "" {
+		switch state {
+		case secrets.NoKeyring:
+			return i18n.Tr("Saved as username@address, without the password")
+		case secrets.InFile:
+			return i18n.Tr("Saved as username@address, the password in an unencrypted file")
 		}
-		return
+		return i18n.Tr("Saved as username@address")
 	}
-	name := savedName(strings.TrimSpace(f.user.Text()), strings.TrimSpace(f.host.Text()), f.typedPort())
-	if noKeyring {
-		f.saveRow.SetSubtitle(fmt.Sprintf(i18n.Tr("Saved as %s, without the password"), name))
-	} else {
-		f.saveRow.SetSubtitle(fmt.Sprintf(i18n.Tr("Saved as %s"), name))
+	switch state {
+	case secrets.NoKeyring:
+		return fmt.Sprintf(i18n.Tr("Saved as %s, without the password"), name)
+	case secrets.InFile:
+		return fmt.Sprintf(i18n.Tr("Saved as %s, the password in an unencrypted file"), name)
 	}
+	return fmt.Sprintf(i18n.Tr("Saved as %s"), name)
 }
 
 // showUnreadable says in the password field's title whether the saved
@@ -294,8 +307,8 @@ func (f *connectForm) showUnreadable(unreadable bool) {
 	announce(f.password, text)
 }
 
-// fill shows a saved connection in the form; the password comes from the
-// keyring.
+// fill shows a saved connection in the form; the password comes from where
+// passwords are saved.
 func (f *connectForm) fill(e settings.ServerEntry) {
 	f.host.SetText(e.Host)
 	f.port.SetValue(float64(e.Port))

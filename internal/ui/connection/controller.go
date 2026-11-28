@@ -148,6 +148,7 @@ func NewController(ctx context.Context, win gtk.Widgetter, appBus *bus.Bus, st s
 	bus.SubscribeCtx(ctx, appBus, c.onUserUnregisterRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onACLRequested)
 	bus.SubscribeCtx(ctx, appBus, c.onACLSaveRequested)
+	c.noticeLeftPasswords()
 
 	// Audio settings apply live to the running voice engine.
 	disconnect := st.ConnectChanged(c.onSettingChanged)
@@ -666,16 +667,21 @@ func (c *Controller) promptPassword(p *dialParams, a attempt, userPassword bool)
 }
 
 // rememberRow is the password prompt's "Remember Password" switch: on, or
-// off and disabled when there is no keyring to remember it in.
+// off and disabled when there is no keyring to remember it in (and no
+// password file).
 func rememberRow(s secrets.State) *adw.SwitchRow {
 	remember := adw.NewSwitchRow()
 	remember.SetTitle(i18n.Tr("Remember Password"))
-	if s == secrets.NoKeyring {
+	switch s {
+	case secrets.NoKeyring:
 		remember.SetSubtitle(i18n.Tr("No keyring found, see Preferences"))
 		remember.SetSensitive(false)
 		return remember
+	case secrets.InFile:
+		remember.SetSubtitle(i18n.Tr("Stored in an unencrypted file"))
+	default:
+		remember.SetSubtitle(i18n.Tr("Stored in your keyring"))
 	}
-	remember.SetSubtitle(i18n.Tr("Stored in your keyring"))
 	remember.SetActive(true)
 	return remember
 }

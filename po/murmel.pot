@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-28 00:17+0100\n"
+"POT-Creation-Date: 2026-11-28 07:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -159,7 +159,8 @@ msgstr ""
 msgid "Move Down"
 msgstr ""
 
-#: internal/ui/admin/aclpages.go internal/ui/prefs/window.go
+#: internal/ui/admin/aclpages.go internal/ui/prefs/passwords.go
+#: internal/ui/prefs/window.go
 msgid "Delete"
 msgstr ""
 
@@ -226,7 +227,8 @@ msgstr ""
 #: internal/ui/admin/channeledit.go internal/ui/admin/kick.go
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
 #: internal/ui/identities/exportdlg.go internal/ui/identities/importdlg.go
-#: internal/ui/prefs/window.go internal/ui/window.go
+#: internal/ui/prefs/passwords.go internal/ui/prefs/window.go
+#: internal/ui/window.go
 msgid "Cancel"
 msgstr ""
 
@@ -1317,12 +1319,21 @@ msgid "Saved as username@address, without the password"
 msgstr ""
 
 #: internal/ui/connection/connectform.go
+msgid "Saved as username@address, the password in an unencrypted file"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr ""
 
 #: internal/ui/connection/connectform.go
 #, go-format
 msgid "Saved as %s, without the password"
+msgstr ""
+
+#: internal/ui/connection/connectform.go
+#, go-format
+msgid "Saved as %s, the password in an unencrypted file"
 msgstr ""
 
 #: internal/ui/connection/connectform.go
@@ -1414,6 +1425,10 @@ msgstr ""
 
 #: internal/ui/connection/controller.go
 msgid "No keyring found, see Preferences"
+msgstr ""
+
+#: internal/ui/connection/controller.go
+msgid "Stored in an unencrypted file"
 msgstr ""
 
 #: internal/ui/connection/controller.go
@@ -1540,6 +1555,14 @@ msgid "OK"
 msgstr ""
 
 #: internal/ui/connection/passwords.go
+msgid "Saved password not removed: the password file could not be changed."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: the password file could not be changed."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
 msgid "Saved password not removed: the keyring is locked."
 msgstr ""
 
@@ -1561,6 +1584,12 @@ msgstr ""
 
 #: internal/ui/connection/passwords.go
 msgid "Password not saved: the keyring reported an error."
+msgstr ""
+
+#: internal/ui/connection/passwords.go
+msgid ""
+"Some passwords are still in an unencrypted file. You can move them to your "
+"keyring in Preferences."
 msgstr ""
 
 #: internal/ui/connection/savedlist.go
@@ -1948,7 +1977,7 @@ msgid "Mute/Deafen"
 msgstr ""
 
 #. TRANSLATORS: Permission: move other users between channels.
-#: internal/ui/permname/permname.go
+#: internal/ui/permname/permname.go internal/ui/prefs/passwords.go
 msgid "Move"
 msgstr ""
 
@@ -1974,6 +2003,118 @@ msgstr ""
 
 #: internal/ui/permname/permname.go
 msgid "Register Self"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Passwords"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Move to Keyring"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Save Passwords in an Unencrypted File"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Anyone who can read your files can read them"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "A damaged password file was set aside"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "The password file could not be created."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "The password file could not be deleted."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid ""
+"Passwords not moved: the keyring did not take all of them. The file is kept."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Passwords moved to your keyring"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid "%d password is in an unencrypted file"
+msgid_plural "%d passwords are in an unencrypted file"
+msgstr[0] ""
+msgstr[1] ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Saved in your keyring"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Saved in an unencrypted file"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Passwords are not saved"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "No keyring found: the desktop offers no Secret portal."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid ""
+"No keyring found. To save passwords, set up a keyring such as GNOME Keyring, "
+"KWallet or oo7."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Looking for a keyring…"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Save Passwords Unencrypted?"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid ""
+"Passwords will be saved as plain text in %s. Only your user account can open "
+"the file, but every program you run can read it, and so can anyone with "
+"access to your files or backups."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Save Unencrypted"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid "The %d password saved in %s will be deleted."
+msgid_plural "The %d passwords saved in %s will be deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#: internal/ui/prefs/passwords.go
+msgid "These damaged copies will be deleted as well:"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Delete Saved Passwords?"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid ""
+"Each password is saved in your keyring and read back. When all of them are "
+"there, %s is deleted."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+msgid "Move Passwords to Your Keyring?"
 msgstr ""
 
 #: internal/ui/prefs/sounds.go
@@ -2431,32 +2572,6 @@ msgstr ""
 
 #: internal/ui/prefs/window.go
 msgid "Sounds"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "Passwords"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "Saved in your keyring"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "Passwords are not saved"
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "No keyring found: the desktop offers no Secret portal."
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid ""
-"No keyring found. To save passwords, set up a keyring such as GNOME Keyring, "
-"KWallet or oo7."
-msgstr ""
-
-#: internal/ui/prefs/window.go
-msgid "Looking for a keyring…"
 msgstr ""
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-27 21:31+0100\n"
+"POT-Creation-Date: 2026-11-28 07:44+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -167,7 +167,8 @@ msgstr "Nach oben"
 msgid "Move Down"
 msgstr "Nach unten"
 
-#: internal/ui/admin/aclpages.go internal/ui/prefs/window.go
+#: internal/ui/admin/aclpages.go internal/ui/prefs/passwords.go
+#: internal/ui/prefs/window.go
 msgid "Delete"
 msgstr "Löschen"
 
@@ -234,7 +235,8 @@ msgstr "Der Benutzer wird dauerhaft vom Server gebannt."
 #: internal/ui/admin/channeledit.go internal/ui/admin/kick.go
 #: internal/ui/connection/controller.go internal/ui/identities/create.go
 #: internal/ui/identities/exportdlg.go internal/ui/identities/importdlg.go
-#: internal/ui/prefs/window.go internal/ui/window.go
+#: internal/ui/prefs/passwords.go internal/ui/prefs/window.go
+#: internal/ui/window.go
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -1341,6 +1343,12 @@ msgid "Saved as username@address, without the password"
 msgstr "Gespeichert als benutzername@adresse, ohne Passwort"
 
 #: internal/ui/connection/connectform.go
+msgid "Saved as username@address, the password in an unencrypted file"
+msgstr ""
+"Gespeichert als benutzername@adresse, das Passwort in einer "
+"unverschlüsselten Datei"
+
+#: internal/ui/connection/connectform.go
 msgid "Saved as username@address"
 msgstr "Gespeichert als benutzername@adresse"
 
@@ -1348,6 +1356,11 @@ msgstr "Gespeichert als benutzername@adresse"
 #, go-format
 msgid "Saved as %s, without the password"
 msgstr "Gespeichert als %s, ohne Passwort"
+
+#: internal/ui/connection/connectform.go
+#, go-format
+msgid "Saved as %s, the password in an unencrypted file"
+msgstr "Gespeichert als %s, das Passwort in einer unverschlüsselten Datei"
 
 #: internal/ui/connection/connectform.go
 #, go-format
@@ -1450,6 +1463,10 @@ msgstr "Passwort merken"
 #: internal/ui/connection/controller.go
 msgid "No keyring found, see Preferences"
 msgstr "Kein Schlüsselbund gefunden, siehe Einstellungen"
+
+#: internal/ui/connection/controller.go
+msgid "Stored in an unencrypted file"
+msgstr "In einer unverschlüsselten Datei gespeichert"
 
 #: internal/ui/connection/controller.go
 msgid "Stored in your keyring"
@@ -1596,6 +1613,16 @@ msgid "OK"
 msgstr "OK"
 
 #: internal/ui/connection/passwords.go
+msgid "Saved password not removed: the password file could not be changed."
+msgstr ""
+"Gespeichertes Passwort nicht entfernt: Die Passwortdatei ließ sich nicht "
+"ändern."
+
+#: internal/ui/connection/passwords.go
+msgid "Password not saved: the password file could not be changed."
+msgstr "Passwort nicht gespeichert: Die Passwortdatei ließ sich nicht ändern."
+
+#: internal/ui/connection/passwords.go
 msgid "Saved password not removed: the keyring is locked."
 msgstr "Gespeichertes Passwort nicht entfernt: Der Schlüsselbund ist gesperrt."
 
@@ -1618,6 +1645,14 @@ msgstr "Gespeichertes Passwort nicht entfernt: Der Schlüsselbund meldete einen 
 #: internal/ui/connection/passwords.go
 msgid "Password not saved: the keyring reported an error."
 msgstr "Passwort nicht gespeichert: Der Schlüsselbund meldete einen Fehler."
+
+#: internal/ui/connection/passwords.go
+msgid ""
+"Some passwords are still in an unencrypted file. You can move them to your "
+"keyring in Preferences."
+msgstr ""
+"Einige Passwörter liegen noch in einer unverschlüsselten Datei. In den "
+"Einstellungen kannst du sie in den Schlüsselbund verschieben."
 
 #: internal/ui/connection/savedlist.go
 msgid "Saved Connections"
@@ -2043,7 +2078,7 @@ msgid "Mute/Deafen"
 msgstr "Stumm-/Taubschalten"
 
 #. TRANSLATORS: Permission: move other users between channels.
-#: internal/ui/permname/permname.go
+#: internal/ui/permname/permname.go internal/ui/prefs/passwords.go
 msgid "Move"
 msgstr "Verschieben"
 
@@ -2070,6 +2105,129 @@ msgstr "Benutzer registrieren"
 #: internal/ui/permname/permname.go
 msgid "Register Self"
 msgstr "Selbst registrieren"
+
+#: internal/ui/prefs/passwords.go
+msgid "Passwords"
+msgstr "Passwörter"
+
+#: internal/ui/prefs/passwords.go
+msgid "Move to Keyring"
+msgstr "In den Schlüsselbund verschieben"
+
+#: internal/ui/prefs/passwords.go
+msgid "Save Passwords in an Unencrypted File"
+msgstr "Passwörter in unverschlüsselter Datei speichern"
+
+#: internal/ui/prefs/passwords.go
+msgid "Anyone who can read your files can read them"
+msgstr "Wer deine Dateien lesen kann, kann auch die Passwörter lesen"
+
+#: internal/ui/prefs/passwords.go
+msgid "A damaged password file was set aside"
+msgstr "Eine beschädigte Passwortdatei wurde beiseitegelegt"
+
+#: internal/ui/prefs/passwords.go
+msgid "The password file could not be created."
+msgstr "Die Passwortdatei konnte nicht angelegt werden."
+
+#: internal/ui/prefs/passwords.go
+msgid "The password file could not be deleted."
+msgstr "Die Passwortdatei konnte nicht gelöscht werden."
+
+#: internal/ui/prefs/passwords.go
+msgid ""
+"Passwords not moved: the keyring did not take all of them. The file is kept."
+msgstr ""
+"Passwörter nicht verschoben: Der Schlüsselbund hat nicht alle übernommen. "
+"Die Datei bleibt erhalten."
+
+#: internal/ui/prefs/passwords.go
+msgid "Passwords moved to your keyring"
+msgstr "Passwörter in den Schlüsselbund verschoben"
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid "%d password is in an unencrypted file"
+msgid_plural "%d passwords are in an unencrypted file"
+msgstr[0] "%d Passwort liegt in einer unverschlüsselten Datei"
+msgstr[1] "%d Passwörter liegen in einer unverschlüsselten Datei"
+
+#: internal/ui/prefs/passwords.go
+msgid "Saved in your keyring"
+msgstr "Im Schlüsselbund gespeichert"
+
+#: internal/ui/prefs/passwords.go
+msgid "Saved in an unencrypted file"
+msgstr "In einer unverschlüsselten Datei gespeichert"
+
+#: internal/ui/prefs/passwords.go
+msgid "Passwords are not saved"
+msgstr "Passwörter werden nicht gespeichert"
+
+#: internal/ui/prefs/passwords.go
+msgid "No keyring found: the desktop offers no Secret portal."
+msgstr ""
+"Kein Schlüsselbund gefunden: Die Arbeitsumgebung bietet kein Secret-Portal "
+"an."
+
+#: internal/ui/prefs/passwords.go
+msgid ""
+"No keyring found. To save passwords, set up a keyring such as GNOME Keyring, "
+"KWallet or oo7."
+msgstr ""
+"Kein Schlüsselbund gefunden. Um Passwörter zu speichern, richte einen "
+"Schlüsselbund ein, etwa GNOME-Schlüsselbund, KWallet oder oo7."
+
+#: internal/ui/prefs/passwords.go
+msgid "Looking for a keyring…"
+msgstr "Schlüsselbund wird gesucht …"
+
+#: internal/ui/prefs/passwords.go
+msgid "Save Passwords Unencrypted?"
+msgstr "Passwörter unverschlüsselt speichern?"
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid ""
+"Passwords will be saved as plain text in %s. Only your user account can open "
+"the file, but every program you run can read it, and so can anyone with "
+"access to your files or backups."
+msgstr ""
+"Passwörter werden im Klartext in %s gespeichert. Nur dein Benutzerkonto kann "
+"die Datei öffnen, aber jedes Programm, das du startest, kann sie lesen, "
+"ebenso jeder mit Zugriff auf deine Dateien oder Sicherungen."
+
+#: internal/ui/prefs/passwords.go
+msgid "Save Unencrypted"
+msgstr "Unverschlüsselt speichern"
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid "The %d password saved in %s will be deleted."
+msgid_plural "The %d passwords saved in %s will be deleted."
+msgstr[0] "Das %d in %s gespeicherte Passwort wird gelöscht."
+msgstr[1] "Die %d in %s gespeicherten Passwörter werden gelöscht."
+
+#: internal/ui/prefs/passwords.go
+msgid "These damaged copies will be deleted as well:"
+msgstr "Diese beschädigten Kopien werden ebenfalls gelöscht:"
+
+#: internal/ui/prefs/passwords.go
+msgid "Delete Saved Passwords?"
+msgstr "Gespeicherte Passwörter löschen?"
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid ""
+"Each password is saved in your keyring and read back. When all of them are "
+"there, %s is deleted."
+msgstr ""
+"Jedes Passwort wird im Schlüsselbund gespeichert und zurückgelesen. Wenn "
+"alle dort sind, wird %s gelöscht."
+
+#: internal/ui/prefs/passwords.go
+msgid "Move Passwords to Your Keyring?"
+msgstr "Passwörter in den Schlüsselbund verschieben?"
 
 #: internal/ui/prefs/sounds.go
 msgid "Connected to a server"
@@ -2557,34 +2715,6 @@ msgstr "Wenn die Verbindung nach einem Abbruch wiederhergestellt ist"
 #: internal/ui/prefs/window.go
 msgid "Sounds"
 msgstr "Töne"
-
-#: internal/ui/prefs/window.go
-msgid "Passwords"
-msgstr "Passwörter"
-
-#: internal/ui/prefs/window.go
-msgid "Saved in your keyring"
-msgstr "Im Schlüsselbund gespeichert"
-
-#: internal/ui/prefs/window.go
-msgid "Passwords are not saved"
-msgstr "Passwörter werden nicht gespeichert"
-
-#: internal/ui/prefs/window.go
-msgid "No keyring found: the desktop offers no Secret portal."
-msgstr "Kein Schlüsselbund gefunden: Die Arbeitsumgebung bietet kein Secret-Portal an."
-
-#: internal/ui/prefs/window.go
-msgid ""
-"No keyring found. To save passwords, set up a keyring such as GNOME Keyring, "
-"KWallet or oo7."
-msgstr ""
-"Kein Schlüsselbund gefunden. Um Passwörter zu speichern, richte einen "
-"Schlüsselbund ein, etwa GNOME-Schlüsselbund, KWallet oder oo7."
-
-#: internal/ui/prefs/window.go
-msgid "Looking for a keyring…"
-msgstr "Schlüsselbund wird gesucht …"
 
 #: internal/ui/prefs/window.go internal/ui/statusbar.go
 msgid "System default"

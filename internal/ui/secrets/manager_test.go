@@ -49,7 +49,7 @@ var k = Key{Host: "example.invalid", Port: 1, Username: "a"}
 // Without a keyring nothing reaches it, and every call says so.
 func TestManagerWithoutKeyring(t *testing.T) {
 	s := &scripted{}
-	m := NewManager(s, detected(NoKeyring), func() {})
+	m := NewManager(s, nil, detected(NoKeyring), func() {})
 	if err := m.Save(k, "pw"); !errors.Is(err, ErrNoKeyring) {
 		t.Errorf("Save: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestManagerWithoutKeyring(t *testing.T) {
 func TestManagerKeyringGone(t *testing.T) {
 	s := &scripted{}
 	var changes atomic.Int32
-	m := NewManager(s, detected(InKeyring), func() { changes.Add(1) })
+	m := NewManager(s, nil, detected(InKeyring), func() { changes.Add(1) })
 	if err := m.Save(k, "pw"); err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +100,7 @@ func TestManagerKeyringRefused(t *testing.T) {
 	s := &scripted{}
 	s.fail(refused())
 	var changes atomic.Int32
-	m := NewManager(s, detected(InKeyring), func() { changes.Add(1) })
+	m := NewManager(s, nil, detected(InKeyring), func() { changes.Add(1) })
 	if err := m.Save(k, "pw"); KindOf(err) != Refused {
 		t.Errorf("Save: %v", err)
 	}
@@ -117,7 +117,7 @@ func TestManagerKeyringRefused(t *testing.T) {
 func TestManagerWaitsForDetection(t *testing.T) {
 	s := &scripted{}
 	release := make(chan struct{})
-	m := NewManager(s, func() State { <-release; return InKeyring }, func() {})
+	m := NewManager(s, nil, func() State { <-release; return InKeyring }, func() {})
 	if m.State() != Unknown {
 		t.Errorf("State before detection: %v", m.State())
 	}

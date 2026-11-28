@@ -3,6 +3,7 @@ package connection
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -26,6 +27,7 @@ type memStore struct {
 	state   secrets.State
 	err     error
 	lookups int
+	file    secrets.FileInfo
 }
 
 func (m *memStore) State() secrets.State {
@@ -36,6 +38,16 @@ func (m *memStore) State() secrets.State {
 	}
 	return m.state
 }
+
+func (m *memStore) File() secrets.FileInfo {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.file
+}
+
+func (*memStore) UseFile() error       { return nil }
+func (*memStore) StopUsingFile() error { return nil }
+func (*memStore) MoveToKeyring() error { return nil }
 
 func (m *memStore) Save(k secrets.Key, password string) error {
 	m.mu.Lock()
@@ -183,7 +195,7 @@ func TestPasswordProblem(t *testing.T) {
 		t.Error("success or no keyring is a problem")
 	}
 	seen := map[string]bool{}
-	for _, err := range []error{errRefused, errGone, errOther} {
+	for _, err := range []error{errRefused, errGone, errOther, &secrets.FileError{}} {
 		for _, removing := range []bool{false, true} {
 			text := passwordProblem(err, removing)
 			if text == "" || seen[text] {
@@ -243,7 +255,57 @@ func TestGTKRememberRowWithoutKeyring(t *testing.T) {
 				t.Errorf("%v: active %v, sensitive %v, subtitle %q", s, off.Active(), off.Sensitive(), off.Subtitle())
 			}
 		}
+		file := rememberRow(secrets.InFile)
+		if !file.Active() || !file.Sensitive() || file.Subtitle() == on.Subtitle() {
+			t.Errorf("in a file: active %v, sensitive %v, subtitle %q", file.Active(), file.Sensitive(), file.Subtitle())
+		}
 	})
+}
+
+// "Save Connection" says where the password goes, with and without a name.
+func TestSaveSubtitle(t *testing.T) {
+	seen := map[string]bool{}
+	for _, s := range []secrets.State{secrets.InKeyring, secrets.NoKeyring, secrets.InFile} {
+		for _, name := range []string{"", "a@one.localhost"} {
+			text := saveSubtitle(s, name)
+			if text == "" || seen[text] || (name != "" && !strings.Contains(text, name)) {
+				t.Errorf("%v %q: %q", s, name, text)
+			}
+			seen[text] = true
+		}
+	}
+}
+
+// Passwords left in the file next to a keyring are mentioned once per
+// start, and not at all without such a file.
+func TestGTKLeftPasswordsNoticedOnce(t *testing.T) {
+	needGTK(t) // the bus delivers on the GLib main loop
+	for _, left := range []bool{true, false} {
+		b := bus.New(nil)
+		got := make(chan string, 4)
+		bus.Subscribe(b, func(ev bus.PasswordProblem) { got <- ev.Text })
+		m := &memStore{file: secrets.FileInfo{Exists: left, Count: 1}}
+		ctx, cancel := context.WithCancel(context.Background())
+		c := &Controller{passwords: m, appBus: b, appCtx: ctx}
+		c.noticeLeftPasswords()
+		b.Emit(bus.PasswordStorageChanged{})
+		b.Emit(bus.PasswordStorageChanged{})
+		n := 0
+		for done := time.After(500 * time.Millisecond); ; {
+			select {
+			case <-got:
+				n++
+				continue
+			case <-done:
+			}
+			break
+		}
+		if want := map[bool]int{true: 1, false: 0}[left]; n != want {
+			t.Errorf("file left %v: %d notices, want %d", left, n, want)
+		}
+		cancel()
+		b.Close()
+	}
 }
 
 // The form says when the password will not be saved with the connection,

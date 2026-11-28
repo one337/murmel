@@ -6,7 +6,8 @@
 // desktop keyring. Elsewhere (RPM, builds from source) libsecret uses the
 // desktop keyring through the Secret Service (GNOME Keyring, KWallet),
 // with the same schema and attributes Murmel always used, so stored
-// passwords stay found.
+// passwords stay found. Without a keyring, File keeps them unencrypted
+// when the user chooses that; Manager decides where they go.
 //
 // Every call blocks (D-Bus, and possibly an unlock prompt): run it off the
 // GTK main loop. Errors are returned, never fatal; KindOf tells whether the

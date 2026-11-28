@@ -5,7 +5,6 @@
 package prefs
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"path/filepath"
@@ -730,43 +729,6 @@ func generalPage(st settings.Settings, player *effects.Player, pw *adw.Preferenc
 		page.Add(shortcutsGroup(sc, pw))
 	}
 	return page
-}
-
-// passwordsGroup says where passwords are saved, in its row; it follows
-// changes while pw is open.
-func passwordsGroup(passwords secrets.Passwords, b *bus.Bus, pw *adw.PreferencesDialog) (*adw.PreferencesGroup, *adw.ActionRow) {
-	group := adw.NewPreferencesGroup()
-	group.SetTitle(i18n.Tr("Passwords"))
-	row := adw.NewActionRow()
-	row.SetUseMarkup(false)
-	group.Add(row)
-	update := func(row *adw.ActionRow) {
-		title, subtitle := passwordStorageText(passwords.State(), secrets.Sandboxed("/.flatpak-info"))
-		row.SetTitle(title)
-		row.SetSubtitle(subtitle)
-	}
-	update(row)
-	rowRef := weakref.New(row)
-	ctx, cancel := context.WithCancel(context.Background())
-	bus.SubscribeCtx(ctx, b, func(bus.PasswordStorageChanged) { rowRef.Do(update) })
-	onClose(pw, cancel)
-	return group, row
-}
-
-// passwordStorageText is the title and subtitle of the Passwords row.
-func passwordStorageText(s secrets.State, sandboxed bool) (title, subtitle string) {
-	switch s {
-	case secrets.InKeyring:
-		return i18n.Tr("Saved in your keyring"), ""
-	case secrets.NoKeyring:
-		if sandboxed {
-			return i18n.Tr("Passwords are not saved"),
-				i18n.Tr("No keyring found: the desktop offers no Secret portal.")
-		}
-		return i18n.Tr("Passwords are not saved"),
-			i18n.Tr("No keyring found. To save passwords, set up a keyring such as GNOME Keyring, KWallet or oo7.")
-	}
-	return i18n.Tr("Looking for a keyring…"), ""
 }
 
 // --- Helpers ---------------------------------------------------------------

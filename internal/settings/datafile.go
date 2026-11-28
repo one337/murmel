@@ -340,8 +340,8 @@ var writeData = func(path string, data []byte) error {
 	return os.Rename(tmp.Name(), path)
 }
 
-// dataDir is $XDG_DATA_HOME/murmel, or ~/.local/share/murmel.
-func dataDir() (string, error) {
+// DataDir is $XDG_DATA_HOME/murmel, or ~/.local/share/murmel.
+func DataDir() (string, error) {
 	if xdg := os.Getenv("XDG_DATA_HOME"); xdg != "" {
 		return filepath.Join(xdg, "murmel"), nil
 	}

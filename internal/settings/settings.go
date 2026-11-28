@@ -157,7 +157,7 @@ func New() *Store {
 	if gs, err := NewGSettings(); err == nil {
 		base = gs
 	}
-	dir, err := dataDir()
+	dir, err := DataDir()
 	if err != nil {
 		slog.Error("settings: no data directory, saved servers and volumes are not kept", "err", err)
 		dir = ""
