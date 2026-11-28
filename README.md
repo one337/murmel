@@ -36,7 +36,7 @@ written in Go with GTK&nbsp;4 and Libadwaita</p>
 - **Channels at a glance** – channel tree with avatars and speaking
   indicators, descriptions with cover images, drag and drop support
 - **Connections and identities** – save servers and sort them as you like,
-  passwords stored securely, `mumble://` links; create, import and back up
+  passwords kept in your keyring, `mumble://` links; create, import and back up
   your certificates right in the app
 - **Server administration** – edit channels with groups and permissions,
   kick, ban and manage registered users
@@ -114,6 +114,23 @@ Flatpak and RPM updates arrive through the Software app, `flatpak update` or
 > [!NOTE]
 > After the first Flatpak or Nix installation on a system, Murmel may only
 > appear in the app grid after you log out and back in.
+
+## Passwords
+
+Murmel keeps saved server passwords in your keyring (GNOME Keyring,
+KWallet, oo7 or another Secret Service); the Flatpak uses the Secret
+portal. Preferences → General → Passwords shows where they are.
+
+Without a keyring, passwords are not saved, unless you turn on *Save
+Passwords in an Unencrypted File* there. They are then stored as plain text
+in `~/.local/share/murmel/passwords.json` (Flatpak:
+`~/.var/app/io.github.one337.murmel/data/murmel/passwords.json`). Only your
+user account can open the file, but every program you run can read it.
+Once a keyring is available, *Move to Keyring* moves the passwords there and
+deletes the file.
+
+Murmel 0.5.1 and older do not use this file. If you go back to such a
+version, the file stays where it is, unencrypted, until you delete it.
 
 ## Building from source
 
