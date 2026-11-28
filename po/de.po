@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Murmel 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-28 07:44+0100\n"
+"POT-Creation-Date: 2026-11-28 08:44+0100\n"
 "PO-Revision-Date: 2026-11-09 16:25+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: German\n"
@@ -1640,7 +1640,9 @@ msgstr "Passwort nicht gespeichert: Kein Schlüsselbund gefunden."
 
 #: internal/ui/connection/passwords.go
 msgid "Saved password not removed: the keyring reported an error."
-msgstr "Gespeichertes Passwort nicht entfernt: Der Schlüsselbund meldete einen Fehler."
+msgstr ""
+"Gespeichertes Passwort nicht entfernt: Der Schlüsselbund meldete einen "
+"Fehler."
 
 #: internal/ui/connection/passwords.go
 msgid "Password not saved: the keyring reported an error."
@@ -2202,6 +2204,15 @@ msgid "Save Unencrypted"
 msgstr "Unverschlüsselt speichern"
 
 #: internal/ui/prefs/passwords.go
+msgid "Delete Saved Passwords?"
+msgstr "Gespeicherte Passwörter löschen?"
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid "The empty password file %s will be deleted."
+msgstr "Die leere Passwortdatei %s wird gelöscht."
+
+#: internal/ui/prefs/passwords.go
 #, go-format
 msgid "The %d password saved in %s will be deleted."
 msgid_plural "The %d passwords saved in %s will be deleted."
@@ -2211,10 +2222,6 @@ msgstr[1] "Die %d in %s gespeicherten Passwörter werden gelöscht."
 #: internal/ui/prefs/passwords.go
 msgid "These damaged copies will be deleted as well:"
 msgstr "Diese beschädigten Kopien werden ebenfalls gelöscht:"
-
-#: internal/ui/prefs/passwords.go
-msgid "Delete Saved Passwords?"
-msgstr "Gespeicherte Passwörter löschen?"
 
 #: internal/ui/prefs/passwords.go
 #, go-format

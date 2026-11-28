@@ -131,6 +131,25 @@ func (m *memKeyring) Delete(k secrets.Key) error {
 	return nil
 }
 
+// The confirmation for switching the file off counts the passwords in it
+// (one in the singular) and calls a file without any empty.
+func TestDeletePasswordFileBody(t *testing.T) {
+	for _, tc := range []struct {
+		info secrets.FileInfo
+		want string
+	}{
+		{secrets.FileInfo{Path: "/d/p.json"}, "The empty password file /d/p.json will be deleted."},
+		{secrets.FileInfo{Path: "/d/p.json", Count: 1}, "The 1 password saved in /d/p.json will be deleted."},
+		{secrets.FileInfo{Path: "/d/p.json", Count: 2}, "The 2 passwords saved in /d/p.json will be deleted."},
+		{secrets.FileInfo{Path: "/d/p.json", Damaged: []string{"/d/a", "/d/b"}},
+			"The empty password file /d/p.json will be deleted.\n\nThese damaged copies will be deleted as well:\n/d/a\n/d/b"},
+	} {
+		if got := deletePasswordFileBody(tc.info); got != tc.want {
+			t.Errorf("%+v: %q, want %q", tc.info, got, tc.want)
+		}
+	}
+}
+
 // answerConfirm makes every confirmation answer ok and records headings.
 func answerConfirm(t *testing.T, ok bool) func() []string {
 	var mu sync.Mutex

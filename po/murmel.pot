@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-28 07:44+0100\n"
+"POT-Creation-Date: 2026-11-28 08:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2092,6 +2092,15 @@ msgid "Save Unencrypted"
 msgstr ""
 
 #: internal/ui/prefs/passwords.go
+msgid "Delete Saved Passwords?"
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
+#, go-format
+msgid "The empty password file %s will be deleted."
+msgstr ""
+
+#: internal/ui/prefs/passwords.go
 #, go-format
 msgid "The %d password saved in %s will be deleted."
 msgid_plural "The %d passwords saved in %s will be deleted."
@@ -2100,10 +2109,6 @@ msgstr[1] ""
 
 #: internal/ui/prefs/passwords.go
 msgid "These damaged copies will be deleted as well:"
-msgstr ""
-
-#: internal/ui/prefs/passwords.go
-msgid "Delete Saved Passwords?"
 msgstr ""
 
 #: internal/ui/prefs/passwords.go

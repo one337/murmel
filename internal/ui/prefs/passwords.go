@@ -222,12 +222,21 @@ func confirmPasswordFile(parent gtk.Widgetter, info secrets.FileInfo, answer fun
 }
 
 func confirmDeletePasswordFile(parent gtk.Widgetter, info secrets.FileInfo, answer func(bool)) {
-	body := fmt.Sprintf(i18n.TrN("The %d password saved in %s will be deleted.",
-		"The %d passwords saved in %s will be deleted.", info.Count), info.Count, info.Path)
+	confirm(parent, i18n.Tr("Delete Saved Passwords?"), deletePasswordFileBody(info), i18n.Tr("Delete"), adw.ResponseDestructive, answer)
+}
+
+// deletePasswordFileBody says what switching the file off deletes: the file
+// (named as empty when it holds no password) and any damaged copies.
+func deletePasswordFileBody(info secrets.FileInfo) string {
+	body := fmt.Sprintf(i18n.Tr("The empty password file %s will be deleted."), info.Path)
+	if info.Count > 0 {
+		body = fmt.Sprintf(i18n.TrN("The %d password saved in %s will be deleted.",
+			"The %d passwords saved in %s will be deleted.", info.Count), info.Count, info.Path)
+	}
 	if len(info.Damaged) > 0 {
 		body += "\n\n" + i18n.Tr("These damaged copies will be deleted as well:") + "\n" + strings.Join(info.Damaged, "\n")
 	}
-	confirm(parent, i18n.Tr("Delete Saved Passwords?"), body, i18n.Tr("Delete"), adw.ResponseDestructive, answer)
+	return body
 }
 
 func confirmMovePasswords(parent gtk.Widgetter, info secrets.FileInfo, answer func(bool)) {
